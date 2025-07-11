@@ -1,0 +1,238 @@
+# Dependabot configuration for Monstera project
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # ========================================
+  # Go modules (Backend)
+  # ========================================
+  - package-ecosystem: "gomod"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "@backend-team"  # 実際のチーム名に置き換えてください
+    assignees:
+      - "backend-lead"  # 実際のユーザー名に置き換えてください
+    labels:
+      - "dependencies"
+      - "backend"
+      - "go"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    # 特定の依存関係の設定
+    ignore:
+      # 重大な変更がある場合は手動で更新
+      - dependency-name: "gorm.io/gorm"
+        versions: ["2.x"]
+      - dependency-name: "github.com/gin-gonic/gin"
+        versions: ["2.x"]
+    # 自動マージ設定（マイナーアップデートまで）
+    groups:
+      go-minor:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ========================================
+  # ========================================
+  # npm (Frontend)
+  # ========================================
+  # ========================================
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "@frontend-team"  # 実際のチーム名に置き換えてください
+    assignees:
+      - "frontend-lead"  # 実際のユーザー名に置き換えてください
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "npm"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    # 特定の依存関係の設定
+    ignore:
+      # メジャーアップデートは手動で対応
+      - dependency-name: "next"
+        versions: [">13.x"]
+      - dependency-name: "react"
+        versions: ["19.x"]
+      - dependency-name: "@mui/material"
+        versions: ["6.x"]
+    # 依存関係のグループ化
+    groups:
+      # 開発依存関係
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      # プロダクション依存関係（パッチのみ自動）
+      prod-patch:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+      # TypeScript関連
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+        update-types:
+          - "minor"
+          - "patch"
+      # テスト関連
+      testing:
+        patterns:
+          - "jest*"
+          - "@testing-library/*"
+          - "playwright*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ========================================
+  # ========================================
+  # Docker
+  # ========================================
+  # ========================================
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "03:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "@devops-team"  # 実際のチーム名に置き換えてください
+    labels:
+      - "dependencies"
+      - "docker"
+      - "backend"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "03:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "@devops-team"  # 実際のチーム名に置き換えてください
+    labels:
+      - "dependencies"
+      - "docker"
+      - "frontend"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "03:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "@devops-team"  # 実際のチーム名に置き換えてください
+    labels:
+      - "dependencies"
+      - "docker"
+      - "infrastructure"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    # PostgreSQLとRedisのバージョンは慎重に更新
+    ignore:
+      - dependency-name: "postgres"
+        versions: [">15"]
+      - dependency-name: "redis"
+        versions: [">7"]
+
+  # ========================================
+  # ========================================
+  # GitHub Actions
+  # ========================================
+  # ========================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "03:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "@devops-team"  # 実際のチーム名に置き換えてください
+    labels:
+      - "dependencies"
+      - "ci/cd"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    # アクションは全て最新に保つ
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "major"
+          - "minor"
+          - "patch"
+
+# ========================================
+# 自動マージ設定の推奨事項
+# ========================================
+# 以下の条件を満たすPRは自動マージを検討：
+# 1. セキュリティアップデート
+# 2. パッチバージョンの更新
+# 3. すべてのCIチェックがパス
+# 4. 依存関係が他のパッケージに影響しない
+#
+# GitHub Settings > Merge button で
+# "Allow auto-merge" を有効にしてください
+
+# ========================================
+# セキュリティアラート設定
+# ========================================
+# GitHub Settings > Security & analysis で
+# 以下を有効にすることを推奨：
+# - Dependency graph
+# - Dependabot alerts
+# - Dependabot security updates
+
+# ========================================
+# 運用上の注意事項
+# ========================================
+# 1. メジャーバージョンアップデートは手動でレビュー
+# 2. データベース関連の更新は慎重に検証
+# 3. フレームワークの更新は破壊的変更を確認
+# 4. 月初の週は更新PRが多くなるため注意

@@ -1,0 +1,176 @@
+# Branch Protection Rules for Monstera Project
+# このファイルはGitHubのブランチ保護ルールを定義します
+# 適用するには、scripts/apply-branch-protection.sh を実行してください
+
+# 保護ブランチのルール定義
+branch_protection_rules:
+  # mainブランチの保護ルール（本番環境）
+  main:
+    # プルリクエストレビュー設定
+    required_pull_request_reviews:
+      # 承認に必要なレビュー数
+      required_approving_review_count: 2
+      # 古いレビューを却下するコミットがプッシュされた場合
+      dismiss_stale_reviews: true
+      # コードオーナーからのレビューを必須にする
+      require_code_owner_reviews: true
+      # PR作成者による承認を無効化
+      require_last_push_approval: true
+      # 管理者もルールに従う
+      bypass_pull_request_allowances:
+        users: []
+        teams: []
+        apps: []
+    
+    # 必須ステータスチェック
+    required_status_checks:
+      # マージ前に最新化を必須にする
+      strict: true
+      # 必須チェック項目
+      contexts:
+        - "Backend Check"
+        - "Frontend Check"
+        - "Docker Build Check"
+        - "Integration Test"
+        - "Go Security Check"
+        - "NPM Security Check"
+        - "Secret Scanning"
+        - "Docker Image Security Scan (backend)"
+        - "Docker Image Security Scan (frontend)"
+        - "Migration Validation"
+        - "Migration Test"
+        - "Migration Performance"
+    
+    # マージ前に最新化を必須にする
+    require_branches_to_be_up_to_date_before_merging: true
+    
+    # 直接プッシュの制限
+    restrictions:
+      # ユーザー、チーム、アプリの制限（空の場合は誰も直接プッシュできない）
+      users: []
+      teams: []
+      apps: []
+    
+    # 管理者も含めてルールを適用
+    enforce_admins: true
+    
+    # 必須の会話解決
+    required_conversation_resolution: true
+    
+    # フォースプッシュとブランチ削除の禁止
+    allow_force_pushes: false
+    allow_deletions: false
+    
+    # 線形履歴を必須にする（マージコミットを禁止）
+    required_linear_history: false
+    
+    # 署名付きコミットを必須にする
+    required_signatures: false
+    
+    # デフォルトでブランチをロック（読み取り専用）しない
+    lock_branch: false
+    
+    # フォークからのプルリクエストでワークフローの承認を必須にする
+    restrict_dismissals: false
+
+  # developブランチの保護ルール（開発環境）
+  develop:
+    required_pull_request_reviews:
+      required_approving_review_count: 1
+      dismiss_stale_reviews: true
+      require_code_owner_reviews: false
+      require_last_push_approval: true
+      bypass_pull_request_allowances:
+        users: []
+        teams: []
+        apps: []
+    
+    required_status_checks:
+      strict: true
+      contexts:
+        - "Backend Check"
+        - "Frontend Check"
+        - "Docker Build Check"
+        - "Integration Test"
+        - "Go Security Check"
+        - "NPM Security Check"
+        - "Migration Validation"
+        - "Migration Test"
+    
+    require_branches_to_be_up_to_date_before_merging: true
+    
+    restrictions:
+      users: []
+      teams: []
+      apps: []
+    
+    enforce_admins: false
+    required_conversation_resolution: true
+    allow_force_pushes: false
+    allow_deletions: false
+    required_linear_history: false
+    required_signatures: false
+    lock_branch: false
+    restrict_dismissals: false
+
+# 自動マージ設定
+auto_merge:
+  # 自動マージを有効にする
+  enabled: true
+  # 自動削除を有効にする（マージ後のブランチ削除）
+  delete_branch_on_merge: true
+  # スカッシュマージをデフォルトにする
+  allow_squash_merge: true
+  # マージコミットを許可する
+  allow_merge_commit: true
+  # リベースマージを許可する
+  allow_rebase_merge: true
+
+# ブランチ命名規則（情報提供用）
+branch_naming_conventions:
+  feature: "feature/*"
+  bugfix: "bugfix/*"
+  hotfix: "hotfix/*"
+  release: "release/*"
+  docs: "docs/*"
+  test: "test/*"
+  refactor: "refactor/*"
+  chore: "chore/*"
+
+# プルリクエストのラベル自動付与ルール
+auto_labeling:
+  - path: "backend/**"
+    label: "backend"
+  - path: "frontend/**"
+    label: "frontend"
+  - path: "**/*.md"
+    label: "documentation"
+  - path: ".github/**"
+    label: "ci/cd"
+  - path: "backend/migrations/**"
+    label: "database"
+  - path: "**/*test*"
+    label: "test"
+
+# マージ戦略の推奨事項
+merge_strategies:
+  main:
+    # mainへのマージはスカッシュマージを推奨
+    preferred_method: "squash"
+    # コミットメッセージのフォーマット
+    commit_message_format: "[{PR_NUMBER}] {PR_TITLE}"
+  develop:
+    # developへのマージは通常のマージコミットを推奨
+    preferred_method: "merge"
+    commit_message_format: "Merge pull request #{PR_NUMBER} from {BRANCH_NAME}"
+
+# セキュリティ設定
+security:
+  # 脆弱性アラートを有効化
+  vulnerability_alerts: true
+  # 自動セキュリティ修正を有効化
+  automated_security_fixes: true
+  # シークレットスキャンを有効化
+  secret_scanning: true
+  # シークレットスキャンのプッシュ保護を有効化
+  secret_scanning_push_protection: true

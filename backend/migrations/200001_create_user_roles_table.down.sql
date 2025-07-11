@@ -1,0 +1,2 @@
+-- user_rolesテーブルの削除
+DROP TABLE IF EXISTS user_roles;

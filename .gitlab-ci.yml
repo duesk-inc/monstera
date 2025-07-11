@@ -1,0 +1,120 @@
+# GitLab CI E2E テスト設定
+stages:
+  - build
+  - test
+  - report
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  FF_USE_FASTZIP: "true"
+  ARTIFACT_COMPRESSION_LEVEL: "fast"
+
+# キャッシュ設定
+.npm_cache:
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - frontend/node_modules/
+      - frontend/.npm/
+
+# E2E テストジョブテンプレート
+.e2e_test_template:
+  stage: test
+  image: node:18
+  services:
+    - mysql:8.0
+    - redis:7-alpine
+  variables:
+    MYSQL_ROOT_PASSWORD: root
+    MYSQL_DATABASE: monstera
+    MYSQL_HOST: mysql
+    REDIS_HOST: redis
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq curl wget
+    # Playwright dependencies
+    - npx playwright install-deps
+    # フロントエンドの依存関係インストール
+    - cd frontend && npm ci && cd ..
+    # バックエンドの起動
+    - docker-compose up -d backend
+    - sleep 30
+  after_script:
+    - docker-compose down || true
+  artifacts:
+    when: always
+    expire_in: 1 week
+    reports:
+      junit: test-results/ci-*/junit.xml
+    paths:
+      - test-results/
+      - frontend/playwright-report/
+      - frontend/test-results/
+
+# スモークテスト（すべてのマージリクエストで実行）
+e2e:smoke:
+  extends: .e2e_test_template
+  script:
+    - ./run-e2e-tests.sh --mode smoke --browser chromium --workers 2
+  only:
+    - merge_requests
+    - develop
+    - main
+
+# クリティカルパステスト（develop/mainブランチで実行）
+e2e:critical:
+  extends: .e2e_test_template
+  script:
+    - ./run-e2e-tests.sh --mode critical --browser chromium --workers 4
+  only:
+    - develop
+    - main
+
+# フルテスト（スケジュール実行またはmainブランチ）
+e2e:full:chromium:
+  extends: .e2e_test_template
+  script:
+    - ./run-e2e-tests.sh --mode full --browser chromium --workers 4
+  only:
+    - main
+    - schedules
+  allow_failure: true
+
+e2e:full:firefox:
+  extends: .e2e_test_template
+  script:
+    - ./run-e2e-tests.sh --mode full --browser firefox --workers 2
+  only:
+    - main
+    - schedules
+  allow_failure: true
+
+e2e:full:webkit:
+  extends: .e2e_test_template
+  script:
+    - ./run-e2e-tests.sh --mode full --browser webkit --workers 2
+  only:
+    - main
+    - schedules
+  allow_failure: true
+
+# レポート生成ジョブ
+e2e:report:
+  stage: report
+  image: node:18
+  dependencies:
+    - e2e:smoke
+    - e2e:critical
+  script:
+    - cd frontend
+    - npm install
+    - npm run test:e2e:generate-report
+    # GitLab Pages用にレポートをコピー
+    - mkdir -p ../public/e2e-reports
+    - cp -r test-results/* ../public/e2e-reports/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

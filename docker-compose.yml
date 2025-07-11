@@ -1,0 +1,235 @@
+services:
+  # PostgreSQLデータベース
+  postgres:
+    image: postgres:15-alpine
+    platform: linux/arm64/v8
+    container_name: monstera-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-monstera}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+      TZ: Asia/Tokyo
+      PGTZ: Asia/Tokyo
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/postgresql-development.conf:/etc/postgresql/postgresql.conf
+      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - monstera-network
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf -c hba_file=/etc/postgresql/pg_hba.conf
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-monstera}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin - PostgreSQL管理用WebUI
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: monstera-pgadmin
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@duesk.co.jp}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./docker/postgres/pgadmin-servers.json:/pgadmin4/servers.json
+      - ./docker/postgres/pgadmin-config.py:/pgadmin4/config_local.py:ro
+    networks:
+      - monstera-network
+
+  # Redisキャッシュサーバー
+  redis:
+    image: redis:7-alpine
+    container_name: monstera-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - monstera-network
+    command: redis-server --appendonly yes
+
+  # Cognito Local - ローカル開発用Cognitoエミュレータ
+  cognito-local:
+    image: jagregory/cognito-local:latest
+    container_name: monstera-cognito-local
+    restart: unless-stopped
+    ports:
+      - "9229:9229"
+    volumes:
+      - ./cognito:/app/.cognito
+    environment:
+      - DEBUG=1
+    networks:
+      - monstera-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9229/health",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # バックエンドAPI
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile
+      platforms:
+        - linux/arm64/v8
+    container_name: monstera-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: monstera
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_DRIVER: postgres
+      DB_SSLMODE: disable
+      DB_SSL_MODE: disable
+      JWT_SECRET: ${JWT_SECRET:-devjwtsecret}
+      PORT: 8080
+      CORS_ALLOW_ORIGINS: http://localhost:3000
+      GIN_MODE: debug
+      GO_ENV: development
+      REDIS_ENABLED: "true"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_DB: 0
+      REDIS_KEY_PREFIX: "monstera:"
+      # Cognito Configuration
+      COGNITO_ENABLED: ${COGNITO_ENABLED:-true}
+      COGNITO_REGION: ${COGNITO_REGION:-us-east-1}
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-local_7221v1tw}
+      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID:-62h69i1tpbn9rmh83xmtjyj4b}
+      COGNITO_CLIENT_SECRET: ${COGNITO_CLIENT_SECRET:-47c44j2dkj2y4tkf777zqgpiw}
+      COGNITO_ENDPOINT: ${COGNITO_ENDPOINT:-http://cognito-local:9229}
+      # AWS Credentials for local development
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-local}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-local}
+      AWS_EC2_METADATA_DISABLED: "true"
+      CHROME_PATH: /usr/bin/chromium
+      PDF_GENERATION_TIMEOUT: 30
+      TEMPLATE_DIR: /app/templates
+    ports:
+      - "${API_PORT:-8080}:8080"
+    volumes:
+      - ./backend:/app
+      - ./backend/templates:/app/templates
+    networks:
+      - monstera-network
+    command: ["./entrypoint.sh", "start"] # 通常起動: DB待機→マイグレーション→起動
+    # command: ["./entrypoint.sh", "direct"] # 直接起動: マイグレーションスキップ
+
+  # フロントエンド
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+      platforms:
+        - linux/arm64/v8
+    container_name: monstera-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # ブラウザ用のAPI URL (localhost経由でアクセス)
+      - NEXT_PUBLIC_API_URL=http://localhost:${API_PORT:-8080}
+      # Next.js サーバー側のAPI URL (コンテナ間通信用)
+      - NEXT_SERVER_API_URL=http://backend:8080
+      # 開発モード設定
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - monstera-network
+
+  # バッチスケジューラーコンテナ
+  # batch:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: ../docker/batch/Dockerfile
+  #       platforms:
+  #         - linux/arm64/v8
+  #     container_name: monstera-batch
+  #     restart: unless-stopped
+  #     depends_on:
+  #       postgres:
+  #         condition: service_healthy
+  #       redis:
+  #         condition: service_started
+  #     environment:
+  #       DB_HOST: postgres
+  #       DB_PORT: 5432
+  #       DB_NAME: ${DB_NAME:-monstera}
+  #       DB_USER: ${DB_USER:-postgres}
+  #       DB_PASSWORD: ${DB_PASSWORD:-postgres}
+  #       DB_DRIVER: postgres
+  #       JWT_SECRET: ${JWT_SECRET:-devjwtsecret}
+  #       REDIS_ENABLED: "true"
+  #       REDIS_HOST: redis
+  #       REDIS_PORT: 6379
+  #       REDIS_PASSWORD: ""
+  #       REDIS_DB: 0
+  #       REDIS_KEY_PREFIX: "monstera:"
+  #       GO_ENV: production
+  #       TZ: Asia/Tokyo
+  #     volumes:
+  #       - batch_logs:/app/logs
+  #     networks:
+  #       - monstera-network
+  #     healthcheck:
+  #       test:
+  #         ["CMD", "ps", "aux", "|", "grep", "-v", "grep", "|", "grep", "batch"]
+  #       interval: 30s
+  #       timeout: 5s
+  #       retries: 3
+
+networks:
+  monstera-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  redis_data:
+  batch_logs:
+  cron_logs:

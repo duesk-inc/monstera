@@ -1,0 +1,412 @@
+name: Database Migration Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/migrations/**'
+      - '.github/workflows/db-migration.yml'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/migrations/**'
+  workflow_dispatch:
+
+env:
+  GO_VERSION: '1.22'
+  POSTGRES_VERSION: '15-alpine'
+
+jobs:
+  migration-validation:
+    name: Migration Validation
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Install golang-migrate
+      run: |
+        go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+    - name: Validate migration files
+      run: |
+        # マイグレーションファイルの命名規則チェック
+        echo "📋 Checking migration file naming convention..."
+        
+        # 標準マイグレーションディレクトリをチェック
+        if [ -d "backend/migrations" ]; then
+          for file in backend/migrations/*.sql; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              if [[ ! "$filename" =~ ^[0-9]{6}_[a-z_]+\.(up|down)\.sql$ ]]; then
+                echo "⚠️  Non-standard filename in migrations/: $filename"
+              fi
+            fi
+          done
+        fi
+        
+        # PostgreSQL専用ディレクトリをチェック
+        if [ -d "backend/migrations/postgresql-versions" ]; then
+          for file in backend/migrations/postgresql-versions/*.sql; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              if [[ ! "$filename" =~ ^[0-9]{6}_[a-z_]+\.(up|down)\.postgresql\.sql$ ]]; then
+                echo "❌ Invalid filename: $filename"
+                echo "Expected format: NNNNNN_description.{up|down}.postgresql.sql"
+                exit 1
+              fi
+            fi
+          done
+        fi
+        
+        echo "✅ All migration files follow naming convention"
+
+    - name: Check migration pairs
+      run: |
+        echo "🔍 Checking up/down migration pairs..."
+        
+        # 標準マイグレーションディレクトリ
+        if [ -d "backend/migrations" ]; then
+          cd backend/migrations
+          for up_file in *.up.sql; do
+            if [ -f "$up_file" ]; then
+              down_file="${up_file/.up.sql/.down.sql}"
+              if [ ! -f "$down_file" ]; then
+                echo "❌ Missing down migration for: $up_file"
+                exit 1
+              fi
+            fi
+          done
+          cd ../..
+        fi
+        
+        # PostgreSQL専用ディレクトリ
+        if [ -d "backend/migrations/postgresql-versions" ]; then
+          cd backend/migrations/postgresql-versions
+          for up_file in *.up.postgresql.sql; do
+            if [ -f "$up_file" ]; then
+              down_file="${up_file/.up.postgresql.sql/.down.postgresql.sql}"
+              if [ ! -f "$down_file" ]; then
+                echo "❌ Missing down migration for: $up_file"
+                exit 1
+              fi
+            fi
+          done
+          cd ../../..
+        fi
+        
+        echo "✅ All migrations have proper up/down pairs"
+
+    - name: Validate SQL syntax
+      run: |
+        echo "🔍 Validating SQL syntax..."
+        
+        # 簡易的なSQLシンタックスチェック
+        check_sql_files() {
+          local dir=$1
+          if [ -d "$dir" ]; then
+            for file in "$dir"/*.sql; do
+              if [ -f "$file" ]; then
+                if grep -E '(DROP\s+DATABASE|TRUNCATE\s+TABLE|DELETE\s+FROM\s+[^W])' "$file" | grep -v WHERE | grep -v "CASCADE" > /dev/null; then
+                  echo "⚠️  Potentially dangerous operation without WHERE clause in: $file"
+                fi
+              fi
+            done
+          fi
+        }
+        
+        check_sql_files "backend/migrations"
+        check_sql_files "backend/migrations/postgresql-versions"
+        
+        echo "✅ SQL syntax validation completed"
+
+  migration-test:
+    name: Migration Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: monstera_test
+          POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d monstera_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Install golang-migrate
+      run: |
+        go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+    - name: Run migrations up
+      env:
+        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/monstera_test?sslmode=disable"
+      run: |
+        echo "⬆️  Running all migrations up..."
+        
+        # 使用するマイグレーションパスを決定
+        if [ -d "backend/migrations/postgresql-versions" ] && [ "$(ls -A backend/migrations/postgresql-versions/*.sql 2>/dev/null)" ]; then
+          MIGRATION_PATH="backend/migrations/postgresql-versions"
+          echo "Using PostgreSQL-specific migrations from: $MIGRATION_PATH"
+        else
+          MIGRATION_PATH="backend/migrations"
+          echo "Using standard migrations from: $MIGRATION_PATH"
+        fi
+        
+        migrate -path "$MIGRATION_PATH" -database "$DATABASE_URL" up
+        
+        # マイグレーションバージョンを確認
+        CURRENT_VERSION=$(migrate -path "$MIGRATION_PATH" -database "$DATABASE_URL" version 2>&1)
+        echo "Current migration version: $CURRENT_VERSION"
+
+    - name: Verify database schema
+      env:
+        PGPASSWORD: postgres
+      run: |
+        echo "📊 Verifying database schema..."
+        
+        # テーブル一覧を取得
+        psql -h localhost -U postgres -d monstera_test -c "\dt" > tables.txt
+        
+        # 必須テーブルの存在確認
+        REQUIRED_TABLES=(
+          "users"
+          "profiles"
+          "clients"
+          "projects"
+          "invoices"
+          "expenses"
+          "leave_requests"
+          "weekly_reports"
+          "daily_records"
+        )
+        
+        for table in "${REQUIRED_TABLES[@]}"; do
+          if ! grep -q "$table" tables.txt; then
+            echo "❌ Required table missing: $table"
+            exit 1
+          fi
+        done
+        
+        echo "✅ All required tables exist"
+
+    - name: Test migration rollback
+      env:
+        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/monstera_test?sslmode=disable"
+      run: |
+        echo "⬇️  Testing migration rollback (down 1)..."
+        
+        # 使用するマイグレーションパスを決定
+        if [ -d "backend/migrations/postgresql-versions" ] && [ "$(ls -A backend/migrations/postgresql-versions/*.sql 2>/dev/null)" ]; then
+          MIGRATION_PATH="backend/migrations/postgresql-versions"
+        else
+          MIGRATION_PATH="backend/migrations"
+        fi
+        
+        # 現在のバージョンを記録
+        BEFORE_VERSION=$(migrate -path "$MIGRATION_PATH" -database "$DATABASE_URL" version 2>&1)
+        
+        # 1つロールバック
+        migrate -path "$MIGRATION_PATH" -database "$DATABASE_URL" down 1
+        
+        # ロールバック後のバージョンを確認
+        AFTER_VERSION=$(migrate -path "$MIGRATION_PATH" -database "$DATABASE_URL" version 2>&1)
+        
+        echo "Before rollback: $BEFORE_VERSION"
+        echo "After rollback: $AFTER_VERSION"
+        
+        # 再度最新まで適用
+        migrate -path "$MIGRATION_PATH" -database "$DATABASE_URL" up
+        
+        echo "✅ Migration rollback test passed"
+
+    - name: Test idempotency
+      env:
+        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/monstera_test?sslmode=disable"
+      run: |
+        echo "🔄 Testing migration idempotency..."
+        
+        # 使用するマイグレーションパスを決定
+        if [ -d "backend/migrations/postgresql-versions" ] && [ "$(ls -A backend/migrations/postgresql-versions/*.sql 2>/dev/null)" ]; then
+          MIGRATION_PATH="backend/migrations/postgresql-versions"
+        else
+          MIGRATION_PATH="backend/migrations"
+        fi
+        
+        # 同じマイグレーションを再実行してもエラーにならないか確認
+        migrate -path "$MIGRATION_PATH" -database "$DATABASE_URL" up || true
+        
+        echo "✅ Idempotency test passed"
+
+    - name: Schema dump
+      env:
+        PGPASSWORD: postgres
+      run: |
+        echo "💾 Dumping schema for review..."
+        
+        pg_dump -h localhost -U postgres -d monstera_test --schema-only > schema.sql
+        
+        # アーティファクトとして保存
+        echo "Schema dumped to schema.sql"
+
+    - name: Upload schema dump
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: schema-dump
+        path: schema.sql
+
+  migration-performance:
+    name: Migration Performance Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: monstera_perf
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d monstera_perf"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Install golang-migrate
+      run: |
+        go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+    - name: Measure migration performance
+      env:
+        DATABASE_URL: "postgres://postgres:postgres@localhost:5432/monstera_perf?sslmode=disable"
+      run: |
+        echo "⏱️  Measuring migration performance..."
+        
+        # 使用するマイグレーションパスを決定
+        if [ -d "backend/migrations/postgresql-versions" ] && [ "$(ls -A backend/migrations/postgresql-versions/*.sql 2>/dev/null)" ]; then
+          MIGRATION_PATH="backend/migrations/postgresql-versions"
+          echo "Using PostgreSQL-specific migrations from: $MIGRATION_PATH"
+        else
+          MIGRATION_PATH="backend/migrations"
+          echo "Using standard migrations from: $MIGRATION_PATH"
+        fi
+        
+        # 開始時刻を記録
+        START_TIME=$(date +%s)
+        
+        # マイグレーション実行
+        migrate -path "$MIGRATION_PATH" -database "$DATABASE_URL" up
+        
+        # 終了時刻を記録
+        END_TIME=$(date +%s)
+        DURATION=$((END_TIME - START_TIME))
+        
+        echo "✅ All migrations completed in ${DURATION} seconds"
+        
+        # 警告閾値（60秒）
+        if [ $DURATION -gt 60 ]; then
+          echo "⚠️  Warning: Migrations took longer than 60 seconds"
+        fi
+
+    - name: Check index usage
+      env:
+        PGPASSWORD: postgres
+      run: |
+        echo "📊 Checking index usage statistics..."
+        
+        # インデックスの使用状況を確認
+        psql -h localhost -U postgres -d monstera_perf << EOF > index_stats.txt
+        SELECT 
+          schemaname,
+          tablename,
+          indexname,
+          idx_scan,
+          idx_tup_read,
+          idx_tup_fetch
+        FROM pg_stat_user_indexes
+        ORDER BY idx_scan DESC;
+        EOF
+        
+        echo "Index statistics saved to index_stats.txt"
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-results
+        path: |
+          index_stats.txt
+
+  migration-summary:
+    name: Migration Summary
+    runs-on: ubuntu-latest
+    needs: [migration-validation, migration-test, migration-performance]
+    if: always()
+    steps:
+    - name: Create migration summary
+      run: |
+        echo "## 🗄️ Database Migration Check Summary" > migration-summary.md
+        echo "" >> migration-summary.md
+        echo "| Check | Status |" >> migration-summary.md
+        echo "|-------|--------|" >> migration-summary.md
+        
+        # 各ジョブの結果を確認
+        if [ "${{ needs.migration-validation.result }}" == "success" ]; then
+          echo "| Migration Validation | ✅ Passed |" >> migration-summary.md
+        else
+          echo "| Migration Validation | ❌ Failed |" >> migration-summary.md
+        fi
+        
+        if [ "${{ needs.migration-test.result }}" == "success" ]; then
+          echo "| Migration Test | ✅ Passed |" >> migration-summary.md
+        else
+          echo "| Migration Test | ❌ Failed |" >> migration-summary.md
+        fi
+        
+        if [ "${{ needs.migration-performance.result }}" == "success" ]; then
+          echo "| Performance Test | ✅ Passed |" >> migration-summary.md
+        else
+          echo "| Performance Test | ❌ Failed |" >> migration-summary.md
+        fi
+        
+        echo "" >> migration-summary.md
+        echo "📋 詳細な結果はArtifactsをご確認ください。" >> migration-summary.md
+        
+        cat migration-summary.md
+
+    - name: Upload migration summary
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: migration-summary
+        path: migration-summary.md

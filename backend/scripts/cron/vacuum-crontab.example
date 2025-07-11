@@ -1,0 +1,57 @@
+# PostgreSQL VACUUM/ANALYZE定期実行設定
+# 
+# このファイルをcrontabに追加するには:
+# crontab -e
+# または
+# crontab vacuum-crontab.example
+
+# 環境変数の設定
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# データベース接続情報
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=monstera
+DB_USER=postgres
+DB_PASSWORD=password
+LOG_DIR=/var/log/monstera
+
+# =====================================
+# 日次メンテナンス（毎日深夜2時）
+# =====================================
+# 高頻度更新テーブルのVACUUM実行
+0 2 * * * /path/to/monstera/backend/scripts/vacuum-maintenance.sh daily >> /var/log/monstera/vacuum-cron.log 2>&1
+
+# =====================================
+# 週次メンテナンス（日曜深夜3時）
+# =====================================
+# 中頻度更新テーブルのVACUUM実行
+0 3 * * 0 /path/to/monstera/backend/scripts/vacuum-maintenance.sh weekly >> /var/log/monstera/vacuum-cron.log 2>&1
+
+# =====================================
+# 月次メンテナンス（毎月1日深夜4時）
+# =====================================
+# VACUUM FULLとREINDEX実行（メンテナンスウィンドウ推奨）
+0 4 1 * * /path/to/monstera/backend/scripts/vacuum-maintenance.sh monthly >> /var/log/monstera/vacuum-cron.log 2>&1
+
+# =====================================
+# 監視（毎日朝9時）
+# =====================================
+# VACUUM/ANALYZE実行状況のレポート生成
+0 9 * * * /path/to/monstera/backend/scripts/monitor-vacuum-analyze.sh > /var/log/monstera/vacuum-monitor-$(date +\%Y\%m\%d).log 2>&1
+
+# =====================================
+# 緊急対応用（手動実行）
+# =====================================
+# 特定テーブルの緊急VACUUM（コメントアウト状態）
+# 0 * * * * psql -h localhost -U postgres -d monstera -c "VACUUM (VERBOSE, ANALYZE) audit_logs;" >> /var/log/monstera/vacuum-emergency.log 2>&1
+
+# =====================================
+# 注意事項
+# =====================================
+# 1. /path/to/monstera を実際のパスに置き換えてください
+# 2. DB_PASSWORD は環境変数または.pgpassファイルで管理することを推奨
+# 3. ログファイルのローテーションを設定してください
+# 4. 本番環境では、メンテナンスウィンドウを考慮してスケジュールを調整してください
+# 5. VACUUM FULLは排他ロックを取得するため、業務時間外に実行してください

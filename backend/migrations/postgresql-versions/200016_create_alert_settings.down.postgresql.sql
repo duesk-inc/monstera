@@ -1,0 +1,2 @@
+-- alert_settingsテーブルの削除は200011_create_alert_tables.downで行います
+-- このマイグレーションでは何も実行しません

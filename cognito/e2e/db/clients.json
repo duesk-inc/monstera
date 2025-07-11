@@ -1,0 +1,36 @@
+{
+  "Clients": {
+    "62h69i1tpbn9rmh83xmtjyj4b": {
+      "ClientId": "62h69i1tpbn9rmh83xmtjyj4b",
+      "ClientName": "monstera-app",
+      "ClientSecret": "47c44j2dkj2y4tkf777zqgpiw",
+      "CreationDate": "2025-07-02T01:21:22.516Z",
+      "ExplicitAuthFlows": [
+        "ALLOW_USER_PASSWORD_AUTH",
+        "ALLOW_REFRESH_TOKEN_AUTH",
+        "ALLOW_ADMIN_USER_PASSWORD_AUTH"
+      ],
+      "LastModifiedDate": "2025-07-02T01:21:22.516Z",
+      "ReadAttributes": [
+        "email",
+        "name",
+        "custom:role",
+        "custom:department_id",
+        "custom:employee_id"
+      ],
+      "TokenValidityUnits": {
+        "AccessToken": "hours",
+        "IdToken": "minutes",
+        "RefreshToken": "days"
+      },
+      "UserPoolId": "local_7221v1tw",
+      "WriteAttributes": [
+        "email",
+        "name",
+        "custom:role",
+        "custom:department_id",
+        "custom:employee_id"
+      ]
+    }
+  }
+}

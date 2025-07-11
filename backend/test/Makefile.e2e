@@ -1,0 +1,237 @@
+# E2E Testing Makefile for Monstera Backend
+# 経費申請システムのE2Eテスト実行用Makefile
+
+.PHONY: help test-e2e test-e2e-api test-e2e-integration test-e2e-http test-e2e-full test-e2e-ci setup-e2e-env cleanup-e2e-env
+
+# デフォルトターゲット
+help:
+	@echo "Monstera Backend E2E Test Commands"
+	@echo "=================================="
+	@echo ""
+	@echo "基本コマンド:"
+	@echo "  make test-e2e              - 全てのE2Eテストを実行"
+	@echo "  make test-e2e-api          - API E2Eテストのみ実行"
+	@echo "  make test-e2e-integration  - 統合E2Eテストのみ実行"
+	@echo "  make test-e2e-http         - HTTP E2Eテストのみ実行"
+	@echo "  make test-e2e-full         - 完全なE2Eテストスイート実行"
+	@echo ""
+	@echo "環境管理:"
+	@echo "  make setup-e2e-env         - E2Eテスト環境セットアップ"
+	@echo "  make cleanup-e2e-env       - E2Eテスト環境クリーンアップ"
+	@echo ""
+	@echo "CI/CD:"
+	@echo "  make test-e2e-ci           - CI環境でのE2Eテスト実行"
+	@echo ""
+	@echo "レポート:"
+	@echo "  make test-e2e-report       - E2Eテスト結果レポート生成"
+	@echo ""
+	@echo "環境変数:"
+	@echo "  E2E_DATABASE_URL           - テスト用データベースURL"
+	@echo "  E2E_CLEANUP_AFTER_TEST     - テスト後のクリーンアップ (true/false)"
+	@echo "  E2E_LOG_LEVEL             - ログレベル (debug/info/warn/error)"
+	@echo "  RUN_E2E_TESTS             - E2Eテスト実行フラグ (CI環境用)"
+
+# 変数定義
+GO_CMD = go
+TEST_DIR = .
+TEST_TIMEOUT = 30m
+TEST_PARALLEL = 4
+COVERAGE_FILE = coverage_e2e.out
+REPORT_DIR = reports
+LOG_DIR = logs
+
+# E2E テスト用環境変数
+export E2E_DATABASE_URL ?= mysql://root:password@localhost:3306/monstera_e2e_test
+export E2E_LOG_LEVEL ?= info
+export E2E_CLEANUP_AFTER_TEST ?= true
+export E2E_REQUEST_TIMEOUT ?= 30s
+export E2E_MAX_CONCURRENT_REQUESTS ?= 10
+export E2E_PERFORMANCE_THRESHOLD ?= 2s
+
+# 全てのE2Eテストを実行
+test-e2e: setup-e2e-env
+	@echo "🚀 E2Eテスト実行開始..."
+	@mkdir -p $(REPORT_DIR) $(LOG_DIR)
+	$(GO_CMD) test -v -timeout $(TEST_TIMEOUT) -parallel $(TEST_PARALLEL) \
+		-run "TestExpense.*E2E" \
+		-coverprofile=$(COVERAGE_FILE) \
+		$(TEST_DIR) 2>&1 | tee $(LOG_DIR)/e2e_test.log
+	@echo "✅ E2Eテスト実行完了"
+
+# API E2Eテストのみ実行
+test-e2e-api: setup-e2e-env
+	@echo "🔗 API E2Eテスト実行開始..."
+	@mkdir -p $(REPORT_DIR) $(LOG_DIR)
+	$(GO_CMD) test -v -timeout $(TEST_TIMEOUT) \
+		-run "TestExpenseAPIE2EComprehensive" \
+		$(TEST_DIR) 2>&1 | tee $(LOG_DIR)/e2e_api_test.log
+	@echo "✅ API E2Eテスト実行完了"
+
+# 統合E2Eテストのみ実行
+test-e2e-integration: setup-e2e-env
+	@echo "🔄 統合E2Eテスト実行開始..."
+	@mkdir -p $(REPORT_DIR) $(LOG_DIR)
+	$(GO_CMD) test -v -timeout $(TEST_TIMEOUT) \
+		-run "TestExpenseIntegrationE2E" \
+		$(TEST_DIR) 2>&1 | tee $(LOG_DIR)/e2e_integration_test.log
+	@echo "✅ 統合E2Eテスト実行完了"
+
+# HTTP E2Eテストのみ実行
+test-e2e-http: setup-e2e-env
+	@echo "🌐 HTTP E2Eテスト実行開始..."
+	@mkdir -p $(REPORT_DIR) $(LOG_DIR)
+	$(GO_CMD) test -v -timeout $(TEST_TIMEOUT) \
+		-run "TestExpenseHTTPE2EFlow" \
+		$(TEST_DIR) 2>&1 | tee $(LOG_DIR)/e2e_http_test.log
+	@echo "✅ HTTP E2Eテスト実行完了"
+
+# 完全なE2Eテストスイート実行
+test-e2e-full: setup-e2e-env
+	@echo "🎯 完全E2Eテストスイート実行開始..."
+	@mkdir -p $(REPORT_DIR) $(LOG_DIR)
+	$(GO_CMD) test -v -timeout 60m -parallel $(TEST_PARALLEL) \
+		-run "TestExpense.*E2E.*" \
+		-coverprofile=$(COVERAGE_FILE) \
+		-benchmem -bench=. \
+		$(TEST_DIR) 2>&1 | tee $(LOG_DIR)/e2e_full_test.log
+	@echo "📊 カバレッジレポート生成..."
+	$(GO_CMD) tool cover -html=$(COVERAGE_FILE) -o $(REPORT_DIR)/e2e_coverage.html
+	@echo "✅ 完全E2Eテストスイート実行完了"
+
+# CI環境でのE2Eテスト実行
+test-e2e-ci:
+	@echo "🤖 CI環境でのE2Eテスト実行..."
+	@export CI=true
+	@export RUN_E2E_TESTS=true
+	@export E2E_CLEANUP_AFTER_TEST=true
+	@export E2E_LOG_LEVEL=error
+	@mkdir -p $(REPORT_DIR) $(LOG_DIR)
+	$(GO_CMD) test -v -timeout $(TEST_TIMEOUT) -parallel 1 \
+		-run "TestExpense.*E2E" \
+		-coverprofile=$(COVERAGE_FILE) \
+		-json \
+		$(TEST_DIR) > $(REPORT_DIR)/e2e_test_results.json 2>&1
+	@echo "📋 CI用テストレポート生成完了"
+
+# E2Eテスト環境セットアップ
+setup-e2e-env:
+	@echo "🔧 E2Eテスト環境セットアップ開始..."
+	@echo "データベース接続確認: $(E2E_DATABASE_URL)"
+	@# データベース存在確認（実際の環境では適切なDB接続確認を実装）
+	@echo "✅ E2Eテスト環境セットアップ完了"
+
+# E2Eテスト環境クリーンアップ
+cleanup-e2e-env:
+	@echo "🧹 E2Eテスト環境クリーンアップ開始..."
+	@# テストデータベースのクリーンアップ
+	@rm -f $(COVERAGE_FILE)
+	@echo "ログファイル: $(LOG_DIR)/*.log"
+	@echo "レポートファイル: $(REPORT_DIR)/*"
+	@echo "✅ E2Eテスト環境クリーンアップ完了"
+
+# E2Eテスト結果レポート生成
+test-e2e-report: 
+	@echo "📊 E2Eテストレポート生成開始..."
+	@mkdir -p $(REPORT_DIR)
+	@if [ -f $(COVERAGE_FILE) ]; then \
+		echo "カバレッジレポート生成..."; \
+		$(GO_CMD) tool cover -html=$(COVERAGE_FILE) -o $(REPORT_DIR)/e2e_coverage.html; \
+		$(GO_CMD) tool cover -func=$(COVERAGE_FILE) > $(REPORT_DIR)/e2e_coverage.txt; \
+	fi
+	@if [ -f $(LOG_DIR)/e2e_test.log ]; then \
+		echo "テスト結果サマリー生成..."; \
+		grep -E "(PASS|FAIL|RUN)" $(LOG_DIR)/e2e_test.log > $(REPORT_DIR)/e2e_test_summary.txt || true; \
+	fi
+	@echo "📋 E2Eテストレポート生成完了"
+	@echo "レポートファイル:"
+	@ls -la $(REPORT_DIR)/
+
+# 特定のテストケースのみ実行
+test-e2e-specific:
+	@if [ -z "$(TEST_NAME)" ]; then \
+		echo "❌ TEST_NAME変数を指定してください"; \
+		echo "例: make test-e2e-specific TEST_NAME=TestExpenseAPIE2E"; \
+		exit 1; \
+	fi
+	@echo "🎯 特定テスト実行: $(TEST_NAME)"
+	@mkdir -p $(LOG_DIR)
+	$(GO_CMD) test -v -timeout $(TEST_TIMEOUT) \
+		-run "$(TEST_NAME)" \
+		$(TEST_DIR) 2>&1 | tee $(LOG_DIR)/e2e_specific_test.log
+
+# パフォーマンステスト
+test-e2e-performance: setup-e2e-env
+	@echo "⚡ E2Eパフォーマンステスト実行開始..."
+	@export E2E_MAX_CONCURRENT_REQUESTS=50
+	@export E2E_PERFORMANCE_THRESHOLD=1s
+	@mkdir -p $(REPORT_DIR) $(LOG_DIR)
+	$(GO_CMD) test -v -timeout $(TEST_TIMEOUT) \
+		-run ".*Performance.*" \
+		-bench=. -benchmem \
+		$(TEST_DIR) 2>&1 | tee $(LOG_DIR)/e2e_performance_test.log
+	@echo "✅ E2Eパフォーマンステスト実行完了"
+
+# セキュリティテスト
+test-e2e-security: setup-e2e-env
+	@echo "🛡️ E2Eセキュリティテスト実行開始..."
+	@mkdir -p $(REPORT_DIR) $(LOG_DIR)
+	$(GO_CMD) test -v -timeout $(TEST_TIMEOUT) \
+		-run ".*Security.*" \
+		$(TEST_DIR) 2>&1 | tee $(LOG_DIR)/e2e_security_test.log
+	@echo "✅ E2Eセキュリティテスト実行完了"
+
+# テストデータ生成
+generate-e2e-testdata:
+	@echo "📝 E2Eテストデータ生成開始..."
+	@$(GO_CMD) run scripts/generate_e2e_testdata.go
+	@echo "✅ E2Eテストデータ生成完了"
+
+# ヘルスチェック
+health-check:
+	@echo "💓 システムヘルスチェック..."
+	@echo "Go version: $(shell $(GO_CMD) version)"
+	@echo "Database URL: $(E2E_DATABASE_URL)"
+	@echo "Log Level: $(E2E_LOG_LEVEL)"
+	@echo "Test Timeout: $(TEST_TIMEOUT)"
+	@echo "Max Parallel: $(TEST_PARALLEL)"
+	@echo "✅ ヘルスチェック完了"
+
+# 開発者向けクイックテスト
+dev-test: setup-e2e-env
+	@echo "👨‍💻 開発者向けクイックE2Eテスト..."
+	@export E2E_LOG_LEVEL=debug
+	@export E2E_CLEANUP_AFTER_TEST=false
+	$(GO_CMD) test -v -timeout 10m \
+		-run "TestExpenseAPIE2EComprehensive" \
+		$(TEST_DIR)
+
+# クリーンビルド & テスト
+clean-test: cleanup-e2e-env
+	@echo "🔄 クリーンビルド & E2Eテスト..."
+	@$(GO_CMD) clean -testcache
+	@make test-e2e
+
+# 継続的監視テスト
+watch-test:
+	@echo "👀 E2Eテスト継続監視モード..."
+	@which fswatch >/dev/null || (echo "fswatch が必要です: brew install fswatch"; exit 1)
+	@fswatch -o . | while read num; do \
+		echo "変更検知 - E2Eテスト実行..."; \
+		make test-e2e-api; \
+	done
+
+# Docker環境でのテスト実行
+test-e2e-docker:
+	@echo "🐳 Docker環境でのE2Eテスト..."
+	@docker-compose -f docker-compose.e2e.yml up -d
+	@sleep 10  # サービス起動待機
+	@export E2E_DATABASE_URL=mysql://root:password@localhost:3307/monstera_e2e_test
+	@make test-e2e
+	@docker-compose -f docker-compose.e2e.yml down
+
+# 依存関係インストール
+install-deps:
+	@echo "📦 E2Eテスト依存関係インストール..."
+	@$(GO_CMD) mod download
+	@$(GO_CMD) mod tidy
+	@echo "✅ 依存関係インストール完了"

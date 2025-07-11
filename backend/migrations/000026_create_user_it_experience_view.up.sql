@@ -1,0 +1,72 @@
+-- user_it_experienceビューの作成
+-- ユーザーごとのIT業界での経験年数を計算
+
+CREATE OR REPLACE VIEW user_it_experience AS
+SELECT 
+    u.id as user_id,
+    u.email as user_email,
+    CONCAT(u.last_name, ' ', u.first_name) as user_name,
+    -- IT業界での総経験期間（最初のプロジェクトから最後のプロジェクトまで）
+    CASE 
+        WHEN COUNT(wh.id) = 0 THEN 0
+        ELSE TIMESTAMPDIFF(MONTH, 
+            MIN(wh.start_date), 
+            MAX(COALESCE(wh.end_date, CURRENT_DATE()))
+        )
+    END as total_it_experience_months,
+    -- 年数と月数に分解
+    CASE 
+        WHEN COUNT(wh.id) = 0 THEN 0
+        ELSE FLOOR(TIMESTAMPDIFF(MONTH, 
+            MIN(wh.start_date), 
+            MAX(COALESCE(wh.end_date, CURRENT_DATE()))
+        ) / 12)
+    END as it_experience_years,
+    CASE 
+        WHEN COUNT(wh.id) = 0 THEN 0
+        ELSE TIMESTAMPDIFF(MONTH, 
+            MIN(wh.start_date), 
+            MAX(COALESCE(wh.end_date, CURRENT_DATE()))
+        ) % 12
+    END as it_experience_months,
+    -- プロジェクト数の合計
+    COUNT(wh.id) as total_project_count,
+    -- 総プロジェクト期間（重複含む）
+    COALESCE(SUM(COALESCE(wh.duration_months, 
+        TIMESTAMPDIFF(MONTH, wh.start_date, COALESCE(wh.end_date, CURRENT_DATE()))
+    )), 0) as total_project_months,
+    -- 最初と最後のプロジェクト期間
+    MIN(wh.start_date) as first_project_date,
+    MAX(COALESCE(wh.end_date, CURRENT_DATE())) as last_project_date,
+    -- 最新のプロジェクト情報
+    (SELECT wh2.project_name 
+     FROM work_histories wh2 
+     WHERE wh2.user_id = u.id 
+       AND wh2.deleted_at IS NULL
+     ORDER BY COALESCE(wh2.end_date, CURRENT_DATE()) DESC 
+     LIMIT 1
+    ) as latest_project_name,
+    (SELECT wh2.role 
+     FROM work_histories wh2 
+     WHERE wh2.user_id = u.id 
+       AND wh2.deleted_at IS NULL
+     ORDER BY COALESCE(wh2.end_date, CURRENT_DATE()) DESC 
+     LIMIT 1
+    ) as latest_role,
+    -- 現在進行中のプロジェクト数
+    SUM(CASE WHEN wh.end_date IS NULL THEN 1 ELSE 0 END) as active_project_count,
+    -- レコードの更新日時
+    CURRENT_TIMESTAMP as calculated_at
+FROM users u
+LEFT JOIN work_histories wh ON u.id = wh.user_id AND wh.deleted_at IS NULL
+WHERE u.deleted_at IS NULL
+GROUP BY 
+    u.id,
+    u.email,
+    u.last_name,
+    u.first_name
+ORDER BY 
+    total_it_experience_months DESC,
+    total_project_count DESC,
+    u.last_name,
+    u.first_name;

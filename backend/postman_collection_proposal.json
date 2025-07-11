@@ -1,0 +1,464 @@
+{
+  "info": {
+    "name": "Monstera Proposal API",
+    "description": "提案情報確認機能のAPIテストコレクション",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"engineer@duesk.co.jp\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Proposals",
+      "item": [
+        {
+          "name": "Get Proposals List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Proposals List - With Status Filter",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals?status=proposed&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "proposed"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Proposal Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/{{proposalId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "{{proposalId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Proposal Status - Proceed",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"proceed\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/{{proposalId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "{{proposalId}}", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Proposal Status - Decline",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"declined\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/{{proposalId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "{{proposalId}}", "status"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Questions",
+      "item": [
+        {
+          "name": "Create Question",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question_text\": \"開発環境について教えてください。どのようなツールを使用しますか？\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/{{proposalId}}/questions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "{{proposalId}}", "questions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Questions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/{{proposalId}}/questions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "{{proposalId}}", "questions"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Question",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question_text\": \"更新された質問内容です。開発環境とデプロイ手順について詳しく教えてください。\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/questions/{{questionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "questions", "{{questionId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Question",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/questions/{{questionId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "questions", "{{questionId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sales Functions",
+      "item": [
+        {
+          "name": "Respond to Question",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{salesToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"response_text\": \"開発環境はDockerを使用します。詳細な手順書を別途お渡しします。\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/questions/{{questionId}}/response",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "questions", "{{questionId}}", "response"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Pending Questions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{salesToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/sales/questions/pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "sales", "questions", "pending"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Question to Sales",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{salesToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sales_user_id\": \"{{salesUserId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/questions/{{questionId}}/assign",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "questions", "{{questionId}}", "assign"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Statistics",
+      "item": [
+        {
+          "name": "Get Proposal Stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "stats"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Proposal Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "dashboard"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Error Cases",
+      "item": [
+        {
+          "name": "Invalid Proposal ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/invalid-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "invalid-id"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Unauthorized Access",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Status Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"invalid_status\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/proposals/{{proposalId}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "proposals", "{{proposalId}}", "status"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salesToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "proposalId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "questionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "salesUserId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

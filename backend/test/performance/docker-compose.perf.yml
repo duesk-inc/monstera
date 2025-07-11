@@ -1,0 +1,126 @@
+version: '3.8'
+
+services:
+  # パフォーマンステスト用のMySQLサービス
+  mysql-perf:
+    image: mysql:8.0
+    container_name: monstera-mysql-perf
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: monstera_perf
+      MYSQL_USER: monstera
+      MYSQL_PASSWORD: password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-perf-data:/var/lib/mysql
+      - ../../../docker/mysql/conf.d:/etc/mysql/conf.d
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max_connections=1000
+      --innodb_buffer_pool_size=2G
+      --innodb_log_file_size=256M
+      --query_cache_size=256M
+      --query_cache_type=1
+      --slow_query_log=1
+      --slow_query_log_file=/var/log/mysql/slow-query.log
+      --long_query_time=2
+    networks:
+      - perf-test-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # パフォーマンステスト用のバックエンドサービス
+  backend-perf:
+    build:
+      context: ../../../
+      dockerfile: docker/backend/Dockerfile
+    container_name: monstera-backend-perf
+    environment:
+      DB_HOST: mysql-perf
+      DB_PORT: 3306
+      DB_USER: monstera
+      DB_PASSWORD: password
+      DB_NAME: monstera_perf
+      JWT_SECRET: performance-test-secret
+      GIN_MODE: release
+      CORS_ALLOW_ORIGINS: "*"
+      LOG_LEVEL: warn
+      # パフォーマンス最適化設定
+      GOMAXPROCS: 8
+      GOMEMLIMIT: 2GiB
+    ports:
+      - "8081:8080"
+    depends_on:
+      mysql-perf:
+        condition: service_healthy
+    networks:
+      - perf-test-network
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 2G
+        reservations:
+          cpus: '2'
+          memory: 1G
+
+  # Redis for caching (optional)
+  redis-perf:
+    image: redis:7-alpine
+    container_name: monstera-redis-perf
+    ports:
+      - "6380:6379"
+    networks:
+      - perf-test-network
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+
+  # Monitoring with Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: monstera-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - perf-test-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  # Grafana for visualization (optional)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: monstera-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - perf-test-network
+    depends_on:
+      - prometheus
+
+volumes:
+  mysql-perf-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  perf-test-network:
+    driver: bridge

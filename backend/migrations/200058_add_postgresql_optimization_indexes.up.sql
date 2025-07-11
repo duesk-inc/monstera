@@ -1,0 +1,264 @@
+-- PostgreSQL Index Optimization Migration Script
+-- MonsteraプロジェクトのPostgreSQL最適化インデックス
+
+-- ========================================
+-- 1. users テーブルのインデックス
+-- ========================================
+
+-- 基本インデックス（B-tree）
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_default_role ON users(default_role);
+CREATE INDEX IF NOT EXISTS idx_users_follow_up_required ON users(follow_up_required);
+CREATE INDEX IF NOT EXISTS idx_users_last_follow_up_date ON users(last_follow_up_date);
+
+-- 部分インデックス（削除済みを除外）
+CREATE INDEX IF NOT EXISTS idx_users_role_status ON users(role, engineer_status) 
+    WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_users_email_active ON users(email) 
+    WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_users_employee_number ON users(employee_number) 
+    WHERE employee_number IS NOT NULL AND deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_users_department_status ON users(department, engineer_status) 
+    WHERE deleted_at IS NULL;
+
+-- 複合検索用インデックス
+CREATE INDEX IF NOT EXISTS idx_users_search ON users(sei, mei, email, employee_number) 
+    WHERE deleted_at IS NULL;
+
+-- ========================================
+-- 2. weekly_reports テーブルのインデックス
+-- ========================================
+
+-- 基本インデックス
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_commented_at ON weekly_reports(commented_at);
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_user_date ON weekly_reports(user_id, start_date DESC);
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_status_created ON weekly_reports(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_date_range ON weekly_reports(start_date, end_date);
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_submitted_at ON weekly_reports(submitted_at);
+
+-- 部分インデックス
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_deleted_status ON weekly_reports(status) 
+    WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_unsubmitted ON weekly_reports(user_id, end_date, status) 
+    WHERE deleted_at IS NULL;
+
+-- カバリングインデックス（PostgreSQL 11+）
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_covering ON weekly_reports(user_id, status, start_date) 
+    INCLUDE (end_date, total_work_hours, submitted_at);
+
+-- 全文検索用GINインデックス（日本語対応）
+-- 注意: pg_trgmまたはMeCabなどの日本語形態素解析器の導入を推奨
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_remarks_gin ON weekly_reports 
+    USING gin(weekly_remarks gin_trgm_ops);
+
+-- 月次集計用式インデックス
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_monthly ON weekly_reports(
+    EXTRACT(YEAR FROM start_date)::int, 
+    EXTRACT(MONTH FROM start_date)::int, 
+    status
+) WHERE deleted_at IS NULL;
+
+-- ========================================
+-- 3. daily_records テーブルのインデックス
+-- ========================================
+
+-- 基本インデックス
+CREATE INDEX IF NOT EXISTS idx_daily_records_weekly_report ON daily_records(weekly_report_id);
+CREATE INDEX IF NOT EXISTS idx_daily_records_date ON daily_records(date);
+CREATE INDEX IF NOT EXISTS idx_daily_records_work_hours ON daily_records(work_hours);
+
+-- 部分インデックス
+CREATE INDEX IF NOT EXISTS idx_daily_records_holiday_work ON daily_records(date, is_holiday_work) 
+    WHERE is_holiday_work = true;
+CREATE INDEX IF NOT EXISTS idx_daily_records_client_work ON daily_records(client_work_hours, has_client_work) 
+    WHERE has_client_work = true;
+
+-- カバリングインデックス
+CREATE INDEX IF NOT EXISTS idx_daily_records_covering ON daily_records(weekly_report_id, date)
+    INCLUDE (work_hours, client_work_hours, has_client_work, is_holiday_work);
+
+-- 月次集計用式インデックス
+CREATE INDEX IF NOT EXISTS idx_daily_records_monthly_aggregate ON daily_records(
+    EXTRACT(YEAR FROM date)::int,
+    EXTRACT(MONTH FROM date)::int
+);
+
+-- ========================================
+-- 4. work_history_technologies テーブルのインデックス
+-- ========================================
+
+CREATE INDEX IF NOT EXISTS idx_work_history_technologies_work_history_id ON work_history_technologies(work_history_id);
+CREATE INDEX IF NOT EXISTS idx_work_history_technologies_category_id ON work_history_technologies(category_id);
+CREATE INDEX IF NOT EXISTS idx_work_history_technologies_technology_name ON work_history_technologies(technology_name);
+
+-- ========================================
+-- 5. スキル関連テーブルのインデックス
+-- ========================================
+
+CREATE INDEX IF NOT EXISTS idx_language_skills_deleted_at ON language_skills(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_framework_skills_deleted_at ON framework_skills(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_business_experiences_deleted_at ON business_experiences(deleted_at);
+
+-- engineer_skills テーブル
+CREATE INDEX IF NOT EXISTS idx_engineer_skills_user_category ON engineer_skills(user_id, skill_category_id);
+CREATE INDEX IF NOT EXISTS idx_engineer_skills_category ON engineer_skills(skill_category_id);
+CREATE INDEX IF NOT EXISTS idx_engineer_skills_level ON engineer_skills(skill_level);
+
+-- ========================================
+-- 6. 休暇管理関連のインデックス
+-- ========================================
+
+-- leave_balances
+CREATE INDEX IF NOT EXISTS idx_user_leave_balances_user_id ON leave_balances(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_leave_balances_leave_type_id ON leave_balances(leave_type_id);
+
+-- substitute_leave_grants
+CREATE INDEX IF NOT EXISTS idx_substitute_leave_grants_user_id ON substitute_leave_grants(user_id);
+CREATE INDEX IF NOT EXISTS idx_substitute_leave_grants_expire_date ON substitute_leave_grants(expire_date);
+
+-- ========================================
+-- 7. セッション管理のインデックス
+-- ========================================
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+CREATE INDEX IF NOT EXISTS idx_sessions_deleted_at ON sessions(deleted_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_refresh_token ON sessions(refresh_token);
+
+-- ========================================
+-- 8. 勤怠管理のインデックス
+-- ========================================
+
+CREATE INDEX IF NOT EXISTS idx_attendances_user_date ON attendances(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_attendances_status ON attendances(status);
+
+-- ========================================
+-- 9. 通知関連のインデックス
+-- ========================================
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_notification_type ON notification_settings(user_id, notification_type);
+CREATE INDEX IF NOT EXISTS idx_user_notification ON user_notifications(user_id, notification_id);
+CREATE INDEX IF NOT EXISTS idx_user_read_status ON user_notifications(user_id, is_read);
+
+-- JSONデータ用GINインデックス（metadataカラムがJSONBの場合）
+-- CREATE INDEX IF NOT EXISTS idx_notifications_metadata_gin ON notifications USING gin(metadata);
+
+-- ========================================
+-- 10. プロジェクト管理のインデックス
+-- ========================================
+
+-- clients
+CREATE INDEX IF NOT EXISTS idx_clients_company_name ON clients(company_name);
+
+-- projects  
+CREATE INDEX IF NOT EXISTS idx_projects_project_code ON projects(project_code);
+CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
+CREATE INDEX IF NOT EXISTS idx_projects_end_date ON projects(end_date);
+
+-- project_assignments
+CREATE INDEX IF NOT EXISTS idx_project_assignments_project_id ON project_assignments(project_id);
+CREATE INDEX IF NOT EXISTS idx_project_assignments_user_id ON project_assignments(user_id);
+CREATE INDEX IF NOT EXISTS idx_project_assignments_end_date ON project_assignments(end_date);
+
+-- ========================================
+-- 11. 請求管理のインデックス
+-- ========================================
+
+-- invoices
+CREATE INDEX IF NOT EXISTS idx_invoices_client_id ON invoices(client_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_billing_month ON invoices(billing_month);
+CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
+
+-- invoice_details
+CREATE INDEX IF NOT EXISTS idx_invoice_details_invoice_id ON invoice_details(invoice_id);
+
+-- ========================================
+-- 12. エンジニアステータス履歴のインデックス
+-- ========================================
+
+CREATE INDEX IF NOT EXISTS idx_engineer_status_history_user_changed ON engineer_status_history(user_id, changed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_engineer_status_history_status ON engineer_status_history(new_status);
+
+-- ========================================
+-- 13. エンジニアプロジェクト履歴のインデックス
+-- ========================================
+
+CREATE INDEX IF NOT EXISTS idx_engineer_project_history_user_date ON engineer_project_history(user_id, start_date DESC);
+CREATE INDEX IF NOT EXISTS idx_engineer_project_history_project ON engineer_project_history(project_name);
+CREATE INDEX IF NOT EXISTS idx_engineer_project_history_period ON engineer_project_history(start_date, end_date);
+
+-- ========================================
+-- 14. 監査ログのインデックス（時系列データ）
+-- ========================================
+
+-- BRINインデックス（大規模時系列データに最適）
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at_brin ON audit_logs USING brin(created_at);
+
+-- 検索用B-treeインデックス
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_created ON audit_logs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_target_created ON audit_logs(target_type, target_id, created_at DESC);
+
+-- ========================================
+-- 15. 変更履歴のインデックス
+-- ========================================
+
+-- BRINインデックス（時系列データ）
+CREATE INDEX IF NOT EXISTS idx_change_histories_created_at_brin ON change_histories USING brin(created_at);
+
+-- 検索用インデックス
+CREATE INDEX IF NOT EXISTS idx_change_histories_user_created ON change_histories(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_change_histories_target_created ON change_histories(target_type, target_id, created_at DESC);
+
+-- ========================================
+-- 16. 提案システムのインデックス
+-- ========================================
+
+-- engineer_proposals
+CREATE INDEX IF NOT EXISTS idx_engineer_proposals_user_status_created ON engineer_proposals(user_id, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_engineer_proposals_project_deleted ON engineer_proposals(project_id) 
+    WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_engineer_proposals_status_created ON engineer_proposals(status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_engineer_proposals_responded_at ON engineer_proposals(responded_at DESC) 
+    WHERE responded_at IS NOT NULL;
+
+-- engineer_proposal_questions
+CREATE INDEX IF NOT EXISTS idx_engineer_proposal_questions_proposal_category ON engineer_proposal_questions(proposal_id, category);
+CREATE INDEX IF NOT EXISTS idx_engineer_proposal_questions_deleted ON engineer_proposal_questions(proposal_id) 
+    WHERE deleted_at IS NULL;
+
+-- ========================================
+-- 17. 会計連携のインデックス
+-- ========================================
+
+-- 請求書の会計連携用複合インデックス
+CREATE INDEX IF NOT EXISTS idx_invoices_accounting_sync ON invoices(
+    client_id, 
+    billing_month, 
+    freee_sync_status
+) WHERE deleted_at IS NULL;
+
+-- 経費精算の会計連携用インデックス  
+CREATE INDEX IF NOT EXISTS idx_expense_claims_accounting ON expense_claims(
+    user_id,
+    expense_month,
+    approval_status,
+    freee_sync_status
+) WHERE deleted_at IS NULL;
+
+-- ========================================
+-- 18. パフォーマンス統計の自動更新設定
+-- ========================================
+
+-- 主要テーブルの統計情報自動更新を最適化
+ALTER TABLE users SET (autovacuum_analyze_scale_factor = 0.02);
+ALTER TABLE weekly_reports SET (autovacuum_analyze_scale_factor = 0.02);
+ALTER TABLE daily_records SET (autovacuum_analyze_scale_factor = 0.02);
+ALTER TABLE audit_logs SET (autovacuum_analyze_scale_factor = 0.05);
+ALTER TABLE change_histories SET (autovacuum_analyze_scale_factor = 0.05);
+
+-- ========================================
+-- インデックス作成完了メッセージ
+-- ========================================
+-- 注意: 本番環境では CONCURRENTLY オプションを使用してオンラインでインデックスを作成することを推奨
+-- 例: CREATE INDEX CONCURRENTLY idx_name ON table_name(column_name);

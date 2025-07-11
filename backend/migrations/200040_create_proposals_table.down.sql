@@ -1,0 +1,2 @@
+-- 提案情報テーブルの削除
+DROP TABLE IF EXISTS proposals;

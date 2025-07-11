@@ -1,0 +1,268 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 毎日午前3時（JST）に実行
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+env:
+  GO_VERSION: '1.22'
+  NODE_VERSION: '20'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  go-security:
+    name: Go Security Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Install govulncheck
+      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+
+    - name: Run govulncheck
+      run: |
+        cd backend
+        govulncheck -format json ./... > govuln-results.json || true
+        
+    - name: Display Go vulnerabilities
+      if: always()
+      run: |
+        cd backend
+        if [ -f govuln-results.json ]; then
+          echo "::warning::Go Security Vulnerabilities Found"
+          govulncheck ./... || true
+        fi
+
+    - name: Upload Go vulnerability results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: go-vulnerability-results
+        path: backend/govuln-results.json
+
+  npm-security:
+    name: NPM Security Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Run npm audit
+      run: |
+        cd frontend
+        npm audit --json > npm-audit-results.json || true
+        
+    - name: Display npm vulnerabilities
+      if: always()
+      run: |
+        cd frontend
+        npm audit || true
+
+    - name: Check for high severity vulnerabilities
+      run: |
+        cd frontend
+        # 高・重大な脆弱性がある場合は失敗
+        if npm audit --production --audit-level=high; then
+          echo "No high or critical vulnerabilities found"
+        else
+          echo "::error::High or critical vulnerabilities found in npm dependencies"
+          exit 1
+        fi
+
+    - name: Upload npm audit results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: npm-audit-results
+        path: frontend/npm-audit-results.json
+
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 全履歴を取得してシークレットの漏洩を検出
+
+    - name: Run gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-security:
+    name: Docker Image Security Scan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [backend, frontend]
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./${{ matrix.service }}
+        push: false
+        tags: monstera-${{ matrix.service }}:security-scan
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        outputs: type=docker,dest=/tmp/${{ matrix.service }}.tar
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        input: /tmp/${{ matrix.service }}.tar
+        format: 'sarif'
+        output: 'trivy-${{ matrix.service }}.sarif'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        exit-code: '0'  # 脆弱性が見つかってもワークフローは継続
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-${{ matrix.service }}.sarif'
+        category: 'docker-${{ matrix.service }}'
+
+    - name: Run Trivy in table format
+      uses: aquasecurity/trivy-action@master
+      if: always()
+      with:
+        input: /tmp/${{ matrix.service }}.tar
+        format: 'table'
+        severity: 'CRITICAL,HIGH,MEDIUM'
+        exit-code: '1'  # CRITICALな脆弱性がある場合は失敗
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: high
+        deny-licenses: GPL-3.0, AGPL-3.0
+
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [go-security, npm-security, secret-scanning, docker-security]
+    if: always()
+    steps:
+    - name: Create security summary
+      run: |
+        echo "## 🔒 Security Scan Summary" > security-summary.md
+        echo "" >> security-summary.md
+        echo "| Check | Status |" >> security-summary.md
+        echo "|-------|--------|" >> security-summary.md
+        
+        # 各ジョブの結果を確認
+        if [ "${{ needs.go-security.result }}" == "success" ]; then
+          echo "| Go Security | ✅ Passed |" >> security-summary.md
+        else
+          echo "| Go Security | ❌ Failed |" >> security-summary.md
+        fi
+        
+        if [ "${{ needs.npm-security.result }}" == "success" ]; then
+          echo "| NPM Security | ✅ Passed |" >> security-summary.md
+        else
+          echo "| NPM Security | ❌ Failed |" >> security-summary.md
+        fi
+        
+        if [ "${{ needs.secret-scanning.result }}" == "success" ]; then
+          echo "| Secret Scanning | ✅ Passed |" >> security-summary.md
+        else
+          echo "| Secret Scanning | ❌ Failed |" >> security-summary.md
+        fi
+        
+        if [ "${{ needs.docker-security.result }}" == "success" ]; then
+          echo "| Docker Security | ✅ Passed |" >> security-summary.md
+        else
+          echo "| Docker Security | ❌ Failed |" >> security-summary.md
+        fi
+        
+        echo "" >> security-summary.md
+        echo "🔍 詳細な結果はArtifactsとSecurity Advisoriesをご確認ください。" >> security-summary.md
+        
+        cat security-summary.md
+
+    - name: Upload security summary
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-summary
+        path: security-summary.md
+
+    - name: Comment PR (if applicable)
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request' && always()
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('security-summary.md', 'utf8');
+          
+          // 既存のセキュリティコメントを探す
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const botComment = comments.data.find(comment => 
+            comment.user.type === 'Bot' && comment.body.includes('Security Scan Summary')
+          );
+          
+          if (botComment) {
+            // 既存のコメントを更新
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: summary
+            });
+          } else {
+            // 新規コメントを作成
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+          }

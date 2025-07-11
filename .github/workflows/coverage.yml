@@ -1,0 +1,343 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  GO_VERSION: '1.22'
+  NODE_VERSION: '20'
+  POSTGRES_VERSION: '15-alpine'
+  # カバレッジ閾値
+  COVERAGE_THRESHOLD_BACKEND: 80
+  COVERAGE_THRESHOLD_FRONTEND: 80
+  COVERAGE_THRESHOLD_TOTAL: 80
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  backend-coverage:
+    name: Backend Coverage
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:${{ env.POSTGRES_VERSION }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: monstera_test
+          POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d monstera_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        go mod download
+
+    - name: Run tests with coverage
+      env:
+        DB_HOST: localhost
+        DB_PORT: 5432
+        DB_USER: postgres
+        DB_PASSWORD: postgres
+        DB_NAME: monstera_test
+        DB_DRIVER: postgres
+        DB_SSLMODE: disable
+        JWT_SECRET: test-secret-key
+        ENV: test
+      run: |
+        cd backend
+        go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+    - name: Generate coverage report
+      run: |
+        cd backend
+        go tool cover -html=coverage.out -o coverage.html
+        go tool cover -func=coverage.out > coverage.txt
+        
+        # カバレッジ率を抽出
+        COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+        echo "BACKEND_COVERAGE=${COVERAGE}" >> $GITHUB_ENV
+        echo "Backend coverage: ${COVERAGE}%"
+
+    - name: Check coverage threshold
+      run: |
+        # 整数部分のみを比較（bashで浮動小数点比較を回避）
+        BACKEND_COV_INT=$(echo "${{ env.BACKEND_COVERAGE }}" | cut -d. -f1)
+        THRESHOLD_INT=${{ env.COVERAGE_THRESHOLD_BACKEND }}
+        
+        if [ "$BACKEND_COV_INT" -lt "$THRESHOLD_INT" ]; then
+          echo "::error::Backend coverage ${{ env.BACKEND_COVERAGE }}% is below threshold ${{ env.COVERAGE_THRESHOLD_BACKEND }}%"
+          exit 1
+        fi
+        echo "✅ Backend coverage ${{ env.BACKEND_COVERAGE }}% meets threshold ${{ env.COVERAGE_THRESHOLD_BACKEND }}%"
+
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: backend-coverage
+        path: |
+          backend/coverage.out
+          backend/coverage.html
+          backend/coverage.txt
+
+  frontend-coverage:
+    name: Frontend Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+
+    - name: Run tests with coverage
+      run: |
+        cd frontend
+        npm run test:coverage -- --ci
+
+    - name: Generate coverage summary
+      run: |
+        cd frontend
+        # coverage-summary.jsonからカバレッジ率を抽出
+        if [ -f coverage/coverage-summary.json ]; then
+          COVERAGE=$(node -e "
+            const coverage = require('./coverage/coverage-summary.json');
+            const total = coverage.total;
+            const pct = (total.lines.pct + total.statements.pct + total.functions.pct + total.branches.pct) / 4;
+            console.log(pct.toFixed(2));
+          ")
+          echo "FRONTEND_COVERAGE=${COVERAGE}" >> $GITHUB_ENV
+          echo "Frontend coverage: ${COVERAGE}%"
+        else
+          echo "::error::Coverage summary not found"
+          exit 1
+        fi
+
+    - name: Check coverage threshold
+      run: |
+        # 整数部分のみを比較（bashで浮動小数点比較を回避）
+        FRONTEND_COV_INT=$(echo "${{ env.FRONTEND_COVERAGE }}" | cut -d. -f1)
+        THRESHOLD_INT=${{ env.COVERAGE_THRESHOLD_FRONTEND }}
+        
+        if [ "$FRONTEND_COV_INT" -lt "$THRESHOLD_INT" ]; then
+          echo "::error::Frontend coverage ${{ env.FRONTEND_COVERAGE }}% is below threshold ${{ env.COVERAGE_THRESHOLD_FRONTEND }}%"
+          exit 1
+        fi
+        echo "✅ Frontend coverage ${{ env.FRONTEND_COVERAGE }}% meets threshold ${{ env.COVERAGE_THRESHOLD_FRONTEND }}%"
+
+    - name: Upload coverage artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-coverage
+        path: |
+          frontend/coverage/
+
+  coverage-report:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [backend-coverage, frontend-coverage]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download backend coverage
+      uses: actions/download-artifact@v3
+      with:
+        name: backend-coverage
+        path: backend-coverage
+
+    - name: Download frontend coverage
+      uses: actions/download-artifact@v3
+      with:
+        name: frontend-coverage
+        path: frontend-coverage
+
+    - name: Calculate total coverage
+      run: |
+        # バックエンドのカバレッジを取得
+        if [ -f backend-coverage/coverage.txt ]; then
+          BACKEND_COV=$(grep total backend-coverage/coverage.txt | awk '{print $3}' | sed 's/%//')
+        else
+          BACKEND_COV=0
+        fi
+        
+        # フロントエンドのカバレッジを取得
+        if [ -f frontend-coverage/coverage/coverage-summary.json ]; then
+          FRONTEND_COV=$(node -e "
+            const coverage = require('./frontend-coverage/coverage/coverage-summary.json');
+            const total = coverage.total;
+            const pct = (total.lines.pct + total.statements.pct + total.functions.pct + total.branches.pct) / 4;
+            console.log(pct.toFixed(2));
+          ")
+        else
+          FRONTEND_COV=0
+        fi
+        
+        # 総合カバレッジを計算（単純平均、awkを使用）
+        TOTAL_COV=$(awk "BEGIN {printf \"%.2f\", ($BACKEND_COV + $FRONTEND_COV) / 2}")
+        
+        echo "BACKEND_COVERAGE=${BACKEND_COV}" >> $GITHUB_ENV
+        echo "FRONTEND_COVERAGE=${FRONTEND_COV}" >> $GITHUB_ENV
+        echo "TOTAL_COVERAGE=${TOTAL_COV}" >> $GITHUB_ENV
+        
+        # サマリーを作成
+        cat > coverage-summary.md << EOF
+        ## 📊 Code Coverage Report
+        
+        | Component | Coverage | Status |
+        |-----------|----------|--------|
+        | Backend   | ${BACKEND_COV}% | $([ ${BACKEND_COV%.*} -ge ${{ env.COVERAGE_THRESHOLD_BACKEND }} ] && echo "✅" || echo "❌") |
+        | Frontend  | ${FRONTEND_COV}% | $([ ${FRONTEND_COV%.*} -ge ${{ env.COVERAGE_THRESHOLD_FRONTEND }} ] && echo "✅" || echo "❌") |
+        | **Total** | **${TOTAL_COV}%** | **$([ ${TOTAL_COV%.*} -ge ${{ env.COVERAGE_THRESHOLD_TOTAL }} ] && echo "✅" || echo "❌")** |
+        
+        ### 📈 Coverage Thresholds
+        - Backend: ${{ env.COVERAGE_THRESHOLD_BACKEND }}%
+        - Frontend: ${{ env.COVERAGE_THRESHOLD_FRONTEND }}%
+        - Total: ${{ env.COVERAGE_THRESHOLD_TOTAL }}%
+        
+        ### 📁 Coverage Files
+        - [Backend Coverage Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        - [Frontend Coverage Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        EOF
+        
+        cat coverage-summary.md
+
+    - name: Upload coverage summary
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-summary
+        path: coverage-summary.md
+
+    - name: Comment PR (if applicable)
+      uses: actions/github-script@v7
+      if: github.event_name == 'pull_request'
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('coverage-summary.md', 'utf8');
+          
+          // 既存のカバレッジコメントを探す
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number,
+          });
+          
+          const botComment = comments.data.find(comment => 
+            comment.user.type === 'Bot' && comment.body.includes('Code Coverage Report')
+          );
+          
+          if (botComment) {
+            // 既存のコメントを更新
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: botComment.id,
+              body: summary
+            });
+          } else {
+            // 新規コメントを作成
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: summary
+            });
+          }
+
+    - name: Update coverage badge (main branch only)
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      run: |
+        # Shields.ioのエンドポイント用JSONを作成
+        cat > coverage-badge.json << EOF
+        {
+          "schemaVersion": 1,
+          "label": "coverage",
+          "message": "${{ env.TOTAL_COVERAGE }}%",
+          "color": "$(TOTAL_INT=${{ env.TOTAL_COVERAGE }}; TOTAL_INT=${TOTAL_INT%.*}; if [ $TOTAL_INT -ge 90 ]; then echo "brightgreen"; elif [ $TOTAL_INT -ge 80 ]; then echo "green"; elif [ $TOTAL_INT -ge 70 ]; then echo "yellow"; elif [ $TOTAL_INT -ge 60 ]; then echo "orange"; else echo "red"; fi)"
+        }
+        EOF
+        
+        # バッジ情報をアーティファクトとして保存
+        echo "Coverage badge data saved"
+
+    - name: Upload badge data
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-badge
+        path: coverage-badge.json
+
+  coverage-check:
+    name: Coverage Check
+    runs-on: ubuntu-latest
+    needs: [coverage-report]
+    if: always()
+    
+    steps:
+    - name: Download coverage summary
+      uses: actions/download-artifact@v3
+      with:
+        name: coverage-summary
+        path: .
+
+    - name: Check total coverage threshold
+      run: |
+        # coverage-summary.mdから総合カバレッジを抽出
+        TOTAL_COV=$(grep -E '\*\*[0-9.]+%\*\*' coverage-summary.md | grep -oE '[0-9.]+' | head -1)
+        
+        echo "Total coverage: ${TOTAL_COV}%"
+        
+        # 整数部分のみを比較
+        TOTAL_COV_INT=$(echo "${TOTAL_COV}" | cut -d. -f1)
+        THRESHOLD_INT=${{ env.COVERAGE_THRESHOLD_TOTAL }}
+        
+        if [ "$TOTAL_COV_INT" -lt "$THRESHOLD_INT" ]; then
+          echo "::error::Total coverage ${TOTAL_COV}% is below threshold ${{ env.COVERAGE_THRESHOLD_TOTAL }}%"
+          exit 1
+        fi
+        
+        echo "✅ Total coverage ${TOTAL_COV}% meets threshold ${{ env.COVERAGE_THRESHOLD_TOTAL }}%"

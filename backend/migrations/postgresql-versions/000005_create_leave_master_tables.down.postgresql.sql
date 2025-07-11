@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS holidays;
+DROP TABLE IF EXISTS leave_types;

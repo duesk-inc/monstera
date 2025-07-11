@@ -1,0 +1,106 @@
+# GitHub Actions E2E テストワークフロー
+name: E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 毎日午前2時（JST 11時）に実行
+    - cron: '0 17 * * *'
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Test mode'
+        required: true
+        default: 'smoke'
+        type: choice
+        options:
+          - smoke
+          - critical
+          - full
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        browser: [chromium, firefox, webkit]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+        
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci
+        npx playwright install --with-deps ${{ matrix.browser }}
+        
+    - name: Start Docker services
+      run: |
+        docker-compose up -d mysql redis backend
+        # Wait for services to be ready
+        sleep 30
+        
+    - name: Run E2E tests
+      run: |
+        ./run-e2e-tests.sh \
+          --mode ${{ github.event.inputs.test_mode || 'smoke' }} \
+          --browser ${{ matrix.browser }} \
+          --workers 2 \
+          --retries 2
+          
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: e2e-test-results-${{ matrix.browser }}
+        path: |
+          test-results/ci-*/
+          frontend/playwright-report/
+          frontend/test-results/
+          
+    - name: Upload coverage
+      if: matrix.browser == 'chromium'
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./frontend/coverage
+        
+    - name: Publish test report
+      if: always()
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./test-results/ci-*/html-report
+        destination_dir: e2e-reports/${{ github.run_number }}
+        
+    - name: Comment PR
+      if: github.event_name == 'pull_request' && always()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const reportPath = './test-results/ci-*/e2e-test-report.md';
+          const report = fs.readFileSync(reportPath, 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `## E2E Test Results - ${{ matrix.browser }}\n\n${report}`
+          });
+          
+    - name: Stop Docker services
+      if: always()
+      run: docker-compose down

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>職務経歴書</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        
+        body {
+            font-family: 'Noto Sans CJK JP', 'Noto Sans JP', 'Yu Gothic', 'Hiragino Sans', sans-serif;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+        
+        .header .date {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .personal-info {
+            margin-bottom: 25px;
+        }
+        
+        .personal-info h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        
+        .info-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+        
+        .info-table .label {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            width: 20%;
+        }
+        
+        .experience-summary {
+            margin-bottom: 25px;
+        }
+        
+        .experience-summary h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .work-history {
+            margin-bottom: 25px;
+        }
+        
+        .work-history h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .project {
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 15px;
+        }
+        
+        .project-header {
+            background-color: #f8f9fa;
+            margin: -15px -15px 10px -15px;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .project-details table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        
+        .project-details td {
+            padding: 5px 8px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+        
+        .project-details .label {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            width: 25%;
+        }
+        
+        .tech-skills {
+            margin-bottom: 25px;
+        }
+        
+        .tech-skills h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        
+        .skill-category {
+            margin-bottom: 15px;
+        }
+        
+        .skill-category h3 {
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #444;
+            background-color: #f8f9fa;
+            padding: 5px 10px;
+        }
+        
+        .skills-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+        
+        .skills-table th,
+        .skills-table td {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        .skills-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        
+        .skills-table td {
+            font-size: 11px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 10px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        
+        /* テーブルの改ページ対応 */
+        .project,
+        .skill-category {
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>職務経歴書</h1>
+        <div class="date">{{.OutputDate}}</div>
+    </div>
+
+    <div class="personal-info">
+        <h2>基本情報</h2>
+        <table class="info-table">
+            <tr>
+                <td class="label">氏名</td>
+                <td>{{.LastName}} {{.FirstName}} （{{.LastNameKana}} {{.FirstNameKana}}）</td>
+            </tr>
+            <tr>
+                <td class="label">メールアドレス</td>
+                <td>{{.Email}}</td>
+            </tr>
+            <tr>
+                <td class="label">IT経験年数</td>
+                <td>{{.ITExperience.Years}}年{{.ITExperience.Months}}ヶ月</td>
+            </tr>
+            {{if .StartDate}}
+            <tr>
+                <td class="label">参画開始可能日</td>
+                <td>{{.StartDate}}</td>
+            </tr>
+            {{end}}
+        </table>
+    </div>
+
+    <div class="work-history">
+        <h2>職務経歴</h2>
+        {{range .WorkHistories}}
+        <div class="project">
+            <div class="project-header">
+                {{.ProjectName}} （{{.StartDate}}〜{{if .EndDate}}{{.EndDate}}{{else}}現在{{end}}）
+            </div>
+            <div class="project-details">
+                <table>
+                    <tr>
+                        <td class="label">業種</td>
+                        <td>{{.IndustryName}}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">期間</td>
+                        <td>{{.Duration.Years}}年{{.Duration.Months}}ヶ月</td>
+                    </tr>
+                    <tr>
+                        <td class="label">チーム規模</td>
+                        <td>{{.TeamSize}}名</td>
+                    </tr>
+                    <tr>
+                        <td class="label">役割</td>
+                        <td>{{.Role}}</td>
+                    </tr>
+                    {{if .ProcessNames}}
+                    <tr>
+                        <td class="label">担当工程</td>
+                        <td>{{range $i, $process := .ProcessNames}}{{if $i}}, {{end}}{{$process}}{{end}}</td>
+                    </tr>
+                    {{end}}
+                    <tr>
+                        <td class="label">プロジェクト概要</td>
+                        <td>{{.ProjectOverview}}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">担当業務</td>
+                        <td>{{.Responsibilities}}</td>
+                    </tr>
+                    {{if .Achievements}}
+                    <tr>
+                        <td class="label">成果・実績</td>
+                        <td>{{.Achievements}}</td>
+                    </tr>
+                    {{end}}
+                    {{if .ProgrammingLanguages}}
+                    <tr>
+                        <td class="label">プログラミング言語</td>
+                        <td>{{range $i, $lang := .ProgrammingLanguages}}{{if $i}}, {{end}}{{$lang}}{{end}}</td>
+                    </tr>
+                    {{end}}
+                    {{if .ServersDatabases}}
+                    <tr>
+                        <td class="label">サーバー・DB</td>
+                        <td>{{range $i, $server := .ServersDatabases}}{{if $i}}, {{end}}{{$server}}{{end}}</td>
+                    </tr>
+                    {{end}}
+                    {{if .Tools}}
+                    <tr>
+                        <td class="label">ツール</td>
+                        <td>{{range $i, $tool := .Tools}}{{if $i}}, {{end}}{{$tool}}{{end}}</td>
+                    </tr>
+                    {{end}}
+                    {{if .Notes}}
+                    <tr>
+                        <td class="label">備考</td>
+                        <td>{{.Notes}}</td>
+                    </tr>
+                    {{end}}
+                </table>
+            </div>
+        </div>
+        {{end}}
+    </div>
+
+    {{if .TechnicalSkills}}
+    <div class="tech-skills">
+        <h2>技術スキルサマリー</h2>
+        {{range .TechnicalSkills}}
+        <div class="skill-category">
+            <h3>{{.DisplayName}}</h3>
+            <table class="skills-table">
+                <thead>
+                    <tr>
+                        <th>技術名</th>
+                        <th>経験年数</th>
+                        <th>プロジェクト数</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range .Skills}}
+                    <tr>
+                        <td>{{.Name}}</td>
+                        <td>{{.Experience.Years}}年{{.Experience.Months}}ヶ月</td>
+                        <td>{{.ProjectCount}}件</td>
+                    </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        {{end}}
+    </div>
+    {{end}}
+
+    <div class="footer">
+        この職務経歴書は{{.OutputDate}}に出力されました
+    </div>
+</body>
+</html>

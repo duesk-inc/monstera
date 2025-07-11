@@ -1,0 +1,12 @@
+-- ユーザーのデフォルト勤務時間設定テーブル作成
+CREATE TABLE IF NOT EXISTS user_default_work_settings (
+  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,
+  user_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  -- 平日のデフォルト設定
+  weekday_start_time VARCHAR(10) NOT NULL DEFAULT '09:00',
+  weekday_end_time VARCHAR(10) NOT NULL DEFAULT '18:00',
+  weekday_break_time DECIMAL(4,2) NOT NULL DEFAULT 1.00,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci; 

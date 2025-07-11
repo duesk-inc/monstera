@@ -1,0 +1,2 @@
+-- イベントの削除 DROP EVENT IF EXISTS delete_expired_expense_drafts;
+-- 経費申請下書きテーブルの削除 DROP TABLE IF EXISTS expense_drafts;

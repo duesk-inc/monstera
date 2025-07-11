@@ -1,0 +1,27 @@
+-- 請求管理テーブルの作成
+CREATE TABLE IF NOT EXISTS invoices (
+  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,
+  client_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '取引先ID',
+  invoice_number VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '請求書番号',
+  invoice_date DATE NOT NULL COMMENT '請求日',
+  due_date DATE NOT NULL COMMENT '支払期限',
+  billing_month VARCHAR(7) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '請求対象月（YYYY-MM）',
+  subtotal DECIMAL(10, 2) NOT NULL COMMENT '小計',
+  tax_rate DECIMAL(5, 2) DEFAULT 10.00 COMMENT '消費税率（%）',
+  tax_amount DECIMAL(10, 2) NOT NULL COMMENT '消費税額',
+  total_amount DECIMAL(10, 2) NOT NULL COMMENT '合計金額',
+  status ENUM('draft', 'sent', 'paid', 'overdue', 'cancelled') DEFAULT 'draft' COMMENT '請求書ステータス',
+  paid_date DATE COMMENT '入金日',
+  payment_method VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '入金方法',
+  notes TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '備考',
+  created_by VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '作成者ID',
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '作成日時',
+  updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新日時',
+  deleted_at DATETIME(3) NULL COMMENT '削除日時',
+  CONSTRAINT fk_invoices_client FOREIGN KEY (client_id) REFERENCES clients(id),
+  CONSTRAINT fk_invoices_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+  UNIQUE INDEX idx_invoices_invoice_number (invoice_number),
+  INDEX idx_invoices_billing_month (billing_month),
+  INDEX idx_invoices_status (status),
+  INDEX idx_invoices_client_id (client_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='請求管理テーブル';

@@ -1,0 +1,361 @@
+package handler
+
+import (
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/duesk/monstera/internal/service"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+	"go.uber.org/zap"
+)
+
+// UnsubmittedReportHandler 未提出者管理ハンドラーインターフェース
+type UnsubmittedReportHandler interface {
+	// 未提出者一覧取得
+	GetUnsubmittedReports(c *gin.Context)
+
+	// 部署別未提出統計
+	GetDepartmentUnsubmittedStats(c *gin.Context)
+
+	// マネージャー別未提出統計
+	GetManagerUnsubmittedStats(c *gin.Context)
+
+	// 未提出者へのリマインド送信
+	SendRemindersToUnsubmitted(c *gin.Context)
+
+	// 自動リマインド設定
+	GetAutoReminderSettings(c *gin.Context)
+	SetAutoReminderSettings(c *gin.Context)
+
+	// 未提出理由の記録
+	RecordUnsubmittedReason(c *gin.Context)
+
+	// エスカレーション対象者の取得
+	GetEscalationTargets(c *gin.Context)
+
+	// 未提出者サマリー取得
+	GetUnsubmittedSummary(c *gin.Context)
+}
+
+// unsubmittedReportHandler ハンドラー実装
+type unsubmittedReportHandler struct {
+	BaseHandler
+	service service.UnsubmittedReportService
+	util    *HandlerUtil
+}
+
+// NewUnsubmittedReportHandler インスタンスを生成
+func NewUnsubmittedReportHandler(
+	service service.UnsubmittedReportService,
+	logger *zap.Logger,
+) UnsubmittedReportHandler {
+	return &unsubmittedReportHandler{
+		BaseHandler: BaseHandler{Logger: logger},
+		service:     service,
+		util:        NewHandlerUtil(logger),
+	}
+}
+
+// GetUnsubmittedReports 未提出者一覧を取得
+func (h *unsubmittedReportHandler) GetUnsubmittedReports(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// クエリパラメータを取得
+	params := &service.UnsubmittedReportParams{
+		Page:           h.getIntQuery(c, "page", 1),
+		Limit:          h.getIntQuery(c, "limit", 20),
+		MinDaysOverdue: h.getIntQuery(c, "min_days_overdue", 0),
+		MaxDaysOverdue: h.getIntQuery(c, "max_days_overdue", 0),
+		OrderBy:        c.Query("order_by"),
+		OrderDir:       c.Query("order_dir"),
+	}
+
+	// 部署IDの取得
+	if deptIDStr := c.Query("department_id"); deptIDStr != "" {
+		if deptID, err := uuid.Parse(deptIDStr); err == nil {
+			params.DepartmentID = &deptID
+		} else {
+			RespondValidationError(c, map[string]string{
+				"department_id": "無効な部署IDです",
+			})
+			return
+		}
+	}
+
+	// マネージャーIDの取得
+	if mgrIDStr := c.Query("manager_id"); mgrIDStr != "" {
+		if mgrID, err := uuid.Parse(mgrIDStr); err == nil {
+			params.ManagerID = &mgrID
+		} else {
+			RespondValidationError(c, map[string]string{
+				"manager_id": "無効なマネージャーIDです",
+			})
+			return
+		}
+	}
+
+	// バリデーション
+	if params.Page < 1 {
+		params.Page = 1
+	}
+	if params.Limit < 1 || params.Limit > 100 {
+		params.Limit = 20
+	}
+
+	// サービス呼び出し
+	response, err := h.service.GetUnsubmittedReports(ctx, params)
+	if err != nil {
+		HandleError(c, http.StatusInternalServerError, "未提出者一覧の取得に失敗しました", h.Logger, err)
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "", gin.H{
+		"reports":    response.Reports,
+		"pagination": response.Pagination,
+		"summary":    response.Summary,
+	})
+}
+
+// GetDepartmentUnsubmittedStats 部署別未提出統計を取得
+func (h *unsubmittedReportHandler) GetDepartmentUnsubmittedStats(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// サービス呼び出し
+	stats, err := h.service.GetDepartmentUnsubmittedStats(ctx)
+	if err != nil {
+		HandleError(c, http.StatusInternalServerError, "部署別統計の取得に失敗しました", h.Logger, err)
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "", gin.H{
+		"statistics": stats,
+	})
+}
+
+// GetManagerUnsubmittedStats マネージャー別未提出統計を取得
+func (h *unsubmittedReportHandler) GetManagerUnsubmittedStats(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// パスパラメータまたは認証情報からマネージャーIDを取得
+	var managerID uuid.UUID
+
+	if idStr := c.Param("id"); idStr != "" {
+		// パスパラメータから取得
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			RespondValidationError(c, map[string]string{
+				"id": "無効なマネージャーIDです",
+			})
+			return
+		}
+		managerID = id
+	} else {
+		// 認証情報から取得（自分の部下の統計）
+		authID, ok := h.util.GetAuthenticatedUserID(c)
+		if !ok {
+			return
+		}
+		managerID = authID
+	}
+
+	// サービス呼び出し
+	stats, err := h.service.GetManagerUnsubmittedStats(ctx, managerID)
+	if err != nil {
+		HandleError(c, http.StatusInternalServerError, "マネージャー別統計の取得に失敗しました", h.Logger, err)
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "", gin.H{
+		"statistics": stats,
+	})
+}
+
+// SendRemindersToUnsubmitted 未提出者へリマインドを送信
+func (h *unsubmittedReportHandler) SendRemindersToUnsubmitted(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// リクエストボディをバインド
+	var req struct {
+		UserIDs []string `json:"user_ids" binding:"required,min=1"`
+		Message string   `json:"message" binding:"required,min=1,max=1000"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		RespondValidationError(c, h.util.CreateValidationErrorMap(err))
+		return
+	}
+
+	// UUIDに変換
+	userIDs := make([]uuid.UUID, 0, len(req.UserIDs))
+	for _, idStr := range req.UserIDs {
+		id, err := uuid.Parse(idStr)
+		if err != nil {
+			RespondValidationError(c, map[string]string{
+				"user_ids": "無効なユーザーIDが含まれています: " + idStr,
+			})
+			return
+		}
+		userIDs = append(userIDs, id)
+	}
+
+	// サービス呼び出し
+	if err := h.service.SendRemindersToUnsubmitted(ctx, userIDs, req.Message); err != nil {
+		HandleError(c, http.StatusInternalServerError, "リマインドの送信に失敗しました", h.Logger, err)
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "リマインドを送信しました", gin.H{
+		"sent_count": len(userIDs),
+	})
+}
+
+// GetAutoReminderSettings 自動リマインド設定を取得
+func (h *unsubmittedReportHandler) GetAutoReminderSettings(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// サービス呼び出し
+	settings, err := h.service.GetAutoReminderSettings(ctx)
+	if err != nil {
+		HandleError(c, http.StatusInternalServerError, "自動リマインド設定の取得に失敗しました", h.Logger, err)
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "", gin.H{
+		"settings": settings,
+	})
+}
+
+// SetAutoReminderSettings 自動リマインド設定を更新
+func (h *unsubmittedReportHandler) SetAutoReminderSettings(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// 認証済みユーザーIDを取得
+	userID, ok := h.util.GetAuthenticatedUserID(c)
+	if !ok {
+		return
+	}
+
+	// リクエストボディをバインド
+	var settings service.AutoReminderSettings
+	if err := c.ShouldBindJSON(&settings); err != nil {
+		RespondValidationError(c, h.util.CreateValidationErrorMap(err))
+		return
+	}
+
+	// 更新者情報を設定
+	settings.UpdatedAt = time.Now()
+	settings.UpdatedBy = userID
+
+	// サービス呼び出し
+	if err := h.service.SetAutoReminderSettings(ctx, &settings); err != nil {
+		HandleError(c, http.StatusInternalServerError, "自動リマインド設定の更新に失敗しました", h.Logger, err)
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "自動リマインド設定を更新しました", nil)
+}
+
+// RecordUnsubmittedReason 未提出理由を記録
+func (h *unsubmittedReportHandler) RecordUnsubmittedReason(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// パスパラメータからIDを取得
+	reportID, err := ParseUUID(c, "id", h.Logger)
+	if err != nil {
+		return
+	}
+
+	// リクエストボディをバインド
+	var req struct {
+		Reason string `json:"reason" binding:"required,min=1,max=500"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		RespondValidationError(c, map[string]string{
+			"reason": "理由は1文字以上500文字以内で入力してください",
+		})
+		return
+	}
+
+	// サービス呼び出し
+	if err := h.service.RecordUnsubmittedReason(ctx, reportID, req.Reason); err != nil {
+		HandleError(c, http.StatusInternalServerError, "未提出理由の記録に失敗しました", h.Logger, err)
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "未提出理由を記録しました", nil)
+}
+
+// GetEscalationTargets エスカレーション対象者を取得
+func (h *unsubmittedReportHandler) GetEscalationTargets(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// クエリパラメータから日数を取得
+	daysOverdue := h.getIntQuery(c, "days_overdue", 14)
+
+	if daysOverdue < 1 {
+		RespondValidationError(c, map[string]string{
+			"days_overdue": "1以上の値を指定してください",
+		})
+		return
+	}
+
+	// サービス呼び出し
+	targets, err := h.service.GetEscalationTargets(ctx, daysOverdue)
+	if err != nil {
+		HandleError(c, http.StatusInternalServerError, "エスカレーション対象者の取得に失敗しました", h.Logger, err)
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "", gin.H{
+		"targets":      targets,
+		"total":        len(targets),
+		"days_overdue": daysOverdue,
+	})
+}
+
+// GetUnsubmittedSummary 未提出者サマリーを取得
+func (h *unsubmittedReportHandler) GetUnsubmittedSummary(c *gin.Context) {
+	ctx := c.Request.Context()
+
+	// サービス呼び出し
+	params := &service.UnsubmittedReportParams{
+		Page:  1,
+		Limit: 100, // サマリー用に多めに取得
+	}
+
+	response, err := h.service.GetUnsubmittedReports(ctx, params)
+	if err != nil {
+		HandleError(c, http.StatusInternalServerError, "未提出者サマリーの取得に失敗しました", h.Logger, err)
+		return
+	}
+
+	// 14日以上未提出の数を計算
+	overdue14daysPlus := int64(0)
+	for _, report := range response.Reports {
+		if report.DaysOverdue >= 14 {
+			overdue14daysPlus++
+		}
+	}
+
+	RespondSuccess(c, http.StatusOK, "", gin.H{
+		"total_unsubmitted":   response.Summary.TotalUnsubmitted,
+		"by_overdue_days":     response.Summary.ByOverdueDays,
+		"overdue_14days_plus": overdue14daysPlus,
+	})
+}
+
+// getIntQuery クエリパラメータを整数として取得
+func (h *unsubmittedReportHandler) getIntQuery(c *gin.Context, key string, defaultValue int) int {
+	valueStr := c.Query(key)
+	if valueStr == "" {
+		return defaultValue
+	}
+
+	value, err := strconv.Atoi(valueStr)
+	if err != nil {
+		return defaultValue
+	}
+
+	return value
+}

@@ -1,0 +1,128 @@
+# GitHub Actions ワークフローの例
+# .github/workflows/performance-test.yml として保存
+
+name: Performance Test
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 毎日深夜2時に実行
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: monstera_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+    
+    - name: Install Vegeta
+      run: go install github.com/tsenart/vegeta@latest
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq bc
+    
+    - name: Setup test environment
+      env:
+        DB_HOST: localhost
+        DB_USER: root
+        DB_PASSWORD: password
+        DB_NAME: monstera_test
+      run: |
+        cd backend
+        go mod download
+        
+        # マイグレーション実行
+        go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+        migrate -path ./migrations -database "mysql://root:password@tcp(localhost:3306)/monstera_test" up
+    
+    - name: Generate test data
+      env:
+        DB_HOST: localhost
+        DB_USER: root
+        DB_PASSWORD: password
+        DB_NAME: monstera_test
+      run: |
+        cd backend/test/performance
+        go run test_data_generator.go
+    
+    - name: Start backend server
+      env:
+        DB_HOST: localhost
+        DB_USER: root
+        DB_PASSWORD: password
+        DB_NAME: monstera_test
+        JWT_SECRET: test-secret
+        GIN_MODE: release
+      run: |
+        cd backend
+        go build -o server ./cmd/server
+        ./server &
+        sleep 10
+    
+    - name: Run performance tests
+      env:
+        BASE_URL: http://localhost:8080
+        TEST_DURATION: 30s
+        TEST_RATE: 100
+        CI_FAIL_ON_ERROR: true
+      run: |
+        cd backend/test/performance
+        ./scripts/ci_performance_test.sh
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-test-results
+        path: |
+          backend/test/performance/results/
+          backend/test/performance/reports/
+    
+    - name: Comment PR
+      uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = JSON.parse(fs.readFileSync('backend/test/performance/reports/ci_summary_*.json'));
+          
+          const status = summary.overall_pass ? '✅ Passed' : '❌ Failed';
+          const comment = `## Performance Test Results ${status}
+          
+          **Timestamp:** ${summary.timestamp}
+          **Tests Run:** ${summary.test_count}
+          
+          ${summary.failed_tests.length > 0 ? '### Failed Tests\n' + summary.failed_tests.join('\n') : ''}
+          
+          [View detailed report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });

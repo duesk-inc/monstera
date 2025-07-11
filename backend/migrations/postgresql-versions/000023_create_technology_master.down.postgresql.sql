@@ -1,0 +1,1 @@
+-- 技術マスタテーブルを削除 DROP TABLE IF EXISTS technology_master;

@@ -1,0 +1,55 @@
+-- usersテーブルにエンジニア管理用のカラムを追加
+
+-- エンジニアステータスのENUM型を作成
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'engineer_status_enum') THEN
+        CREATE TYPE engineer_status_enum AS ENUM ('active', 'standby', 'resigned', 'long_leave');
+    END IF;
+END $$;
+
+-- カラムの追加
+ALTER TABLE users 
+    ADD COLUMN IF NOT EXISTS sei VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS mei VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS sei_kana VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS mei_kana VARCHAR(50),
+    ADD COLUMN IF NOT EXISTS employee_number VARCHAR(6) UNIQUE,
+    ADD COLUMN IF NOT EXISTS department VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS position VARCHAR(100),
+    ADD COLUMN IF NOT EXISTS hire_date DATE,
+    ADD COLUMN IF NOT EXISTS education VARCHAR(200),
+    ADD COLUMN IF NOT EXISTS phone_number VARCHAR(20),
+    ADD COLUMN IF NOT EXISTS engineer_status engineer_status_enum DEFAULT 'active';
+
+-- コメントの追加
+COMMENT ON COLUMN users.sei IS '姓';
+COMMENT ON COLUMN users.mei IS '名';
+COMMENT ON COLUMN users.sei_kana IS 'セイ';
+COMMENT ON COLUMN users.mei_kana IS 'メイ';
+COMMENT ON COLUMN users.employee_number IS '社員番号';
+COMMENT ON COLUMN users.department IS '所属部署';
+COMMENT ON COLUMN users.position IS '役職';
+COMMENT ON COLUMN users.hire_date IS '入社日';
+COMMENT ON COLUMN users.education IS '最終学歴';
+COMMENT ON COLUMN users.phone_number IS '電話番号';
+COMMENT ON COLUMN users.engineer_status IS 'エンジニアステータス';
+
+-- インデックス追加
+CREATE INDEX IF NOT EXISTS idx_users_employee_number ON users(employee_number);
+CREATE INDEX IF NOT EXISTS idx_users_engineer_status ON users(engineer_status);
+CREATE INDEX IF NOT EXISTS idx_users_sei_mei ON users(sei, mei);
+CREATE INDEX IF NOT EXISTS idx_users_sei_kana_mei_kana ON users(sei_kana, mei_kana);
+
+-- 既存ユーザーのfirst_name/last_nameから姓名を設定（オプション）
+-- 注: 実環境では手動でのデータ移行が推奨されます
+UPDATE users 
+SET 
+    sei = last_name,
+    mei = first_name,
+    sei_kana = last_name_kana,
+    mei_kana = first_name_kana
+WHERE 
+    last_name IS NOT NULL 
+    AND first_name IS NOT NULL 
+    AND sei IS NULL;

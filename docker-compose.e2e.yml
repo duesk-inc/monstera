@@ -1,0 +1,184 @@
+version: '3.8'
+
+services:
+  # E2Eテスト用PostgreSQLデータベース
+  postgres-e2e:
+    image: postgres:15-alpine
+    platform: linux/arm64/v8
+    container_name: monstera-postgres-e2e
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: monstera_e2e
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C.UTF-8"
+      TZ: Asia/Tokyo
+      PGTZ: Asia/Tokyo
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_e2e_data:/var/lib/postgresql/data
+      - ./docker/postgres/postgresql-development.conf:/etc/postgresql/postgresql.conf
+      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    networks:
+      - monstera-e2e-network
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf -c hba_file=/etc/postgresql/pg_hba.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d monstera_e2e"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # E2Eテスト用Redisキャッシュサーバー
+  redis-e2e:
+    image: redis:7-alpine
+    container_name: monstera-redis-e2e
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_e2e_data:/data
+    networks:
+      - monstera-e2e-network
+    command: redis-server --appendonly yes --dbfilename dump-e2e.rdb
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # E2Eテスト用Cognito Local
+  cognito-local-e2e:
+    image: jagregory/cognito-local:latest
+    container_name: monstera-cognito-local-e2e
+    restart: unless-stopped
+    ports:
+      - "9230:9229"
+    volumes:
+      - ./cognito/e2e:/app/.cognito
+    environment:
+      DEBUG: 1
+    networks:
+      - monstera-e2e-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9229/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # E2Eテスト用バックエンドAPI
+  backend-e2e:
+    build:
+      context: ./backend
+      dockerfile: ../docker/backend/Dockerfile
+      platforms:
+        - linux/arm64/v8
+    container_name: monstera-backend-e2e
+    restart: unless-stopped
+    depends_on:
+      postgres-e2e:
+        condition: service_healthy
+      redis-e2e:
+        condition: service_healthy
+      cognito-local-e2e:
+        condition: service_healthy
+    env_file:
+      - ./.env.e2e
+    environment:
+      # Docker内での接続設定を上書き
+      DB_HOST: postgres-e2e
+      REDIS_HOST: redis-e2e
+      COGNITO_ENDPOINT: http://cognito-local-e2e:9229
+      PORT: 8080
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./backend:/app
+      - ./backend/templates:/app/templates
+      - ./backend/seeds:/app/seeds
+    networks:
+      - monstera-e2e-network
+    command: sh -c "
+      echo 'Waiting for database...' &&
+      while ! nc -z postgres-e2e 5432; do sleep 1; done &&
+      echo 'Database is ready!' &&
+      migrate -path migrations -database 'postgres://postgres:postgres@postgres-e2e:5432/monstera_e2e?sslmode=disable' up &&
+      ./entrypoint.sh"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # E2Eテスト用フロントエンド
+  frontend-e2e:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/frontend/Dockerfile
+      platforms:
+        - linux/arm64/v8
+    container_name: monstera-frontend-e2e
+    restart: unless-stopped
+    depends_on:
+      backend-e2e:
+        condition: service_healthy
+    env_file:
+      - ./.env.e2e
+    environment:
+      # Docker内での接続設定
+      NEXT_PUBLIC_API_URL: http://localhost:8081
+      NEXT_SERVER_API_URL: http://backend-e2e:8080
+      NODE_ENV: test
+      PORT: 3000
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - monstera-e2e-network
+    command: sh -c "
+      echo 'Waiting for backend...' &&
+      while ! nc -z backend-e2e 8080; do sleep 1; done &&
+      echo 'Backend is ready!' &&
+      npm run dev"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # E2Eテスト実行コンテナ（CI用）
+  e2e-runner:
+    image: mcr.microsoft.com/playwright:v1.40.0-focal
+    container_name: monstera-e2e-runner
+    depends_on:
+      frontend-e2e:
+        condition: service_healthy
+      backend-e2e:
+        condition: service_healthy
+    env_file:
+      - ./.env.e2e
+    environment:
+      CI: "true"
+      PLAYWRIGHT_HEADLESS: "true"
+      BASE_URL: http://frontend-e2e:3000
+      API_URL: http://backend-e2e:8080
+    volumes:
+      - ./frontend:/app
+      - ./test-results:/app/test-results
+      - ./playwright-report:/app/playwright-report
+    networks:
+      - monstera-e2e-network
+    working_dir: /app
+    command: echo "E2E runner ready. Use 'docker-compose -f docker-compose.e2e.yml run e2e-runner npm run test:e2e' to start tests"
+
+networks:
+  monstera-e2e-network:
+    driver: bridge
+    name: monstera-e2e-network
+
+volumes:
+  postgres_e2e_data:
+  redis_e2e_data:
