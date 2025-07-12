@@ -66,6 +66,25 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 	}
 	userRole, _ := c.Get("role")
 
+	// ユーザーロールの文字列表現を取得する
+	var userRoleStr string
+	if userRole != nil {
+		switch v := userRole.(type) {
+		case string:
+			userRoleStr = v
+		case *model.Role:
+			if v != nil {
+				userRoleStr = v.String()
+			} else {
+				userRoleStr = "unknown"
+			}
+		default:
+			userRoleStr = "unknown"
+		}
+	} else {
+		userRoleStr = "unknown"
+	}
+
 	// デバッグログ: リクエスト開始
 	h.debugLogger.RequestStart(
 		debug.DebugLogConfig{
@@ -78,7 +97,7 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 			URL:      c.Request.URL.String(),
 			RawBody:  string(bodyBytes),
 			UserID:   userUUID.String(),
-			UserRole: userRole.(string),
+			UserRole: userRoleStr,
 		},
 	)
 
@@ -291,6 +310,25 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 	}
 	userRole, _ := c.Get("role")
 
+	// ユーザーロールの文字列表現を取得する
+	var userRoleStr string
+	if userRole != nil {
+		switch v := userRole.(type) {
+		case string:
+			userRoleStr = v
+		case *model.Role:
+			if v != nil {
+				userRoleStr = v.String()
+			} else {
+				userRoleStr = "unknown"
+			}
+		default:
+			userRoleStr = "unknown"
+		}
+	} else {
+		userRoleStr = "unknown"
+	}
+
 	// デバッグログ: リクエスト開始
 	h.debugLogger.RequestStart(
 		debug.DebugLogConfig{
@@ -303,7 +341,7 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			URL:        c.Request.URL.String(),
 			RawBody:    string(bodyBytes),
 			UserID:     userUUID.String(),
-			UserRole:   userRole.(string),
+			UserRole:   userRoleStr,
 			PathParams: map[string]string{"id": id.String()},
 		},
 	)
