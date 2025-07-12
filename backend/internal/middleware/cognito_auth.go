@@ -108,7 +108,7 @@ func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 
 		// コンテキストにユーザー情報を設定
 		c.Set("user", user)
-		c.Set("user_id", user.ID.String())
+		c.Set("user_id", user.ID)
 		c.Set("email", user.Email)
 		c.Set("role", user.DefaultRole) // 互換性のため
 		c.Set("roles", user.Roles)      // 複数ロール対応
@@ -152,7 +152,7 @@ func (m *CognitoAuthMiddleware) OptionalAuth() gin.HandlerFunc {
 
 		// コンテキストにユーザー情報を設定
 		c.Set("user", user)
-		c.Set("user_id", user.ID.String())
+		c.Set("user_id", user.ID)
 		c.Set("email", user.Email)
 		c.Set("role", user.DefaultRole) // 互換性のため
 		c.Set("roles", user.Roles)      // 複数ロール対応
