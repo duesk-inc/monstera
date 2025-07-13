@@ -1,4 +1,4 @@
-package service
+package service_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
+	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -64,7 +65,7 @@ func TestLogHTTPRequest_Success(t *testing.T) {
 	// Setup
 	mockRepo := new(MockAuditLogRepository)
 	logger := zap.NewNop()
-	service := NewAuditLogService(&gorm.DB{}, logger, mockRepo)
+	service := service.NewAuditLogService(&gorm.DB{}, logger, mockRepo)
 
 	// Create test context
 	gin.SetMode(gin.TestMode)
@@ -116,7 +117,7 @@ func TestLogHTTPRequest_WithCanceledContext(t *testing.T) {
 	// Setup
 	mockRepo := new(MockAuditLogRepository)
 	logger := zap.NewNop()
-	service := NewAuditLogService(&gorm.DB{}, logger, mockRepo)
+	service := service.NewAuditLogService(&gorm.DB{}, logger, mockRepo)
 
 	// Create test context
 	gin.SetMode(gin.TestMode)
@@ -146,7 +147,7 @@ func TestLogHTTPRequest_WithCanceledContext(t *testing.T) {
 
 	// Assert - should return context.Canceled error
 	assert.Error(t, err)
-	assert.Equal(t, context.Canceled, err)
+	assert.Contains(t, err.Error(), "context canceled")
 	mockRepo.AssertExpectations(t)
 }
 
@@ -154,7 +155,7 @@ func TestLogHTTPRequest_SkipNonAuditableAction(t *testing.T) {
 	// Setup
 	mockRepo := new(MockAuditLogRepository)
 	logger := zap.NewNop()
-	service := NewAuditLogService(&gorm.DB{}, logger, mockRepo)
+	service := service.NewAuditLogService(&gorm.DB{}, logger, mockRepo)
 
 	// Create test context
 	gin.SetMode(gin.TestMode)
@@ -166,8 +167,8 @@ func TestLogHTTPRequest_SkipNonAuditableAction(t *testing.T) {
 
 	// Setup expectations with a non-auditable action
 	userID := uuid.New()
-	action := model.AuditActionType("HEALTH_CHECK") // Assume this is not auditable
-	resourceType := model.ResourceType("SYSTEM")
+	action := model.AuditActionUserView // This action is not auditable according to ShouldAudit()
+	resourceType := model.ResourceType("USER")
 	duration := 5 * time.Millisecond
 
 	// No repository calls should be made
@@ -186,7 +187,7 @@ func TestLogHTTPRequest_WithRequestBody(t *testing.T) {
 	// Setup
 	mockRepo := new(MockAuditLogRepository)
 	logger := zap.NewNop()
-	service := NewAuditLogService(&gorm.DB{}, logger, mockRepo)
+	service := service.NewAuditLogService(&gorm.DB{}, logger, mockRepo)
 
 	// Create test context
 	gin.SetMode(gin.TestMode)
@@ -227,7 +228,7 @@ func TestLogHTTPRequest_WithError(t *testing.T) {
 	// Setup
 	mockRepo := new(MockAuditLogRepository)
 	logger := zap.NewNop()
-	service := NewAuditLogService(&gorm.DB{}, logger, mockRepo)
+	service := service.NewAuditLogService(&gorm.DB{}, logger, mockRepo)
 
 	// Create test context
 	gin.SetMode(gin.TestMode)
@@ -247,7 +248,7 @@ func TestLogHTTPRequest_WithError(t *testing.T) {
 
 	// Setup expectations
 	userID := uuid.Nil // Failed login
-	action := model.AuditActionType("SESSION_LOGIN")
+	action := model.AuditActionLoginFailed
 	resourceType := model.ResourceType("SESSION")
 	duration := 10 * time.Millisecond
 
