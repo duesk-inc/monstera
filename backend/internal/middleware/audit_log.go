@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -102,7 +103,11 @@ func AuditLogMiddleware(auditService service.AuditLogService, logger *zap.Logger
 
 		// 監査ログの記録
 		go func() {
+			// バックグラウンドコンテキストを作成
+			ctx := context.Background()
+			
 			if err := auditService.LogHTTPRequest(
+				ctx,
 				c,
 				userID.(uuid.UUID),
 				model.AuditActionType(action),

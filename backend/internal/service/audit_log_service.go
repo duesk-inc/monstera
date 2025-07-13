@@ -18,7 +18,7 @@ import (
 // AuditLogService 監査ログサービスインターフェース
 type AuditLogService interface {
 	LogActivity(ctx context.Context, params LogActivityParams) error
-	LogHTTPRequest(c *gin.Context, userID uuid.UUID, action model.AuditActionType, resourceType model.ResourceType, resourceID *string, duration time.Duration) error
+	LogHTTPRequest(ctx context.Context, c *gin.Context, userID uuid.UUID, action model.AuditActionType, resourceType model.ResourceType, resourceID *string, duration time.Duration) error
 	GetAuditLogs(ctx context.Context, filters repository.AuditLogFilters) ([]*model.AuditLog, int64, error)
 	GetUserAuditLogs(ctx context.Context, userID uuid.UUID, page, limit int) ([]*model.AuditLog, error)
 	GetResourceAuditLogs(ctx context.Context, resourceType model.ResourceType, resourceID string, page, limit int) ([]*model.AuditLog, error)
@@ -119,7 +119,7 @@ func (s *auditLogService) LogActivity(ctx context.Context, params LogActivityPar
 }
 
 // LogHTTPRequest HTTPリクエストをログに記録
-func (s *auditLogService) LogHTTPRequest(c *gin.Context, userID uuid.UUID, action model.AuditActionType, resourceType model.ResourceType, resourceID *string, duration time.Duration) error {
+func (s *auditLogService) LogHTTPRequest(ctx context.Context, c *gin.Context, userID uuid.UUID, action model.AuditActionType, resourceType model.ResourceType, resourceID *string, duration time.Duration) error {
 	// 監査対象でない場合はスキップ
 	if !action.ShouldAudit() {
 		return nil
@@ -154,7 +154,8 @@ func (s *auditLogService) LogHTTPRequest(c *gin.Context, userID uuid.UUID, actio
 		params.ErrorMessage = &errorMsg
 	}
 
-	return s.LogActivity(c.Request.Context(), params)
+	// バックグラウンドコンテキストを使用してログを記録
+	return s.LogActivity(ctx, params)
 }
 
 // GetAuditLogs 監査ログを取得
