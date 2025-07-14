@@ -30,7 +30,7 @@ graph TD
     C --> D[ハンドラー層<br/>HTTP Request/Response]
     D --> E[サービス層<br/>ビジネスロジック]
     E --> F[リポジトリ層<br/>データアクセス]
-    F --> G[データベース<br/>MySQL 8.0]
+    F --> G[データベース<br/>PostgreSQL]
     
     H[React Query<br/>キャッシュ管理] --> A
     I[Toast通知<br/>エラーハンドリング] --> A
@@ -56,7 +56,7 @@ graph TD
 - **バリデーション**: go-playground/validator
 
 #### データベース
-- **RDBMS**: MySQL 8.0
+- **RDBMS**: PostgreSQL
 - **マイグレーション**: golang-migrate
 - **接続プール**: GORM Connection Pool
 
@@ -2014,7 +2014,7 @@ groups:
           description: "95パーセンタイルの処理時間が5秒を超えています"
 
       - alert: WeeklyReportDatabaseConnectionError
-        expr: mysql_up{job="weekly_report_db"} == 0
+        expr: postgres_up{job="weekly_report_db"} == 0
         for: 1m
         labels:
           severity: critical

@@ -28,7 +28,7 @@
                                 │ GORM
                                 ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                      データベース (MySQL)                       │
+│                      データベース (PostgreSQL)                  │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────┐   │
 │  │leave_types  │  │leave_       │  │user_leave_      │   │
 │  │            │  │ requests    │  │ balances        │   │
@@ -778,13 +778,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - DB_HOST=mysql
+      - DB_HOST=postgres
       - DB_PORT=3306
       - DB_NAME=monstera
       - DB_USER=root
       - DB_PASSWORD=password
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     
   frontend:
@@ -796,13 +796,13 @@ services:
     depends_on:
       - backend
     
-  mysql:
-    image: mysql:8.0
+  postgres:
+    image: postgres:latest
     environment:
-      - MYSQL_ROOT_PASSWORD=password
-      - MYSQL_DATABASE=monstera
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=monstera
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -885,11 +885,11 @@ func HealthCheck(db *gorm.DB) gin.HandlerFunc {
 # daily-backup.sh
 
 DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/backup/mysql"
+BACKUP_DIR="/backup/postgres"
 DB_NAME="monstera"
 
 # フルバックアップ
-mysqldump -u root -p$MYSQL_PASSWORD \
+pg_dump -U postgres \
   --single-transaction \
   --routines \
   --triggers \

@@ -1406,7 +1406,7 @@ CMD ["./batch"]
     env_file:
       - ./backend/.env
     depends_on:
-      - mysql
+      - postgres
     networks:
       - monstera-network
     restart: unless-stopped
@@ -1857,7 +1857,7 @@ func TestAlertService_DetectAnomalies(t *testing.T) {
 // internal/handler/admin_weekly_report_handler_integration_test.go
 func TestAdminWeeklyReportHandler_Integration(t *testing.T) {
     // テスト環境セットアップ
-    container := setupMySQLContainer(t)
+    container := setupPostgreSQLContainer(t)
     defer container.Terminate(context.Background())
     
     db := connectTestDB(container)

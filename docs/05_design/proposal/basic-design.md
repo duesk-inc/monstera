@@ -185,7 +185,7 @@ CREATE TABLE proposal_questions (
 - **フォーム**: React Hook Form
 
 ### 7.3 データベース
-- **RDBMS**: MySQL 8.0
+- **RDBMS**: PostgreSQL
 - **スキーマ管理**: golang-migrate
 
 ## 8. セキュリティ

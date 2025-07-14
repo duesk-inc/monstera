@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/duesk/monstera/internal/dto"
@@ -419,7 +418,7 @@ func (r *ExpenseApprovalRepositoryImpl) CreateApprovalFlow(ctx context.Context, 
 
 	if len(managerSettings) == 0 {
 		r.logger.Error("No active manager approvers found")
-		return fmt.Errorf("管理部承認者が設定されていません")
+		return dto.NewExpenseError(dto.ErrCodeNoApproversConfigured, "管理部承認者が設定されていません。システム管理者に承認者の設定を依頼してください")
 	}
 
 	// 管理部承認を作成（優先順位順）
@@ -446,7 +445,7 @@ func (r *ExpenseApprovalRepositoryImpl) CreateApprovalFlow(ctx context.Context, 
 
 		if len(executiveSettings) == 0 {
 			r.logger.Error("No active executive approvers found")
-			return fmt.Errorf("役員承認者が設定されていません")
+			return dto.NewExpenseError(dto.ErrCodeNoApproversConfigured, "役員承認者が設定されていません。システム管理者に承認者の設定を依頼してください")
 		}
 
 		// 役員承認を作成（優先順位順）

@@ -5,7 +5,7 @@
 ### 1.1 アーキテクチャ概要
 - **フロントエンド**: Next.js (App Router) + TypeScript + MUI
 - **バックエンド**: Go + Gin + GORM
-- **データベース**: MySQL 8.0
+- **データベース**: PostgreSQL
 - **認証**: JWT (HTTPOnly Cookie)
 
 ### 1.2 ディレクトリ構造

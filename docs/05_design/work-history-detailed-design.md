@@ -6,7 +6,7 @@
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Frontend      │    │    Backend      │    │   Database      │
-│   (Next.js)     │◄──►│     (Go)        │◄──►│    (MySQL)      │
+│   (Next.js)     │◄──►│     (Go)        │◄──►│  (PostgreSQL)   │
 │                 │    │                 │    │                 │
 │ ・職務経歴画面    │    │ ・REST API      │    │ ・profiles      │
 │ ・PDF出力画面    │    │ ・PDF生成       │    │ ・work_histories│
@@ -23,7 +23,7 @@
 - **フロントエンド**: Next.js 15.3.2, TypeScript, MUI v7
 - **バックエンド**: Go 1.22, Gin v1.8.1, GORM
 - **PDF生成**: Chrome headless + HTMLテンプレート
-- **データベース**: MySQL 8.0
+- **データベース**: PostgreSQL
 
 ## 2. API設計詳細
 
@@ -69,7 +69,7 @@ Authorization: Bearer <token>
       "processes": [1, 2, 3, 4, 5],
       "process_names": ["要件定義", "基本設計", "詳細設計", "製造・実装", "テスト"],
       "programming_languages": ["Java", "JavaScript", "TypeScript"],
-      "servers_databases": ["MySQL", "Redis", "AWS EC2"],
+      "servers_databases": ["PostgreSQL", "Redis", "AWS EC2"],
       "tools": ["Git", "Docker", "Jenkins", "JIRA"],
       "team_size": 10,
       "role": "フロントエンドリード"
@@ -105,7 +105,7 @@ Authorization: Bearer <token>
       "display_name": "サーバー・DB",
       "skills": [
         {
-          "name": "MySQL",
+          "name": "PostgreSQL",
           "experience": {
             "years": 4,
             "months": 2,
@@ -158,7 +158,7 @@ Content-Type: application/json
       "notes": "初回のフルスタック開発経験",
       "processes": [1, 2, 3, 4, 5],
       "programming_languages": ["Java", "JavaScript", "TypeScript"],
-      "servers_databases": ["MySQL", "Redis", "AWS EC2"],
+      "servers_databases": ["PostgreSQL", "Redis", "AWS EC2"],
       "tools": ["Git", "Docker", "Jenkins", "JIRA"],
       "team_size": 10,
       "role": "フロントエンドリード"
@@ -444,8 +444,8 @@ func (n *TechnologyNormalizer) unifyCommonVariations(s string) string {
         "c plus plus": "cpp",
         "python":     "python",
         "python3":    "python",
-        "mysql":      "mysql",
-        "my sql":     "mysql",
+        "mysql":      "postgresql",
+        "my sql":     "postgresql",
         "postgresql": "postgresql",
         "postgres":   "postgresql",
         "aws":        "aws",
@@ -1618,7 +1618,7 @@ describe('WorkHistoryList', () => {
     
     // 技術スタックが表示されること
     expect(screen.getByText('Java')).toBeInTheDocument();
-    expect(screen.getByText('MySQL')).toBeInTheDocument();
+    expect(screen.getByText('PostgreSQL')).toBeInTheDocument();
   });
 
   it('編集ボタンクリックで編集ダイアログが開く', async () => {

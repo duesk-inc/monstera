@@ -10,7 +10,7 @@
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │   Frontend      │────▶│    Backend      │────▶│   Database      │
-│  (Next.js 15)   │     │   (Go + Gin)    │     │   (MySQL 8)     │
+│  (Next.js 15)   │     │   (Go + Gin)    │     │  (PostgreSQL)   │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
          │                       │
          │                       │
@@ -24,7 +24,7 @@
 ### 2.2 レイヤー構成
 - **フロントエンド**: Next.js App Router + TypeScript + MUI
 - **バックエンド**: Handler → Service → Repository パターン
-- **データベース**: MySQL 8.0 + GORM
+- **データベース**: PostgreSQL + GORM
 - **ファイルストレージ**: AWS S3（Pre-signed URL方式）
 - **キャッシュ**: Redis（カテゴリ・上限値）
 

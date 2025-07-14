@@ -1027,6 +1027,9 @@ const (
 	ErrCodeLimitUpdateFailed = "EXPENSE_LIMIT_UPDATE_FAILED"
 	ErrCodeInvalidOperation  = "EXPENSE_INVALID_OPERATION"
 	ErrCodeInvalidRequest    = "EXPENSE_INVALID_REQUEST"
+	
+	// 承認者設定関連エラーコード
+	ErrCodeNoApproversConfigured = "EXPENSE_NO_APPROVERS_CONFIGURED"
 )
 
 // ExpenseLimitSettingResponse 経費申請上限設定レスポンス

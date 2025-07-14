@@ -573,7 +573,7 @@ monstera-poc.projects -> monstera:
 ### 🛠️ 使用技術スタック
 - **フロントエンド**: React, MUI, FullCalendar.js, Chart.js
 - **バックエンド**: Go, Gin, GORM
-- **データベース**: MySQL 8.0
+- **データベース**: PostgreSQL
 - **外部連携**: REST API, バッチ処理
 
 ### 📚 参考資料

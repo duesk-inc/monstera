@@ -85,7 +85,7 @@ IT経験年数 = 合計期間（空白期間を除く）
 - JavaScript: 1年3ヶ月
 
 サーバー・DB：
-- MySQL: 4年2ヶ月
+- PostgreSQL: 4年2ヶ月
 - PostgreSQL: 1年8ヶ月
 - AWS: 2年5ヶ月
 ```
@@ -188,7 +188,7 @@ IT経験年数 = 合計期間（空白期間を除く）
       "notes": "...",
       "processes": [1, 2, 3, 4],
       "programming_languages": ["Java", "JavaScript"],
-      "servers_databases": ["MySQL", "Redis"],
+      "servers_databases": ["PostgreSQL", "Redis"],
       "tools": ["Git", "Docker"],
       "team_size": 10,
       "role": "リードエンジニア"

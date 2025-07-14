@@ -76,7 +76,6 @@ func NewScheduler(
 	
 	// Expense repositories
 	expenseRepo := repository.NewExpenseRepository(db, logger)
-	expenseCategoryRepo := repository.NewExpenseCategoryRepository(db, logger)
 
 	// Create batch services
 	unsubmittedReportService := service.NewUnsubmittedReportService(

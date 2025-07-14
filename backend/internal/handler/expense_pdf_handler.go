@@ -51,8 +51,8 @@ func (h *expensePDFHandler) GenerateExpensePDF(c *gin.Context) {
 	if err != nil {
 		h.logger.Error("Invalid expense ID", zap.Error(err))
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Code:    "INVALID_EXPENSE_ID",
-			Message: "無効な経費申請IDです",
+			Error: "無効な経費申請IDです",
+			Code:  "INVALID_EXPENSE_ID",
 		})
 		return
 	}
@@ -62,8 +62,8 @@ func (h *expensePDFHandler) GenerateExpensePDF(c *gin.Context) {
 	if err != nil {
 		h.logger.Error("Failed to generate expense PDF", zap.Error(err), zap.String("expense_id", expenseID.String()))
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Code:    "PDF_GENERATION_FAILED",
-			Message: "PDF生成に失敗しました",
+			Error: "PDF生成に失敗しました",
+			Code:  "PDF_GENERATION_FAILED",
 		})
 		return
 	}
@@ -96,22 +96,17 @@ func (h *expensePDFHandler) GenerateExpenseListPDF(c *gin.Context) {
 	if err := c.ShouldBindQuery(&filter); err != nil {
 		h.logger.Error("Invalid filter parameters", zap.Error(err))
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
-			Code:    "INVALID_FILTER",
-			Message: "無効なフィルター条件です",
+			Error: "無効なフィルター条件です",
+			Code:  "INVALID_FILTER",
 		})
 		return
 	}
 
 	// デフォルト値を設定
-	if filter.Page == 0 {
-		filter.Page = 1
-	}
-	if filter.PerPage == 0 {
-		filter.PerPage = 50
-	}
+	filter.SetDefaults()
 	// PDF生成の場合は最大件数を制限
-	if filter.PerPage > 500 {
-		filter.PerPage = 500
+	if filter.Limit > 500 {
+		filter.Limit = 500
 	}
 
 	// PDFを生成
@@ -119,8 +114,8 @@ func (h *expensePDFHandler) GenerateExpenseListPDF(c *gin.Context) {
 	if err != nil {
 		h.logger.Error("Failed to generate expense list PDF", zap.Error(err))
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
-			Code:    "PDF_GENERATION_FAILED",
-			Message: "PDF生成に失敗しました",
+			Error: "PDF生成に失敗しました",
+			Code:  "PDF_GENERATION_FAILED",
 		})
 		return
 	}

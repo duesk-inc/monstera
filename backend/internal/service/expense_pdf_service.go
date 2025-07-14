@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/dto"
-	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/google/uuid"
 	"github.com/jung-kurt/gofpdf"
@@ -115,31 +114,38 @@ func (s *expensePDFService) GenerateExpensePDF(ctx context.Context, expenseID uu
 	pdf.SetFont("Arial", "", 10)
 	pdf.SetFillColor(255, 255, 255)
 	
-	var totalAmount float64
-	for _, item := range expense.Items {
-		pdf.CellFormat(80, 8, item.Description, "1", 0, "L", false, 0, "")
-		pdf.CellFormat(40, 8, fmt.Sprintf("%d", item.CategoryID), "1", 0, "L", false, 0, "")
-		pdf.CellFormat(30, 8, item.Date.Format("2006-01-02"), "1", 0, "C", false, 0, "")
-		pdf.CellFormat(30, 8, fmt.Sprintf("%.2f", item.Amount), "1", 0, "R", false, 0, "")
+	// 単一の経費として表示
+	pdf.CellFormat(80, 8, expense.Title, "1", 0, "L", false, 0, "")
+	pdf.CellFormat(40, 8, string(expense.Category), "1", 0, "L", false, 0, "")
+	pdf.CellFormat(30, 8, expense.ExpenseDate.Format("2006-01-02"), "1", 0, "C", false, 0, "")
+	pdf.CellFormat(30, 8, fmt.Sprintf("%d", expense.Amount), "1", 0, "R", false, 0, "")
+	pdf.Ln(8)
+	
+	// 説明がある場合は追加
+	if expense.Description != "" {
+		pdf.Ln(5)
+		pdf.SetFont("Arial", "B", 10)
+		pdf.Cell(0, 8, "Description:")
 		pdf.Ln(8)
-		totalAmount += item.Amount
+		pdf.SetFont("Arial", "", 10)
+		pdf.MultiCell(0, 6, expense.Description, "", "L", false)
 	}
 
 	// 合計
 	pdf.SetFont("Arial", "B", 10)
 	pdf.CellFormat(150, 8, "Total", "1", 0, "R", true, 0, "")
-	pdf.CellFormat(30, 8, fmt.Sprintf("%.2f", totalAmount), "1", 0, "R", true, 0, "")
+	pdf.CellFormat(30, 8, fmt.Sprintf("%d", expense.Amount), "1", 0, "R", true, 0, "")
 	pdf.Ln(15)
 
 	// 承認情報
-	if expense.ApprovedBy != nil {
+	if expense.ApproverID != nil {
 		pdf.SetFont("Arial", "B", 12)
 		pdf.Cell(0, 8, "Approval Information")
 		pdf.Ln(10)
 
 		pdf.SetFont("Arial", "", 10)
 		pdf.Cell(40, 8, "Approved By:")
-		approver, _ := s.userRepo.FindByID(*expense.ApprovedBy)
+		approver, _ := s.userRepo.FindByID(*expense.ApproverID)
 		if approver != nil {
 			pdf.Cell(0, 8, fmt.Sprintf("%s %s", approver.LastName, approver.FirstName))
 		}
@@ -210,11 +216,8 @@ func (s *expensePDFService) GenerateExpenseListPDF(ctx context.Context, filter *
 			userName = fmt.Sprintf("%s %s", user.LastName, user.FirstName)
 		}
 
-		// 経費項目の合計金額を計算
-		var amount float64
-		for _, item := range expense.Items {
-			amount += item.Amount
-		}
+		// 経費の金額を取得
+		amount := float64(expense.Amount)
 		totalAmount += amount
 
 		// 行を出力
@@ -223,13 +226,10 @@ func (s *expensePDFService) GenerateExpenseListPDF(ctx context.Context, filter *
 		pdf.CellFormat(25, 7, string(expense.Status), "1", 0, "C", false, 0, "")
 		pdf.CellFormat(25, 7, fmt.Sprintf("%.2f", amount), "1", 0, "R", false, 0, "")
 		
-		// 説明（最初の項目の説明を表示）
-		description := ""
-		if len(expense.Items) > 0 {
-			description = expense.Items[0].Description
-			if len(description) > 20 {
-				description = description[:20] + "..."
-			}
+		// 説明（タイトルを表示）
+		description := expense.Title
+		if len(description) > 20 {
+			description = description[:20] + "..."
 		}
 		pdf.CellFormat(45, 7, description, "1", 0, "L", false, 0, "")
 		pdf.Ln(7)
