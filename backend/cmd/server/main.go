@@ -370,6 +370,11 @@ func main() {
 
 	// 経費申請ハンドラーを追加
 	expenseHandler := handler.NewExpenseHandler(expenseService, s3Service, logger)
+	// 経費申請PDFハンドラーを追加
+	expensePDFHandler := handler.NewExpensePDFHandler(
+		service.NewExpensePDFService(db, expenseRepo, userRepo, expenseCategoryRepo, logger),
+		logger,
+	)
 	// 経費承認者設定ハンドラーを追加
 	expenseApproverSettingHandler := handler.NewExpenseApproverSettingHandler(expenseApproverSettingService, logger)
 	// 経費期限設定ハンドラーを追加
@@ -394,7 +399,7 @@ func main() {
 		PocSyncHandler:           *pocSyncHandler,
 		SalesTeamHandler:         *salesTeamHandler,
 	}
-	router := setupRouter(cfg, logger, authHandler, profileHandler, skillSheetHandler, reportHandler, leaveHandler, notificationHandler, adminWeeklyReportHandler, adminDashboardHandler, clientHandler, invoiceHandler, salesHandler, skillSheetPDFHandler, userRoleHandler, leaveAdminHandler, *unsubmittedReportHandler, reminderHandler, alertSettingsHandler, *alertHandler, auditLogHandler, salesHandlers, expenseHandler, expenseApproverSettingHandler, approvalReminderHandler, workHistoryHandler, rolePermissionRepo, userRepo, departmentRepo, reportRepo, weeklyReportRefactoredRepo, auditLogService)
+	router := setupRouter(cfg, logger, authHandler, profileHandler, skillSheetHandler, reportHandler, leaveHandler, notificationHandler, adminWeeklyReportHandler, adminDashboardHandler, clientHandler, invoiceHandler, salesHandler, skillSheetPDFHandler, userRoleHandler, leaveAdminHandler, *unsubmittedReportHandler, reminderHandler, alertSettingsHandler, *alertHandler, auditLogHandler, salesHandlers, expenseHandler, expensePDFHandler, expenseApproverSettingHandler, approvalReminderHandler, workHistoryHandler, rolePermissionRepo, userRepo, departmentRepo, reportRepo, weeklyReportRefactoredRepo, auditLogService)
 
 	// HTTPサーバーの設定
 	srv := &http.Server{
@@ -477,7 +482,7 @@ func main() {
 }
 
 // setupRouter ルーターのセットアップ
-func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler, profileHandler *handler.ProfileHandler, skillSheetHandler *handler.SkillSheetHandler, reportHandler *handler.WeeklyReportHandler, leaveHandler handler.LeaveHandler, notificationHandler handler.NotificationHandler, adminWeeklyReportHandler handler.AdminWeeklyReportHandler, adminDashboardHandler handler.AdminDashboardHandler, clientHandler handler.ClientHandler, invoiceHandler handler.InvoiceHandler, salesHandler handler.SalesHandler, skillSheetPDFHandler handler.SkillSheetPDFHandler, userRoleHandler *handler.UserRoleHandler, leaveAdminHandler handler.LeaveAdminHandler, unsubmittedReportHandler handler.UnsubmittedReportHandler, reminderHandler handler.ReminderHandler, alertSettingsHandler *adminHandler.AlertSettingsHandler, alertHandler handler.AlertHandler, auditLogHandler *handler.AuditLogHandler, salesHandlers *routes.SalesHandlers, expenseHandler *handler.ExpenseHandler, expenseApproverSettingHandler *handler.ExpenseApproverSettingHandler, approvalReminderHandler *handler.ApprovalReminderHandler, workHistoryHandler *handler.WorkHistoryHandler, rolePermissionRepo internalRepo.RolePermissionRepository, userRepo internalRepo.UserRepository, departmentRepo internalRepo.DepartmentRepository, reportRepo *internalRepo.WeeklyReportRepository, weeklyReportRefactoredRepo internalRepo.WeeklyReportRefactoredRepository, auditLogService service.AuditLogService) *gin.Engine {
+func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler, profileHandler *handler.ProfileHandler, skillSheetHandler *handler.SkillSheetHandler, reportHandler *handler.WeeklyReportHandler, leaveHandler handler.LeaveHandler, notificationHandler handler.NotificationHandler, adminWeeklyReportHandler handler.AdminWeeklyReportHandler, adminDashboardHandler handler.AdminDashboardHandler, clientHandler handler.ClientHandler, invoiceHandler handler.InvoiceHandler, salesHandler handler.SalesHandler, skillSheetPDFHandler handler.SkillSheetPDFHandler, userRoleHandler *handler.UserRoleHandler, leaveAdminHandler handler.LeaveAdminHandler, unsubmittedReportHandler handler.UnsubmittedReportHandler, reminderHandler handler.ReminderHandler, alertSettingsHandler *adminHandler.AlertSettingsHandler, alertHandler handler.AlertHandler, auditLogHandler *handler.AuditLogHandler, salesHandlers *routes.SalesHandlers, expenseHandler *handler.ExpenseHandler, expensePDFHandler handler.ExpensePDFHandler, expenseApproverSettingHandler *handler.ExpenseApproverSettingHandler, approvalReminderHandler *handler.ApprovalReminderHandler, workHistoryHandler *handler.WorkHistoryHandler, rolePermissionRepo internalRepo.RolePermissionRepository, userRepo internalRepo.UserRepository, departmentRepo internalRepo.DepartmentRepository, reportRepo *internalRepo.WeeklyReportRepository, weeklyReportRefactoredRepo internalRepo.WeeklyReportRefactoredRepository, auditLogService service.AuditLogService) *gin.Engine {
 	router := gin.New()
 
 	// DatabaseUtilsの初期化（メトリクスハンドラー用）
@@ -697,6 +702,10 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 
 			// CSVエクスポート
 			expenses.GET("/export", expenseHandler.ExportExpensesCSV)
+
+			// PDFエクスポート
+			expenses.GET("/:id/pdf", expensePDFHandler.GenerateExpensePDF)
+			expenses.GET("/pdf", expensePDFHandler.GenerateExpenseListPDF)
 		}
 
 		// プロジェクト関連のエンドポイント

@@ -25,6 +25,8 @@ const (
 	ExpenseStatusCancelled ExpenseStatus = "cancelled"
 	// ExpenseStatusExpired 期限切れ
 	ExpenseStatusExpired ExpenseStatus = "expired"
+	// ExpenseStatusClosed 締め済み
+	ExpenseStatusClosed ExpenseStatus = "closed"
 )
 
 // ExpenseCategory 経費カテゴリ
@@ -290,4 +292,62 @@ func (e *Expense) MarkReminderSent() {
 // MarkExpiryNotificationSent 期限切れ通知送信済みとしてマーク
 func (e *Expense) MarkExpiryNotificationSent() {
 	e.ExpiryNotificationSent = true
+}
+
+// MonthlyCloseStatus 月次締め状態
+type MonthlyCloseStatus struct {
+	ID                    uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
+	Year                  int       `gorm:"not null" json:"year"`
+	Month                 int       `gorm:"not null" json:"month"`
+	Status                MonthlyCloseStatusType `gorm:"type:varchar(20);not null" json:"status"`
+	ClosedAt              *time.Time            `json:"closed_at"`
+	ClosedBy              *uuid.UUID            `gorm:"type:uuid" json:"closed_by"`
+	TotalExpenseCount     int                   `json:"total_expense_count"`
+	TotalExpenseAmount    float64               `json:"total_expense_amount"`
+	PendingExpenseCount   int                   `json:"pending_expense_count"`
+	CreatedAt             time.Time             `json:"created_at"`
+	UpdatedAt             time.Time             `json:"updated_at"`
+}
+
+// MonthlyCloseStatusType 月次締め状態タイプ
+type MonthlyCloseStatusType string
+
+const (
+	// MonthlyCloseStatusOpen 未締め
+	MonthlyCloseStatusOpen MonthlyCloseStatusType = "open"
+	// MonthlyCloseStatusClosed 締め済み
+	MonthlyCloseStatusClosed MonthlyCloseStatusType = "closed"
+)
+
+// MonthlyCloseSummary 月次締めサマリー
+type MonthlyCloseSummary struct {
+	ID                 uuid.UUID                `gorm:"type:uuid;primary_key" json:"id"`
+	Year               int                      `gorm:"not null" json:"year"`
+	Month              int                      `gorm:"not null" json:"month"`
+	TotalExpenseCount  int                      `json:"total_expense_count"`
+	TotalExpenseAmount float64                  `json:"total_expense_amount"`
+	UserSummaries      []UserExpenseSummary     `gorm:"foreignKey:MonthlySummaryID" json:"user_summaries"`
+	CategorySummaries  []CategoryExpenseSummary `gorm:"foreignKey:MonthlySummaryID" json:"category_summaries"`
+	CreatedAt          time.Time                `json:"created_at"`
+	UpdatedAt          time.Time                `json:"updated_at"`
+}
+
+// UserExpenseSummary ユーザー別経費サマリー
+type UserExpenseSummary struct {
+	ID               uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
+	MonthlySummaryID uuid.UUID `gorm:"type:uuid;not null" json:"monthly_summary_id"`
+	UserID           uuid.UUID `gorm:"type:uuid;not null" json:"user_id"`
+	UserName         string    `gorm:"type:varchar(255)" json:"user_name"`
+	ExpenseCount     int       `json:"expense_count"`
+	TotalAmount      float64   `json:"total_amount"`
+}
+
+// CategoryExpenseSummary カテゴリー別経費サマリー
+type CategoryExpenseSummary struct {
+	ID               uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
+	MonthlySummaryID uuid.UUID `gorm:"type:uuid;not null" json:"monthly_summary_id"`
+	CategoryID       uint      `gorm:"not null" json:"category_id"`
+	CategoryName     string    `gorm:"type:varchar(255)" json:"category_name"`
+	ExpenseCount     int       `json:"expense_count"`
+	TotalAmount      float64   `json:"total_amount"`
 }

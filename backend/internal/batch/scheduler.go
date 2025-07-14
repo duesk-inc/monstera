@@ -26,6 +26,7 @@ type Scheduler struct {
 	unsubmittedReportService   service.UnsubmittedReportService
 	reminderBatchService       service.ReminderBatchService
 	archiveService             service.ArchiveService
+	expenseMonthlyCloseProcessor *ExpenseMonthlyCloseProcessor
 	ctx                        context.Context
 	cancel                     context.CancelFunc
 }
@@ -72,6 +73,10 @@ func NewScheduler(
 	departmentRepo := repository.NewDepartmentRepository(db)
 	notificationRepo := repository.NewNotificationRepository(db, logger)
 	reminderSettingsRepo := repository.NewReminderSettingsRepository(db)
+	
+	// Expense repositories
+	expenseRepo := repository.NewExpenseRepository(db, logger)
+	expenseCategoryRepo := repository.NewExpenseCategoryRepository(db, logger)
 
 	// Create batch services
 	unsubmittedReportService := service.NewUnsubmittedReportService(
@@ -81,6 +86,14 @@ func NewScheduler(
 	reminderBatchService := service.NewReminderBatchService(
 		db, weeklyReportRefactoredRepo, userRepo,
 		notificationRepo, reminderSettingsRepo, logger,
+	)
+	
+	// Expense monthly close service
+	expenseMonthlyCloseService := service.NewExpenseMonthlyCloseService(
+		db, expenseRepo, userRepo, notificationService, logger,
+	)
+	expenseMonthlyCloseProcessor := NewExpenseMonthlyCloseProcessor(
+		expenseMonthlyCloseService, logger,
 	)
 
 	return &Scheduler{
@@ -93,6 +106,7 @@ func NewScheduler(
 		unsubmittedReportService:   unsubmittedReportService,
 		reminderBatchService:       reminderBatchService,
 		archiveService:             archiveService,
+		expenseMonthlyCloseProcessor: expenseMonthlyCloseProcessor,
 		ctx:                        ctx,
 		cancel:                     cancel,
 	}
@@ -175,6 +189,15 @@ func (s *Scheduler) registerJobs() error {
 	})
 	if err != nil {
 		s.logger.Error("Failed to register monthly archive batch", zap.Error(err))
+		return err
+	}
+
+	// 6. 経費月次締めバッチ - 毎月1日の午前2時実行（前月分を締める）
+	_, err = s.cron.AddFunc("0 2 1 * *", func() {
+		s.runExpenseMonthlyCloseBatch()
+	})
+	if err != nil {
+		s.logger.Error("Failed to register expense monthly close batch", zap.Error(err))
 		return err
 	}
 
@@ -346,6 +369,29 @@ func (s *Scheduler) runMonthlyArchiveBatch() {
 
 	// 続けて期限切れアーカイブのクリーンアップも実行
 	s.runArchiveCleanupBatch(ctx, jobID, batchUserID)
+}
+
+// runExpenseMonthlyCloseBatch 経費月次締めバッチを実行
+func (s *Scheduler) runExpenseMonthlyCloseBatch() {
+	jobID := "expense_monthly_close_" + time.Now().Format("20060102_150405")
+	s.logger.Info("Starting expense monthly close batch", zap.String("job_id", jobID))
+
+	start := time.Now()
+	ctx, cancel := context.WithTimeout(s.ctx, 30*time.Minute)
+	defer cancel()
+
+	// 月次締め処理を実行
+	if err := s.expenseMonthlyCloseProcessor.ProcessMonthlyClose(ctx); err != nil {
+		s.logger.Error("Expense monthly close batch failed", 
+			zap.String("job_id", jobID),
+			zap.Error(err),
+			zap.Duration("duration", time.Since(start)))
+		return
+	}
+
+	s.logger.Info("Expense monthly close batch completed successfully",
+		zap.String("job_id", jobID),
+		zap.Duration("duration", time.Since(start)))
 }
 
 // runArchiveCleanupBatch アーカイブクリーンアップバッチを実行
