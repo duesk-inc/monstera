@@ -2,6 +2,9 @@
 
 import { EngineerStatus, SkillLevel, EngineerSortField, SortOrder, EngineerValidationRules } from '@/types/engineer';
 
+// エンジニアステータス定数
+export const ENGINEER_STATUS = EngineerStatus;
+
 // エンジニアステータスラベル
 export const ENGINEER_STATUS_LABELS: Record<EngineerStatus, string> = {
   [EngineerStatus.ACTIVE]: '稼働中',
