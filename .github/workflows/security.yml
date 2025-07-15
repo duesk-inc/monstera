@@ -49,7 +49,7 @@ jobs:
         fi
 
     - name: Upload Go vulnerability results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: go-vulnerability-results
@@ -97,7 +97,7 @@ jobs:
         fi
 
     - name: Upload npm audit results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: npm-audit-results
@@ -131,7 +131,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ./${{ matrix.service }}
         push: false
@@ -223,7 +223,7 @@ jobs:
         cat security-summary.md
 
     - name: Upload security summary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-summary

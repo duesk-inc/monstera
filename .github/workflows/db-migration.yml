@@ -269,7 +269,7 @@ jobs:
         echo "Schema dumped to schema.sql"
 
     - name: Upload schema dump
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: schema-dump
@@ -360,7 +360,7 @@ jobs:
         echo "Index statistics saved to index_stats.txt"
 
     - name: Upload performance results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: performance-results
@@ -405,7 +405,7 @@ jobs:
         cat migration-summary.md
 
     - name: Upload migration summary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: migration-summary
