@@ -1,0 +1,221 @@
+// ビジネスルール関連の定数定義
+
+// 勤務時間のルール
+export const WORK_HOURS_RULES = {
+  MIN_DAILY_HOURS: 0,
+  MAX_DAILY_HOURS: 24,
+  STANDARD_WORK_HOURS: 8,
+  STANDARD_BREAK_HOURS: 1,
+  OVERTIME_THRESHOLD: 8,
+  MAX_OVERTIME_HOURS: 8,
+  MAX_WEEKLY_HOURS: 60,
+  MAX_MONTHLY_HOURS: 200,
+} as const;
+
+// 休暇のルール
+export const LEAVE_RULES = {
+  MIN_NOTICE_DAYS: 3,
+  MAX_CONSECUTIVE_DAYS: 14,
+  ANNUAL_LEAVE_DAYS: 20,
+  SICK_LEAVE_DAYS: 5,
+  SPECIAL_LEAVE_DAYS: 3,
+  MATERNITY_LEAVE_DAYS: 98,
+  PATERNITY_LEAVE_DAYS: 14,
+  MOURNING_LEAVE_DAYS: 5,
+} as const;
+
+// 経費のルール
+export const EXPENSE_RULES = {
+  MAX_DAILY_MEAL_ALLOWANCE: 2000,
+  MAX_TRANSPORTATION_COST: 50000,
+  MAX_ACCOMMODATION_COST: 15000,
+  MAX_ENTERTAINMENT_COST: 10000,
+  MAX_OFFICE_SUPPLIES_COST: 5000,
+  RECEIPT_REQUIRED_THRESHOLD: 1000,
+  APPROVAL_REQUIRED_THRESHOLD: 10000,
+  DEADLINE_DAYS: 30,
+} as const;
+
+// プロジェクトのルール
+export const PROJECT_RULES = {
+  MIN_PROJECT_DURATION: 7, // 日
+  MAX_PROJECT_DURATION: 365, // 日
+  MIN_TEAM_SIZE: 1,
+  MAX_TEAM_SIZE: 50,
+  MIN_HOURLY_RATE: 1000,
+  MAX_HOURLY_RATE: 10000,
+  DEFAULT_HOURLY_RATE: 3000,
+  MILESTONE_INTERVAL_DAYS: 30,
+} as const;
+
+// 評価のルール
+export const EVALUATION_RULES = {
+  EVALUATION_PERIOD_MONTHS: 6,
+  MIN_EVALUATION_SCORE: 1,
+  MAX_EVALUATION_SCORE: 5,
+  PASS_THRESHOLD: 3,
+  EXCELLENT_THRESHOLD: 4.5,
+  REVIEW_REQUIRED_THRESHOLD: 2,
+  IMPROVEMENT_PLAN_REQUIRED: 2,
+} as const;
+
+// 給与のルール
+export const SALARY_RULES = {
+  MIN_SALARY: 200000,
+  MAX_SALARY: 2000000,
+  BONUS_MULTIPLIER: 2,
+  OVERTIME_RATE: 1.25,
+  NIGHT_SHIFT_RATE: 1.5,
+  HOLIDAY_RATE: 1.35,
+  COMMUTE_ALLOWANCE_MAX: 50000,
+  HOUSING_ALLOWANCE_MAX: 50000,
+} as const;
+
+// 契約のルール
+export const CONTRACT_RULES = {
+  MIN_CONTRACT_DURATION: 30, // 日
+  MAX_CONTRACT_DURATION: 1095, // 3年
+  PROBATION_PERIOD: 90, // 日
+  NOTICE_PERIOD: 30, // 日
+  RENEWAL_NOTICE_PERIOD: 60, // 日
+  MAX_RENEWALS: 3,
+  AUTO_RENEWAL_ENABLED: true,
+} as const;
+
+// 技術スキルのルール
+export const SKILL_RULES = {
+  MIN_SKILL_LEVEL: 1,
+  MAX_SKILL_LEVEL: 5,
+  BEGINNER_THRESHOLD: 1,
+  INTERMEDIATE_THRESHOLD: 3,
+  ADVANCED_THRESHOLD: 4,
+  EXPERT_THRESHOLD: 5,
+  SKILL_CATEGORIES: [
+    "frontend",
+    "backend",
+    "database",
+    "infrastructure",
+    "testing",
+    "design",
+    "management",
+  ],
+} as const;
+
+// 承認のルール
+export const APPROVAL_RULES = {
+  MAX_APPROVAL_LEVELS: 3,
+  APPROVAL_TIMEOUT_DAYS: 7,
+  AUTO_APPROVAL_THRESHOLD: 5000,
+  MANAGER_APPROVAL_THRESHOLD: 50000,
+  DIRECTOR_APPROVAL_THRESHOLD: 100000,
+  EMERGENCY_APPROVAL_ENABLED: true,
+  BULK_APPROVAL_ENABLED: true,
+} as const;
+
+// 通知のルール
+export const NOTIFICATION_RULES = {
+  MAX_NOTIFICATIONS_PER_DAY: 50,
+  DIGEST_INTERVAL_HOURS: 6,
+  URGENT_NOTIFICATION_ENABLED: true,
+  EMAIL_NOTIFICATION_ENABLED: true,
+  SMS_NOTIFICATION_ENABLED: false,
+  PUSH_NOTIFICATION_ENABLED: true,
+  QUIET_HOURS_START: 20, // 20時
+  QUIET_HOURS_END: 8, // 8時
+} as const;
+
+// セキュリティのルール
+export const SECURITY_RULES = {
+  PASSWORD_MIN_LENGTH: 8,
+  PASSWORD_MAX_LENGTH: 128,
+  PASSWORD_REQUIRE_UPPERCASE: true,
+  PASSWORD_REQUIRE_LOWERCASE: true,
+  PASSWORD_REQUIRE_NUMBERS: true,
+  PASSWORD_REQUIRE_SYMBOLS: true,
+  PASSWORD_EXPIRY_DAYS: 90,
+  LOGIN_ATTEMPT_LIMIT: 5,
+  ACCOUNT_LOCKOUT_MINUTES: 30,
+  SESSION_TIMEOUT_MINUTES: 60,
+  TWO_FACTOR_ENABLED: true,
+} as const;
+
+// データ保持のルール
+export const DATA_RETENTION_RULES = {
+  LOG_RETENTION_DAYS: 90,
+  BACKUP_RETENTION_DAYS: 365,
+  AUDIT_LOG_RETENTION_DAYS: 2555, // 7年
+  PERSONAL_DATA_RETENTION_YEARS: 7,
+  FINANCIAL_DATA_RETENTION_YEARS: 7,
+  PROJECT_DATA_RETENTION_YEARS: 5,
+  PERFORMANCE_DATA_RETENTION_YEARS: 3,
+} as const;
+
+// APIのルール
+export const API_RULES = {
+  RATE_LIMIT_REQUESTS_PER_MINUTE: 60,
+  RATE_LIMIT_REQUESTS_PER_HOUR: 1000,
+  REQUEST_TIMEOUT_SECONDS: 30,
+  MAX_REQUEST_SIZE_MB: 10,
+  MAX_RESPONSE_SIZE_MB: 50,
+  RETRY_ATTEMPTS: 3,
+  RETRY_DELAY_SECONDS: 2,
+} as const;
+
+// ファイルアップロードのルール
+export const FILE_UPLOAD_RULES = {
+  MAX_FILE_SIZE_MB: 10,
+  MAX_FILES_PER_UPLOAD: 5,
+  ALLOWED_FILE_TYPES: [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ],
+  VIRUS_SCAN_ENABLED: true,
+  QUARANTINE_DAYS: 7,
+} as const;
+
+// 報告書のルール
+export const REPORT_RULES = {
+  WEEKLY_REPORT_DEADLINE_HOUR: 10, // 10時
+  WEEKLY_REPORT_DEADLINE_DAY: 1, // 月曜日
+  MONTHLY_REPORT_DEADLINE_DAY: 5, // 5日
+  QUARTERLY_REPORT_DEADLINE_DAY: 15, // 15日
+  ANNUAL_REPORT_DEADLINE_DAY: 31, // 31日
+  LATE_SUBMISSION_PENALTY: 0.1, // 10%
+  RESUBMISSION_ALLOWED: true,
+  MAX_RESUBMISSIONS: 3,
+} as const;
+
+// 会議のルール
+export const MEETING_RULES = {
+  MIN_MEETING_DURATION: 15, // 分
+  MAX_MEETING_DURATION: 480, // 分（8時間）
+  DEFAULT_MEETING_DURATION: 60, // 分
+  MAX_PARTICIPANTS: 50,
+  BOOKING_ADVANCE_DAYS: 30,
+  CANCELLATION_NOTICE_HOURS: 24,
+  RECURRING_MEETING_ENABLED: true,
+} as const;
+
+// 型定義
+export type WorkHoursRules = typeof WORK_HOURS_RULES;
+export type LeaveRules = typeof LEAVE_RULES;
+export type ExpenseRules = typeof EXPENSE_RULES;
+export type ProjectRules = typeof PROJECT_RULES;
+export type EvaluationRules = typeof EVALUATION_RULES;
+export type SalaryRules = typeof SALARY_RULES;
+export type ContractRules = typeof CONTRACT_RULES;
+export type SkillRules = typeof SKILL_RULES;
+export type ApprovalRules = typeof APPROVAL_RULES;
+export type NotificationRules = typeof NOTIFICATION_RULES;
+export type SecurityRules = typeof SECURITY_RULES;
+export type DataRetentionRules = typeof DATA_RETENTION_RULES;
+export type ApiRules = typeof API_RULES;
+export type FileUploadRules = typeof FILE_UPLOAD_RULES;
+export type ReportRules = typeof REPORT_RULES;
+export type MeetingRules = typeof MEETING_RULES;

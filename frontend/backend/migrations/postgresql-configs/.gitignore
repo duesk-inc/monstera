@@ -1,0 +1,21 @@
+# 実際の本番設定ファイル
+*.prod.sql
+*_production.*
+
+# 個人の開発環境設定
+*_local.*
+*_dev.*
+
+# 機密情報を含む可能性のあるファイル
+*secret*
+*password*
+
+# 一時ファイル
+*.tmp
+*.bak
+*.backup
+
+# 実行ログ
+execution_*.log
+migration_*.log
+EOF < /dev/null
