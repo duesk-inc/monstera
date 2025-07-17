@@ -119,6 +119,12 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	// JWTトークンをクッキーとレスポンスに設定
 	h.setAuthCookies(c, response.AccessToken, response.RefreshToken)
 
+	// 監査ログ用にユーザー情報をコンテキストに設定
+	c.Set("user_id", response.User.ID)
+	c.Set("user", response.User)
+	c.Set("email", response.User.Email)
+	c.Set("role", response.User.Role)
+
 	RespondSuccess(c, http.StatusOK, "", gin.H{
 		"access_token":  response.AccessToken,
 		"refresh_token": response.RefreshToken,

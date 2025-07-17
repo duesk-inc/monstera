@@ -112,6 +112,17 @@ func (s *auditLogService) LogActivity(ctx context.Context, params LogActivityPar
 			zap.String("user_id", params.UserID.String()),
 			zap.String("action", string(params.Action)),
 		)
+		
+		// 外部キー制約違反の場合は警告として記録し、エラーを返さない
+		if strings.Contains(err.Error(), "foreign key constraint") ||
+		   strings.Contains(err.Error(), "fk_audit_logs_user") {
+			s.logger.Warn("Audit log creation failed due to foreign key constraint - user may not exist",
+				zap.String("user_id", params.UserID.String()),
+				zap.String("action", string(params.Action)),
+			)
+			return nil // エラーを返さず、監査ログの失敗がメイン処理をブロックしないようにする
+		}
+		
 		return fmt.Errorf("監査ログの作成に失敗しました: %w", err)
 	}
 
