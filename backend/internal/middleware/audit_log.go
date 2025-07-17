@@ -89,7 +89,17 @@ func AuditLogMiddleware(auditService service.AuditLogService, logger *zap.Logger
 		if !exists {
 			// 未認証の場合でも重要なアクションは記録
 			if isImportantUnauthenticatedAction(c) {
-				userID = uuid.Nil
+				// ログイン失敗の場合は未認証として記録
+				if c.Writer.Status() >= 400 {
+					userID = uuid.Nil
+				} else {
+					// ログイン成功の場合は再度ユーザーIDを取得
+					userID, exists = c.Get("user_id")
+					if !exists {
+						// まだ取得できない場合は監査ログ記録をスキップ
+						return
+					}
+				}
 			} else {
 				return
 			}
