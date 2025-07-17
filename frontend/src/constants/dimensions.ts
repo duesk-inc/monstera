@@ -436,6 +436,12 @@ export const COMPONENT_SIZES = {
     "2XL": 40,
     "3XL": 48,
   },
+  // アバターサイズ
+  AVATAR: {
+    SM: "32px",
+    MD: "40px",
+    LG: "48px",
+  },
   // 一般的なコンポーネントサイズ
   SM: "small",
   MD: "medium", 

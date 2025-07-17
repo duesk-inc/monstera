@@ -409,6 +409,10 @@ export const FONT_SIZE_SPECIAL = {
   NORMAL: FONT_SIZES.BASE,
   LARGE: FONT_SIZES.LG,
   HUGE: FONT_SIZES["2XL"],
+  // UserAvatarで使用される定義
+  CAPTION: FONT_SIZES.XS,      // 12px
+  BODY_SMALL: FONT_SIZES.SM,   // 14px
+  BODY_LARGE: FONT_SIZES.LG,   // 18px
 } as const;
 
 // タイポグラフィバリアント（Material-UI風）

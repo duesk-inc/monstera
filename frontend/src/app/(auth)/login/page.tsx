@@ -96,7 +96,7 @@ function LoginPageContent() {
       const response = await login(credentials);
       
       // ログイン成功
-      console.log('ログイン成功:', response.message);
+      console.log('ログイン成功:', response.message || 'ログインが完了しました');
       
       // リダイレクト先の決定
       // ユーザーのロールに基づいてデフォルトのリダイレクト先を決定
