@@ -392,6 +392,61 @@ export const ACCESSIBILITY_TYPOGRAPHY = {
   },
 } as const;
 
+// エイリアス（後方互換性のため）
+export const FONT_SIZE = {
+  ...FONT_SIZES,
+  MD: FONT_SIZES.BASE, // 後方互換性のため
+};
+export const FONT_WEIGHT = {
+  ...FONT_WEIGHTS,
+  SEMI_BOLD: FONT_WEIGHTS.SEMIBOLD, // 後方互換性のため
+};
+
+// 特別なフォントサイズ（既存コードで使用されている場合のため）
+export const FONT_SIZE_SPECIAL = {
+  TINY: FONT_SIZES.XS,
+  SMALL: FONT_SIZES.SM,
+  NORMAL: FONT_SIZES.BASE,
+  LARGE: FONT_SIZES.LG,
+  HUGE: FONT_SIZES["2XL"],
+} as const;
+
+// タイポグラフィバリアント（Material-UI風）
+export const TYPOGRAPHY_VARIANTS = {
+  H1: HEADING_STYLES.H1,
+  H2: HEADING_STYLES.H2,
+  H3: HEADING_STYLES.H3,
+  H4: HEADING_STYLES.H4,
+  H5: HEADING_STYLES.H5,
+  H6: HEADING_STYLES.H6,
+  BODY1: BODY_STYLES.MEDIUM,
+  BODY2: BODY_STYLES.SMALL,
+  SUBTITLE1: {
+    fontSize: FONT_SIZES.LG,
+    fontWeight: FONT_WEIGHTS.NORMAL,
+    lineHeight: LINE_HEIGHTS.NORMAL,
+  },
+  SUBTITLE2: {
+    fontSize: FONT_SIZES.SM,
+    fontWeight: FONT_WEIGHTS.MEDIUM,
+    lineHeight: LINE_HEIGHTS.NORMAL,
+  },
+  CAPTION: CAPTION_STYLES.MEDIUM,
+  BUTTON: {
+    fontSize: FONT_SIZES.SM,
+    fontWeight: FONT_WEIGHTS.MEDIUM,
+    lineHeight: LINE_HEIGHTS.NORMAL,
+    textTransform: TEXT_TRANSFORMS.UPPERCASE,
+  },
+  OVERLINE: {
+    fontSize: FONT_SIZES.XS,
+    fontWeight: FONT_WEIGHTS.NORMAL,
+    lineHeight: LINE_HEIGHTS.NORMAL,
+    textTransform: TEXT_TRANSFORMS.UPPERCASE,
+    letterSpacing: LETTER_SPACINGS.WIDER,
+  },
+} as const;
+
 // 型定義
 export type FontSize = typeof FONT_SIZES[keyof typeof FONT_SIZES];
 export type FontWeight = typeof FONT_WEIGHTS[keyof typeof FONT_WEIGHTS];

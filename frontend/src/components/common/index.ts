@@ -59,11 +59,23 @@ export {
   PageHeader, 
   ContentCard, 
   SectionHeader,
+  FilterBar,
   type PageContainerProps,
   type PageHeaderProps,
   type ContentCardProps,
-  type SectionHeaderProps
+  type SectionHeaderProps,
+  type FilterBarProps
 } from './layout';
+
+// 統一カードコンポーネントのエクスポート
+export {
+  StatusCard,
+  InfoCard,
+  ProjectCard,
+  type StatusCardProps,
+  type InfoCardProps,
+  type ProjectCardProps
+} from './cards';
 
 // 新しいダイアログコンポーネントのエクスポート
 export { default as ConfirmDialog, type ConfirmDialogProps } from './ConfirmDialog';

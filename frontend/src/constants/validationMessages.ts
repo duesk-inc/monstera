@@ -180,6 +180,44 @@ export const COMPOSITE_VALIDATION_MESSAGES = {
   DEPENDENCY_REQUIRED: (field: string, dependency: string) => `${dependency}を選択してから${field}を入力してください。`,
 } as const;
 
+// 休暇管理バリデーションメッセージ
+export const LEAVE_VALIDATION_MESSAGES = {
+  LEAVE_TYPE_REQUIRED: "休暇種類を選択してください。",
+  START_DATE_REQUIRED: "開始日を選択してください。",
+  END_DATE_REQUIRED: "終了日を選択してください。",
+  REASON_REQUIRED: "理由を入力してください。",
+  INVALID_DATE_RANGE: "開始日は終了日より前に設定してください。",
+  INSUFFICIENT_BALANCE: "休暇残日数が不足しています。",
+  OVERLAPPING_REQUEST: "重複する休暇申請があります。",
+  PAST_DATE_NOT_ALLOWED: "過去の日付は選択できません。",
+  WEEKEND_NOT_ALLOWED: "週末は選択できません。",
+  HOLIDAY_NOT_ALLOWED: "祝日は選択できません。",
+  REASON_TOO_LONG: "理由は500文字以下で入力してください。",
+  INVALID_LEAVE_TYPE: "無効な休暇種類です。",
+  SAME_DATE_NOT_ALLOWED: "開始日と終了日は同じ日付にできません。",
+  TOO_MANY_DAYS: "申請日数が上限を超えています。",
+  ADVANCE_NOTICE_REQUIRED: "事前申請期間が不足しています。",
+} as const;
+
+// 週報バリデーションメッセージ
+export const WEEKLY_REPORT_VALIDATION_MESSAGES = {
+  WORK_HOURS_REQUIRED: "勤務時間を入力してください。",
+  WORK_CONTENT_REQUIRED: "作業内容を入力してください。",
+  MOOD_REQUIRED: "気分を選択してください。",
+  INVALID_WORK_HOURS: "勤務時間は0以上24以下で入力してください。",
+  WORK_CONTENT_TOO_LONG: "作業内容は1000文字以下で入力してください。",
+  INVALID_MOOD: "無効な気分設定です。",
+  TOTAL_HOURS_MISMATCH: "週の合計勤務時間が合いません。",
+  FUTURE_DATE_NOT_ALLOWED: "未来の日付は入力できません。",
+  REPORT_ALREADY_SUBMITTED: "この週の週報は既に提出済みです。",
+  INCOMPLETE_WEEK: "週報に未入力の日があります。",
+  OVERTIME_LIMIT_EXCEEDED: "残業時間が上限を超えています。",
+  BREAK_TIME_INVALID: "休憩時間が無効です。",
+  PROJECT_REQUIRED: "プロジェクトを選択してください。",
+  TASK_DESCRIPTION_TOO_LONG: "タスク説明は500文字以下で入力してください。",
+  REFLECTION_TOO_LONG: "振り返りは1000文字以下で入力してください。",
+} as const;
+
 // 型定義
 export type BasicValidationMessage = typeof BASIC_VALIDATION_MESSAGES[keyof typeof BASIC_VALIDATION_MESSAGES];
 export type StringValidationMessage = typeof STRING_VALIDATION_MESSAGES[keyof typeof STRING_VALIDATION_MESSAGES];
@@ -194,3 +232,5 @@ export type FileValidationMessage = typeof FILE_VALIDATION_MESSAGES[keyof typeof
 export type SelectionValidationMessage = typeof SELECTION_VALIDATION_MESSAGES[keyof typeof SELECTION_VALIDATION_MESSAGES];
 export type CustomValidationMessage = typeof CUSTOM_VALIDATION_MESSAGES[keyof typeof CUSTOM_VALIDATION_MESSAGES];
 export type CompositeValidationMessage = typeof COMPOSITE_VALIDATION_MESSAGES[keyof typeof COMPOSITE_VALIDATION_MESSAGES];
+export type LeaveValidationMessage = typeof LEAVE_VALIDATION_MESSAGES[keyof typeof LEAVE_VALIDATION_MESSAGES];
+export type WeeklyReportValidationMessage = typeof WEEKLY_REPORT_VALIDATION_MESSAGES[keyof typeof WEEKLY_REPORT_VALIDATION_MESSAGES];

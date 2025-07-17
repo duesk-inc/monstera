@@ -31,7 +31,14 @@ import {
   ClientBillingRanking,
   Client,
   Project,
+  InvoiceStatus,
+  BulkActionResult,
+  FreeSyncResult,
 } from "../types/accounting";
+import { 
+  Invoice, 
+  InvoiceSummary,
+} from "../types/admin/invoice";
 import { API_ENDPOINTS } from "../constants/accounting";
 import apiClient from "../lib/axios";
 
@@ -950,3 +957,96 @@ export const setupApiStatsInterceptor = (): void => {
     },
   );
 };
+
+// ========== Default Export ==========
+
+/**
+ * 経理API群をまとめたオブジェクト
+ */
+export const accountingApi = {
+  // ダッシュボード
+  getAccountingDashboard,
+  getMonthlyTrend,
+  getClientBillingRanking,
+  getCachedDashboard,
+  
+  // 基本データ
+  getClients,
+  getProjects,
+  
+  // プロジェクトグループ
+  getProjectGroups,
+  getProjectGroup,
+  createProjectGroup,
+  updateProjectGroup,
+  deleteProjectGroup,
+  addProjectToGroup,
+  removeProjectFromGroup,
+  deleteMultipleProjectGroups,
+  
+  // 請求処理
+  getBillingPreview,
+  getBillingPreviews,
+  processBilling,
+  processBillingBatch,
+  scheduleBilling,
+  getBillingHistory,
+  
+  // 請求書
+  getInvoiceHistory,
+  getInvoiceSummary,
+  updateInvoiceStatus,
+  bulkInvoiceAction,
+  exportInvoicePDF,
+  sendInvoiceToFreee,
+  
+  // freee連携
+  getFreeeAuthUrl,
+  handleFreeeCallback,
+  disconnectFreee,
+  syncFreeeData,
+  getFreeePartners,
+  getFreeeInvoices,
+  getFreeeConfig,
+  pollFreeSyncProgress,
+  
+  // スケジュール
+  getSchedules,
+  getSchedule,
+  createSchedule,
+  updateSchedule,
+  deleteSchedule,
+  executeSchedule,
+  
+  // バッチジョブ
+  getBatchJobs,
+  getBatchJob,
+  createBatchJob,
+  cancelBatchJob,
+  pollBatchJobProgress,
+  
+  // エクスポート
+  exportBillingData,
+  exportProjectGroupData,
+  exportFreeeData,
+  downloadFile,
+  
+  // ユーティリティ
+  handleApiError,
+  createCancelToken,
+  testApiConnection,
+  measureApiResponseTime,
+  clearAccountingCache,
+  callWithRateLimit,
+  setupApiStatsInterceptor,
+  getApiStats,
+  clearApiStats,
+  
+  // 型ガード
+  isApiError,
+  isNetworkError,
+  isTimeoutError,
+} as const;
+
+// デフォルトエクスポート
+export default accountingApi;

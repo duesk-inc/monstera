@@ -347,6 +347,24 @@ export const CARD_CONFIG = {
   BACKGROUND_COLOR: "#ffffff",
 } as const;
 
+// オートコンプリートの設定
+export const AUTOCOMPLETE = {
+  DISPLAY_LIMIT: 10, // 表示する項目数の上限
+  MIN_CHARACTERS: 1, // オートコンプリートを開始する最小文字数
+  DEBOUNCE_DELAY: 300, // デバウンス遅延時間（ミリ秒）
+  MAX_OPTIONS: 50, // オプションの最大数
+} as const;
+
+// タイムピッカーの設定
+export const TIME_PICKER = {
+  HOUR_FORMAT: "24", // 24時間表示または12時間表示
+  MINUTE_STEP: 15, // 分の刻み
+  DEFAULT_TIME: "09:00", // デフォルト時刻
+  MIN_TIME: "00:00", // 最小時刻
+  MAX_TIME: "23:59", // 最大時刻
+  DISPLAY_FORMAT: "HH:mm", // 表示フォーマット
+} as const;
+
 // 型定義
 export type Color = typeof COLORS;
 export type IconSize = typeof ICON_SIZES[keyof typeof ICON_SIZES];
@@ -363,3 +381,4 @@ export type ButtonVariant = typeof BUTTON_VARIANTS[keyof typeof BUTTON_VARIANTS]
 export type ButtonSize = typeof BUTTON_SIZES[keyof typeof BUTTON_SIZES];
 export type LoadingState = typeof LOADING_STATES[keyof typeof LOADING_STATES];
 export type NotificationType = typeof NOTIFICATION_TYPES[keyof typeof NOTIFICATION_TYPES];
+export type AutocompleteConfig = typeof AUTOCOMPLETE[keyof typeof AUTOCOMPLETE];

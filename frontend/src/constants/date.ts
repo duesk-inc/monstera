@@ -316,6 +316,13 @@ export const DATE_VALIDATION = {
   MAX_SECOND: 59,
 } as const;
 
+// キャリア最小日付を取得する関数
+export const getCareerMinDate = (): string => {
+  const currentYear = new Date().getFullYear();
+  const minYear = currentYear - 50; // 50年前を最小とする
+  return `${minYear}-01-01`;
+};
+
 // 型定義
 export type DateFormat = typeof DATE_FORMATS[keyof typeof DATE_FORMATS];
 export type Weekday = typeof WEEKDAYS[keyof typeof WEEKDAYS];

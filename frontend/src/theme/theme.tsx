@@ -20,7 +20,7 @@ import {
 // アプリケーション全体で共通の定数（後方互換性のため残す）
 export const APP_CONSTANTS = {
   SELECT_HEIGHT: COMPONENT_SIZES.INPUT.HEIGHT.MD,  // セレクトボックスの高さを一元管理
-  SIDEBAR_WIDTH: LAYOUT.SIDEBAR.WIDTH, // サイドバーの幅
+  SIDEBAR_WIDTH: LAYOUT.SIDEBAR_WIDTH, // サイドバーの幅
   // フォントサイズの一元管理
   FONT_SIZES: FONT_SIZE_SPECIAL
 };

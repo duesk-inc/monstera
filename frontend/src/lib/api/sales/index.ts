@@ -608,3 +608,17 @@ export const salesTeamApi = {
     await apiClient.put(SALES_ENDPOINTS.teamSettings, settings);
   }
 };
+
+// 個別エクスポート（互換性のため）
+export const emailTemplateApi = emailApi.templates;
+export const emailCampaignApi = emailApi.campaigns;
+export const pocProjectApi = pocSyncApi;
+
+// ユーザーAPI（プレースホルダー）
+export const userApi = {
+  getAll: async () => ({ data: [] }),
+  getById: async (id: string) => ({ data: null }),
+  create: async (data: any) => ({ data: null }),
+  update: async (id: string, data: any) => ({ data: null }),
+  delete: async (id: string) => {},
+};

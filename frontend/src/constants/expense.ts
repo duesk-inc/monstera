@@ -269,6 +269,64 @@ export const EXPENSE_API_ENDPOINTS = {
   TEMPLATES: "/api/v1/expenses/templates",
 } as const;
 
+// 経費メッセージ
+export const EXPENSE_MESSAGES = {
+  SUBMIT_SUCCESS: "経費申請を提出しました。",
+  SUBMIT_FAILED: "経費申請の提出に失敗しました。",
+  APPROVE_SUCCESS: "経費申請を承認しました。",
+  APPROVE_FAILED: "経費申請の承認に失敗しました。",
+  REJECT_SUCCESS: "経費申請を却下しました。",
+  REJECT_FAILED: "経費申請の却下に失敗しました。",
+  DELETE_SUCCESS: "経費申請を削除しました。",
+  DELETE_FAILED: "経費申請の削除に失敗しました。",
+  SAVE_SUCCESS: "経費申請を保存しました。",
+  SAVE_FAILED: "経費申請の保存に失敗しました。",
+  UPLOAD_SUCCESS: "領収書をアップロードしました。",
+  UPLOAD_FAILED: "領収書のアップロードに失敗しました。",
+  FILE_TOO_LARGE: "ファイルサイズが大きすぎます。",
+  INVALID_FILE_TYPE: "サポートされていないファイル形式です。",
+  AMOUNT_REQUIRED: "金額は必須です。",
+  DESCRIPTION_REQUIRED: "説明は必須です。",
+  CATEGORY_REQUIRED: "カテゴリは必須です。",
+  DATE_REQUIRED: "日付は必須です。",
+  RECEIPT_REQUIRED: "領収書は必須です。",
+} as const;
+
+// アップロード定数
+export const UPLOAD_CONSTANTS = {
+  MAX_FILE_SIZE: RECEIPT_CONFIG.MAX_FILE_SIZE,
+  ALLOWED_TYPES: RECEIPT_CONFIG.ALLOWED_FILE_TYPES,
+  MAX_FILES: RECEIPT_CONFIG.MAX_FILES_PER_EXPENSE,
+  CHUNK_SIZE: 1024 * 1024, // 1MB
+  TIMEOUT: 30000, // 30秒
+  RETRY_ATTEMPTS: 3,
+  PROGRESS_UPDATE_INTERVAL: 100, // 100ms
+} as const;
+
+// バリデーション定数
+export const VALIDATION_CONSTANTS = {
+  AMOUNT: {
+    MIN: 1,
+    MAX: EXPENSE_LIMITS.MAX_AMOUNT,
+  },
+  DESCRIPTION: {
+    MIN_LENGTH: 1,
+    MAX_LENGTH: 500,
+  },
+  RECEIPT_DESCRIPTION: {
+    MAX_LENGTH: 200,
+  },
+  DATE: {
+    MIN_DAYS_AGO: EXPENSE_DEADLINES.SUBMISSION_DAYS,
+    MAX_DAYS_FUTURE: 0,
+  },
+  FILES: {
+    MAX_SIZE: RECEIPT_CONFIG.MAX_FILE_SIZE,
+    MAX_COUNT: RECEIPT_CONFIG.MAX_FILES_PER_EXPENSE,
+    ALLOWED_EXTENSIONS: [".jpg", ".jpeg", ".png", ".gif", ".pdf", ".webp"],
+  },
+} as const;
+
 // 型定義
 export type ExpenseStatus = typeof EXPENSE_STATUS[keyof typeof EXPENSE_STATUS];
 export type ExpenseCategory = typeof EXPENSE_CATEGORIES[keyof typeof EXPENSE_CATEGORIES];

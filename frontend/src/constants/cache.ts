@@ -288,6 +288,68 @@ export const CACHE_STRATEGY = {
   STALE_WHILE_REVALIDATE: "stale_while_revalidate",
 } as const;
 
+// キャッシュの戦略（複数形のエイリアス）
+export const CACHE_STRATEGIES = CACHE_STRATEGY;
+
+// React Query のキー
+export const QUERY_KEYS = {
+  // 通知関連
+  NOTIFICATIONS: {
+    ALL: ['notifications'],
+    LIST: ['notifications', 'list'],
+    UNREAD: ['notifications', 'unread'],
+    DETAIL: (id: string) => ['notifications', 'detail', id],
+  },
+  
+  // ユーザー関連
+  USER: {
+    ALL: ['user'],
+    PROFILE: ['user', 'profile'],
+    SETTINGS: ['user', 'settings'],
+    PERMISSIONS: ['user', 'permissions'],
+  },
+  
+  // 週報関連
+  WEEKLY_REPORTS: {
+    ALL: ['weeklyReports'],
+    LIST: ['weeklyReports', 'list'],
+    DETAIL: (id: string) => ['weeklyReports', 'detail', id],
+    DRAFTS: ['weeklyReports', 'drafts'],
+  },
+  
+  // 経費関連
+  EXPENSES: {
+    ALL: ['expenses'],
+    LIST: ['expenses', 'list'],
+    DETAIL: (id: string) => ['expenses', 'detail', id],
+    CATEGORIES: ['expenses', 'categories'],
+  },
+  
+  // エンジニア関連
+  ENGINEERS: {
+    ALL: ['engineers'],
+    LIST: ['engineers', 'list'],
+    DETAIL: (id: string) => ['engineers', 'detail', id],
+    SKILLS: ['engineers', 'skills'],
+  },
+  
+  // プロジェクト関連
+  PROJECTS: {
+    ALL: ['projects'],
+    LIST: ['projects', 'list'],
+    DETAIL: (id: string) => ['projects', 'detail', id],
+    TIMELINE: ['projects', 'timeline'],
+  },
+  
+  // 管理者関連
+  ADMIN: {
+    ALL: ['admin'],
+    DASHBOARD: ['admin', 'dashboard'],
+    USERS: ['admin', 'users'],
+    SETTINGS: ['admin', 'settings'],
+  },
+} as const;
+
 // キャッシュの監視設定
 export const CACHE_MONITORING = {
   // メトリクス収集を有効にする

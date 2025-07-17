@@ -51,6 +51,7 @@ export const BORDER_WIDTH = {
 // 境界線の半径
 export const BORDER_RADIUS = {
   NONE: "0",
+  XS: "0.0625rem", // 1px
   SM: "0.125rem", // 2px
   MD: "0.25rem", // 4px
   LG: "0.5rem", // 8px
@@ -392,6 +393,170 @@ export const PRINT_DIMENSIONS = {
   },
 } as const;
 
+// コンポーネントサイズ（エイリアス）
+export const COMPONENT_SIZES = {
+  // 入力フィールドのサイズ
+  INPUT: {
+    HEIGHT: {
+      SM: "32px",
+      MD: "40px",
+      LG: "48px",
+      XL: "56px",
+    },
+    WIDTH: {
+      SM: "120px",
+      MD: "200px",
+      LG: "300px",
+      XL: "400px",
+      FULL: "100%",
+    },
+  },
+  // ボタンのサイズ
+  BUTTON: {
+    HEIGHT: {
+      SM: "28px",
+      MD: "36px",
+      LG: "44px",
+      XL: "52px",
+    },
+    PADDING: {
+      SM: "8px 12px",
+      MD: "10px 16px",
+      LG: "12px 20px",
+      XL: "14px 24px",
+    },
+  },
+  // アイコンサイズ
+  ICON: {
+    XS: 12,
+    SM: 16,
+    MD: 20,
+    LG: 24,
+    XL: 32,
+    "2XL": 40,
+    "3XL": 48,
+  },
+  // 一般的なコンポーネントサイズ
+  SM: "small",
+  MD: "medium", 
+  LG: "large",
+  XL: "extra-large",
+} as const;
+
+// ダイアログ設定
+export const DIALOG = {
+  SIZES: {
+    SM: {
+      width: MIN_WIDTH.SM,
+      maxWidth: MAX_WIDTH.SM,
+    },
+    MD: {
+      width: MIN_WIDTH.MD,
+      maxWidth: MAX_WIDTH.MD,
+    },
+    LG: {
+      width: MIN_WIDTH.LG,
+      maxWidth: MAX_WIDTH.LG,
+    },
+    XL: {
+      width: MIN_WIDTH.XL,
+      maxWidth: MAX_WIDTH.XL,
+    },
+  },
+  WIDTH: {
+    XS: MAX_WIDTH.XS,
+    SM: MAX_WIDTH.SM,
+    MD: MAX_WIDTH.MD,
+    LG: MAX_WIDTH.LG,
+    XL: MAX_WIDTH.XL,
+  },
+  BACKDROP: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    zIndex: Z_INDEX.OVERLAY,
+  },
+  CONTENT: {
+    padding: PADDING.XL,
+    borderRadius: BORDER_RADIUS.LG,
+    boxShadow: SHADOW.XL,
+  },
+} as const;
+
+// アイコンサイズ
+export const ICON_SIZES = {
+  XS: "12px",
+  SM: "16px",
+  MD: "20px",
+  LG: "24px",
+  XL: "32px",
+  "2XL": "40px",
+  "3XL": "48px",
+} as const;
+
+// レイアウト設定
+export const LAYOUT = {
+  HEADER_HEIGHT: COMPONENT_DIMENSIONS.HEADER.HEIGHT,
+  SIDEBAR_WIDTH: COMPONENT_DIMENSIONS.SIDEBAR.WIDTH,
+  FOOTER_HEIGHT: COMPONENT_DIMENSIONS.FOOTER.HEIGHT,
+  CONTAINER_PADDING: PADDING.MD,
+} as const;
+
+// レイアウト寸法
+export const LAYOUT_DIMENSIONS = {
+  HEADER: COMPONENT_DIMENSIONS.HEADER,
+  SIDEBAR: COMPONENT_DIMENSIONS.SIDEBAR,
+  FOOTER: COMPONENT_DIMENSIONS.FOOTER,
+  CONTENT: {
+    PADDING: PADDING.LG,
+    MARGIN: MARGIN.MD,
+  },
+  NAVIGATION: {
+    HEIGHT: "3rem",
+    PADDING: PADDING.SM,
+  },
+} as const;
+
+// プログレス寸法
+export const PROGRESS_DIMENSIONS = {
+  LINEAR: {
+    HEIGHT: "4px",
+    BORDER_RADIUS: BORDER_RADIUS.FULL,
+  },
+  CIRCULAR: {
+    SIZE: {
+      SM: "20px",
+      MD: "32px",
+      LG: "48px",
+    },
+    STROKE_WIDTH: {
+      SM: "2px",
+      MD: "3px",
+      LG: "4px",
+    },
+  },
+} as const;
+
+// カード寸法
+export const CARD_DIMENSIONS = {
+  PADDING: COMPONENT_DIMENSIONS.CARD.PADDING,
+  BORDER_RADIUS: COMPONENT_DIMENSIONS.CARD.BORDER_RADIUS,
+  SHADOW: COMPONENT_DIMENSIONS.CARD.SHADOW,
+  MIN_HEIGHT: "100px",
+  HEADER: {
+    PADDING: PADDING.MD,
+    BORDER_BOTTOM: BORDER_WIDTH.THIN,
+  },
+  BODY: {
+    PADDING: PADDING.LG,
+  },
+  FOOTER: {
+    PADDING: PADDING.MD,
+    BORDER_TOP: BORDER_WIDTH.THIN,
+  },
+} as const;
+
+// ピクセル変換ユーティリティ関数
+export const px = (value: number): string => `${value}px`;
+
 // 型定義
 export type SpacingSize = typeof SPACING[keyof typeof SPACING];
 export type BorderRadius = typeof BORDER_RADIUS[keyof typeof BORDER_RADIUS];
@@ -400,3 +565,5 @@ export type ZIndex = typeof Z_INDEX[keyof typeof Z_INDEX];
 export type FlexDirection = typeof FLEX.DIRECTION[keyof typeof FLEX.DIRECTION];
 export type FlexJustify = typeof FLEX.JUSTIFY[keyof typeof FLEX.JUSTIFY];
 export type FlexAlign = typeof FLEX.ALIGN[keyof typeof FLEX.ALIGN];
+export type ComponentSize = typeof COMPONENT_SIZES[keyof typeof COMPONENT_SIZES];
+export type IconSize = typeof ICON_SIZES[keyof typeof ICON_SIZES];

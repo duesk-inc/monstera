@@ -183,6 +183,104 @@ export const API_ERROR_MESSAGES = {
   API_VERSION_NOT_SUPPORTED: "サポートされていないAPIバージョンです。",
 } as const;
 
+// エラーカテゴリ設定
+export const ERROR_CATEGORY_CONFIG = {
+  AUTH: {
+    level: "warning",
+    showToast: true,
+    autoClose: 5000,
+  },
+  VALIDATION: {
+    level: "error",
+    showToast: false,
+    autoClose: 0,
+  },
+  NETWORK: {
+    level: "error",
+    showToast: true,
+    autoClose: 8000,
+  },
+  SERVER: {
+    level: "error",
+    showToast: true,
+    autoClose: 10000,
+  },
+  PERMISSION: {
+    level: "warning",
+    showToast: true,
+    autoClose: 6000,
+  },
+} as const;
+
+// エラーメッセージテンプレート
+export const ERROR_MESSAGE_TEMPLATES = {
+  FIELD_REQUIRED: (fieldName: string) => `${fieldName}は必須です。`,
+  FIELD_TOO_SHORT: (fieldName: string, min: number) => `${fieldName}は${min}文字以上で入力してください。`,
+  FIELD_TOO_LONG: (fieldName: string, max: number) => `${fieldName}は${max}文字以下で入力してください。`,
+  FIELD_INVALID_FORMAT: (fieldName: string) => `${fieldName}の形式が正しくありません。`,
+  VALUE_OUT_OF_RANGE: (min: number, max: number) => `値は${min}から${max}の範囲で入力してください。`,
+  OPERATION_FAILED: (operation: string) => `${operation}に失敗しました。`,
+  RESOURCE_NOT_FOUND: (resource: string) => `${resource}が見つかりません。`,
+  PERMISSION_DENIED_FOR: (action: string) => `${action}の権限がありません。`,
+} as const;
+
+// 統合エラーメッセージ（後方互換性）
+export const ERROR_MESSAGES = {
+  ...GENERAL_ERROR_MESSAGES,
+  ...AUTH_ERROR_MESSAGES,
+  ...FILE_ERROR_MESSAGES,
+  ...ENGINEER_ERROR_MESSAGES,
+  ...WEEKLY_REPORT_ERROR_MESSAGES,
+  ...EXPENSE_ERROR_MESSAGES,
+  ...LEAVE_ERROR_MESSAGES,
+  ...NOTIFICATION_ERROR_MESSAGES,
+  ...PROJECT_ERROR_MESSAGES,
+  ...SEARCH_ERROR_MESSAGES,
+  ...EXPORT_ERROR_MESSAGES,
+  ...IMPORT_ERROR_MESSAGES,
+  ...ADMIN_ERROR_MESSAGES,
+  ...API_ERROR_MESSAGES,
+} as const;
+
+// 成功メッセージテンプレート
+export const SUCCESS_MESSAGE_TEMPLATES = {
+  OPERATION_COMPLETED: (operation: string) => `${operation}が完了しました。`,
+  RESOURCE_CREATED: (resource: string) => `${resource}を作成しました。`,
+  RESOURCE_UPDATED: (resource: string) => `${resource}を更新しました。`,
+  RESOURCE_DELETED: (resource: string) => `${resource}を削除しました。`,
+  DATA_SAVED: "データを保存しました。",
+  SETTINGS_UPDATED: "設定を更新しました。",
+  EMAIL_SENT: "メールを送信しました。",
+  FILE_UPLOADED: "ファイルをアップロードしました。",
+  EXPORT_COMPLETED: "エクスポートが完了しました。",
+  IMPORT_COMPLETED: "インポートが完了しました。",
+} as const;
+
+// 統合成功メッセージ
+export const SUCCESS_MESSAGES = {
+  ...SUCCESS_MESSAGE_TEMPLATES,
+  // 具体的な成功メッセージ
+  LOGIN_SUCCESS: "ログインしました。",
+  LOGOUT_SUCCESS: "ログアウトしました。",
+  PROFILE_UPDATED: "プロフィールを更新しました。",
+  PASSWORD_CHANGED: "パスワードを変更しました。",
+  WEEKLY_REPORT_SUBMITTED: "週報を提出しました。",
+  EXPENSE_SUBMITTED: "経費申請を提出しました。",
+  LEAVE_REQUESTED: "休暇申請を提出しました。",
+  APPROVAL_COMPLETED: "承認しました。",
+  REJECTION_COMPLETED: "却下しました。",
+} as const;
+
+// エラーカテゴリ判定関数
+export const getErrorCategory = (errorCode: string): keyof typeof ERROR_CATEGORY_CONFIG => {
+  if (errorCode.startsWith("AUTH")) return "AUTH";
+  if (errorCode.startsWith("VAL")) return "VALIDATION";
+  if (errorCode.startsWith("NET")) return "NETWORK";
+  if (errorCode.startsWith("SYS")) return "SERVER";
+  if (errorCode.startsWith("PERM")) return "PERMISSION";
+  return "SERVER"; // デフォルト
+};
+
 // 型定義
 export type GeneralErrorMessage = typeof GENERAL_ERROR_MESSAGES[keyof typeof GENERAL_ERROR_MESSAGES];
 export type AuthErrorMessage = typeof AUTH_ERROR_MESSAGES[keyof typeof AUTH_ERROR_MESSAGES];
@@ -199,3 +297,4 @@ export type ExportErrorMessage = typeof EXPORT_ERROR_MESSAGES[keyof typeof EXPOR
 export type ImportErrorMessage = typeof IMPORT_ERROR_MESSAGES[keyof typeof IMPORT_ERROR_MESSAGES];
 export type AdminErrorMessage = typeof ADMIN_ERROR_MESSAGES[keyof typeof ADMIN_ERROR_MESSAGES];
 export type ApiErrorMessage = typeof API_ERROR_MESSAGES[keyof typeof API_ERROR_MESSAGES];
+export type ErrorCategory = keyof typeof ERROR_CATEGORY_CONFIG;

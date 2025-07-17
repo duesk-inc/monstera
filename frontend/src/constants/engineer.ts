@@ -347,6 +347,26 @@ export const VALIDATION_CONFIG = {
   },
 } as const;
 
+// デフォルトページサイズ
+export const DEFAULT_PAGE_SIZE = FILTER_DEFAULTS.PAGE_SIZE;
+
+// ソートフィールドラベル
+export const SORT_FIELD_LABELS = {
+  name: "名前",
+  email: "メールアドレス",
+  status: "ステータス",
+  joinDate: "入社日",
+  lastLoginDate: "最終ログイン日",
+  createdAt: "作成日",
+  updatedAt: "更新日",
+} as const;
+
+// ソート順ラベル
+export const SORT_ORDER_LABELS = {
+  asc: "昇順",
+  desc: "降順",
+} as const;
+
 // 型定義
 export type EngineerStatus = typeof ENGINEER_STATUS[keyof typeof ENGINEER_STATUS];
 export type SkillLevel = typeof SKILL_LEVELS[keyof typeof SKILL_LEVELS];

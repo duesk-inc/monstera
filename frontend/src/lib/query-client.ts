@@ -1,14 +1,14 @@
 import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query';
 import { queryRetryConfig } from '@/lib/api/retry-config';
-import { CACHE_STRATEGIES } from '@/constants/cache';
+import { REACT_QUERY_CONFIG } from '@/constants/cache';
 
 // React Query クライアント設定（最適化されたキャッシュ設定）
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // デフォルトのキャッシュ設定（短期キャッシュ）
-      staleTime: CACHE_STRATEGIES.WEEKLY_REPORTS.staleTime, // 5分
-      gcTime: CACHE_STRATEGIES.WEEKLY_REPORTS.gcTime, // 10分
+      staleTime: REACT_QUERY_CONFIG.QUERY_SETTINGS.REPORT_DATA.staleTime, // 30分
+      gcTime: REACT_QUERY_CONFIG.QUERY_SETTINGS.REPORT_DATA.cacheTime, // 2時間
       ...queryRetryConfig,
       refetchOnWindowFocus: false,
       refetchOnReconnect: true, // 再接続時に自動で最新データを取得

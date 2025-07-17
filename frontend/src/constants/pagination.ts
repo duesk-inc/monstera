@@ -217,6 +217,16 @@ export const RESPONSIVE_CONFIG = {
   HORIZONTAL_SCROLL: true,
 } as const;
 
+// ページネーション定数（エイリアス）
+export const PAGINATION = {
+  DEFAULT_PAGE: DEFAULT_PAGINATION.PAGE,
+  DEFAULT_LIMIT: DEFAULT_PAGINATION.LIMIT,
+  MAX_LIMIT: DEFAULT_PAGINATION.MAX_LIMIT,
+  MIN_LIMIT: DEFAULT_PAGINATION.MIN_LIMIT,
+  PAGE_SIZE_OPTIONS: PAGE_SIZE_OPTIONS.map(option => option.value),
+  LABELS: PAGINATION_LABELS,
+} as const;
+
 // 型定義
 export type PaginationConfig = typeof DEFAULT_PAGINATION;
 export type SortOrder = typeof SORT_CONFIG.ORDERS[keyof typeof SORT_CONFIG.ORDERS];

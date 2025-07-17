@@ -272,6 +272,9 @@ export type MoodMetric = typeof MOOD_AGGREGATION_CONFIG.METRICS[keyof typeof MOO
 export type MoodFilterRange = typeof MOOD_FILTER_CONFIG.RANGES[keyof typeof MOOD_FILTER_CONFIG.RANGES];
 export type MoodDateRange = typeof MOOD_FILTER_CONFIG.DATE_RANGES[keyof typeof MOOD_FILTER_CONFIG.DATE_RANGES];
 
+// 気分オプション（エイリアス）
+export const moodOptions = MOOD_OPTIONS;
+
 // ユーティリティ関数
 export const moodUtils = {
   // 気分値から色を取得

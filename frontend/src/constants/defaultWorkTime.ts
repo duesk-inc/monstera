@@ -8,6 +8,52 @@ export const DEFAULT_WORK_TIME = {
   WORK_HOURS: 8, // 時間
 } as const;
 
+// デフォルトカスタム日設定
+export const DEFAULT_CUSTOM_DAY_SETTINGS = {
+  monday: {
+    isWorkDay: true,
+    startTime: DEFAULT_WORK_TIME.START_TIME,
+    endTime: DEFAULT_WORK_TIME.END_TIME,
+    breakTime: DEFAULT_WORK_TIME.BREAK_TIME,
+  },
+  tuesday: {
+    isWorkDay: true,
+    startTime: DEFAULT_WORK_TIME.START_TIME,
+    endTime: DEFAULT_WORK_TIME.END_TIME,
+    breakTime: DEFAULT_WORK_TIME.BREAK_TIME,
+  },
+  wednesday: {
+    isWorkDay: true,
+    startTime: DEFAULT_WORK_TIME.START_TIME,
+    endTime: DEFAULT_WORK_TIME.END_TIME,
+    breakTime: DEFAULT_WORK_TIME.BREAK_TIME,
+  },
+  thursday: {
+    isWorkDay: true,
+    startTime: DEFAULT_WORK_TIME.START_TIME,
+    endTime: DEFAULT_WORK_TIME.END_TIME,
+    breakTime: DEFAULT_WORK_TIME.BREAK_TIME,
+  },
+  friday: {
+    isWorkDay: true,
+    startTime: DEFAULT_WORK_TIME.START_TIME,
+    endTime: DEFAULT_WORK_TIME.END_TIME,
+    breakTime: DEFAULT_WORK_TIME.BREAK_TIME,
+  },
+  saturday: {
+    isWorkDay: false,
+    startTime: DEFAULT_WORK_TIME.START_TIME,
+    endTime: DEFAULT_WORK_TIME.END_TIME,
+    breakTime: DEFAULT_WORK_TIME.BREAK_TIME,
+  },
+  sunday: {
+    isWorkDay: false,
+    startTime: DEFAULT_WORK_TIME.START_TIME,
+    endTime: DEFAULT_WORK_TIME.END_TIME,
+    breakTime: DEFAULT_WORK_TIME.BREAK_TIME,
+  },
+} as const;
+
 // 勤務時間の選択肢
 export const WORK_TIME_OPTIONS = {
   START_TIMES: [

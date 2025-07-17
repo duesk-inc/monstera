@@ -269,6 +269,181 @@ export const SALES_API_ENDPOINTS = {
   FORECASTS: "/api/v1/sales/forecasts",
 } as const;
 
+// 金額タイプ
+export const AMOUNT_TYPE = {
+  FIXED: "fixed",
+  HOURLY: "hourly",
+  MONTHLY: "monthly",
+  YEARLY: "yearly",
+} as const;
+
+// キャンペーンステータス
+export const CAMPAIGN_STATUS = {
+  DRAFT: "draft",
+  ACTIVE: "active",
+  PAUSED: "paused",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+} as const;
+
+// キャンペーンステータス色
+export const CAMPAIGN_STATUS_COLORS = {
+  [CAMPAIGN_STATUS.DRAFT]: "#6b7280",
+  [CAMPAIGN_STATUS.ACTIVE]: "#22c55e",
+  [CAMPAIGN_STATUS.PAUSED]: "#f59e0b",
+  [CAMPAIGN_STATUS.COMPLETED]: "#3b82f6",
+  [CAMPAIGN_STATUS.CANCELLED]: "#ef4444",
+} as const;
+
+// エクステンションステータス
+export const EXTENSION_STATUS = {
+  PENDING: "pending",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+  EXPIRED: "expired",
+} as const;
+
+// エクステンションステータス色
+export const EXTENSION_STATUS_COLORS = {
+  [EXTENSION_STATUS.PENDING]: "#f59e0b",
+  [EXTENSION_STATUS.APPROVED]: "#22c55e",
+  [EXTENSION_STATUS.REJECTED]: "#ef4444",
+  [EXTENSION_STATUS.EXPIRED]: "#6b7280",
+} as const;
+
+// エクステンションタイプ
+export const EXTENSION_TYPE = {
+  CONTRACT: "contract",
+  PROJECT: "project",
+  SUPPORT: "support",
+  MAINTENANCE: "maintenance",
+} as const;
+
+// インタビューステータス
+export const INTERVIEW_STATUS = {
+  SCHEDULED: "scheduled",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  CANCELLED: "cancelled",
+  NO_SHOW: "no_show",
+} as const;
+
+// インタビューステータス色
+export const INTERVIEW_STATUS_COLORS = {
+  [INTERVIEW_STATUS.SCHEDULED]: "#3b82f6",
+  [INTERVIEW_STATUS.IN_PROGRESS]: "#f59e0b",
+  [INTERVIEW_STATUS.COMPLETED]: "#22c55e",
+  [INTERVIEW_STATUS.CANCELLED]: "#ef4444",
+  [INTERVIEW_STATUS.NO_SHOW]: "#6b7280",
+} as const;
+
+// ミーティングタイプ
+export const MEETING_TYPE = {
+  INITIAL: "initial",
+  FOLLOW_UP: "follow_up",
+  PRESENTATION: "presentation",
+  NEGOTIATION: "negotiation",
+  CLOSING: "closing",
+  REVIEW: "review",
+} as const;
+
+// 提案ステータス
+export const PROPOSAL_STATUS = {
+  DRAFT: "draft",
+  SUBMITTED: "submitted",
+  UNDER_REVIEW: "under_review",
+  APPROVED: "approved",
+  REJECTED: "rejected",
+  CANCELLED: "cancelled",
+} as const;
+
+// 提案ステータス色
+export const PROPOSAL_STATUS_COLORS = {
+  [PROPOSAL_STATUS.DRAFT]: "#6b7280",
+  [PROPOSAL_STATUS.SUBMITTED]: "#3b82f6",
+  [PROPOSAL_STATUS.UNDER_REVIEW]: "#f59e0b",
+  [PROPOSAL_STATUS.APPROVED]: "#22c55e",
+  [PROPOSAL_STATUS.REJECTED]: "#ef4444",
+  [PROPOSAL_STATUS.CANCELLED]: "#9ca3af",
+} as const;
+
+// POC同期ステータス
+export const POC_SYNC_STATUS = {
+  PENDING: "pending",
+  IN_PROGRESS: "in_progress",
+  COMPLETED: "completed",
+  FAILED: "failed",
+} as const;
+
+// POC同期ステータス色
+export const POC_SYNC_STATUS_COLORS = {
+  [POC_SYNC_STATUS.PENDING]: "#6b7280",
+  [POC_SYNC_STATUS.IN_PROGRESS]: "#f59e0b",
+  [POC_SYNC_STATUS.COMPLETED]: "#22c55e",
+  [POC_SYNC_STATUS.FAILED]: "#ef4444",
+} as const;
+
+// Eメールテンプレートタイプ
+export const EMAIL_TEMPLATE_TYPE = {
+  WELCOME: "welcome",
+  FOLLOW_UP: "follow_up",
+  PROPOSAL: "proposal",
+  CONTRACT: "contract",
+  THANK_YOU: "thank_you",
+  REMINDER: "reminder",
+} as const;
+
+// Eメールテンプレート変数
+export const EMAIL_TEMPLATE_VARIABLES = {
+  CUSTOMER_NAME: "{{customer_name}}",
+  COMPANY_NAME: "{{company_name}}",
+  PROPOSAL_DATE: "{{proposal_date}}",
+  CONTRACT_DATE: "{{contract_date}}",
+  AMOUNT: "{{amount}}",
+  SALES_PERSON: "{{sales_person}}",
+} as const;
+
+// 営業エンドポイント
+export const SALES_ENDPOINTS = {
+  PROPOSALS: "/api/v1/sales/proposals",
+  CAMPAIGNS: "/api/v1/sales/campaigns",
+  INTERVIEWS: "/api/v1/sales/interviews",
+  EXTENSIONS: "/api/v1/sales/extensions",
+  POC_PROJECTS: "/api/v1/sales/poc-projects",
+  EMAIL_TEMPLATES: "/api/v1/sales/email-templates",
+  EMAIL_CAMPAIGNS: "/api/v1/sales/email-campaigns",
+  USERS: "/api/v1/sales/users",
+} as const;
+
+// 営業権限
+export const SALES_PERMISSIONS = {
+  VIEW_ALL: "sales:view_all",
+  VIEW_OWN: "sales:view_own",
+  CREATE: "sales:create",
+  UPDATE: "sales:update",
+  DELETE: "sales:delete",
+  MANAGE_TEAMS: "sales:manage_teams",
+  APPROVE_PROPOSALS: "sales:approve_proposals",
+} as const;
+
+// 営業ロール
+export const SALES_ROLES = {
+  ADMIN: "sales_admin",
+  MANAGER: "sales_manager",
+  SENIOR: "sales_senior",
+  JUNIOR: "sales_junior",
+  INTERN: "sales_intern",
+} as const;
+
+// 営業UI設定
+export const SALES_UI = {
+  ITEMS_PER_PAGE: 20,
+  MAX_ITEMS_PER_PAGE: 100,
+  DEFAULT_SORT: "created_at",
+  DEFAULT_ORDER: "desc",
+  SEARCH_DEBOUNCE: 300,
+} as const;
+
 // 型定義
 export type SalesStatus = typeof SALES_STATUS[keyof typeof SALES_STATUS];
 export type TeamRole = typeof TEAM_ROLES[keyof typeof TEAM_ROLES];
@@ -280,3 +455,10 @@ export type RevenueCategory = typeof REVENUE_CATEGORIES[keyof typeof REVENUE_CAT
 export type ActivityType = typeof ACTIVITY_TYPES[keyof typeof ACTIVITY_TYPES];
 export type SalesPriority = typeof SALES_PRIORITIES[keyof typeof SALES_PRIORITIES];
 export type LossReason = typeof LOSS_REASONS[keyof typeof LOSS_REASONS];
+export type AmountType = typeof AMOUNT_TYPE[keyof typeof AMOUNT_TYPE];
+export type CampaignStatus = typeof CAMPAIGN_STATUS[keyof typeof CAMPAIGN_STATUS];
+export type ExtensionStatus = typeof EXTENSION_STATUS[keyof typeof EXTENSION_STATUS];
+export type InterviewStatus = typeof INTERVIEW_STATUS[keyof typeof INTERVIEW_STATUS];
+export type ProposalStatus = typeof PROPOSAL_STATUS[keyof typeof PROPOSAL_STATUS];
+export type PocSyncStatus = typeof POC_SYNC_STATUS[keyof typeof POC_SYNC_STATUS];
+export type EmailTemplateType = typeof EMAIL_TEMPLATE_TYPE[keyof typeof EMAIL_TEMPLATE_TYPE];
