@@ -50,6 +50,8 @@ export const UI_DELAYS = {
   ALERT_AUTO_HIDE: 5000,
   NOTIFICATION_AUTO_HIDE: 4000,
   SNACKBAR_AUTO_HIDE: 3000,
+  THROTTLE: 300,
+  DEBOUNCE: 500,
 } as const;
 
 // フォーム遅延時間
@@ -138,6 +140,17 @@ export const DEBUG_DELAYS = {
   LOG_THROTTLE: 1000,
 } as const;
 
+// APIタイムアウト時間
+export const API_TIMEOUTS = {
+  SHORT: 5000,    // 短時間API用タイムアウト (5秒)
+  DEFAULT: 30000, // 標準タイムアウト (30秒)
+} as const;
+
+// 時間閾値
+export const TIME_THRESHOLDS = {
+  IMMEDIATE: 3000, // 即時判定閾値 (3秒)
+} as const;
+
 // 遅延時間の計算ヘルパー
 export const DELAY_HELPERS = {
   // 指数バックオフ計算
@@ -178,3 +191,5 @@ export type SyncDelay = typeof SYNC_DELAYS[keyof typeof SYNC_DELAYS];
 export type AnalyticsDelay = typeof ANALYTICS_DELAYS[keyof typeof ANALYTICS_DELAYS];
 export type BatchDelay = typeof BATCH_DELAYS[keyof typeof BATCH_DELAYS];
 export type DebugDelay = typeof DEBUG_DELAYS[keyof typeof DEBUG_DELAYS];
+export type ApiTimeouts = typeof API_TIMEOUTS[keyof typeof API_TIMEOUTS];
+export type TimeThresholds = typeof TIME_THRESHOLDS[keyof typeof TIME_THRESHOLDS];
