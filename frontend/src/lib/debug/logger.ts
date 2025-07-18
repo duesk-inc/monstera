@@ -181,6 +181,31 @@ export class DebugLogger {
   }
 
   /**
+   * エラーログを出力
+   */
+  static error(category: string, message: string, error?: unknown) {
+    if (!this.isDevelopment) return;
+
+    console.error(`[エラー][${category}] ${message}`);
+    if (error !== undefined) {
+      console.error('エラー詳細:', error);
+      
+      // Axiosエラーの場合は詳細情報も出力
+      if (typeof error === 'object' && error !== null && 'isAxiosError' in error) {
+        const axiosError = error as any;
+        if (axiosError.response) {
+          console.error('レスポンスステータス:', axiosError.response.status);
+          console.error('レスポンスデータ:', axiosError.response.data);
+        }
+        if (axiosError.config) {
+          console.error('リクエストURL:', axiosError.config.url);
+          console.error('リクエストメソッド:', axiosError.config.method);
+        }
+      }
+    }
+  }
+
+  /**
    * APIリクエストのログを出力
    */
   static apiRequest(config: DebugLogConfig, data: ApiDebugLogData) {
