@@ -56,7 +56,7 @@ func SetupTestConfig() (*TestConfig, error) {
 	cfg.Cognito.UserPoolID = "local_7221v1tw"
 	cfg.Cognito.ClientID = "62h69i1tpbn9rmh83xmtjyj4b"
 	cfg.Cognito.ClientSecret = "47c44j2dkj2y4tkf777zqgpiw"
-	cfg.Cognito.Endpoint = "http://localhost:9229"
+	cfg.Cognito.Endpoint = "http://localhost:9230"
 
 	// テスト用データベース接続
 	db, err := setupTestDatabase(cfg)

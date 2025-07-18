@@ -980,7 +980,7 @@ services:
   cognito-local:
     image: jagregory/cognito-local:latest
     ports:
-      - "9229:9229"
+      - "9230:9229"
     environment:
       - COGNITO_LOCAL_ENABLED=true
       - COGNITO_LOCAL_REGION=us-east-1
@@ -989,7 +989,7 @@ services:
 # 環境変数設定 (開発環境)
 # docker-compose.ymlのenvironmentセクションで設定
 # COGNITO_ENABLED=true
-# COGNITO_ENDPOINT=http://localhost:9229
+# COGNITO_ENDPOINT=http://localhost:9230
 # COGNITO_REGION=us-east-1
 # COGNITO_USER_POOL_ID=local_7221v1tw
 # COGNITO_CLIENT_ID=62h69i1tpbn9rmh83xmtjyj4b

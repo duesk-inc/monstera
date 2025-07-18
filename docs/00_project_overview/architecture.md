@@ -62,7 +62,7 @@
 
 ### 4. 認証・認可
 - **認証プロバイダ**: AWS Cognito
-  - ローカル: Cognito Local (port 9229)
+  - ローカル: Cognito Local (port 9230)
   - 本番: AWS Cognito (ap-northeast-1)
 - **認証方式**: JWT (Access Token + Refresh Token)
   - アクセストークン: 15分
@@ -238,7 +238,7 @@ services:
 - PostgreSQL: 5432
 - pgAdmin: 5050
 - Redis: 6379
-- Cognito Local: 9229
+- Cognito Local: 9230
 
 ### 環境分離
 - **開発環境**: Docker Compose (ローカル)

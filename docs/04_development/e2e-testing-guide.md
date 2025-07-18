@@ -26,7 +26,7 @@ MonsteraプロジェクトのE2Eテストは、Docker環境で完全に隔離さ
 - Backend API: 8081（開発: 8080）
 - PostgreSQL: 5433（開発: 5432）
 - Redis: 6380（開発: 6379）
-- Cognito Local: 9230（開発: 9229）
+- Cognito Local: 9230（開発: 9230）
 
 ## クイックスタート
 
