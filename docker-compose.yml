@@ -76,8 +76,6 @@ services:
       - "9229:9229"
     volumes:
       - ./cognito:/app/.cognito
-    environment:
-      - DEBUG=1
     networks:
       - monstera-network
     healthcheck:
