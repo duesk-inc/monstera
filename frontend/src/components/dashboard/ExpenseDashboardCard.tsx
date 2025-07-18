@@ -4,7 +4,7 @@ import React from 'react';
 import {
   Box,
   Typography,
-  Grid2 as Grid,
+  Grid,
   LinearProgress,
   Alert,
   Button,
@@ -109,10 +109,10 @@ export default function ExpenseDashboardCard() {
           </Stack>
         </Box>
         <Grid container spacing={2}>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid item xs={12} sm={6}>
             <Skeleton variant="rectangular" height={120} />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <Grid item xs={12} sm={6}>
             <Skeleton variant="rectangular" height={120} />
           </Grid>
         </Grid>
@@ -195,7 +195,7 @@ export default function ExpenseDashboardCard() {
           </Typography>
           <Grid container spacing={2}>
             {/* 月次残額 */}
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid item xs={12} sm={6}>
               <Card 
                 variant="outlined" 
                 sx={{ 
@@ -249,7 +249,7 @@ export default function ExpenseDashboardCard() {
             </Grid>
 
             {/* 年次残額 */}
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid item xs={12} sm={6}>
               <Card 
                 variant="outlined" 
                 sx={{ 
@@ -308,7 +308,7 @@ export default function ExpenseDashboardCard() {
       {/* 集計カード */}
       <Grid container spacing={2}>
         {/* 月次集計 */}
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid item xs={12} sm={6}>
           <Card variant="outlined">
             <CardContent>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
@@ -383,7 +383,7 @@ export default function ExpenseDashboardCard() {
         </Grid>
 
         {/* 年次集計 */}
-        <Grid size={{ xs: 12, sm: 6 }}>
+        <Grid item xs={12} sm={6}>
           <Card variant="outlined">
             <CardContent>
               <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
