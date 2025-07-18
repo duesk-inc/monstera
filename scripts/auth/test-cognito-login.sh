@@ -13,7 +13,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 # 環境変数
-COGNITO_ENDPOINT=${COGNITO_ENDPOINT:-"http://localhost:9229"}
+COGNITO_ENDPOINT=${COGNITO_ENDPOINT:-"http://localhost:9230"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 USER_POOL_ID="local_7221v1tw"
 CLIENT_ID="62h69i1tpbn9rmh83xmtjyj4b"

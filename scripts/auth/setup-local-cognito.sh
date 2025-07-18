@@ -15,7 +15,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # 環境変数
-COGNITO_ENDPOINT=${COGNITO_ENDPOINT:-"http://localhost:9229"}
+COGNITO_ENDPOINT=${COGNITO_ENDPOINT:-"http://localhost:9230"}
 AWS_REGION=${AWS_REGION:-"us-east-1"}
 
 # AWS CLI設定

@@ -50,7 +50,7 @@ cognito/
 COGNITO_USER_POOL_ID=local_7221v1tw
 COGNITO_CLIENT_ID=62h69i1tpbn9rmh83xmtjyj4b
 COGNITO_CLIENT_SECRET=47c44j2dkj2y4tkf777zqgpiw
-COGNITO_ENDPOINT=http://cognito-local:9229
+COGNITO_ENDPOINT=http://cognito-local:9230
 
 # AWS設定（ローカル開発用）
 AWS_ACCESS_KEY_ID=local
@@ -79,10 +79,10 @@ docker-compose up -d
 
 ```bash
 # ヘルスチェック
-curl http://localhost:9229/health
+curl http://localhost:9230/health
 
 # ユーザープール情報の確認
-curl http://localhost:9229/local_7221v1tw
+curl http://localhost:9230/local_7221v1tw
 ```
 
 ### 3. ログイン例
@@ -138,7 +138,7 @@ E2Eテスト実行時は、別ポート（9230）で起動します：
 docker-compose -f docker-compose.e2e.yml up -d
 
 # E2E用のCognito Localエンドポイント
-COGNITO_ENDPOINT=http://cognito-local-e2e:9229
+COGNITO_ENDPOINT=http://cognito-local-e2e:9230
 ```
 
 ## 参考リンク

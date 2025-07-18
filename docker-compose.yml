@@ -73,11 +73,9 @@ services:
     container_name: monstera-cognito-local
     restart: unless-stopped
     ports:
-      - "9229:9229"
+      - "9230:9229"
     volumes:
       - ./cognito:/app/.cognito
-    environment:
-      - DEBUG=1
     networks:
       - monstera-network
     healthcheck:

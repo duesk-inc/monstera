@@ -44,8 +44,8 @@ func (c *CognitoConfig) GetJWKURL() string {
 func (c *CognitoConfig) GetIssuer() string {
 	if c.Endpoint != "" {
 		// ローカル開発環境（Cognito Localの形式）
-		// Cognito Localは http://0.0.0.0:9229/local_xxxxx 形式
-		return "http://0.0.0.0:9229/" + c.UserPoolID
+		// Cognito Localは http://0.0.0.0:9230/local_xxxxx 形式
+		return "http://0.0.0.0:9230/" + c.UserPoolID
 	}
 	// 本番環境
 	return "https://cognito-idp." + c.Region + ".amazonaws.com/" + c.UserPoolID
