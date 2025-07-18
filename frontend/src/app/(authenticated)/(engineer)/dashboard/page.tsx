@@ -158,7 +158,7 @@ export default function Dashboard() {
               variant="elevated"
               actions={
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {!notificationLoading && notifications.length > 0 && (
+                  {!notificationLoading && notifications && Array.isArray(notifications) && notifications.length > 0 && (
                     <NotificationBadge 
                       count={notifications.length} 
                       variant="chip" 
@@ -209,7 +209,7 @@ export default function Dashboard() {
                       </ActionButton>
                     </Box>
                   </Box>
-                ) : notifications.length === 0 ? (
+                ) : !notifications || !Array.isArray(notifications) || notifications.length === 0 ? (
                   <Box display="flex" justifyContent="center" p={4}>
                     <Typography color="text.secondary">通知はありません</Typography>
                   </Box>
@@ -230,7 +230,7 @@ export default function Dashboard() {
                 )}
               </List>
               
-              {notifications.length > 0 && (
+              {notifications && Array.isArray(notifications) && notifications.length > 0 && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                   <ActionButton 
                     component={Link} 
