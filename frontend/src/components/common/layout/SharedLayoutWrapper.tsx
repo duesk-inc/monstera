@@ -90,7 +90,6 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
         sx={{
           flexGrow: 1,
           width: '100%',
-          marginLeft: !isMobile ? SIDEBAR_WIDTH : 0,
         }}
       >
         {/* トップバー */}
