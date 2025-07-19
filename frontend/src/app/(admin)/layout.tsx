@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { MenuItem, Typography } from '@mui/material';
 import { Person as PersonIcon } from '@mui/icons-material';
 import AdminSidebar from '@/components/ui/AdminSidebar';
@@ -15,8 +15,6 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const { user, isLoading } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const sidebarWidth = sidebarOpen ? 240 : 68;
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
   // 管理者権限チェック
@@ -32,9 +30,6 @@ export default function AdminLayout({
     }
   }, [user, isLoading, router]);
 
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
 
   const handleSwitchToEngineer = () => {
     router.push('/dashboard');
@@ -49,11 +44,8 @@ export default function AdminLayout({
 
   return (
     <SharedLayoutWrapper
-      sidebar={<AdminSidebar open={sidebarOpen} onToggle={handleSidebarToggle} />}
-      mobileSidebar={<AdminSidebar mobile onClose={() => {}} open={true} />}
-      sidebarOpen={sidebarOpen}
-      onSidebarToggle={handleSidebarToggle}
-      sidebarWidth={sidebarWidth}
+      sidebar={<AdminSidebar />}
+      mobileSidebar={<AdminSidebar mobile onClose={() => {}} />}
       isAdmin={true}
       userMenuItems={userMenuItems}
       contentPadding={0}

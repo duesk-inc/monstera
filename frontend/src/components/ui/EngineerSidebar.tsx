@@ -15,36 +15,24 @@ import {
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
-  Engineering as EngineersIcon,
   Assignment as WeeklyReportIcon,
   AccessTime as AttendanceIcon,
   Receipt as ExpenseIcon,
-  Group as FollowUpIcon,
+  BeachAccess as LeaveIcon,
   PictureAsPdf as SkillSheetIcon,
-  Business as ClientIcon,
-  TrendingUp as SalesIcon,
-  Assessment as AnalyticsIcon,
-  Settings as SettingsIcon,
+  History as WorkHistoryIcon,
+  Assignment as ProposalIcon,
+  NotificationsActive as NotificationsIcon,
+  Person as ProfileIcon,
   ExpandLess,
   ExpandMore,
-  AdminPanelSettings as AdminIcon,
-  Receipt as ReceiptIcon,
-  Business as BusinessIcon,
-  Timeline as TimelineIcon,
-  BeachAccess as LeaveIcon,
-  AccountBalance as AccountingIcon,
-  MonetizationOn as BillingIcon,
-  Sync as FreeeIcon,
-  Category as ProjectGroupIcon,
-  Assignment as ProposalIcon,
-  History as WorkHistoryIcon,
-  NotificationsActive as NotificationsActiveIcon,
+  Engineering as EngineerIcon,
 } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { SIDEBAR_WIDTH } from "@/constants/layout";
 
-interface AdminSidebarProps {
+interface EngineerSidebarProps {
   mobile?: boolean;
   onClose?: () => void;
 }
@@ -57,149 +45,63 @@ interface MenuItem {
   children?: MenuItem[];
 }
 
-const AdminSidebar: React.FC<AdminSidebarProps> = ({
+const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
   mobile = false,
   onClose,
 }) => {
   const pathname = usePathname();
-  const [expandedItems, setExpandedItems] = React.useState<string[]>([
-    "engineers",
-  ]);
+  const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
 
   const menuItems: MenuItem[] = [
     {
       title: "ダッシュボード",
       icon: <DashboardIcon />,
-      path: "/admin/dashboard",
+      path: "/dashboard",
     },
     {
-      title: "エンジニア管理",
-      icon: <EngineersIcon />,
-      children: [
-        {
-          title: "週報管理",
-          icon: <WeeklyReportIcon />,
-          path: "/admin/engineers/weekly-reports",
-          badge: 5,
-        },
-        {
-          title: "勤怠承認",
-          icon: <AttendanceIcon />,
-          path: "/admin/engineers/attendance",
-          badge: 3,
-        },
-        {
-          title: "経費承認",
-          icon: <ExpenseIcon />,
-          path: "/admin/engineers/expenses",
-          badge: 2,
-        },
-        {
-          title: "承認催促管理",
-          icon: <NotificationsActiveIcon />,
-          path: "/admin/approval-reminder",
-        },
-        {
-          title: "休暇申請管理",
-          icon: <LeaveIcon />,
-          path: "/admin/leave",
-          badge: 0,
-        },
-        {
-          title: "フォローアップ対象",
-          icon: <FollowUpIcon />,
-          path: "/admin/engineers/follow-up",
-        },
-        {
-          title: "スキルシート",
-          icon: <SkillSheetIcon />,
-          path: "/admin/engineers/skill-sheets",
-        },
-        {
-          title: "職務経歴管理",
-          icon: <WorkHistoryIcon />,
-          path: "/admin/engineers/work-history",
-        },
-      ],
+      title: "週報",
+      icon: <WeeklyReportIcon />,
+      path: "/weekly-report",
     },
     {
-      title: "ビジネス管理",
-      icon: <BusinessIcon />,
-      children: [
-        {
-          title: "取引先管理",
-          icon: <ClientIcon />,
-          path: "/admin/business/clients",
-        },
-        {
-          title: "請求管理",
-          icon: <ReceiptIcon />,
-          path: "/admin/business/invoices",
-        },
-      ],
+      title: "勤怠管理",
+      icon: <AttendanceIcon />,
+      path: "/attendance",
     },
     {
-      title: "営業管理",
-      icon: <SalesIcon />,
-      children: [
-        {
-          title: "営業パイプライン",
-          icon: <TimelineIcon />,
-          path: "/admin/sales/pipeline",
-        },
-        {
-          title: "提案管理",
-          icon: <ProposalIcon />,
-          path: "/sales/proposals",
-        },
-        {
-          title: "エンジニア提案回答",
-          icon: <ProposalIcon />,
-          path: "/engineer-proposals",
-          badge: 0,
-        },
-      ],
+      title: "経費申請",
+      icon: <ExpenseIcon />,
+      path: "/expenses",
     },
     {
-      title: "経理管理",
-      icon: <AccountingIcon />,
-      children: [
-        {
-          title: "ダッシュボード",
-          icon: <DashboardIcon />,
-          path: "/admin/accounting",
-        },
-        {
-          title: "請求書一覧",
-          icon: <ReceiptIcon />,
-          path: "/admin/accounting/invoices",
-        },
-        {
-          title: "月次請求処理",
-          icon: <BillingIcon />,
-          path: "/admin/accounting/billing",
-        },
-        {
-          title: "プロジェクトグループ",
-          icon: <ProjectGroupIcon />,
-          path: "/admin/accounting/project-groups",
-        },
-        {
-          title: "freee連携",
-          icon: <FreeeIcon />,
-          path: "/admin/accounting/freee/settings",
-        },
-      ],
+      title: "休暇申請",
+      icon: <LeaveIcon />,
+      path: "/leave",
     },
     {
-      title: "分析・レポート",
-      icon: <AnalyticsIcon />,
-      path: "/admin/analytics",
+      title: "スキルシート",
+      icon: <SkillSheetIcon />,
+      path: "/skill-sheet",
     },
     {
-      title: "設定",
-      icon: <SettingsIcon />,
-      path: "/admin/settings",
+      title: "職務経歴",
+      icon: <WorkHistoryIcon />,
+      path: "/work-history",
+    },
+    {
+      title: "提案管理",
+      icon: <ProposalIcon />,
+      path: "/proposals",
+    },
+    {
+      title: "通知設定",
+      icon: <NotificationsIcon />,
+      path: "/notifications/settings",
+    },
+    {
+      title: "プロフィール",
+      icon: <ProfileIcon />,
+      path: "/profile",
     },
   ];
 
@@ -242,10 +144,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             borderRadius: 2,
             mx: 1,
             my: 0.5,
-            bgcolor: isActive ? "error.50" : "transparent",
-            color: isActive ? "error.main" : "text.primary",
+            bgcolor: isActive ? "primary.50" : "transparent",
+            color: isActive ? "primary.main" : "text.primary",
             "&:hover": {
-              bgcolor: isActive ? "error.100" : "action.hover",
+              bgcolor: isActive ? "primary.100" : "action.hover",
             },
           }}
         >
@@ -254,11 +156,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
               minWidth: 0,
               mr: 3,
               justifyContent: "center",
-              color: isActive ? "error.main" : "text.secondary",
+              color: isActive ? "primary.main" : "text.secondary",
             }}
           >
             {item.badge ? (
-              <Badge badgeContent={item.badge} color="error">
+              <Badge badgeContent={item.badge} color="primary">
                 {item.icon}
               </Badge>
             ) : (
@@ -317,7 +219,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <AdminIcon sx={{ color: "error.main", fontSize: 28 }} />
+          <EngineerIcon sx={{ color: "primary.main", fontSize: 28 }} />
           <Box>
             <Typography
               variant="h6"
@@ -332,11 +234,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             <Typography
               variant="caption"
               sx={{
-                color: "error.main",
+                color: "primary.main",
                 fontWeight: 600,
               }}
             >
-              管理者モード
+              エンジニアモード
             </Typography>
           </Box>
         </Box>
@@ -357,7 +259,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         }}
       >
         <Typography variant="caption" color="text.secondary">
-          © 2025 Monstera Admin
+          © 2025 Monstera
         </Typography>
       </Box>
     </Box>
@@ -387,4 +289,4 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   );
 };
 
-export default AdminSidebar;
+export default EngineerSidebar;

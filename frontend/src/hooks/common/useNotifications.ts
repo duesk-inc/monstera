@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/axios';
 import { useAuth } from '@/hooks/useAuth';
-import { CACHE_STRATEGIES, QUERY_KEYS } from '@/constants/cache';
+import { QUERY_KEYS } from '@/constants/cache';
 
 interface Notification {
   id: string;
@@ -35,14 +35,14 @@ export const useNotifications = () => {
     error,
     refetch,
   } = useQuery<NotificationResponse>({
-    queryKey: [...QUERY_KEYS.NOTIFICATIONS, 'unread'],
+    queryKey: QUERY_KEYS.NOTIFICATIONS.UNREAD,
     queryFn: async () => {
       const response = await apiClient.get('/api/v1/notifications/unread');
       return response.data;
     },
     enabled: !!user && isPollingEnabled,
-    staleTime: CACHE_STRATEGIES.NOTIFICATIONS.staleTime, // 1分（リアルタイム性重視）
-    gcTime: CACHE_STRATEGIES.NOTIFICATIONS.gcTime, // 2分
+    staleTime: 60 * 1000, // 1分（リアルタイム性重視）
+    gcTime: 2 * 60 * 1000, // 2分
     refetchInterval: POLLING_INTERVAL, // 30秒間隔でポーリング
     refetchIntervalInBackground: false, // バックグラウンドではポーリングしない
   });
@@ -55,7 +55,7 @@ export const useNotifications = () => {
     },
     onSuccess: () => {
       // 通知関連のクエリを無効化（即座に最新状態を反映）
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.NOTIFICATIONS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.NOTIFICATIONS.ALL });
     },
   });
 
@@ -70,7 +70,7 @@ export const useNotifications = () => {
     },
     onSuccess: () => {
       // 通知関連のクエリを無効化
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.NOTIFICATIONS });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.NOTIFICATIONS.ALL });
     },
   });
 
