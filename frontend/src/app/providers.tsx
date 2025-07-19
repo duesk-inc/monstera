@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { User } from '@/types/auth';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -8,50 +8,50 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import theme from '@/theme/theme';
 import AuthErrorHandler from '@/components/common/AuthErrorHandler';
 import { ToastProvider, GlobalErrorBoundary } from '@/components/common';
-import { DebugLogger } from '@/lib/debug/logger';
 import { ActiveRoleProvider } from '@/context/ActiveRoleContext';
 import { queryClient } from '@/lib/query-client';
 import { QueryErrorBoundary } from '@/components/common/QueryErrorBoundary';
 import { CacheMonitor } from '@/components/dev/CacheMonitor';
+import { useAuth } from '@/hooks/useAuth';
 
-// 認証コンテキストの型定義
+// 認証コンテキストの型定義（互換性のため維持）
 interface AuthContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   isAuthenticated: boolean;
 }
 
-// コンテキスト作成
+// コンテキスト作成（互換性のため維持）
 const AuthContext = createContext<AuthContextType>({
   user: null,
   setUser: () => {},
   isAuthenticated: false,
 });
 
+// AuthContextProviderコンポーネント（useAuthのラッパー）
+function AuthContextProvider({ children }: { children: ReactNode }) {
+  const { user, isAuthenticated } = useAuth();
+  
+  // setUserは実際には使用されないが、互換性のためダミー関数を提供
+  const setUser = React.useCallback(() => {
+    console.warn('setUser is deprecated. Use useAuth hook directly.');
+  }, []);
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        setUser,
+        isAuthenticated,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
 // Providerコンポーネント
 export function Providers({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-
-  // 初期化時にローカルストレージからユーザー情報をロード
-  useEffect(() => {
-    const loadUserFromLocalStorage = () => {
-      try {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        DebugLogger.apiError({
-          category: 'アプリ',
-          operation: '初期化'
-        }, {
-          error
-        });
-      }
-    };
-
-    loadUserFromLocalStorage();
-  }, []);
 
   return (
     <GlobalErrorBoundary>
@@ -60,19 +60,13 @@ export function Providers({ children }: { children: ReactNode }) {
           <CssBaseline />
           <ToastProvider>
             <AuthErrorHandler />
-            <AuthContext.Provider
-              value={{
-                user,
-                setUser,
-                isAuthenticated: !!user,
-              }}
-            >
+            <AuthContextProvider>
               <ActiveRoleProvider>
                 <QueryErrorBoundary>
                   {children}
                 </QueryErrorBoundary>
               </ActiveRoleProvider>
-            </AuthContext.Provider>
+            </AuthContextProvider>
           </ToastProvider>
         </ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />

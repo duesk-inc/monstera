@@ -2,22 +2,20 @@ import { useQueryClient, MutationCache, QueryCache, QueryClient } from '@tanstac
 import { useToast } from '@/components/common/Toast';
 import { ApiError } from '@/lib/api/admin';
 import { useRouter } from 'next/navigation';
-import { useAuthContext } from '@/app/providers';
+import { useAuth } from '@/hooks/useAuth';
 import { queryRetryConfig } from '@/lib/api/retry-config';
 
 // React Queryのグローバルエラーハンドラー設定用フック
 export const useQueryErrorHandler = () => {
   const { showToast } = useToast();
   const router = useRouter();
-  const { setUser } = useAuthContext();
+  const { logout } = useAuth();
 
   const handleQueryError = (error: unknown) => {
     if (error instanceof ApiError) {
       // 認証エラーの場合
       if (error.status === 401) {
-        setUser(null);
-        localStorage.removeItem('user');
-        router.push('/login');
+        logout();
         showToast('セッションが切れました。再度ログインしてください。', 'warning');
         return;
       }
