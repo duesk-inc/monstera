@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const sidebarWidth = sidebarOpen ? 240 : 68;
+  const sidebarWidth = sidebarOpen ? 280 : 68;
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
   const { activeRole } = useActiveRole();
   const isEngineer = activeRole === 'employee' || activeRole === 'user';

@@ -95,7 +95,7 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
         sx={{
           flexGrow: 1,
           width: '100%',
-          marginLeft: !isMobile ? sidebarWidth : 0,
+          marginLeft: !isMobile && sidebarOpen ? sidebarWidth : 0,
           transition: 'margin-left 0.2s ease-in-out, width 0.2s ease-in-out',
         }}
       >

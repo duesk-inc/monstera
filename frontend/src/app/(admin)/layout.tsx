@@ -16,7 +16,7 @@ export default function AdminLayout({
   const router = useRouter();
   const { user, isLoading } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const sidebarWidth = sidebarOpen ? 240 : 68;
+  const sidebarWidth = sidebarOpen ? 280 : 68;
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
   // 管理者権限チェック
