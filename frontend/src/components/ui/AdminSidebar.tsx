@@ -10,10 +10,8 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  IconButton,
   Collapse,
   Badge,
-  Tooltip,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -27,8 +25,6 @@ import {
   TrendingUp as SalesIcon,
   Assessment as AnalyticsIcon,
   Settings as SettingsIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
   ExpandLess,
   ExpandMore,
   AdminPanelSettings as AdminIcon,
@@ -46,12 +42,11 @@ import {
 } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { SIDEBAR_WIDTH } from "@/constants/layout";
 
 interface AdminSidebarProps {
   mobile?: boolean;
   onClose?: () => void;
-  open: boolean;
-  onToggle?: () => void;
 }
 
 interface MenuItem {
@@ -65,8 +60,6 @@ interface MenuItem {
 const AdminSidebar: React.FC<AdminSidebarProps> = ({
   mobile = false,
   onClose,
-  open,
-  onToggle,
 }) => {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([
@@ -243,7 +236,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           }
           sx={{
             minHeight: 48,
-            justifyContent: open ? "initial" : "center",
+            justifyContent: "initial",
             px: 2.5,
             pl: level > 0 ? 4 : 2.5,
             borderRadius: 2,
@@ -259,7 +252,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           <ListItemIcon
             sx={{
               minWidth: 0,
-              mr: open ? 3 : "auto",
+              mr: 3,
               justifyContent: "center",
               color: isActive ? "error.main" : "text.secondary",
             }}
@@ -275,7 +268,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           <ListItemText
             primary={item.title}
             sx={{
-              opacity: open ? 1 : 0,
+              opacity: 1,
               "& .MuiTypography-root": {
                 fontSize: level > 0 ? "0.875rem" : "0.95rem",
                 fontWeight: isActive ? 600 : 400,
@@ -283,19 +276,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             }}
           />
           {hasChildren &&
-            open &&
             (isExpanded ? <ExpandLess /> : <ExpandMore />)}
         </ListItemButton>
       </ListItem>
     );
-
-    if (!open) {
-      return (
-        <Tooltip title={item.title} placement="right" key={item.title}>
-          {listItem}
-        </Tooltip>
-      );
-    }
 
     return (
       <React.Fragment key={item.title}>
@@ -326,61 +310,36 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           p: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: open ? "space-between" : "center",
+          justifyContent: "space-between",
           borderBottom: "1px solid",
           borderColor: "divider",
           minHeight: 70,
         }}
       >
-        {open && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <AdminIcon sx={{ color: "error.main", fontSize: 28 }} />
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: "bold",
-                  color: "text.primary",
-                  lineHeight: 1.2,
-                }}
-              >
-                MONSTERA
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: "error.main",
-                  fontWeight: 600,
-                }}
-              >
-                管理者モード
-              </Typography>
-            </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <AdminIcon sx={{ color: "error.main", fontSize: 28 }} />
+          <Box>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                color: "text.primary",
+                lineHeight: 1.2,
+              }}
+            >
+              MONSTERA
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: "error.main",
+                fontWeight: 600,
+              }}
+            >
+              管理者モード
+            </Typography>
           </Box>
-        )}
-        {!mobile && (
-          <IconButton
-            onClick={onToggle}
-            sx={{
-              p: 0.5,
-              color: "text.secondary",
-              display: open ? "flex" : "none",
-            }}
-          >
-            <ChevronLeftIcon />
-          </IconButton>
-        )}
-        {!open && !mobile && (
-          <IconButton
-            onClick={onToggle}
-            sx={{
-              p: 0.5,
-              color: "text.secondary",
-            }}
-          >
-            <ChevronRightIcon />
-          </IconButton>
-        )}
+        </Box>
       </Box>
 
       {/* メニューアイテム */}
@@ -389,20 +348,18 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </Box>
 
       {/* フッター */}
-      {open && (
-        <Box
-          sx={{
-            p: 2,
-            borderTop: "1px solid",
-            borderColor: "divider",
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="caption" color="text.secondary">
-            © 2025 Monstera Admin
-          </Typography>
-        </Box>
-      )}
+      <Box
+        sx={{
+          p: 2,
+          borderTop: "1px solid",
+          borderColor: "divider",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="caption" color="text.secondary">
+          © 2025 Monstera Admin
+        </Typography>
+      </Box>
     </Box>
   );
 
@@ -414,12 +371,11 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     <Drawer
       variant="permanent"
       sx={{
-        width: open ? 280 : 68,
+        width: SIDEBAR_WIDTH,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: open ? 280 : 68,
+          width: SIDEBAR_WIDTH,
           boxSizing: "border-box",
-          transition: "width 0.2s ease-in-out",
           overflowX: "hidden",
           borderRight: "1px solid",
           borderColor: "divider",

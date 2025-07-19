@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { MenuItem, Typography, Avatar } from '@mui/material';
 import AdminSidebar from '@/components/ui/AdminSidebar';
 import EngineerSidebar from '@/components/ui/EngineerSidebar';
@@ -12,15 +12,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const sidebarWidth = sidebarOpen ? 280 : 68;
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
   const { activeRole } = useActiveRole();
   const isEngineer = activeRole === 'employee' || activeRole === 'user';
 
-  const handleSidebarToggle = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
 
   const userMenuItems = (
     <MenuItem component="a" href="/profile">
@@ -30,24 +25,21 @@ export default function RootLayout({
   );
 
   const sidebar = isEngineer ? (
-    <EngineerSidebar open={sidebarOpen} onToggle={handleSidebarToggle} />
+    <EngineerSidebar />
   ) : (
-    <AdminSidebar open={sidebarOpen} onToggle={handleSidebarToggle} />
+    <AdminSidebar />
   );
 
   const mobileSidebar = isEngineer ? (
-    <EngineerSidebar mobile onClose={() => {}} open={true} />
+    <EngineerSidebar mobile onClose={() => {}} />
   ) : (
-    <AdminSidebar mobile onClose={() => {}} open={true} />
+    <AdminSidebar mobile onClose={() => {}} />
   );
 
   return (
     <SharedLayoutWrapper
       sidebar={sidebar}
       mobileSidebar={mobileSidebar}
-      sidebarOpen={sidebarOpen}
-      onSidebarToggle={handleSidebarToggle}
-      sidebarWidth={sidebarWidth}
       isAdmin={!isEngineer}
       userMenuItems={userMenuItems}
       contentPadding={{ xs: 2, sm: 3 }}

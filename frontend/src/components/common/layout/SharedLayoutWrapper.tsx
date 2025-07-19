@@ -7,14 +7,12 @@ import { SharedMobileDrawer } from './SharedMobileDrawer';
 import { SharedUserMenu } from './SharedUserMenu';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthInitializer } from '@/hooks/common/useAuthInitializer';
+import { SIDEBAR_WIDTH } from '@/constants/layout';
 
 interface SharedLayoutWrapperProps {
   children: React.ReactNode;
   sidebar: React.ReactNode;
   mobileSidebar: React.ReactNode;
-  sidebarOpen: boolean;
-  onSidebarToggle: () => void;
-  sidebarWidth: number;
   isAdmin?: boolean;
   userMenuItems?: React.ReactNode;
   contentPadding?: number | { xs: number; sm: number; md?: number };
@@ -27,9 +25,6 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
   children,
   sidebar,
   mobileSidebar,
-  sidebarOpen,
-  onSidebarToggle,
-  sidebarWidth,
   isAdmin = false,
   userMenuItems,
   contentPadding = 0,
@@ -81,7 +76,7 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
       <SharedMobileDrawer
         open={mobileDrawerOpen}
         onClose={handleDrawerToggle}
-        width={sidebarWidth}
+        width={SIDEBAR_WIDTH}
       >
         {mobileSidebar}
       </SharedMobileDrawer>
@@ -95,8 +90,7 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
         sx={{
           flexGrow: 1,
           width: '100%',
-          marginLeft: !isMobile && sidebarOpen ? sidebarWidth : 0,
-          transition: 'margin-left 0.2s ease-in-out, width 0.2s ease-in-out',
+          marginLeft: !isMobile ? SIDEBAR_WIDTH : 0,
         }}
       >
         {/* トップバー */}

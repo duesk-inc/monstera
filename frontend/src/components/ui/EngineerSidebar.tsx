@@ -10,10 +10,8 @@ import {
   ListItemIcon,
   ListItemText,
   Typography,
-  IconButton,
   Collapse,
   Badge,
-  Tooltip,
 } from "@mui/material";
 import {
   Dashboard as DashboardIcon,
@@ -26,20 +24,17 @@ import {
   Assignment as ProposalIcon,
   NotificationsActive as NotificationsIcon,
   Person as ProfileIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
   ExpandLess,
   ExpandMore,
   Engineering as EngineerIcon,
 } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { SIDEBAR_WIDTH } from "@/constants/layout";
 
 interface EngineerSidebarProps {
   mobile?: boolean;
   onClose?: () => void;
-  open: boolean;
-  onToggle?: () => void;
 }
 
 interface MenuItem {
@@ -53,8 +48,6 @@ interface MenuItem {
 const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
   mobile = false,
   onClose,
-  open,
-  onToggle,
 }) => {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
@@ -145,7 +138,7 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
           }
           sx={{
             minHeight: 48,
-            justifyContent: open ? "initial" : "center",
+            justifyContent: "initial",
             px: 2.5,
             pl: level > 0 ? 4 : 2.5,
             borderRadius: 2,
@@ -161,7 +154,7 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
           <ListItemIcon
             sx={{
               minWidth: 0,
-              mr: open ? 3 : "auto",
+              mr: 3,
               justifyContent: "center",
               color: isActive ? "primary.main" : "text.secondary",
             }}
@@ -177,7 +170,7 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
           <ListItemText
             primary={item.title}
             sx={{
-              opacity: open ? 1 : 0,
+              opacity: 1,
               "& .MuiTypography-root": {
                 fontSize: level > 0 ? "0.875rem" : "0.95rem",
                 fontWeight: isActive ? 600 : 400,
@@ -185,19 +178,10 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
             }}
           />
           {hasChildren &&
-            open &&
             (isExpanded ? <ExpandLess /> : <ExpandMore />)}
         </ListItemButton>
       </ListItem>
     );
-
-    if (!open) {
-      return (
-        <Tooltip title={item.title} placement="right" key={item.title}>
-          {listItem}
-        </Tooltip>
-      );
-    }
 
     return (
       <React.Fragment key={item.title}>
@@ -228,61 +212,36 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
           p: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: open ? "space-between" : "center",
+          justifyContent: "space-between",
           borderBottom: "1px solid",
           borderColor: "divider",
           minHeight: 70,
         }}
       >
-        {open && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <EngineerIcon sx={{ color: "primary.main", fontSize: 28 }} />
-            <Box>
-              <Typography
-                variant="h6"
-                sx={{
-                  fontWeight: "bold",
-                  color: "text.primary",
-                  lineHeight: 1.2,
-                }}
-              >
-                MONSTERA
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: "primary.main",
-                  fontWeight: 600,
-                }}
-              >
-                エンジニアモード
-              </Typography>
-            </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <EngineerIcon sx={{ color: "primary.main", fontSize: 28 }} />
+          <Box>
+            <Typography
+              variant="h6"
+              sx={{
+                fontWeight: "bold",
+                color: "text.primary",
+                lineHeight: 1.2,
+              }}
+            >
+              MONSTERA
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: "primary.main",
+                fontWeight: 600,
+              }}
+            >
+              エンジニアモード
+            </Typography>
           </Box>
-        )}
-        {!mobile && (
-          <IconButton
-            onClick={onToggle}
-            sx={{
-              p: 0.5,
-              color: "text.secondary",
-              display: open ? "flex" : "none",
-            }}
-          >
-            <ChevronLeftIcon />
-          </IconButton>
-        )}
-        {!open && !mobile && (
-          <IconButton
-            onClick={onToggle}
-            sx={{
-              p: 0.5,
-              color: "text.secondary",
-            }}
-          >
-            <ChevronRightIcon />
-          </IconButton>
-        )}
+        </Box>
       </Box>
 
       {/* メニューアイテム */}
@@ -291,20 +250,18 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
       </Box>
 
       {/* フッター */}
-      {open && (
-        <Box
-          sx={{
-            p: 2,
-            borderTop: "1px solid",
-            borderColor: "divider",
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="caption" color="text.secondary">
-            © 2025 Monstera
-          </Typography>
-        </Box>
-      )}
+      <Box
+        sx={{
+          p: 2,
+          borderTop: "1px solid",
+          borderColor: "divider",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="caption" color="text.secondary">
+          © 2025 Monstera
+        </Typography>
+      </Box>
     </Box>
   );
 
@@ -316,12 +273,11 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
     <Drawer
       variant="permanent"
       sx={{
-        width: open ? 280 : 68,
+        width: SIDEBAR_WIDTH,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
-          width: open ? 280 : 68,
+          width: SIDEBAR_WIDTH,
           boxSizing: "border-box",
-          transition: "width 0.2s ease-in-out",
           overflowX: "hidden",
           borderRight: "1px solid",
           borderColor: "divider",
