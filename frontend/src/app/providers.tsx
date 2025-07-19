@@ -60,13 +60,13 @@ export function Providers({ children }: { children: ReactNode }) {
           <CssBaseline />
           <ToastProvider>
             <AuthErrorHandler />
-            <AuthContextProvider>
-              <ActiveRoleProvider>
+            <ActiveRoleProvider>
+              <AuthContextProvider>
                 <QueryErrorBoundary>
                   {children}
                 </QueryErrorBoundary>
-              </ActiveRoleProvider>
-            </AuthContextProvider>
+              </AuthContextProvider>
+            </ActiveRoleProvider>
           </ToastProvider>
         </ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />
