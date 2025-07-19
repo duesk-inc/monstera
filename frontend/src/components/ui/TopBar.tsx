@@ -6,7 +6,7 @@ import {
   Menu as MenuIcon,
   Help as HelpIcon,
 } from '@mui/icons-material';
-import { useAuthContext } from '@/app/providers';
+import { useAuth } from '@/hooks/useAuth';
 import { UserAvatar } from '@/components/common/layout';
 import { NotificationBell } from '@/components/common/NotificationBell';
 
@@ -23,7 +23,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   isMobile,
   isAdmin = false
 }) => {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   return (
     <AppBar
