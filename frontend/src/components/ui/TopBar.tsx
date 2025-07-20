@@ -6,7 +6,7 @@ import {
   Menu as MenuIcon,
   Help as HelpIcon,
 } from '@mui/icons-material';
-import { useAuthContext } from '@/app/providers';
+import { useAuth } from '@/hooks/useAuth';
 import { UserAvatar } from '@/components/common/layout';
 import { NotificationBell } from '@/components/common/NotificationBell';
 
@@ -15,15 +15,17 @@ interface TopBarProps {
   onUserMenuClick: (event: React.MouseEvent<HTMLElement>) => void;
   isMobile: boolean;
   isAdmin?: boolean;
+  isLoading?: boolean;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ 
   onMenuClick, 
   onUserMenuClick, 
   isMobile,
-  isAdmin = false
+  isAdmin = false,
+  isLoading = false
 }) => {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
 
   return (
     <AppBar
@@ -62,15 +64,18 @@ export const TopBar: React.FC<TopBarProps> = ({
             <NotificationBell />
           )}
           
-          <IconButton 
-            sx={{ 
-              display: { xs: 'none', sm: 'inline-flex' }, 
-              color: 'text.secondary',
-              mx: 1
-            }}
-          >
-            <HelpIcon fontSize="small" />
-          </IconButton>
+          {/* ユーザーがログインしている場合のみ表示 */}
+          {user && !isLoading && (
+            <IconButton 
+              sx={{ 
+                display: { xs: 'none', sm: 'inline-flex' }, 
+                color: 'text.secondary',
+                mx: 1
+              }}
+            >
+              <HelpIcon fontSize="small" />
+            </IconButton>
+          )}
           
           <IconButton
             onClick={onUserMenuClick}
@@ -91,6 +96,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <UserAvatar 
               user={user}
               size="small"
+              isLoading={isLoading}
               sx={{ 
                 cursor: 'pointer',
                 bgcolor: user ? 'primary.main' : 'grey.400',

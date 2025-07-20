@@ -32,7 +32,7 @@ import {
 import { ja } from 'date-fns/locale';
 import { format, setDefaultOptions, startOfMonth, isBefore, startOfDay } from 'date-fns';
 import { useForm, Controller } from 'react-hook-form';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@mui/material/styles';
 import { useLeave } from '@/hooks/leave/useLeave';
 import { useLeaveCalendar } from '@/hooks/leave/useLeaveCalendar';

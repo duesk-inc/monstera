@@ -136,6 +136,7 @@ export const useAuth = () => {
       clearInterval(intervalId);
       window.removeEventListener('storage', handleStorageChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   // ログイン関数
@@ -191,6 +192,7 @@ export const useAuth = () => {
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // ログアウト関数
@@ -300,6 +302,7 @@ export const useAuth = () => {
     debugLog('認証初期化完了');
     
     setIsLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   return {

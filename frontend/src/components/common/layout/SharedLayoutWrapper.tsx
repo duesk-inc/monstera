@@ -98,6 +98,7 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
           onUserMenuClick={handleUserMenuOpen}
           isMobile={isMobile}
           isAdmin={isAdmin}
+          isLoading={isLoading}
         />
         
         {/* ユーザーメニュー */}

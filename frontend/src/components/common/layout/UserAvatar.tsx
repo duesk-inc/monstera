@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Avatar, AvatarProps } from '@mui/material';
+import { Avatar, AvatarProps, CircularProgress } from '@mui/material';
 import { User } from '@/types/auth';
 import { COMPONENT_SIZES } from '@/constants/dimensions';
 import { FONT_SIZE_SPECIAL } from '@/constants/typography';
@@ -9,11 +9,13 @@ import { FONT_SIZE_SPECIAL } from '@/constants/typography';
 interface UserAvatarProps extends Omit<AvatarProps, 'children'> {
   user: User | null;
   size?: 'small' | 'medium' | 'large';
+  isLoading?: boolean;
 }
 
 export const UserAvatar: React.FC<UserAvatarProps> = ({ 
   user, 
   size = 'medium',
+  isLoading = false,
   sx,
   ...props 
 }) => {
@@ -24,6 +26,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
   };
 
   const getInitials = () => {
+    if (isLoading) return '';  // ローディング中は空文字
     if (!user) return '?';
     
     // Check for first_name and last_name (snake_case format)
@@ -59,7 +62,14 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
       }}
       {...props}
     >
-      {getInitials()}
+      {isLoading ? (
+        <CircularProgress 
+          size={sizes[size].width * 0.5} 
+          sx={{ color: 'white' }}
+        />
+      ) : (
+        getInitials()
+      )}
     </Avatar>
   );
 };

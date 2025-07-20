@@ -1,6 +1,10 @@
 package config
 
-import "time"
+import (
+	"fmt"
+	"net/url"
+	"time"
+)
 
 // CognitoConfig Cognito認証の設定
 type CognitoConfig struct {
@@ -43,9 +47,32 @@ func (c *CognitoConfig) GetJWKURL() string {
 // GetIssuer JWT Issuerを取得
 func (c *CognitoConfig) GetIssuer() string {
 	if c.Endpoint != "" {
-		// ローカル開発環境（Cognito Localの形式）
-		// Cognito Localは http://0.0.0.0:9230/local_xxxxx 形式
-		return "http://0.0.0.0:9230/" + c.UserPoolID
+		// ローカル開発環境
+		// COGNITO_ENDPOINTをパースしてissuerを生成
+		u, err := url.Parse(c.Endpoint)
+		if err != nil {
+			// エラーの場合は従来の形式を使用（デフォルトポート9229）
+			return "http://0.0.0.0:9229/" + c.UserPoolID
+		}
+		
+		// ホスト名を0.0.0.0に変換（Cognito Localの仕様）
+		host := u.Hostname()
+		port := u.Port()
+		
+		// ホスト名が空の場合（無効なURL等）はデフォルト値を使用
+		if host == "" {
+			return "http://0.0.0.0:9229/" + c.UserPoolID
+		}
+		
+		if host == "cognito-local" || host == "localhost" {
+			host = "0.0.0.0"
+		}
+		
+		// ポート番号がある場合は含める
+		if port != "" {
+			return fmt.Sprintf("http://%s:%s/%s", host, port, c.UserPoolID)
+		}
+		return fmt.Sprintf("http://%s/%s", host, c.UserPoolID)
 	}
 	// 本番環境
 	return "https://cognito-idp." + c.Region + ".amazonaws.com/" + c.UserPoolID
