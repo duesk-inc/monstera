@@ -8,7 +8,8 @@ import {
   setUser as setLocalUser, 
   getUser,
   clearAllAuthData,
-  convertToLocalUser
+  convertToLocalUser,
+  convertRoleNumberToString
 } from '@/utils/auth';
 import { User, LoginRequest } from '@/types/auth';
 import { login as apiLogin, logout as apiLogout } from '@/lib/api/auth';
@@ -74,9 +75,12 @@ export const useAuth = () => {
           setUser(userObj);
           
           // ActiveRoleProviderを初期化
-          if (userData.roles && userData.roles.length > 0) {
-            initializeActiveRole(userData.roles, userData.defaultRole);
-          }
+          // 複数ロールがある場合はそれを使用、単一ロールの場合はroleから配列を作成
+          const userRoles = userData.roles && userData.roles.length > 0 
+            ? userData.roles 
+            : [convertRoleNumberToString(Number(userData.role) || 4)]; // 'employee'をデフォルト
+          
+          initializeActiveRole(userRoles, userData.defaultRole);
         } else {
           // ユーザー情報がない場合は認証状態をクリア
           debugLog('認証状態の不整合: 認証状態あり、ユーザー情報なし');
@@ -149,21 +153,32 @@ export const useAuth = () => {
       debugLog('ログインリクエスト送信 (Cognito):', credentials.email);
       const response = await apiLogin(credentials);
       
-      // ユーザー情報をステートに設定
-      setUser(response.user);
-      setAuthenticated(true);
-      
       // ローカルストレージにユーザー情報と認証状態を保存
       const localUser = convertToLocalUser(response.user);
       setLocalUser(localUser);
       setAuthState(true);
       
+      // ステート用にユーザー情報を変換して設定
+      const formattedUser = {
+        id: localUser.id,
+        email: localUser.email,
+        first_name: localUser.firstName || '',
+        last_name: localUser.lastName || '',
+        role: localUser.role || 'employee',
+        roles: localUser.roles,
+        phone_number: localUser.phoneNumber || ''
+      };
+      
+      setUser(formattedUser);
+      setAuthenticated(true);
+      
       // ActiveRoleProviderを初期化
-      // convertToLocalUserで変換されたユーザー情報を取得
-      const convertedUser = getUser();
-      if (convertedUser && convertedUser.roles && convertedUser.roles.length > 0) {
-        initializeActiveRole(convertedUser.roles, response.user.default_role);
-      }
+      // 複数ロールがある場合はそれを使用、単一ロールの場合はroleから配列を作成
+      const userRoles = localUser.roles && localUser.roles.length > 0 
+        ? localUser.roles 
+        : [convertRoleNumberToString(Number(localUser.role) || 4)]; // 'employee'をデフォルト
+      
+      initializeActiveRole(userRoles, response.user.default_role);
       
       debugLog('ログイン成功:', response.user.email);
       
@@ -278,9 +293,12 @@ export const useAuth = () => {
         setUser(formattedUser);
         
         // ActiveRoleProviderを初期化
-        if (formattedUser.roles) {
-          initializeActiveRole(formattedUser.roles, localUser.defaultRole);
-        }
+        // 複数ロールがある場合はそれを使用、単一ロールの場合はroleから配列を作成
+        const userRoles = formattedUser.roles && formattedUser.roles.length > 0 
+          ? formattedUser.roles 
+          : [convertRoleNumberToString(Number(formattedUser.role) || 4)]; // 'employee'をデフォルト
+        
+        initializeActiveRole(userRoles, localUser.defaultRole);
       } else {
         // 認証状態があるのにユーザー情報がない場合は矛盾しているので認証状態をクリア
         debugLog('認証状態あり、ユーザー情報なし - 認証状態をクリア');

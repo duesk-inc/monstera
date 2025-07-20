@@ -131,7 +131,7 @@ export const removeUser = (): void => {
 /**
  * 数値ロールを文字列ロールに変換
  */
-const convertRoleNumberToString = (roleNumber: number): string => {
+export const convertRoleNumberToString = (roleNumber: number): string => {
   const roleMap: Record<number, string> = {
     1: 'super_admin',
     2: 'admin',
