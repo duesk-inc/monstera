@@ -78,7 +78,7 @@ export const useAuth = () => {
           // 複数ロールがある場合はそれを使用、単一ロールの場合はroleから配列を作成
           const userRoles = userData.roles && userData.roles.length > 0 
             ? userData.roles 
-            : [convertRoleNumberToString(Number(userData.role) || 4)]; // 'employee'をデフォルト
+            : [convertRoleNumberToString(Number(userData.role))];
           
           initializeActiveRole(userRoles, userData.defaultRole);
         } else {
@@ -176,7 +176,7 @@ export const useAuth = () => {
       // 複数ロールがある場合はそれを使用、単一ロールの場合はroleから配列を作成
       const userRoles = localUser.roles && localUser.roles.length > 0 
         ? localUser.roles 
-        : [convertRoleNumberToString(Number(localUser.role) || 4)]; // 'employee'をデフォルト
+        : [convertRoleNumberToString(Number(localUser.role))];
       
       initializeActiveRole(userRoles, response.user.default_role);
       
@@ -296,7 +296,7 @@ export const useAuth = () => {
         // 複数ロールがある場合はそれを使用、単一ロールの場合はroleから配列を作成
         const userRoles = formattedUser.roles && formattedUser.roles.length > 0 
           ? formattedUser.roles 
-          : [convertRoleNumberToString(Number(formattedUser.role) || 4)]; // 'employee'をデフォルト
+          : [convertRoleNumberToString(Number(formattedUser.role))];
         
         initializeActiveRole(userRoles, localUser.defaultRole);
       } else {
