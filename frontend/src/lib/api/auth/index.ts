@@ -14,21 +14,15 @@ import {
 import { 
   setAuthState,
   clearAuthState,
-  removeUser
+  removeUser,
+  convertToLocalUser,
+  setUser as setLocalUser
 } from '@/utils/auth';
 import { DebugLogger } from '@/lib/debug/logger';
 
 // 認証エラーが発生したページのパスを保存するキー
 const AUTH_ERROR_PAGE_KEY = 'auth_error_from_page';
 
-/**
- * APIから取得したユーザー情報をローカルストレージに保存
- */
-const setUser = (user: any): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('user', JSON.stringify(user));
-  }
-};
 
 /**
  * JWTログイン処理
@@ -71,7 +65,8 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
       
       // ユーザー情報をローカルストレージに保存
       if (response.data.user) {
-        setUser(response.data.user);
+        const localUser = convertToLocalUser(response.data.user);
+        setLocalUser(localUser);
       } else {
         DebugLogger.apiError({
           category: 'JWT認証',
@@ -155,7 +150,8 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
       
       // ユーザー情報が含まれていれば更新
       if (response.data.user) {
-        setUser(response.data.user);
+        const localUser = convertToLocalUser(response.data.user);
+        setLocalUser(localUser);
       }
     }
     
