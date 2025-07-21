@@ -191,26 +191,17 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <EngineerIcon sx={{ color: "primary.main", fontSize: 28 }} />
           <Box>
             <Typography
-              variant="h6"
+              variant="h4"
               sx={{
                 fontWeight: "bold",
                 color: "text.primary",
                 lineHeight: 1.2,
+								marginLeft: 3,
               }}
             >
               MONSTERA
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: "primary.main",
-                fontWeight: 600,
-              }}
-            >
-              エンジニアモード
             </Typography>
           </Box>
         </Box>

@@ -262,26 +262,17 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <AdminIcon sx={{ color: "error.main", fontSize: 28 }} />
           <Box>
             <Typography
-              variant="h6"
+              variant="h4"
               sx={{
                 fontWeight: "bold",
                 color: "text.primary",
                 lineHeight: 1.2,
+								marginLeft: 3,
               }}
             >
               MONSTERA
-            </Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: "error.main",
-                fontWeight: 600,
-              }}
-            >
-              管理者モード
             </Typography>
           </Box>
         </Box>
