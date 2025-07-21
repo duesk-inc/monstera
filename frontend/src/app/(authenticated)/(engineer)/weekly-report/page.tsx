@@ -40,7 +40,7 @@ import { useEnhancedErrorHandler } from '@/hooks/common/useEnhancedErrorHandler'
 
 // 定数をインポート
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
-import { WeeklyReportMoodType } from '@/constants/weeklyMood';
+import { WeeklyReportMood } from '@/constants/weeklyMood';
 import { SUCCESS_MESSAGES } from '@/constants/errorMessages';
 
 // ユーティリティをインポート
@@ -191,7 +191,7 @@ export default function WeeklyReport() {
   };
 
   // 気分選択ハンドラー
-  const handleMoodChange = (mood: WeeklyReportMoodType) => {
+  const handleMoodChange = (mood: WeeklyReportMood) => {
     if (!isSubmitted(report.status)) {
       setReport({
         ...report,

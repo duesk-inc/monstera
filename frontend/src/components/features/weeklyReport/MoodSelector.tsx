@@ -1,13 +1,13 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { SentimentSatisfied } from '@mui/icons-material';
-import { WeeklyReportMoodType } from '@/constants/weeklyMood';
+import { WeeklyReportMood } from '@/constants/weeklyMood';
 import { moodOptions } from '@/constants/moodOptions';
 
 interface MoodSelectorProps {
-  selectedMood: WeeklyReportMoodType | null;
+  selectedMood: WeeklyReportMood | null;
   isDisabled?: boolean;
-  onMoodChange: (mood: WeeklyReportMoodType) => void;
+  onMoodChange: (mood: WeeklyReportMood) => void;
 }
 
 export default function MoodSelector({
@@ -26,7 +26,7 @@ export default function MoodSelector({
         {moodOptions.map((option) => (
           <Box
             key={option.value}
-            onClick={() => !isDisabled && onMoodChange(option.value as WeeklyReportMoodType)}
+            onClick={() => !isDisabled && onMoodChange(option.value as WeeklyReportMood)}
             sx={{
               flex: 1,
               display: 'flex',
@@ -63,7 +63,7 @@ export default function MoodSelector({
                 mb: 1.5,
               }}
             >
-              {React.cloneElement(option.icon)}
+              {option.emoji}
             </Box>
             <Typography
               variant="body1"
