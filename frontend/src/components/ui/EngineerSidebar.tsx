@@ -7,23 +7,12 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
   Typography,
   Collapse,
   Badge,
 } from "@mui/material";
 import {
-  Dashboard as DashboardIcon,
-  Assignment as WeeklyReportIcon,
-  AccessTime as AttendanceIcon,
-  Receipt as ExpenseIcon,
-  BeachAccess as LeaveIcon,
-  PictureAsPdf as SkillSheetIcon,
-  History as WorkHistoryIcon,
-  Assignment as ProposalIcon,
-  NotificationsActive as NotificationsIcon,
-  Person as ProfileIcon,
   ExpandLess,
   ExpandMore,
   Engineering as EngineerIcon,
@@ -39,7 +28,6 @@ interface EngineerSidebarProps {
 
 interface MenuItem {
   title: string;
-  icon: React.ReactNode;
   path?: string;
   badge?: number;
   children?: MenuItem[];
@@ -55,52 +43,42 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
   const menuItems: MenuItem[] = [
     {
       title: "ダッシュボード",
-      icon: <DashboardIcon />,
       path: "/dashboard",
     },
     {
       title: "週報",
-      icon: <WeeklyReportIcon />,
       path: "/weekly-report",
     },
     {
       title: "勤怠管理",
-      icon: <AttendanceIcon />,
       path: "/attendance",
     },
     {
       title: "経費申請",
-      icon: <ExpenseIcon />,
       path: "/expenses",
     },
     {
       title: "休暇申請",
-      icon: <LeaveIcon />,
       path: "/leave",
     },
     {
       title: "スキルシート",
-      icon: <SkillSheetIcon />,
       path: "/skill-sheet",
     },
     {
       title: "職務経歴",
-      icon: <WorkHistoryIcon />,
       path: "/work-history",
     },
     {
       title: "提案管理",
-      icon: <ProposalIcon />,
       path: "/proposals",
     },
     {
       title: "通知設定",
-      icon: <NotificationsIcon />,
       path: "/notifications/settings",
     },
     {
       title: "プロフィール",
-      icon: <ProfileIcon />,
       path: "/profile",
     },
   ];
@@ -151,26 +129,20 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
             },
           }}
         >
-          <ListItemIcon
-            sx={{
-              minWidth: 0,
-              mr: 3,
-              justifyContent: "center",
-              color: isActive ? "primary.main" : "text.secondary",
-            }}
-          >
-            {item.badge ? (
-              <Badge badgeContent={item.badge} color="primary">
-                {item.icon}
-              </Badge>
-            ) : (
-              item.icon
-            )}
-          </ListItemIcon>
           <ListItemText
-            primary={item.title}
+            primary={
+              item.badge ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {item.title}
+                  <Badge badgeContent={item.badge} color="primary" />
+                </Box>
+              ) : (
+                item.title
+              )
+            }
             sx={{
               opacity: 1,
+              pl: 0,
               "& .MuiTypography-root": {
                 fontSize: level > 0 ? "0.875rem" : "0.95rem",
                 fontWeight: isActive ? 600 : 400,
