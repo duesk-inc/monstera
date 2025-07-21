@@ -1,5 +1,0 @@
-{
-  "email": "admin@duesk.co.jp",
-  "password": "AdminPass123\!"
-}
-EOF < /dev/null
