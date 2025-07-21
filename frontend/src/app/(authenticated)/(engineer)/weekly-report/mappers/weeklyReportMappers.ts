@@ -1,6 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
-import { WEEKLY_REPORT_MOOD, WeeklyReportMoodType } from '@/constants/weeklyMood';
+import { WEEKLY_REPORT_MOOD, WeeklyReportMood } from '@/constants/weeklyMood';
 import { calculateWorkHours } from '@/utils/dateUtils';
 import type { 
   DailyRecord, 
@@ -90,10 +90,10 @@ export const convertAPIResponseToUIModel = (apiReport: LocalAPIWeeklyReport): We
     });
   }
   
-  let mood: WeeklyReportMoodType = WEEKLY_REPORT_MOOD.NEUTRAL; 
+  let mood: WeeklyReportMood = WEEKLY_REPORT_MOOD.NEUTRAL; 
 
   if (apiReport.mood !== undefined) {
-    mood = apiReport.mood as WeeklyReportMoodType;
+    mood = apiReport.mood as WeeklyReportMood;
   }
   
   const apiData = apiReport as Record<string, any>;

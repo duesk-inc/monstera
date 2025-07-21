@@ -1,7 +1,7 @@
 import { getAuthClient } from '@/lib/api';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
 import { WEEKLY_REPORT_API, API_VERSION } from '@/constants/api';
-import { WEEKLY_REPORT_MOOD, WEEKLY_REPORT_MOOD_MAP, WeeklyReportMoodType } from '@/constants/weeklyMood';
+import { WEEKLY_REPORT_MOOD, WEEKLY_REPORT_MOOD_MAP, WeeklyReportMood } from '@/constants/weeklyMood';
 import { DEFAULT_WORK_TIME } from '@/constants/defaultWorkTime';
 import { HTTP_STATUS } from '@/constants/network';
 import { 
@@ -45,7 +45,7 @@ export const listWeeklyReports = async (
     if (convertedData && convertedData.reports) {
       convertedData.reports = convertedData.reports.map((report: ApiResponseBase) => {
         // バックエンドが更新される前は文字列、更新後は数値として扱う
-        let mood: WeeklyReportMoodType;
+        let mood: WeeklyReportMood;
         
         if (report.mood !== undefined) {
           // すでに更新されているケース
