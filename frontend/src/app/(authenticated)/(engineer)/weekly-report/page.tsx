@@ -105,9 +105,9 @@ export default function WeeklyReport() {
   const [expandedDays, setExpandedDays] = useState<{[key: string]: boolean}>({});
   const [availableWeeks, setAvailableWeeks] = useState<{ startDate: Date; endDate: Date }[]>([]);
   const [bulkSettings, setBulkSettings] = useState({
-    startTime: DEFAULT_WORK_TIME.START,
-    endTime: DEFAULT_WORK_TIME.END,
-    breakTime: DEFAULT_WORK_TIME.BREAK,
+    startTime: DEFAULT_WORK_TIME.START_TIME,
+    endTime: DEFAULT_WORK_TIME.END_TIME,
+    breakTime: DEFAULT_WORK_TIME.BREAK_TIME,
     remarks: '',
   });
   
