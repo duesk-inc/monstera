@@ -51,7 +51,7 @@ jobs:
         go-version: ${{ env.GO_VERSION }}
 
     - name: Cache Go modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
@@ -102,7 +102,7 @@ jobs:
         echo "✅ Backend coverage ${{ env.BACKEND_COVERAGE }}% meets threshold ${{ env.COVERAGE_THRESHOLD_BACKEND }}%"
 
     - name: Upload coverage artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: backend-coverage
         path: |
@@ -166,7 +166,7 @@ jobs:
         echo "✅ Frontend coverage ${{ env.FRONTEND_COVERAGE }}% meets threshold ${{ env.COVERAGE_THRESHOLD_FRONTEND }}%"
 
     - name: Upload coverage artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: frontend-coverage
         path: |
@@ -183,13 +183,13 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Download backend coverage
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: backend-coverage
         path: backend-coverage
 
     - name: Download frontend coverage
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: frontend-coverage
         path: frontend-coverage
@@ -245,7 +245,7 @@ jobs:
         cat coverage-summary.md
 
     - name: Upload coverage summary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-summary
         path: coverage-summary.md
@@ -306,7 +306,7 @@ jobs:
 
     - name: Upload badge data
       if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-badge
         path: coverage-badge.json
@@ -319,7 +319,7 @@ jobs:
     
     steps:
     - name: Download coverage summary
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: coverage-summary
         path: .
