@@ -73,8 +73,15 @@ export const useDefaultSettings = (): UseDefaultSettingsReturn => {
       });
       setIsDataLoaded(true);
     } catch (error) {
-      console.error('デフォルト勤務時間設定の読み込みに失敗しました', error);
+      console.error('デフォルト勤務時間設定の読み込みに失敗しました:', error);
+      console.info('フォールバックとしてデフォルト値を使用します:', {
+        weekdayStart: DEFAULT_WORK_TIME.START_TIME,
+        weekdayEnd: DEFAULT_WORK_TIME.END_TIME,
+        weekdayBreak: DEFAULT_WORK_TIME.BREAK_TIME,
+      });
       setError('デフォルト勤務時間設定の読み込みに失敗しました');
+      // APIエラーでもデータロード完了とする（デフォルト値で動作可能）
+      setIsDataLoaded(true);
     } finally {
       setLoading(false);
     }
