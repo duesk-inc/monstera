@@ -50,7 +50,6 @@ type QueryParams struct {
 	// 詳細フィルタ
 	DepartmentID *uuid.UUID
 	ManagerID    *uuid.UUID
-	MoodStatus   *model.MoodStatus
 }
 
 // SubmissionStatistics 提出統計
@@ -358,9 +357,6 @@ func (r *weeklyReportRefactoredRepository) applyFilters(query *gorm.DB, params Q
 		)
 	}
 
-	if params.MoodStatus != nil {
-		query = query.Where("mood = ?", *params.MoodStatus)
-	}
 
 	// ソート適用
 	query = r.applySort(query, params)

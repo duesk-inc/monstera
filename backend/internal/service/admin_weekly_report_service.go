@@ -467,7 +467,6 @@ func (s *adminWeeklyReportService) GetWeeklyReportSummary(
 		TotalUsers:      int(totalUsers),
 		SubmissionStats: s.calculateSubmissionStats(reports, int(totalUsers)),
 		WorkHourStats:   s.calculateWorkHourStats(reports),
-		MoodStats:       s.calculateMoodStats(reports),
 		UserSummaries:   s.calculateUserSummaries(reports),
 	}
 
@@ -587,46 +586,6 @@ func (s *adminWeeklyReportService) calculateWorkHourStats(reports []model.Weekly
 	}
 }
 
-// calculateMoodStats ムード統計を計算
-func (s *adminWeeklyReportService) calculateMoodStats(reports []model.WeeklyReport) dto.MoodStatsDTO {
-	if len(reports) == 0 {
-		return dto.MoodStatsDTO{
-			MoodDistribution: make(map[string]int),
-			LowMoodUsers:     []dto.LowMoodUserDTO{},
-		}
-	}
-
-	moodDistribution := make(map[string]int)
-	totalMood := 0.0
-	lowMoodUsers := []dto.LowMoodUserDTO{}
-
-	for _, report := range reports {
-		moodString := dto.ConvertMoodToString(report.Mood)
-		moodDistribution[moodString]++
-		totalMood += float64(report.Mood)
-
-		// ムードが低いユーザーを記録（terribleまbad）
-		if report.Mood <= model.MoodStatusBad {
-			lowMoodUser := dto.LowMoodUserDTO{
-				UserID:    report.UserID,
-				UserName:  fmt.Sprintf("%s %s", report.User.LastName, report.User.FirstName),
-				Mood:      moodString,
-				MoodValue: int(report.Mood),
-				// TODO: 連続週数の計算は履歴データが必要
-				ConsecutiveWeeks: 1,
-			}
-			lowMoodUsers = append(lowMoodUsers, lowMoodUser)
-		}
-	}
-
-	averageMode := totalMood / float64(len(reports))
-
-	return dto.MoodStatsDTO{
-		AverageMood:      averageMode,
-		MoodDistribution: moodDistribution,
-		LowMoodUsers:     lowMoodUsers,
-	}
-}
 
 // calculateUserSummaries ユーザー別サマリーを計算
 func (s *adminWeeklyReportService) calculateUserSummaries(reports []model.WeeklyReport) []dto.UserWeeklyReportSummaryDTO {
@@ -664,7 +623,7 @@ func (s *adminWeeklyReportService) calculateUserSummaries(reports []model.Weekly
 	for _, userSummary := range userMap {
 		if userSummary.ReportCount > 0 {
 			userSummary.AverageWorkHours = userSummary.TotalWorkHours / float64(userSummary.ReportCount)
-			// TODO: 平均ムードや提出率の計算
+			// TODO: 提出率の計算
 		}
 		result = append(result, *userSummary)
 	}
@@ -681,7 +640,6 @@ func (s *adminWeeklyReportService) calculateDepartmentStats(ctx context.Context,
 		UserCount      int       `gorm:"column:user_count"`
 		SubmittedCount int       `gorm:"column:submitted_count"`
 		TotalWorkHours float64   `gorm:"column:total_work_hours"`
-		AverageMood    float64   `gorm:"column:average_mood"`
 	}
 
 	var departmentStats []DepartmentStat
@@ -692,8 +650,7 @@ func (s *adminWeeklyReportService) calculateDepartmentStats(ctx context.Context,
 			d.name as department_name,
 			COUNT(DISTINCT u.id) as user_count,
 			COUNT(CASE WHEN wr.status = 'submitted' THEN 1 END) as submitted_count,
-			COALESCE(SUM(wr.total_work_hours), 0) as total_work_hours,
-			COALESCE(AVG(wr.mood), 0) as average_mood
+			COALESCE(SUM(wr.total_work_hours), 0) as total_work_hours
 		`).
 		Joins("LEFT JOIN users u ON d.id = u.department_id AND u.active = true AND u.deleted_at IS NULL").
 		Joins("LEFT JOIN weekly_reports wr ON u.id = wr.user_id AND wr.start_date >= ? AND wr.end_date <= ? AND wr.deleted_at IS NULL", startDate, endDate).
@@ -724,7 +681,6 @@ func (s *adminWeeklyReportService) calculateDepartmentStats(ctx context.Context,
 			UserCount:        stat.UserCount,
 			SubmissionRate:   submissionRate,
 			AverageWorkHours: averageWorkHours,
-			AverageMood:      stat.AverageMood,
 		}
 	}
 
@@ -753,7 +709,6 @@ func (s *adminWeeklyReportService) calculateTrendAnalysis(ctx context.Context, s
 	// トレンドを計算
 	submissionTrend := s.calculateTrend(currentSummary.SubmissionRate, previousSummary.SubmissionRate)
 	workHourTrend := s.calculateTrend(currentSummary.AverageWorkHours, previousSummary.AverageWorkHours)
-	moodTrend := s.calculateTrend(currentSummary.AverageMood, previousSummary.AverageMood)
 
 	// 週次比較は簡易実装
 	weeklyComparison := dto.WeeklyComparisonDTO{
@@ -762,21 +717,18 @@ func (s *adminWeeklyReportService) calculateTrendAnalysis(ctx context.Context, s
 			WeekEnd:          endDate,
 			SubmissionCount:  currentSummary.SubmittedCount,
 			AverageWorkHours: currentSummary.AverageWorkHours,
-			AverageMood:      currentSummary.AverageMood,
 		},
 		PreviousWeek: dto.WeeklyStatsDTO{
 			WeekStart:        previousStartDate,
 			WeekEnd:          previousEndDate,
 			SubmissionCount:  previousSummary.SubmittedCount,
 			AverageWorkHours: previousSummary.AverageWorkHours,
-			AverageMood:      previousSummary.AverageMood,
 		},
 	}
 
 	return dto.WeeklyReportTrendAnalysisDTO{
 		SubmissionTrend:  submissionTrend,
 		WorkHourTrend:    workHourTrend,
-		MoodTrend:        moodTrend,
 		WeeklyComparison: weeklyComparison,
 	}, nil
 }
@@ -788,7 +740,6 @@ type BasicStats struct {
 	SubmittedCount   int
 	SubmissionRate   float64
 	AverageWorkHours float64
-	AverageMood      float64
 }
 
 func (s *adminWeeklyReportService) getBasicStats(ctx context.Context, startDate, endDate time.Time, departmentID *uuid.UUID) (BasicStats, error) {
@@ -805,14 +756,12 @@ func (s *adminWeeklyReportService) getBasicStats(ctx context.Context, startDate,
 		TotalCount       int     `gorm:"column:total_count"`
 		SubmittedCount   int     `gorm:"column:submitted_count"`
 		AverageWorkHours float64 `gorm:"column:average_work_hours"`
-		AverageMood      float64 `gorm:"column:average_mood"`
 	}
 
 	err := query.Select(`
 		COUNT(*) as total_count,
 		COUNT(CASE WHEN status = 'submitted' THEN 1 END) as submitted_count,
-		COALESCE(AVG(total_work_hours), 0) as average_work_hours,
-		COALESCE(AVG(mood), 0) as average_mood
+		COALESCE(AVG(total_work_hours), 0) as average_work_hours
 	`).Scan(&result).Error
 
 	if err != nil {
@@ -828,7 +777,6 @@ func (s *adminWeeklyReportService) getBasicStats(ctx context.Context, startDate,
 		SubmittedCount:   result.SubmittedCount,
 		SubmissionRate:   submissionRate,
 		AverageWorkHours: result.AverageWorkHours,
-		AverageMood:      result.AverageMood,
 	}, nil
 }
 
@@ -951,7 +899,6 @@ func (s *adminWeeklyReportService) GetMonthlySummary(
 			EndDate:          ws.WeekEnd,
 			SubmissionRate:   submissionRate,
 			AverageWorkHours: ws.AverageWorkHours,
-			AverageMood:      ws.AverageMood,
 			SubmittedCount:   ws.SubmittedCount,
 			TotalCount:       ws.TotalCount,
 		}
@@ -963,13 +910,6 @@ func (s *adminWeeklyReportService) GetMonthlySummary(
 		submissionRate = float64(aggregatedData.SubmittedReports) / float64(aggregatedData.TotalReports) * 100
 	}
 
-	// ムード分布を文字列キーに変換
-	moodDistribution := make(map[string]int)
-	for moodValue, count := range aggregatedData.MoodDistribution {
-		moodString := dto.ConvertMoodToString(model.MoodStatus(moodValue))
-		moodDistribution[moodString] = count
-	}
-
 	monthlyStats := dto.MonthlyStatsDTO{
 		TotalReports:          aggregatedData.TotalReports,
 		SubmittedReports:      aggregatedData.SubmittedReports,
@@ -977,8 +917,6 @@ func (s *adminWeeklyReportService) GetMonthlySummary(
 		TotalWorkHours:        aggregatedData.TotalWorkHours,
 		AverageWorkHours:      aggregatedData.AverageWorkHours,
 		OvertimeReports:       aggregatedData.OvertimeReports,
-		AverageMood:           aggregatedData.AverageMood,
-		MoodDistribution:      moodDistribution,
 	}
 
 	// 部署別統計を変換
@@ -990,7 +928,6 @@ func (s *adminWeeklyReportService) GetMonthlySummary(
 			UserCount:        ds.UserCount,
 			SubmissionRate:   ds.SubmissionRate,
 			AverageWorkHours: ds.AverageWorkHours,
-			AverageMood:      ds.AverageMood,
 		}
 	}
 
@@ -1010,7 +947,6 @@ func (s *adminWeeklyReportService) GetMonthlySummary(
 			SubmissionRate:   tp.SubmissionRate,
 			AverageWorkHours: tp.AverageWorkHours,
 			TotalWorkHours:   tp.TotalWorkHours,
-			AverageMood:      tp.AverageMood,
 			ReportCount:      tp.ReportCount,
 			OnTimeRate:       onTimeRate,
 		}
@@ -1105,28 +1041,17 @@ func (s *adminWeeklyReportService) calculateWeeklySummaries(
 		// 週次統計を計算
 		submittedCount := 0
 		totalWorkHours := 0.0
-		totalMood := 0.0
-		moodCount := 0
 
 		for _, report := range weekReports {
 			if report.Status == model.WeeklyReportStatusSubmitted {
 				submittedCount++
 			}
 			totalWorkHours += report.TotalWorkHours
-			if report.Mood > 0 {
-				totalMood += float64(report.Mood)
-				moodCount++
-			}
 		}
 
 		avgWorkHours := 0.0
 		if len(weekReports) > 0 {
 			avgWorkHours = totalWorkHours / float64(len(weekReports))
-		}
-
-		avgMood := 0.0
-		if moodCount > 0 {
-			avgMood = totalMood / float64(moodCount)
 		}
 
 		submissionRate := 0.0
@@ -1140,7 +1065,6 @@ func (s *adminWeeklyReportService) calculateWeeklySummaries(
 			EndDate:          effectiveEnd,
 			SubmissionRate:   submissionRate,
 			AverageWorkHours: avgWorkHours,
-			AverageMood:      avgMood,
 			SubmittedCount:   submittedCount,
 			TotalCount:       totalUsers,
 		})
@@ -1166,9 +1090,6 @@ func (s *adminWeeklyReportService) calculateMonthlyStats(
 	submittedReports := 0
 	totalWorkHours := 0.0
 	overtimeReports := 0
-	moodDistribution := make(map[string]int)
-	totalMood := 0.0
-	moodCount := 0
 
 	for _, report := range reports {
 		if report.Status == model.WeeklyReportStatusSubmitted {
@@ -1181,24 +1102,11 @@ func (s *adminWeeklyReportService) calculateMonthlyStats(
 		if report.TotalWorkHours > 40 {
 			overtimeReports++
 		}
-
-		// ムード分布
-		if report.Mood > 0 {
-			moodStr := dto.ConvertMoodToString(report.Mood)
-			moodDistribution[moodStr]++
-			totalMood += float64(report.Mood)
-			moodCount++
-		}
 	}
 
 	avgWorkHours := 0.0
 	if totalReports > 0 {
 		avgWorkHours = totalWorkHours / float64(totalReports)
-	}
-
-	avgMood := 0.0
-	if moodCount > 0 {
-		avgMood = totalMood / float64(moodCount)
 	}
 
 	submissionRate := 0.0
@@ -1214,8 +1122,6 @@ func (s *adminWeeklyReportService) calculateMonthlyStats(
 		TotalWorkHours:        totalWorkHours,
 		AverageWorkHours:      avgWorkHours,
 		OvertimeReports:       overtimeReports,
-		AverageMood:           avgMood,
-		MoodDistribution:      moodDistribution,
 	}
 }
 
@@ -1262,18 +1168,12 @@ func (s *adminWeeklyReportService) calculateDepartmentStatsForMonth(
 		// 提出率を計算
 		submittedCount := 0
 		totalWorkHours := 0.0
-		totalMood := 0.0
-		moodCount := 0
 
 		for _, report := range deptReports {
 			if report.Status == model.WeeklyReportStatusSubmitted {
 				submittedCount++
 			}
 			totalWorkHours += report.TotalWorkHours
-			if report.Mood > 0 {
-				totalMood += float64(report.Mood)
-				moodCount++
-			}
 		}
 
 		if stats.UserCount > 0 {
@@ -1283,10 +1183,6 @@ func (s *adminWeeklyReportService) calculateDepartmentStatsForMonth(
 
 		if len(deptReports) > 0 {
 			stats.AverageWorkHours = totalWorkHours / float64(len(deptReports))
-		}
-
-		if moodCount > 0 {
-			stats.AverageMood = totalMood / float64(moodCount)
 		}
 	}
 
@@ -1334,8 +1230,6 @@ func (s *adminWeeklyReportService) calculateTopPerformers(
 		submittedCount := 0
 		onTimeCount := 0
 		totalWorkHours := 0.0
-		totalMood := 0.0
-		moodCount := 0
 
 		for _, report := range userReportList {
 			if report.Status == model.WeeklyReportStatusSubmitted {
@@ -1346,10 +1240,6 @@ func (s *adminWeeklyReportService) calculateTopPerformers(
 				}
 			}
 			totalWorkHours += report.TotalWorkHours
-			if report.Mood > 0 {
-				totalMood += float64(report.Mood)
-				moodCount++
-			}
 		}
 
 		// 4週間分を想定
@@ -1365,10 +1255,6 @@ func (s *adminWeeklyReportService) calculateTopPerformers(
 		perf.TotalWorkHours = totalWorkHours
 		if len(userReportList) > 0 {
 			perf.AverageWorkHours = totalWorkHours / float64(len(userReportList))
-		}
-
-		if moodCount > 0 {
-			perf.AverageMood = totalMood / float64(moodCount)
 		}
 	}
 
@@ -1475,14 +1361,12 @@ func (s *adminWeeklyReportService) calculateMonthlyComparison(
 	changes := dto.MonthlyComparisonChangeDTO{
 		SubmissionRateChange: currentData.SubmissionRate - previousData.SubmissionRate,
 		WorkHoursChange:      currentData.AverageWorkHours - previousData.AverageWorkHours,
-		MoodChange:           currentData.AverageMood - previousData.AverageMood,
 		ReportsChange:        currentData.TotalReports - previousData.TotalReports,
 	}
 
 	// トレンドを判定
 	changes.SubmissionRateTrend = s.determineTrend(changes.SubmissionRateChange)
 	changes.WorkHoursTrend = s.determineTrend(changes.WorkHoursChange)
-	changes.MoodTrend = s.determineTrend(changes.MoodChange)
 
 	return &dto.MonthlyComparisonDTO{
 		PreviousMonth: *previousData,
@@ -1519,18 +1403,12 @@ func (s *adminWeeklyReportService) getMonthlyComparisonData(
 	totalReports := len(reports)
 	submittedCount := 0
 	totalWorkHours := 0.0
-	totalMood := 0.0
-	moodCount := 0
 
 	for _, report := range reports {
 		if report.Status == model.WeeklyReportStatusSubmitted {
 			submittedCount++
 		}
 		totalWorkHours += report.TotalWorkHours
-		if report.Mood > 0 {
-			totalMood += float64(report.Mood)
-			moodCount++
-		}
 	}
 
 	// アクティブユーザー数を取得
@@ -1549,11 +1427,6 @@ func (s *adminWeeklyReportService) getMonthlyComparisonData(
 		avgWorkHours = totalWorkHours / float64(totalReports)
 	}
 
-	avgMood := 0.0
-	if moodCount > 0 {
-		avgMood = totalMood / float64(moodCount)
-	}
-
 	submissionRate := 0.0
 	expectedReports := int(totalUsers) * 4 // 月4週と仮定
 	if expectedReports > 0 {
@@ -1565,7 +1438,6 @@ func (s *adminWeeklyReportService) getMonthlyComparisonData(
 		Month:            month,
 		SubmissionRate:   submissionRate,
 		AverageWorkHours: avgWorkHours,
-		AverageMood:      avgMood,
 		TotalReports:     totalReports,
 	}
 }

@@ -29,7 +29,6 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 			StartDate: getMonday(time.Now()),
 			EndDate:   getMonday(time.Now()).AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 
 		dailyRecords := []*model.DailyRecord{
@@ -79,7 +78,6 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		report := createBasicTestWeeklyReport(t, db, userID)
 
 		report.WeeklyRemarks = "更新されたコメント"
-		report.Mood = model.MoodStatusExcellent
 
 		err := weeklyService.Update(ctx, report, nil)
 
@@ -89,7 +87,6 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		err = db.First(&updatedReport, "id = ?", report.ID).Error
 		assert.NoError(t, err)
 		assert.Equal(t, "更新されたコメント", updatedReport.WeeklyRemarks)
-		assert.Equal(t, model.MoodStatusExcellent, updatedReport.Mood)
 	})
 
 	t.Run("Delete", func(t *testing.T) {
@@ -140,7 +137,6 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 				StartDate: getMonday(time.Now()).AddDate(0, 0, -7*i),
 				EndDate:   getMonday(time.Now()).AddDate(0, 0, -7*i+6),
 				Status:    model.WeeklyReportStatusDraft,
-				Mood:      model.MoodStatusGood,
 			}
 			err := db.Create(report).Error
 			require.NoError(t, err)
@@ -195,7 +191,6 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 			StartDate: getMonday(now),
 			EndDate:   getMonday(now).AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 		err := db.Create(report).Error
 		require.NoError(t, err)
@@ -226,7 +221,6 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 				StartDate: getMonday(time.Now()).AddDate(0, 0, -7*i),
 				EndDate:   getMonday(time.Now()).AddDate(0, 0, -7*i+6),
 				Status:    status,
-				Mood:      model.MoodStatusGood,
 			}
 			err := db.Create(report).Error
 			require.NoError(t, err)
@@ -249,7 +243,6 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 			StartDate: weekStart,
 			EndDate:   weekStart.AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 
 		dailyRecords := []*model.DailyRecord{
@@ -348,7 +341,6 @@ func createBasicTestWeeklyReport(t *testing.T, db *gorm.DB, userID uuid.UUID) *m
 		StartDate: weekStart,
 		EndDate:   weekStart.AddDate(0, 0, 6),
 		Status:    model.WeeklyReportStatusDraft,
-		Mood:      model.MoodStatusGood,
 	}
 	err := db.Create(report).Error
 	require.NoError(t, err)

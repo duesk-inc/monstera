@@ -31,14 +31,6 @@ import { useExportJob } from '@/hooks/admin/useExportJob';
 import type { ExportJobFormat, WeeklyReportExportParams } from '@/types/export';
 import { useToast } from '@/components/common/Toast';
 
-const moodIcons = {
-  1: { icon: '😞', label: 'サイテー', color: 'error' },
-  2: { icon: '😕', label: 'イマイチ', color: 'warning' },
-  3: { icon: '😐', label: 'ふつう', color: 'info' },
-  4: { icon: '😊', label: 'イイ感じ', color: 'success' },
-  5: { icon: '🤩', label: 'サイコー', color: 'success' },
-};
-
 const statusOptions: FilterOption[] = [
   { value: '', label: 'すべて' },
   { value: '0', label: '未提出' },
@@ -158,23 +150,6 @@ export const WeeklyReportListTab: React.FC = () => {
           2: 'submitted',
         };
         return <StatusChip status={statusMap[row.status] || 'unknown'} />;
-      },
-    },
-    {
-      id: 'mood',
-      label: '気分',
-      minWidth: 120,
-      format: (value, row) => {
-        const mood = moodIcons[row.mood as keyof typeof moodIcons];
-        return mood ? (
-          <Chip
-            icon={<span style={{ fontSize: '1.2rem' }}>{mood.icon}</span>}
-            label={mood.label}
-            size="small"
-            color={mood.color as any}
-            variant="outlined"
-          />
-        ) : null;
       },
     },
     {

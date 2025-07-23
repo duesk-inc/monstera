@@ -62,7 +62,6 @@ func TestWeeklyReportRefactoredService_GetUserWeeklyReports(t *testing.T) {
 			StartDate: startDate,
 			EndDate:   endDate,
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusNeutral,
 		}
 
 		err := reportRepo.Create(ctx, report)
@@ -158,7 +157,6 @@ func TestWeeklyReportRefactoredService_GetUnsubmittedReports(t *testing.T) {
 		StartDate:          now.AddDate(0, 0, -7),
 		EndDate:            now.AddDate(0, 0, -1),
 		Status:             model.WeeklyReportStatusDraft,
-		Mood:               model.MoodStatusNeutral,
 		SubmissionDeadline: &deadline,
 	}
 
@@ -236,7 +234,6 @@ func TestWeeklyReportRefactoredService_BatchOperations(t *testing.T) {
 			StartDate: time.Now().AddDate(0, 0, -7*(i+1)),
 			EndDate:   time.Now().AddDate(0, 0, -7*i-1),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusNeutral,
 		}
 
 		err := reportRepo.Create(ctx, report)

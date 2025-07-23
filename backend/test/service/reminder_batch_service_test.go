@@ -92,7 +92,6 @@ func TestReminderBatchService_ProcessAutoReminders(t *testing.T) {
 			StartDate:          deadline.AddDate(0, 0, -7),
 			EndDate:            deadline.AddDate(0, 0, -1),
 			Status:             model.WeeklyReportStatusDraft,
-			Mood:               model.MoodStatusNeutral,
 			SubmissionDeadline: &deadline,
 		}
 		require.NoError(t, reportRepo.Create(ctx, report))
@@ -182,7 +181,6 @@ func TestReminderBatchService_GetTodaysReminders(t *testing.T) {
 			StartDate:          deadline.AddDate(0, 0, -7),
 			EndDate:            deadline.AddDate(0, 0, -1),
 			Status:             model.WeeklyReportStatusDraft,
-			Mood:               model.MoodStatusNeutral,
 			SubmissionDeadline: &deadline,
 		}
 		require.NoError(t, reportRepo.Create(ctx, report))
@@ -296,7 +294,6 @@ func TestReminderBatchService_DuplicateCheckToday(t *testing.T) {
 		StartDate:          deadline.AddDate(0, 0, -7),
 		EndDate:            deadline.AddDate(0, 0, -1),
 		Status:             model.WeeklyReportStatusDraft,
-		Mood:               model.MoodStatusNeutral,
 		SubmissionDeadline: &deadline,
 	}
 	require.NoError(t, reportRepo.Create(ctx, report))

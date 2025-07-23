@@ -130,8 +130,6 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 			ProcessType: "JSONBind",
 			Metadata: map[string]interface{}{
 				"daily_records_count": len(req.DailyRecords),
-				"mood":                req.Mood,
-				"weekly_mood":         req.WeeklyMood,
 			},
 		},
 	)
@@ -171,26 +169,6 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 		report.Status = model.WeeklyReportStatusDraft
 	}
 
-	// Mood値を設定
-	resolvedMood := h.resolveMoodStatus(req.Mood, req.WeeklyMood)
-
-	// デバッグログ: Mood解決処理
-	h.debugLogger.DataProcess(
-		debug.DebugLogConfig{
-			Category:  debug.CategoryService,
-			Operation: debug.OperationConvert,
-		},
-		debug.DataProcessDebugData{
-			InputData: map[string]interface{}{
-				"original_mood":        req.Mood,
-				"original_weekly_mood": req.WeeklyMood,
-			},
-			OutputData:  resolvedMood,
-			ProcessType: "MoodResolution",
-		},
-	)
-
-	report.Mood = resolvedMood
 
 	// 日次勤怠記録を変換
 	dailyRecords, err := h.convertDailyRecordRequests(req.DailyRecords)
@@ -247,7 +225,6 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 			ResponseBody: response,
 			Metadata: map[string]interface{}{
 				"report_id":     report.ID.String(),
-				"response_mood": report.Mood,
 				"status":        report.Status,
 			},
 		},
@@ -483,28 +460,6 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 		report.EndDate = endDate
 	}
 
-	// Mood値を設定
-	if req.Mood != 0 || req.WeeklyMood != "" {
-		resolvedMood := h.resolveMoodStatus(req.Mood, req.WeeklyMood)
-
-		// デバッグログ: Mood解決処理
-		h.debugLogger.DataProcess(
-			debug.DebugLogConfig{
-				Category:  debug.CategoryService,
-				Operation: debug.OperationConvert,
-			},
-			debug.DataProcessDebugData{
-				InputData: map[string]interface{}{
-					"original_mood":        req.Mood,
-					"original_weekly_mood": req.WeeklyMood,
-				},
-				OutputData:  resolvedMood,
-				ProcessType: "MoodResolution",
-			},
-		)
-
-		report.Mood = resolvedMood
-	}
 
 	// WeeklyRemarksは空文字列を許可（クリアする場合があるため）
 	report.WeeklyRemarks = req.WeeklyRemarks
@@ -571,7 +526,6 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			ResponseBody: response,
 			Metadata: map[string]interface{}{
 				"report_id":     report.ID.String(),
-				"response_mood": report.Mood,
 				"status":        report.Status.String(),
 			},
 		},
@@ -693,8 +647,6 @@ func (h *WeeklyReportHandler) List(c *gin.Context) {
 			StartDate:                report.StartDate,
 			EndDate:                  report.EndDate,
 			Status:                   report.Status.String(),
-			Mood:                     report.Mood,
-			MoodString:               dto.ConvertMoodToString(report.Mood), // Phase 1: 文字列ムードを追加
 			WeeklyRemarks:            report.WeeklyRemarks,
 			WorkplaceName:            report.WorkplaceName,
 			WorkplaceHours:           report.WorkplaceHours,
@@ -809,7 +761,6 @@ func (h *WeeklyReportHandler) Copy(c *gin.Context) {
 		StartDate:                newStartDate,
 		EndDate:                  newEndDate,
 		Status:                   model.WeeklyReportStatusDraft,
-		Mood:                     originalReport.Mood,
 		WeeklyRemarks:            "",
 		WorkplaceName:            originalReport.WorkplaceName,
 		WorkplaceHours:           originalReport.WorkplaceHours,
@@ -949,7 +900,6 @@ func (h *WeeklyReportHandler) SaveAsDraft(c *gin.Context) {
 		StartDate:                startDate,
 		EndDate:                  endDate,
 		Status:                   model.WeeklyReportStatusDraft, // 下書きステータスを明示的に設定
-		Mood:                     h.resolveMoodStatus(req.Mood, req.WeeklyMood),
 		WeeklyRemarks:            req.WeeklyRemarks,
 		WorkplaceName:            req.WorkplaceName,
 		WorkplaceHours:           req.WorkplaceHours,
@@ -1024,7 +974,6 @@ func (h *WeeklyReportHandler) SaveAndSubmit(c *gin.Context) {
 		WorkplaceName:            req.WorkplaceName,
 		WorkplaceHours:           req.WorkplaceHours,
 		WorkplaceChangeRequested: req.WorkplaceChangeRequested,
-		Mood:                     h.resolveMoodStatus(req.Mood, req.WeeklyMood),
 	}
 
 	// リクエストIDが指定されている場合は既存レコードのIDを設定
@@ -1082,8 +1031,6 @@ func (h *WeeklyReportHandler) createReportResponse(report *model.WeeklyReport) *
 		StartDate:                report.StartDate,
 		EndDate:                  report.EndDate,
 		Status:                   report.Status.String(), // WeeklyReportStatusEnumのString()メソッドを使用
-		Mood:                     report.Mood,
-		MoodString:               dto.ConvertMoodToString(report.Mood), // Phase 1: 文字列ムードを追加
 		WeeklyRemarks:            report.WeeklyRemarks,
 		WorkplaceName:            report.WorkplaceName,
 		WorkplaceHours:           report.WorkplaceHours,
@@ -1215,28 +1162,6 @@ func (h *WeeklyReportHandler) validateDateRange(startDateStr string, endDateStr 
 
 // 追加の共通ヘルパーメソッド
 
-// resolveMoodStatus moodステータスを解決する
-func (h *WeeklyReportHandler) resolveMoodStatus(newMood int, oldMoodStr string) model.MoodStatus {
-	if newMood != 0 {
-		return model.MoodStatus(newMood)
-	} else if oldMoodStr != "" {
-		// 古いWeeklyMood文字列を新しいMood数値にマッピング
-		switch oldMoodStr {
-		case "veryBad":
-			return model.MoodStatusTerrible
-		case "bad":
-			return model.MoodStatusBad
-		case "neutral":
-			return model.MoodStatusNeutral
-		case "good":
-			return model.MoodStatusGood
-		case "veryGood":
-			return model.MoodStatusExcellent
-		}
-	}
-	// デフォルト値
-	return model.MoodStatusNeutral
-}
 
 // parseUUID UUIDをパースする
 func (h *WeeklyReportHandler) parseUUID(c *gin.Context, paramName string) (uuid.UUID, error) {

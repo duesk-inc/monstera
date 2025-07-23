@@ -24,7 +24,6 @@ export interface DepartmentStats {
   userCount: number;
   submissionRate: number;
   averageWorkHours: number;
-  averageMood: number;
 }
 
 export interface UserWeeklyReportSummary {
@@ -36,24 +35,10 @@ export interface UserWeeklyReportSummary {
   submissionRate: number;
   totalWorkHours: number;
   averageWorkHours: number;
-  averageMood: number;
   lastSubmission?: string;
   daysOverdue: number;
 }
 
-export interface LowMoodUser {
-  userId: string;
-  userName: string;
-  mood: string;
-  moodValue: number;
-  consecutiveWeeks: number;
-}
-
-export interface MoodStats {
-  averageMood: number;
-  moodDistribution: Record<string, number>;
-  lowMoodUsers: LowMoodUser[];
-}
 
 export interface TrendData {
   current: number;
@@ -68,7 +53,6 @@ export interface WeeklyStats {
   weekEnd: string;
   submissionCount: number;
   averageWorkHours: number;
-  averageMood: number;
 }
 
 export interface WeeklyComparison {
@@ -80,7 +64,6 @@ export interface WeeklyComparison {
 export interface WeeklyReportTrendAnalysis {
   submissionTrend: TrendData;
   workHourTrend: TrendData;
-  moodTrend: TrendData;
   weeklyComparison: WeeklyComparison;
 }
 
@@ -92,7 +75,6 @@ export interface WeeklyReportSummaryStats {
   workHourStats: WorkHourStats;
   departmentStats: DepartmentStats[];
   userSummaries: UserWeeklyReportSummary[];
-  moodStats: MoodStats;
   trendAnalysis: WeeklyReportTrendAnalysis;
 }
 

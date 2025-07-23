@@ -47,8 +47,6 @@ type WeeklyReportResponse struct {
 	StartDate                time.Time             `json:"start_date"`
 	EndDate                  time.Time             `json:"end_date"`
 	Status                   string                `json:"status"`
-	Mood                     model.MoodStatus      `json:"mood"`
-	MoodString               string                `json:"mood_string"` // Phase 1: 文字列ムード
 	WeeklyRemarks            string                `json:"weekly_remarks"`
 	WorkplaceName            string                `json:"workplace_name"`
 	WorkplaceHours           string                `json:"workplace_hours"`
@@ -66,8 +64,6 @@ type CreateWeeklyReportRequest struct {
 	ID                       string               `json:"id"`
 	StartDate                string               `json:"start_date" binding:"required"`
 	EndDate                  string               `json:"end_date" binding:"required"`
-	Mood                     int                  `json:"mood" binding:"min=1,max=5"`
-	WeeklyMood               string               `json:"weekly_mood"` // 後方互換性のためのフィールド
 	WeeklyRemarks            string               `json:"weekly_remarks" binding:"max=1000"`
 	WorkplaceName            string               `json:"workplace_name"`
 	WorkplaceHours           string               `json:"workplace_hours"`
@@ -80,8 +76,6 @@ type CreateWeeklyReportRequest struct {
 type UpdateWeeklyReportRequest struct {
 	StartDate                string               `json:"start_date" binding:"required"`
 	EndDate                  string               `json:"end_date" binding:"required"`
-	Mood                     int                  `json:"mood" binding:"min=1,max=5"`
-	WeeklyMood               string               `json:"weekly_mood"` // 後方互換性のためのフィールド
 	WeeklyRemarks            string               `json:"weekly_remarks" binding:"max=1000"`
 	WorkplaceName            string               `json:"workplace_name"`
 	WorkplaceHours           string               `json:"workplace_hours"`
@@ -134,23 +128,6 @@ func ConvertLegacyIntStatusToString(intStatus int) string {
 	}
 }
 
-// ConvertStringToMood 文字列をMoodStatus（INT）に変換
-func ConvertStringToMood(mood string) model.MoodStatus {
-	switch mood {
-	case "terrible":
-		return model.MoodStatusTerrible
-	case "bad":
-		return model.MoodStatusBad
-	case "neutral":
-		return model.MoodStatusNeutral
-	case "good":
-		return model.MoodStatusGood
-	case "excellent":
-		return model.MoodStatusExcellent
-	default:
-		return model.MoodStatusNeutral
-	}
-}
 
 // WeeklyReportDTO ユーザー向け週報DTO
 type WeeklyReportDTO struct {
@@ -159,8 +136,6 @@ type WeeklyReportDTO struct {
 	StartDate                time.Time  `json:"start_date"`
 	EndDate                  time.Time  `json:"end_date"`
 	Status                   string     `json:"status"`
-	Mood                     int        `json:"mood"`
-	MoodString               string     `json:"mood_string"`
 	WeeklyRemarks            string     `json:"weekly_remarks"`
 	WorkplaceName            string     `json:"workplace_name"`
 	WorkplaceHours           string     `json:"workplace_hours"`
@@ -207,8 +182,6 @@ func ConvertToWeeklyReportDTO(report *model.WeeklyReport) WeeklyReportDTO {
 		StartDate:                report.StartDate,
 		EndDate:                  report.EndDate,
 		Status:                   report.Status.String(),
-		Mood:                     int(report.Mood),
-		MoodString:               convertMoodToString(report.Mood),
 		WeeklyRemarks:            report.WeeklyRemarks,
 		WorkplaceName:            report.WorkplaceName,
 		WorkplaceHours:           report.WorkplaceHours,
@@ -245,20 +218,3 @@ func ConvertToWeeklyReportDetailDTO(report *model.WeeklyReport) *WeeklyReportDet
 	return dto
 }
 
-// convertMoodToString MoodStatus（INT）を文字列に変換（ローカル版）
-func convertMoodToString(mood model.MoodStatus) string {
-	switch mood {
-	case model.MoodStatusTerrible:
-		return "terrible"
-	case model.MoodStatusBad:
-		return "bad"
-	case model.MoodStatusNeutral:
-		return "neutral"
-	case model.MoodStatusGood:
-		return "good"
-	case model.MoodStatusExcellent:
-		return "excellent"
-	default:
-		return "neutral"
-	}
-}

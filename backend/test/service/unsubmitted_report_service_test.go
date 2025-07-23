@@ -75,7 +75,6 @@ func TestUnsubmittedReportService_GetUnsubmittedReports(t *testing.T) {
 			StartDate:          deadline.AddDate(0, 0, -7),
 			EndDate:            deadline.AddDate(0, 0, -1),
 			Status:             model.WeeklyReportStatusDraft,
-			Mood:               model.MoodStatusNeutral,
 			SubmissionDeadline: &deadline,
 		}
 		require.NoError(t, reportRepo.Create(ctx, report))
@@ -171,7 +170,6 @@ func TestUnsubmittedReportService_GetDepartmentUnsubmittedStats(t *testing.T) {
 				StartDate:          deadline.AddDate(0, 0, -7),
 				EndDate:            deadline.AddDate(0, 0, -1),
 				Status:             model.WeeklyReportStatusDraft,
-				Mood:               model.MoodStatusNeutral,
 				SubmissionDeadline: &deadline,
 			}
 			require.NoError(t, reportRepo.Create(ctx, report))
@@ -196,7 +194,6 @@ func TestUnsubmittedReportService_GetDepartmentUnsubmittedStats(t *testing.T) {
 				StartDate:          deadline.AddDate(0, 0, -7),
 				EndDate:            deadline.AddDate(0, 0, -1),
 				Status:             model.WeeklyReportStatusDraft,
-				Mood:               model.MoodStatusNeutral,
 				SubmissionDeadline: &deadline,
 			}
 			require.NoError(t, reportRepo.Create(ctx, report))

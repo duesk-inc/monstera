@@ -436,7 +436,6 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 		TotalWorkHours   float64
 		AvgWorkHours     float64
 		OvertimeReports  int64
-		AvgMood          float64
 	}
 
 	baseQuery := r.WithContext(ctx).
@@ -459,7 +458,6 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 			COALESCE(SUM(weekly_reports.total_work_hours), 0) as total_work_hours,
 			COALESCE(AVG(weekly_reports.total_work_hours), 0) as avg_work_hours,
 			COUNT(CASE WHEN weekly_reports.total_work_hours > 40 THEN 1 END) as overtime_reports,
-			COALESCE(AVG(weekly_reports.mood), 0) as avg_mood
 		`).
 		Scan(&stats).Error
 
@@ -473,29 +471,8 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 	result.TotalWorkHours = stats.TotalWorkHours
 	result.AverageWorkHours = stats.AvgWorkHours
 	result.OvertimeReports = int(stats.OvertimeReports)
-	result.AverageMood = stats.AvgMood
 
-	// 2. ムード分布を取得
-	var moodDist []struct {
-		Mood  int
-		Count int
-	}
-
-	err = baseQuery.
-		Select("weekly_reports.mood, COUNT(*) as count").
-		Where("weekly_reports.mood > 0").
-		Group("weekly_reports.mood").
-		Scan(&moodDist).Error
-
-	if err != nil {
-		r.Logger.Error("Failed to get mood distribution", zap.Error(err))
-		return nil, err
-	}
-
-	result.MoodDistribution = make(map[int]int)
-	for _, m := range moodDist {
-		result.MoodDistribution[m.Mood] = m.Count
-	}
+	// 2. ムード分布を取得 (削除済み)
 
 	// 3. 週ごとのサマリーを取得
 	var weekSummaries []struct {
@@ -514,7 +491,6 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 			COUNT(CASE WHEN weekly_reports.status = 'submitted' THEN 1 END) as submitted_count,
 			COUNT(*) as total_count,
 			COALESCE(AVG(weekly_reports.total_work_hours), 0) as avg_work_hours,
-			COALESCE(AVG(weekly_reports.mood), 0) as avg_mood
 		`).
 		Group("weekly_reports.start_date, weekly_reports.end_date").
 		Order("weekly_reports.start_date").
@@ -533,7 +509,6 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 			SubmittedCount:   ws.SubmittedCount,
 			TotalCount:       ws.TotalCount,
 			AverageWorkHours: ws.AvgWorkHours,
-			AverageMood:      ws.AvgMood,
 		}
 	}
 
@@ -556,8 +531,7 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 				COUNT(DISTINCT users.id) as user_count,
 				COUNT(CASE WHEN weekly_reports.status = 'submitted' THEN 1 END) as submitted_count,
 				COALESCE(AVG(weekly_reports.total_work_hours), 0) as avg_work_hours,
-				COALESCE(AVG(weekly_reports.mood), 0) as avg_mood
-			`).
+				`).
 			Joins("JOIN users ON users.id = weekly_reports.user_id").
 			Joins("LEFT JOIN departments ON departments.id = users.department_id").
 			Where("weekly_reports.deleted_at IS NULL").
@@ -584,7 +558,6 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 				UserCount:        ds.UserCount,
 				SubmissionRate:   submissionRate,
 				AverageWorkHours: ds.AvgWorkHours,
-				AverageMood:      ds.AvgMood,
 			}
 		}
 	}
@@ -611,7 +584,6 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 			COUNT(*) as total_count,
 			COALESCE(AVG(weekly_reports.total_work_hours), 0) as avg_work_hours,
 			COALESCE(SUM(weekly_reports.total_work_hours), 0) as total_work_hours,
-			COALESCE(AVG(weekly_reports.mood), 0) as avg_mood
 		`).
 		Joins("JOIN users ON users.id = weekly_reports.user_id").
 		Joins("LEFT JOIN departments ON departments.id = users.department_id").
@@ -649,7 +621,6 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 			SubmissionRate:   submissionRate,
 			AverageWorkHours: tp.AvgWorkHours,
 			TotalWorkHours:   tp.TotalWorkHours,
-			AverageMood:      tp.AvgMood,
 			ReportCount:      tp.SubmittedCount,
 		}
 	}
@@ -666,8 +637,6 @@ type MonthlyAggregatedData struct {
 	TotalWorkHours   float64
 	AverageWorkHours float64
 	OvertimeReports  int
-	AverageMood      float64
-	MoodDistribution map[int]int
 	WeeklySummaries  []WeeklySummaryData
 	DepartmentStats  []DepartmentStatsData
 	TopPerformers    []UserPerformanceData
@@ -680,7 +649,6 @@ type WeeklySummaryData struct {
 	SubmittedCount   int
 	TotalCount       int
 	AverageWorkHours float64
-	AverageMood      float64
 }
 
 // DepartmentStatsData 部署別統計データ
@@ -690,7 +658,6 @@ type DepartmentStatsData struct {
 	UserCount        int
 	SubmissionRate   float64
 	AverageWorkHours float64
-	AverageMood      float64
 }
 
 // UserPerformanceData ユーザーパフォーマンスデータ
@@ -701,7 +668,6 @@ type UserPerformanceData struct {
 	SubmissionRate   float64
 	AverageWorkHours float64
 	TotalWorkHours   float64
-	AverageMood      float64
 	ReportCount      int
 }
 

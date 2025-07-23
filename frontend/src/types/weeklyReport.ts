@@ -1,4 +1,3 @@
-import type { WeeklyReportMood } from '@/constants/weeklyMood';
 
 // 週報データの型定義
 export interface DailyRecord {
@@ -26,9 +25,6 @@ export interface LocalAPIWeeklyReport {
   status?: string;  // ENUM型文字列に統一
   statusString?: string; // 後方互換性のため（廃止予定）
   status_string?: string; // 後方互換性のため（廃止予定）
-  mood?: WeeklyReportMood; // 新しいフィールド
-  moodString?: string; // Phase 1: 文字列ムード
-  mood_string?: string; // Phase 1: 文字列ムード（スネークケース）
   weeklyRemarks?: string;
   weekly_remarks?: string; // スネークケース対応
   workplaceName?: string;
@@ -57,8 +53,6 @@ export interface ApiWeeklyReport {
   endDate?: string;
   status?: string;  // ENUM型文字列に統一
   statusString?: string; // 後方互換性のため（廃止予定）
-  mood?: WeeklyReportMood;
-  moodString?: string; // Phase 1: 文字列ムード
   weeklyRemarks?: string;
   totalWorkHours?: number;
   clientTotalWorkHours?: number;
@@ -85,9 +79,6 @@ export interface ApiResponseBase {
   start_date?: string;
   end_date?: string;
   status?: string;  // ENUM型文字列に統一
-  mood?: WeeklyReportMood;
-  weekly_mood?: string;
-  weeklyMood?: string; // キャメルケース変換後のフィールド
   weeklyRemarks?: string;
   weekly_remarks?: string;
   totalWorkHours?: number;
@@ -110,7 +101,6 @@ export interface WeeklyReport {
   startDate: Date;
   endDate: Date;
   dailyRecords: DailyRecord[];
-  mood: WeeklyReportMood;
   weeklyRemarks: string;
   status?: string;  // ENUM型文字列に統一
   submittedAt?: string;

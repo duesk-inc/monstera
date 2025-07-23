@@ -17,8 +17,6 @@ type AdminWeeklyReportDTO struct {
 	EndDate        time.Time  `json:"end_date"`
 	Status         int        `json:"status"`
 	StatusString   string     `json:"status_string"` // Phase 1: 文字列ステータス
-	Mood           int        `json:"mood"`
-	MoodString     string     `json:"mood_string"` // Phase 1: 文字列ムード
 	TotalWorkHours float64    `json:"total_work_hours"`
 	ManagerComment *string    `json:"manager_comment"`
 	CommentedAt    *time.Time `json:"commented_at"`
@@ -141,8 +139,6 @@ func ConvertAdminWeeklyReportDTO(report *model.WeeklyReport, userName, userEmail
 		EndDate:        report.EndDate,
 		Status:         0, // レガシー互換性のため（廃止予定）
 		StatusString:   report.Status.String(),
-		Mood:           int(report.Mood),
-		MoodString:     ConvertMoodToString(report.Mood),
 		TotalWorkHours: report.TotalWorkHours,
 		ManagerComment: report.ManagerComment,
 		CommentedAt:    report.CommentedAt,
@@ -161,7 +157,6 @@ type WeeklyReportSummaryStatsDTO struct {
 	WorkHourStats   WorkHourStatsDTO             `json:"work_hour_stats"`
 	DepartmentStats []DepartmentStatsDTO         `json:"department_stats"`
 	UserSummaries   []UserWeeklyReportSummaryDTO `json:"user_summaries"`
-	MoodStats       MoodStatsDTO                 `json:"mood_stats"`
 	TrendAnalysis   WeeklyReportTrendAnalysisDTO `json:"trend_analysis"`
 }
 
@@ -192,7 +187,6 @@ type DepartmentStatsDTO struct {
 	UserCount        int       `json:"user_count"`
 	SubmissionRate   float64   `json:"submission_rate"`
 	AverageWorkHours float64   `json:"average_work_hours"`
-	AverageMood      float64   `json:"average_mood"`
 }
 
 // UserWeeklyReportSummaryDTO ユーザー別週報サマリーDTO
@@ -205,32 +199,15 @@ type UserWeeklyReportSummaryDTO struct {
 	SubmissionRate   float64    `json:"submission_rate"`
 	TotalWorkHours   float64    `json:"total_work_hours"`
 	AverageWorkHours float64    `json:"average_work_hours"`
-	AverageMood      float64    `json:"average_mood"`
 	LastSubmission   *time.Time `json:"last_submission"`
 	DaysOverdue      int        `json:"days_overdue"` // 提出遅延日数
 }
 
-// MoodStatsDTO ムード統計DTO
-type MoodStatsDTO struct {
-	AverageMood      float64          `json:"average_mood"`
-	MoodDistribution map[string]int   `json:"mood_distribution"` // "excellent": 5, "good": 8, ...
-	LowMoodUsers     []LowMoodUserDTO `json:"low_mood_users"`    // ムードが低いユーザー
-}
-
-// LowMoodUserDTO ムードが低いユーザーDTO
-type LowMoodUserDTO struct {
-	UserID           uuid.UUID `json:"user_id"`
-	UserName         string    `json:"user_name"`
-	Mood             string    `json:"mood"`
-	MoodValue        int       `json:"mood_value"`
-	ConsecutiveWeeks int       `json:"consecutive_weeks"` // 連続してムードが低い週数
-}
 
 // WeeklyReportTrendAnalysisDTO トレンド分析DTO
 type WeeklyReportTrendAnalysisDTO struct {
 	SubmissionTrend  TrendDataDTO        `json:"submission_trend"`  // 提出率のトレンド
 	WorkHourTrend    TrendDataDTO        `json:"work_hour_trend"`   // 勤務時間のトレンド
-	MoodTrend        TrendDataDTO        `json:"mood_trend"`        // ムードのトレンド
 	WeeklyComparison WeeklyComparisonDTO `json:"weekly_comparison"` // 前週比較
 }
 
@@ -256,7 +233,6 @@ type WeeklyStatsDTO struct {
 	WeekEnd          time.Time `json:"week_end"`
 	SubmissionCount  int       `json:"submission_count"`
 	AverageWorkHours float64   `json:"average_work_hours"`
-	AverageMood      float64   `json:"average_mood"`
 }
 
 // MonthlySummaryDTO 月次サマリーDTO
@@ -279,7 +255,6 @@ type WeeklySummaryDTO struct {
 	EndDate          time.Time `json:"end_date"`
 	SubmissionRate   float64   `json:"submission_rate"`
 	AverageWorkHours float64   `json:"average_work_hours"`
-	AverageMood      float64   `json:"average_mood"`
 	SubmittedCount   int       `json:"submitted_count"`
 	TotalCount       int       `json:"total_count"`
 }
@@ -292,8 +267,6 @@ type MonthlyStatsDTO struct {
 	TotalWorkHours        float64        `json:"total_work_hours"`
 	AverageWorkHours      float64        `json:"average_work_hours"`
 	OvertimeReports       int            `json:"overtime_reports"`
-	AverageMood           float64        `json:"average_mood"`
-	MoodDistribution      map[string]int `json:"mood_distribution"`
 }
 
 // UserPerformanceDTO ユーザーパフォーマンスDTO
@@ -304,7 +277,6 @@ type UserPerformanceDTO struct {
 	SubmissionRate   float64   `json:"submission_rate"`
 	AverageWorkHours float64   `json:"average_work_hours"`
 	TotalWorkHours   float64   `json:"total_work_hours"`
-	AverageMood      float64   `json:"average_mood"`
 	ReportCount      int       `json:"report_count"`
 	OnTimeRate       float64   `json:"on_time_rate"`
 }
@@ -338,7 +310,6 @@ type MonthlyComparisonDataDTO struct {
 	Month            int     `json:"month"`
 	SubmissionRate   float64 `json:"submission_rate"`
 	AverageWorkHours float64 `json:"average_work_hours"`
-	AverageMood      float64 `json:"average_mood"`
 	TotalReports     int     `json:"total_reports"`
 }
 
@@ -346,11 +317,9 @@ type MonthlyComparisonDataDTO struct {
 type MonthlyComparisonChangeDTO struct {
 	SubmissionRateChange float64 `json:"submission_rate_change"`
 	WorkHoursChange      float64 `json:"work_hours_change"`
-	MoodChange           float64 `json:"mood_change"`
 	ReportsChange        int     `json:"reports_change"`
 	SubmissionRateTrend  string  `json:"submission_rate_trend"` // "up", "down", "stable"
 	WorkHoursTrend       string  `json:"work_hours_trend"`
-	MoodTrend            string  `json:"mood_trend"`
 }
 
 // WeeklyReportListParams 週報一覧取得パラメータ
@@ -384,20 +353,3 @@ type UnsubmittedReportResponse struct {
 	Total int64             `json:"total"`
 }
 
-// ConvertMoodToString MoodStatus（INT）を文字列に変換
-func ConvertMoodToString(mood model.MoodStatus) string {
-	switch mood {
-	case model.MoodStatusTerrible:
-		return "terrible"
-	case model.MoodStatusBad:
-		return "bad"
-	case model.MoodStatusNeutral:
-		return "neutral"
-	case model.MoodStatusGood:
-		return "good"
-	case model.MoodStatusExcellent:
-		return "excellent"
-	default:
-		return "neutral"
-	}
-}

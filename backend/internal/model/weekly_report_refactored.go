@@ -50,7 +50,6 @@ type WeeklyReportRefactored struct {
 	StartDate                time.Time              `gorm:"not null" json:"start_date"`
 	EndDate                  time.Time              `gorm:"not null" json:"end_date"`
 	Status                   WeeklyReportStatusEnum `gorm:"type:enum('draft','submitted','approved','rejected');default:'draft';not null" json:"status"`
-	Mood                     MoodStatus             `gorm:"not null;default:3" json:"mood"`
 	WeeklyRemarks            string                 `gorm:"type:text" json:"weekly_remarks"`
 	WorkplaceName            string                 `gorm:"size:100" json:"workplace_name"`
 	WorkplaceHours           string                 `gorm:"size:100" json:"workplace_hours"`
@@ -188,21 +187,6 @@ func (w *WeeklyReportRefactored) GetWeekRange() string {
 		w.EndDate.Format("2006/01/02"))
 }
 
-// GetMoodString 気分を文字列で取得
-func (w *WeeklyReportRefactored) GetMoodString() string {
-	moodStrings := map[MoodStatus]string{
-		MoodStatusTerrible:  "サイテー",
-		MoodStatusBad:       "イマイチ",
-		MoodStatusNeutral:   "ふつう",
-		MoodStatusGood:      "イイ感じ",
-		MoodStatusExcellent: "サイコー",
-	}
-
-	if str, ok := moodStrings[w.Mood]; ok {
-		return str
-	}
-	return "ふつう"
-}
 
 // HasComments 管理者コメントがあるかどうか
 func (w *WeeklyReportRefactored) HasComments() bool {

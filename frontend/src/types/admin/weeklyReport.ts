@@ -9,8 +9,6 @@ export interface AdminWeeklyReport {
   end_date: string;
   status: string;  // ENUM型文字列に統一
   status_string?: string;  // 後方互換性のため（廃止予定）
-  mood: number;
-  mood_string?: string;    // Phase 1: 文字列ムード
   total_work_hours: number;
   manager_comment?: string;
   commented_at?: string;
@@ -114,7 +112,6 @@ export interface WeeklySummaryDTO {
   end_date: string;
   submission_rate: number;
   average_work_hours: number;
-  average_mood: number;
   submitted_count: number;
   total_count: number;
 }
@@ -126,8 +123,6 @@ export interface MonthlyStatsDTO {
   total_work_hours: number;
   average_work_hours: number;
   overtime_reports: number;
-  average_mood: number;
-  mood_distribution: Record<string, number>;
 }
 
 export interface DepartmentStatsDTO {
@@ -136,7 +131,6 @@ export interface DepartmentStatsDTO {
   user_count: number;
   submission_rate: number;
   average_work_hours: number;
-  average_mood: number;
 }
 
 export interface UserPerformanceDTO {
@@ -146,7 +140,6 @@ export interface UserPerformanceDTO {
   submission_rate: number;
   average_work_hours: number;
   total_work_hours: number;
-  average_mood: number;
   report_count: number;
   on_time_rate: number;
 }
@@ -166,18 +159,15 @@ export interface MonthlyComparisonDataDTO {
   month: number;
   submission_rate: number;
   average_work_hours: number;
-  average_mood: number;
   total_reports: number;
 }
 
 export interface MonthlyComparisonChangeDTO {
   submission_rate_change: number;
   work_hours_change: number;
-  mood_change: number;
   reports_change: number;
   submission_rate_trend: 'up' | 'down' | 'stable';
   work_hours_trend: 'up' | 'down' | 'stable';
-  mood_trend: 'up' | 'down' | 'stable';
 }
 
 export interface MonthlyComparisonDTO {

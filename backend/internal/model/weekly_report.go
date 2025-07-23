@@ -1,8 +1,6 @@
 package model
 
 import (
-	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,7 +15,6 @@ type WeeklyReport struct {
 	StartDate                time.Time              `gorm:"not null" json:"start_date"` // 週の開始日（月曜日）
 	EndDate                  time.Time              `gorm:"not null" json:"end_date"`   // 週の終了日（日曜日）
 	Status                   WeeklyReportStatusEnum `gorm:"type:enum('draft','submitted','approved','rejected');default:'draft';not null" json:"status"`
-	Mood                     MoodStatus             `gorm:"not null" json:"mood"` // WeeklyMoodからMoodに変更、型も変更
 	WeeklyRemarks            string                 `gorm:"type:text" json:"weekly_remarks"`
 	WorkplaceName            string                 `gorm:"size:100" json:"workplace_name"`
 	WorkplaceHours           string                 `gorm:"size:100" json:"workplace_hours"`
@@ -61,38 +58,6 @@ func ConvertLegacyReportStatus(intStatus int) WeeklyReportStatusEnum {
 	return WeeklyReportStatusDraft
 }
 
-// MoodStatus 気分ステータス
-type MoodStatus int
-
-const (
-	// MoodStatusTerrible サイテー（1）
-	MoodStatusTerrible MoodStatus = 1
-	// MoodStatusBad イマイチ（2）
-	MoodStatusBad MoodStatus = 2
-	// MoodStatusNeutral ふつう（3）
-	MoodStatusNeutral MoodStatus = 3
-	// MoodStatusGood イイ感じ（4）
-	MoodStatusGood MoodStatus = 4
-	// MoodStatusExcellent サイコー（5）
-	MoodStatusExcellent MoodStatus = 5
-)
-
-// MarshalJSON MoodStatusをJSONに変換するメソッド
-func (m MoodStatus) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("%d", m)), nil
-}
-
-// UnmarshalJSON JSONからMoodStatusに変換するメソッド
-func (m *MoodStatus) UnmarshalJSON(data []byte) error {
-	// 数値としてパース
-	var intValue int
-	err := json.Unmarshal(data, &intValue)
-	if err != nil {
-		return err
-	}
-	*m = MoodStatus(intValue)
-	return nil
-}
 
 // BeforeCreate UUIDを生成
 func (r *WeeklyReport) BeforeCreate(tx *gorm.DB) error {

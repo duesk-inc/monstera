@@ -62,7 +62,6 @@ func createIsolatedTestWeeklyReport(t *testing.T, db *gorm.DB, userID uuid.UUID)
 		StartDate: getMonday(time.Now()),
 		EndDate:   getMonday(time.Now()).AddDate(0, 0, 6),
 		Status:    model.WeeklyReportStatusDraft,
-		Mood:      model.MoodStatusGood,
 	}
 
 	err := db.Create(report).Error
@@ -90,7 +89,6 @@ func TestWeeklyReportServiceIsolated(t *testing.T) {
 			StartDate: getMonday(time.Now()),
 			EndDate:   getMonday(time.Now()).AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 
 		dailyRecords := []*model.DailyRecord{
@@ -151,7 +149,6 @@ func TestWeeklyReportServiceIsolated(t *testing.T) {
 		report := createIsolatedTestWeeklyReport(t, db, userID)
 
 		report.WeeklyRemarks = "更新されたコメント"
-		report.Mood = model.MoodStatusExcellent
 
 		err := weeklyService.Update(ctx, report, nil)
 
@@ -161,7 +158,6 @@ func TestWeeklyReportServiceIsolated(t *testing.T) {
 		err = db.First(&updatedReport, "id = ?", report.ID).Error
 		assert.NoError(t, err)
 		assert.Equal(t, "更新されたコメント", updatedReport.WeeklyRemarks)
-		assert.Equal(t, model.MoodStatusExcellent, updatedReport.Mood)
 	})
 
 	t.Run("Delete_正常系", func(t *testing.T) {
@@ -212,7 +208,6 @@ func TestWeeklyReportServiceIsolated(t *testing.T) {
 			StartDate: getMonday(time.Now()),
 			EndDate:   getMonday(time.Now()).AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 
 		err := weeklyService.Submit(ctx, report.ID, userID)

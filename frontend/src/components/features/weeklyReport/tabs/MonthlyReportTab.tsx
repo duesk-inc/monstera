@@ -112,13 +112,6 @@ export const MonthlyReportTab: React.FC = () => {
     }
   };
 
-  const getMoodColor = (mood: number): string => {
-    if (mood >= 4) return 'success.main';
-    if (mood >= 3) return 'info.main';
-    if (mood >= 2) return 'warning.main';
-    return 'error.main';
-  };
-
   return (
     <Box>
       {/* ヘッダー部分 */}
@@ -236,28 +229,6 @@ export const MonthlyReportTab: React.FC = () => {
                 </Card>
               </Grid>
 
-              <Grid item xs={12} sm={6} md={3}>
-                <Card>
-                  <CardContent>
-                    <Typography color="textSecondary" gutterBottom variant="body2">
-                      平均ムード
-                    </Typography>
-                    <Box display="flex" alignItems="center">
-                      <Typography 
-                        variant="h4" 
-                        sx={{ color: getMoodColor(summary.monthly_stats.average_mood) }}
-                      >
-                        {summary.monthly_stats.average_mood.toFixed(1)}
-                      </Typography>
-                      {summary.comparison_data?.changes && (
-                        <Box ml={1}>
-                          {getTrendIcon(summary.comparison_data.changes.mood_trend)}
-                        </Box>
-                      )}
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
             </Grid>
           </Grid>
 
@@ -276,7 +247,6 @@ export const MonthlyReportTab: React.FC = () => {
                         <TableCell>週</TableCell>
                         <TableCell align="right">提出率</TableCell>
                         <TableCell align="right">平均稼働</TableCell>
-                        <TableCell align="right">ムード</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -288,16 +258,6 @@ export const MonthlyReportTab: React.FC = () => {
                           </TableCell>
                           <TableCell align="right">
                             {week.average_work_hours.toFixed(1)}h
-                          </TableCell>
-                          <TableCell align="right">
-                            <Chip
-                              label={week.average_mood.toFixed(1)}
-                              size="small"
-                              sx={{
-                                backgroundColor: getMoodColor(week.average_mood),
-                                color: 'white',
-                              }}
-                            />
                           </TableCell>
                         </TableRow>
                       ))}

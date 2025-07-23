@@ -40,7 +40,6 @@ import { useEnhancedErrorHandler } from '@/hooks/common/useEnhancedErrorHandler'
 
 // 定数をインポート
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
-import { WeeklyReportMood } from '@/constants/weeklyMood';
 import { SUCCESS_MESSAGES } from '@/constants/errorMessages';
 
 // ユーティリティをインポート
@@ -190,15 +189,6 @@ export default function WeeklyReport() {
     }
   };
 
-  // 気分選択ハンドラー
-  const handleMoodChange = (mood: WeeklyReportMood) => {
-    if (!isSubmitted(report.status)) {
-      setReport({
-        ...report,
-        mood,
-      });
-    }
-  };
 
   // デフォルト設定を保存する
   const handleSaveDefaultSettings = () => {
@@ -451,12 +441,10 @@ export default function WeeklyReport() {
 
           {/* 週間総括 */}
           <WeeklyReportContainer
-            mood={report.mood}
             weeklyRemarks={report.weeklyRemarks}
             weeklyRemarksError={errors.weeklyRemarks}
             isSubmitted={isSubmitted(report.status)}
             loading={loading}
-            onMoodChange={handleMoodChange}
             onWeeklyRemarksChange={(value) => setReport({ ...report, weeklyRemarks: value })}
             onSave={handleOpenSaveDialog}
             onSubmit={handleOpenSubmitDialog}

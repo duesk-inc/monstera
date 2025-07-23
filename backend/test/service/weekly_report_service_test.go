@@ -52,7 +52,6 @@ func testWeeklyReportCreate(t *testing.T) {
 			StartDate: getMonday(time.Now()),
 			EndDate:   getMonday(time.Now()).AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 
 		dailyRecords := []*model.DailyRecord{
@@ -97,7 +96,6 @@ func testWeeklyReportCreate(t *testing.T) {
 			StartDate: getMonday(time.Now()),
 			EndDate:   getMonday(time.Now()).AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 
 		err := weeklyService.Create(ctx, report, nil)
@@ -179,7 +177,6 @@ func testWeeklyReportUpdate(t *testing.T) {
 
 		// 更新データ
 		report.WeeklyRemarks = "更新されたコメント"
-		report.Mood = model.MoodStatusExcellent
 
 		dailyRecords := []*model.DailyRecord{
 			{
@@ -201,7 +198,6 @@ func testWeeklyReportUpdate(t *testing.T) {
 		err = db.First(&updatedReport, "id = ?", report.ID).Error
 		assert.NoError(t, err)
 		assert.Equal(t, "更新されたコメント", updatedReport.WeeklyRemarks)
-		assert.Equal(t, model.MoodStatusExcellent, updatedReport.Mood)
 	})
 
 	t.Run("日次記録なしでの更新", func(t *testing.T) {
@@ -303,7 +299,6 @@ func testWeeklyReportList(t *testing.T) {
 				StartDate: getMonday(time.Now()).AddDate(0, 0, -7*i),
 				EndDate:   getMonday(time.Now()).AddDate(0, 0, -7*i+6),
 				Status:    status,
-				Mood:      model.MoodStatusGood,
 			}
 			err := db.Create(report).Error
 			require.NoError(t, err)
@@ -551,7 +546,6 @@ func testFindWeeklyReportsByStatus(t *testing.T) {
 				StartDate: getMonday(time.Now()).AddDate(0, 0, -7*i),
 				EndDate:   getMonday(time.Now()).AddDate(0, 0, -7*i+6),
 				Status:    status,
-				Mood:      model.MoodStatusGood,
 			}
 			err := db.Create(report).Error
 			require.NoError(t, err)
@@ -586,7 +580,6 @@ func testGetUserWeeklyReportStats(t *testing.T) {
 				StartDate: getMonday(time.Now()).AddDate(0, 0, -7*i),
 				EndDate:   getMonday(time.Now()).AddDate(0, 0, -7*i+6),
 				Status:    status,
-				Mood:      model.MoodStatusGood,
 			}
 			err := db.Create(report).Error
 			require.NoError(t, err)
@@ -614,7 +607,6 @@ func testGetByDateRange(t *testing.T) {
 			StartDate: weekStart,
 			EndDate:   weekStart.AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 		err := db.Create(report).Error
 		require.NoError(t, err)
@@ -657,7 +649,6 @@ func testFindByUserIDAndDateRange(t *testing.T) {
 			StartDate: weekStart,
 			EndDate:   weekStart.AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 		err := db.Create(report).Error
 		require.NoError(t, err)
@@ -696,7 +687,6 @@ func testSaveReport(t *testing.T) {
 			StartDate: weekStart,
 			EndDate:   weekStart.AddDate(0, 0, 6),
 			Status:    model.WeeklyReportStatusDraft,
-			Mood:      model.MoodStatusGood,
 		}
 
 		dailyRecords := []*model.DailyRecord{
@@ -730,7 +720,6 @@ func testSaveReport(t *testing.T) {
 			EndDate:       existingReport.EndDate,
 			Status:        model.WeeklyReportStatusDraft,
 			WeeklyRemarks: "更新されたコメント",
-			Mood:          model.MoodStatusExcellent,
 		}
 
 		dailyRecords := []*model.DailyRecord{
@@ -890,7 +879,6 @@ func createTestWeeklyReport(t *testing.T, db *gorm.DB, userID uuid.UUID) *model.
 		StartDate: weekStart,
 		EndDate:   weekStart.AddDate(0, 0, 6),
 		Status:    model.WeeklyReportStatusDraft,
-		Mood:      model.MoodStatusGood,
 	}
 	err := db.Create(report).Error
 	require.NoError(t, err)
