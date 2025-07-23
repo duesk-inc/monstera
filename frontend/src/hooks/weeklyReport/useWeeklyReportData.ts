@@ -16,7 +16,6 @@ import { AbortError, handleApiError } from '@/lib/api/error';
 import { useToast } from '@/components/common';
 import { SUCCESS_MESSAGES } from '../../constants/errorMessages';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
-import { WEEKLY_REPORT_MOOD } from '@/constants/weeklyMood';
 import { DebugLogger, DEBUG_CATEGORIES, DEBUG_OPERATIONS } from '@/lib/debug/logger';
 import { getCurrentWeek } from '@/utils/dateUtils';
 
@@ -115,7 +114,6 @@ export const useWeeklyReportData = (): UseWeeklyReportDataReturn => {
           submittedAt: undefined,
           status: WEEKLY_REPORT_STATUS.NOT_SUBMITTED,
           dailyRecords: newDailyRecords,
-          mood: WEEKLY_REPORT_MOOD.NEUTRAL,
           weeklyRemarks: '',
           totalWorkHours: 0,
           clientTotalWorkHours: 0,
@@ -237,7 +235,6 @@ export const useWeeklyReportData = (): UseWeeklyReportDataReturn => {
           submittedAt: undefined,
           status: WEEKLY_REPORT_STATUS.NOT_SUBMITTED,
           dailyRecords: newDailyRecords,
-          mood: WEEKLY_REPORT_MOOD.NEUTRAL,
           weeklyRemarks: '',
           totalWorkHours: 0,
           clientTotalWorkHours: 0,

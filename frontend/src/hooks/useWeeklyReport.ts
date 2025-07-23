@@ -352,7 +352,6 @@ export const useWeeklyReport = (reportId?: string | null) => {
           id: undefined,
           submittedAt: undefined,
           status: WEEKLY_REPORT_STATUS.NOT_SUBMITTED,
-          mood: WEEKLY_REPORT_MOOD.NEUTRAL,
           workplaceChangeRequested: false,
         };
         

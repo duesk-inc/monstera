@@ -1,6 +1,5 @@
 import { format, parseISO } from 'date-fns';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
-import { WEEKLY_REPORT_MOOD, WeeklyReportMood } from '@/constants/weeklyMood';
 import { calculateWorkHours } from '@/utils/dateUtils';
 import type { 
   DailyRecord, 
@@ -14,7 +13,6 @@ interface LocalAPIWeeklyReport {
   end_date: string;
   status?: string;  // ENUM型文字列に統一
   submitted_at?: string;
-  mood?: number;
   weekly_remarks?: string;
   daily_records?: Record<string, any>[];
   workplace_change_requested?: boolean;
@@ -90,12 +88,6 @@ export const convertAPIResponseToUIModel = (apiReport: LocalAPIWeeklyReport): We
     });
   }
   
-  let mood: WeeklyReportMood = WEEKLY_REPORT_MOOD.NEUTRAL; 
-
-  if (apiReport.mood !== undefined) {
-    mood = apiReport.mood as WeeklyReportMood;
-  }
-  
   const apiData = apiReport as Record<string, any>;
   const totalWorkHours = apiData.total_work_hours !== undefined 
     ? apiData.total_work_hours 
@@ -110,7 +102,6 @@ export const convertAPIResponseToUIModel = (apiReport: LocalAPIWeeklyReport): We
     startDate: parseISO(apiData.startDate || apiReport.start_date || ''),
     endDate: parseISO(apiData.endDate || apiReport.end_date || ''),
     dailyRecords: dailyRecords,
-    mood: mood,
     weeklyRemarks: apiData.weeklyRemarks || apiReport.weekly_remarks || '',
     status: apiReport.status ?? WEEKLY_REPORT_STATUS.NOT_SUBMITTED,
     submittedAt: apiData.submittedAt || apiReport.submitted_at || '',
@@ -128,7 +119,6 @@ interface APIReportType {
   startDate: string;
   endDate: string;
   dailyRecords: Record<string, any>[];
-  mood: number;
   weeklyRemarks: string;
   status: string;  // ENUM型文字列に統一
   workplaceChangeRequested: boolean;
@@ -178,7 +168,6 @@ export const convertUIModelToAPIRequest = (uiReport: WeeklyReport): APIReportTyp
     startDate: startDateStr,
     endDate: endDateStr,
     status: uiReport.status ?? WEEKLY_REPORT_STATUS.NOT_SUBMITTED,
-    mood: uiReport.mood,
     weeklyRemarks: uiReport.weeklyRemarks,
     dailyRecords: dailyRecords,
     workplaceChangeRequested: uiReport.workplaceChangeRequested || false,

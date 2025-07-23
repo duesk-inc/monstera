@@ -1,7 +1,6 @@
 import { getAuthClient } from '@/lib/api';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
 import { WEEKLY_REPORT_API, API_VERSION } from '@/constants/api';
-import { WEEKLY_REPORT_MOOD, WEEKLY_REPORT_MOOD_MAP, WeeklyReportMood } from '@/constants/weeklyMood';
 import { DEFAULT_WORK_TIME } from '@/constants/defaultWorkTime';
 import { HTTP_STATUS } from '@/constants/network';
 import { 
@@ -41,30 +40,12 @@ export const listWeeklyReports = async (
     // convertSnakeToCamelを使用してレスポンスを変換
     const convertedData = convertSnakeToCamel<ListWeeklyReportsResponse>(response.data);
     
-    // レスポンスデータの処理（バックエンドのwildly_moodをmoodにマッピング）
+    // レスポンスデータの処理
     if (convertedData && convertedData.reports) {
       convertedData.reports = convertedData.reports.map((report: ApiResponseBase) => {
-        // バックエンドが更新される前は文字列、更新後は数値として扱う
-        let mood: WeeklyReportMood;
-        
-        if (report.mood !== undefined) {
-          // すでに更新されているケース
-          mood = report.mood;
-        } else if (report.weeklyMood !== undefined) {
-          // 古い形式のケース - 文字列から数値へのマッピングを適用
-          const oldMood = report.weeklyMood;
-          mood = WEEKLY_REPORT_MOOD_MAP[oldMood as keyof typeof WEEKLY_REPORT_MOOD_MAP] || WEEKLY_REPORT_MOOD.NEUTRAL;
-        } else {
-          // デフォルト値
-          mood = WEEKLY_REPORT_MOOD.NEUTRAL;
-        }
-        
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { weeklyMood, ...rest } = report;
-        return {
-          ...rest,
-          mood
-        };
+        return rest;
       });
     }
     
@@ -173,23 +154,9 @@ export const createWeeklyReport = async (weeklyReport: ApiWeeklyReport): Promise
     
     // レスポンスデータの処理
     if (convertedData) {
-      let mood: WeeklyReportMoodType;
-      
-      if (convertedData.mood !== undefined) {
-        mood = convertedData.mood;
-      } else if (convertedData.weeklyMood !== undefined) {
-        const oldMood = convertedData.weeklyMood;
-        mood = WEEKLY_REPORT_MOOD_MAP[oldMood as keyof typeof WEEKLY_REPORT_MOOD_MAP] || WEEKLY_REPORT_MOOD.NEUTRAL;
-      } else {
-        mood = WEEKLY_REPORT_MOOD.NEUTRAL;
-      }
-      
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { weeklyMood, ...rest } = convertedData;
-      const finalResult = {
-        ...rest,
-        mood
-      };
+      const finalResult = rest;
       
       // デバッグログ: API成功
       DebugLogger.apiSuccess(
@@ -200,8 +167,7 @@ export const createWeeklyReport = async (weeklyReport: ApiWeeklyReport): Promise
         { 
           status: response.status, 
           responseData: response.data,
-          convertedResponseData: finalResult,
-          metadata: { moodProcessing: { originalMood: convertedData.mood, weeklyMood: convertedData.weeklyMood, finalMood: mood } }
+          convertedResponseData: finalResult
         }
       );
       
@@ -301,23 +267,9 @@ export const updateWeeklyReport = async (id: string, weeklyReport: ApiWeeklyRepo
     
     // レスポンスデータの処理
     if (convertedData) {
-      let mood: WeeklyReportMoodType;
-      
-      if (convertedData.mood !== undefined) {
-        mood = convertedData.mood;
-      } else if (convertedData.weeklyMood !== undefined) {
-        const oldMood = convertedData.weeklyMood;
-        mood = WEEKLY_REPORT_MOOD_MAP[oldMood as keyof typeof WEEKLY_REPORT_MOOD_MAP] || WEEKLY_REPORT_MOOD.NEUTRAL;
-      } else {
-        mood = WEEKLY_REPORT_MOOD.NEUTRAL;
-      }
-      
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { weeklyMood, ...rest } = convertedData;
-      const finalResult = {
-        ...rest,
-        mood
-      };
+      const finalResult = rest;
       
       // デバッグログ: API成功
       DebugLogger.apiSuccess(
@@ -329,7 +281,7 @@ export const updateWeeklyReport = async (id: string, weeklyReport: ApiWeeklyRepo
           status: response.status, 
           responseData: response.data,
           convertedResponseData: finalResult,
-          metadata: { weeklyReportId: id, moodProcessing: { originalMood: convertedData.mood, weeklyMood: convertedData.weeklyMood, finalMood: mood } }
+          metadata: { weeklyReportId: id }
         }
       );
       
@@ -386,23 +338,9 @@ export const submitWeeklyReport = async (id: string): Promise<ApiWeeklyReport> =
     
     // レスポンスデータの処理
     if (convertedData) {
-      let mood: WeeklyReportMoodType;
-      
-      if (convertedData.mood !== undefined) {
-        mood = convertedData.mood;
-      } else if (convertedData.weeklyMood !== undefined) {
-        const oldMood = convertedData.weeklyMood;
-        mood = WEEKLY_REPORT_MOOD_MAP[oldMood as keyof typeof WEEKLY_REPORT_MOOD_MAP] || WEEKLY_REPORT_MOOD.NEUTRAL;
-      } else {
-        mood = WEEKLY_REPORT_MOOD.NEUTRAL;
-      }
-      
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { weeklyMood, ...rest } = convertedData;
-      return {
-        ...rest,
-        mood
-      };
+      return rest;
     }
     
     return convertedData;
@@ -470,23 +408,9 @@ export const copyWeeklyReport = async (id: string): Promise<ApiWeeklyReport> => 
     
     // レスポンスデータの処理
     if (convertedData) {
-      let mood: WeeklyReportMoodType;
-      
-      if (convertedData.mood !== undefined) {
-        mood = convertedData.mood;
-      } else if (convertedData.weeklyMood !== undefined) {
-        const oldMood = convertedData.weeklyMood;
-        mood = WEEKLY_REPORT_MOOD_MAP[oldMood as keyof typeof WEEKLY_REPORT_MOOD_MAP] || WEEKLY_REPORT_MOOD.NEUTRAL;
-      } else {
-        mood = WEEKLY_REPORT_MOOD.NEUTRAL;
-      }
-      
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { weeklyMood, ...rest } = convertedData;
-      return {
-        ...rest,
-        mood
-      };
+      return rest;
     }
     
     return convertedData;
@@ -574,23 +498,9 @@ export const getWeeklyReportByDateRange = async (startDate: string, endDate: str
     
     // レスポンスデータの処理
     if (convertedData) {
-      let mood: WeeklyReportMoodType;
-      
-      if (convertedData.mood !== undefined) {
-        mood = convertedData.mood;
-      } else if (convertedData.weeklyMood !== undefined) {
-        const oldMood = convertedData.weeklyMood;
-        mood = WEEKLY_REPORT_MOOD_MAP[oldMood as keyof typeof WEEKLY_REPORT_MOOD_MAP] || WEEKLY_REPORT_MOOD.NEUTRAL;
-      } else {
-        mood = WEEKLY_REPORT_MOOD.NEUTRAL;
-      }
-      
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { weeklyMood, ...rest } = convertedData;
-      return {
-        ...rest,
-        mood
-      };
+      return rest;
     }
     
     return convertedData;

@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { WeeklyReport } from '@/types/weeklyReport';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
-import { WEEKLY_REPORT_MOOD } from '@/constants/weeklyMood';
 import { getCurrentWeek } from '@/utils/dateUtils';
 
 export interface WeeklyReportErrors {
@@ -34,7 +33,6 @@ export const useWeeklyReportState = (): UseWeeklyReportStateReturn => {
     startDate: defaultWeek.startDate,
     endDate: defaultWeek.endDate,
     dailyRecords: [],
-    mood: WEEKLY_REPORT_MOOD.NEUTRAL,
     weeklyRemarks: '',
     status: WEEKLY_REPORT_STATUS.NOT_SUBMITTED,
     totalWorkHours: 0,
