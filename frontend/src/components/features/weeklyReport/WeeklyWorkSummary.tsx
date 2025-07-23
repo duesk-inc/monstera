@@ -31,7 +31,7 @@ export default function WeeklyWorkSummary({
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AccessTimeIcon sx={{ color: 'primary.main' }} />
-          <Typography variant="h6" fontWeight="bold">
+          <Typography variant="subtitle1" fontWeight="bold">
             今週の勤務時間
           </Typography>
         </Box>
