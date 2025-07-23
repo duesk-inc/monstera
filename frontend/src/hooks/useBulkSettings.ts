@@ -11,9 +11,9 @@ export const useBulkSettings = (
   report: WeeklyReport,
   setReport: React.Dispatch<React.SetStateAction<WeeklyReport>>,
   setSnackbar: React.Dispatch<React.SetStateAction<SnackbarState>>,
-  defaultWeekdayStart: string = DEFAULT_WORK_TIME.START,
-  defaultWeekdayEnd: string = DEFAULT_WORK_TIME.END,
-  defaultWeekdayBreak: number = DEFAULT_WORK_TIME.BREAK
+  defaultWeekdayStart: string = DEFAULT_WORK_TIME.START_TIME,
+  defaultWeekdayEnd: string = DEFAULT_WORK_TIME.END_TIME,
+  defaultWeekdayBreak: number = DEFAULT_WORK_TIME.BREAK_TIME
 ) => {
   // ダイアログの状態
   const [openBulkSettingDialog, setOpenBulkSettingDialog] = useState(false);

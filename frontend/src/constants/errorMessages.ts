@@ -264,7 +264,14 @@ export const SUCCESS_MESSAGES = {
   LOGOUT_SUCCESS: "ログアウトしました。",
   PROFILE_UPDATED: "プロフィールを更新しました。",
   PASSWORD_CHANGED: "パスワードを変更しました。",
+  // 週報関連
   WEEKLY_REPORT_SUBMITTED: "週報を提出しました。",
+  WEEKLY_REPORT_SAVED: "週報を下書き保存しました。",
+  WEEKLY_REPORT_LOADED: "週報を読み込みました。",
+  WEEKLY_REPORT_CREATED: "新規週報を作成しました。",
+  BULK_WORK_TIME_SET: "一括設定を適用しました。",
+  DEFAULT_SETTINGS_SAVED: "デフォルト設定を保存しました。",
+  // 申請関連
   EXPENSE_SUBMITTED: "経費申請を提出しました。",
   LEAVE_REQUESTED: "休暇申請を提出しました。",
   APPROVAL_COMPLETED: "承認しました。",

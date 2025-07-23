@@ -54,18 +54,34 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({
   }, [defaultDuration, defaultPosition]);
 
   const showSuccess = useCallback((message: string, options?: Partial<ToastOptions>) => {
+    if (!message) {
+      console.warn('[Toast] Success message is empty or undefined');
+      return;
+    }
     showToast({ type: 'success', message, ...options });
   }, [showToast]);
 
   const showError = useCallback((message: string, options?: Partial<ToastOptions>) => {
+    if (!message) {
+      console.warn('[Toast] Error message is empty or undefined');
+      return;
+    }
     showToast({ type: 'error', message, ...options });
   }, [showToast]);
 
   const showWarning = useCallback((message: string, options?: Partial<ToastOptions>) => {
+    if (!message) {
+      console.warn('[Toast] Warning message is empty or undefined');
+      return;
+    }
     showToast({ type: 'warning', message, ...options });
   }, [showToast]);
 
   const showInfo = useCallback((message: string, options?: Partial<ToastOptions>) => {
+    if (!message) {
+      console.warn('[Toast] Info message is empty or undefined');
+      return;
+    }
     showToast({ type: 'info', message, ...options });
   }, [showToast]);
 

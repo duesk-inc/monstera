@@ -23,9 +23,9 @@ export const useDefaultSettings = (
 
   // ユーザーのデフォルト勤務時間設定
   const [defaultSettings, setDefaultSettings] = useState<DefaultWorkTimeSettings>({
-    weekdayStart: DEFAULT_WORK_TIME.START, 
-    weekdayEnd: DEFAULT_WORK_TIME.END,
-    weekdayBreak: DEFAULT_WORK_TIME.BREAK,
+    weekdayStart: DEFAULT_WORK_TIME.START_TIME, 
+    weekdayEnd: DEFAULT_WORK_TIME.END_TIME,
+    weekdayBreak: DEFAULT_WORK_TIME.BREAK_TIME,
     customDaySettings: DEFAULT_CUSTOM_DAY_SETTINGS
   });
 

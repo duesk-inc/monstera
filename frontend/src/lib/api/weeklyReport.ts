@@ -642,8 +642,23 @@ export const getUserDefaultWorkSettings = async (): Promise<DefaultWorkTimeSetti
       category: '設定',
       operation: 'デフォルト勤務時間取得'
     }, {
-      error
+      error,
+      endpoint: WEEKLY_REPORT_API.TEMPLATE,
+      fallbackValues: {
+        weekdayStart: DEFAULT_WORK_TIME.START_TIME,
+        weekdayEnd: DEFAULT_WORK_TIME.END_TIME,
+        weekdayBreak: DEFAULT_WORK_TIME.BREAK_TIME,
+      }
     });
+    
+    // 開発環境では詳細なエラー情報を出力
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('[Weekly Report API] デフォルト設定の取得に失敗しました。フォールバック値を使用します。', {
+        endpoint: WEEKLY_REPORT_API.TEMPLATE,
+        error: error instanceof Error ? error.message : error,
+      });
+    }
+    
     // APIエラー時はデフォルト値を返す
     return {
       weekdayStart: DEFAULT_WORK_TIME.START_TIME,

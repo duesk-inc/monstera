@@ -19,9 +19,11 @@ export const PROFILE_API = {
 export const WEEKLY_REPORT_API = {
   BASE: `/api/${API_VERSION}/weekly-reports`,
   CREATE: `/api/${API_VERSION}/weekly-reports`,
-  UPDATE: `/api/${API_VERSION}/weekly-reports`,
+  UPDATE: `/api/${API_VERSION}/weekly-reports/:id`,
   LIST: `/api/${API_VERSION}/weekly-reports`,
-  DETAIL: `/api/${API_VERSION}/weekly-reports`,
+  DETAIL: `/api/${API_VERSION}/weekly-reports/:id`,
+  SUBMIT: `/api/${API_VERSION}/weekly-reports/:id/submit`,
+  TEMPLATE: `/api/${API_VERSION}/weekly-reports/default-settings`,
 } as const;
 
 export const SKILL_SHEET_API = {

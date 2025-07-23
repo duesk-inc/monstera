@@ -64,9 +64,9 @@ export const useWeeklyReportDefault = (): UseWeeklyReportDefaultReturn => {
         if (!defaultSettings || isWeekend) {
           newDailyRecords.push({
             date: dateStr,
-            startTime: isWeekend ? '' : DEFAULT_WORK_TIME.START,
-            endTime: isWeekend ? '' : DEFAULT_WORK_TIME.END,
-            breakTime: isWeekend ? 0 : DEFAULT_WORK_TIME.BREAK,
+            startTime: isWeekend ? '' : DEFAULT_WORK_TIME.START_TIME,
+            endTime: isWeekend ? '' : DEFAULT_WORK_TIME.END_TIME,
+            breakTime: isWeekend ? 0 : DEFAULT_WORK_TIME.BREAK_TIME,
             remarks: '',
             isHolidayWork: false,
           });
