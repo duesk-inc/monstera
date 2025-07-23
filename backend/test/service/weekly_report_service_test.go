@@ -261,7 +261,6 @@ func testWeeklyReportList(t *testing.T) {
 				StartDate: getMonday(time.Now()).AddDate(0, 0, -7*i),
 				EndDate:   getMonday(time.Now()).AddDate(0, 0, -7*i+6),
 				Status:    model.WeeklyReportStatusDraft,
-				Mood:      model.MoodStatusGood,
 			}
 			err := db.Create(report).Error
 			require.NoError(t, err)
@@ -332,7 +331,6 @@ func testWeeklyReportList(t *testing.T) {
 				StartDate: getMonday(time.Now()).AddDate(0, 0, -7*i),
 				EndDate:   getMonday(time.Now()).AddDate(0, 0, -7*i+6),
 				Status:    model.WeeklyReportStatusDraft,
-				Mood:      model.MoodStatusGood,
 			}
 			err := db.Create(report).Error
 			require.NoError(t, err)
@@ -508,7 +506,6 @@ func testFindWeeklyReportsByDateRange(t *testing.T) {
 				StartDate: weekStart,
 				EndDate:   weekStart.AddDate(0, 0, 6),
 				Status:    model.WeeklyReportStatusDraft,
-				Mood:      model.MoodStatusGood,
 			}
 			err := db.Create(report).Error
 			require.NoError(t, err)

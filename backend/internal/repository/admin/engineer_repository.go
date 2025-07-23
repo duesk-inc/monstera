@@ -3,13 +3,12 @@ package admin
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	"monstera/internal/model"
+	"github.com/duesk/monstera/internal/model"
 )
 
 // EngineerRepository エンジニア管理リポジトリインターフェース

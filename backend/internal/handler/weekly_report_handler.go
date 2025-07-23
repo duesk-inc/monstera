@@ -353,8 +353,6 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			Metadata: map[string]interface{}{
 				"report_id":           id.String(),
 				"daily_records_count": len(req.DailyRecords),
-				"mood":                req.Mood,
-				"weekly_mood":         req.WeeklyMood,
 			},
 		},
 	)

@@ -120,7 +120,6 @@ func convertWeeklyReportToDTO(report *model.WeeklyReport, dailyRecords []*model.
 		StartDate:                report.StartDate,
 		EndDate:                  report.EndDate,
 		Status:                   string(report.Status),
-		Mood:                     report.Mood,
 		WeeklyRemarks:            report.WeeklyRemarks,
 		WorkplaceName:            report.WorkplaceName,
 		WorkplaceHours:           report.WorkplaceHours,
