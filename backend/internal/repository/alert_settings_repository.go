@@ -14,7 +14,7 @@ type AlertSettingsRepository interface {
 	Create(ctx context.Context, alertSettings *model.AlertSettings) error
 	GetByID(ctx context.Context, id uuid.UUID) (*model.AlertSettings, error)
 	GetList(ctx context.Context, page, limit int) ([]*model.AlertSettings, int64, error)
-	GetActiveSettings(ctx context.Context) ([]*model.AlertSettings, error)
+	GetSettings(ctx context.Context) (*model.AlertSettings, error)
 	Update(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error
 	Delete(ctx context.Context, id uuid.UUID) error
 }
@@ -101,20 +101,23 @@ func (r *alertSettingsRepository) GetList(ctx context.Context, page, limit int) 
 	return alertSettings, total, nil
 }
 
-// GetActiveSettings 有効なアラート設定を取得
-func (r *alertSettingsRepository) GetActiveSettings(ctx context.Context) ([]*model.AlertSettings, error) {
-	var alertSettings []*model.AlertSettings
+// GetSettings アラート設定を取得（システム全体で1レコード）
+func (r *alertSettingsRepository) GetSettings(ctx context.Context) (*model.AlertSettings, error) {
+	var alertSettings model.AlertSettings
 
 	err := r.db.WithContext(ctx).
-		Where("is_active = ?", true).
-		Find(&alertSettings).Error
+		First(&alertSettings).Error
 
 	if err != nil {
-		r.logger.Error("Failed to get active alert settings", zap.Error(err))
+		if err == gorm.ErrRecordNotFound {
+			r.logger.Warn("Alert settings not found")
+			return nil, err
+		}
+		r.logger.Error("Failed to get alert settings", zap.Error(err))
 		return nil, err
 	}
 
-	return alertSettings, nil
+	return &alertSettings, nil
 }
 
 // Update アラート設定を更新
