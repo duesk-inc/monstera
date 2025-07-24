@@ -113,11 +113,45 @@ export const useEnhancedErrorHandler = () => {
     }
   }, [handleError]);
 
+  /**
+   * 送信エラー専用ハンドラー
+   * @param error エラーオブジェクト
+   * @param actionName アクション名
+   * @param context 処理コンテキスト（オプション）
+   * @returns void
+   */
+  const handleSubmissionError = useCallback((
+    error: unknown,
+    actionName: string,
+    context?: string
+  ) => {
+    // Abortエラーは通常表示しない
+    if (isAbortError(error)) {
+      return;
+    }
+    
+    // エラーログの出力
+    const logContext = context || actionName;
+    console.error(`Submission error in ${logContext}:`, error);
+    
+    // Toast表示用のメッセージ取得
+    // 注意: getToastMessageはメッセージを返すだけで、実際の表示は行わない
+    const toastMessage = getToastMessage(error, actionName, context);
+    
+    // メッセージが取得できた場合の処理
+    // 現在の実装では、getToastMessageがnullを返す可能性があるため、
+    // 呼び出し側でToast表示を行う必要がある
+    if (!toastMessage) {
+      console.warn(`No toast message generated for error in ${actionName}`);
+    }
+  }, [getToastMessage, isAbortError]);
+
   return {
     handleError,
     getToastMessage,
     getFieldErrors,
     getRecommendedAction,
+    handleSubmissionError,
   };
 };
 
