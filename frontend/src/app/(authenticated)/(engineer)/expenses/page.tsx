@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { PageContainer } from '@/components/common/layout/PageContainer';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { ExpenseList } from '@/components/features/expense';
@@ -12,11 +12,21 @@ import { Box, CircularProgress, Alert } from '@mui/material';
  * 経費申請の一覧表示、フィルタリング、検索機能を提供
  */
 export default function ExpensesPage() {
-  const [fiscalYear, setFiscalYear] = useState('2023');
+  // 現在年度を動的に取得
+  const currentYear = new Date().getFullYear();
+  const [fiscalYear, setFiscalYear] = useState(currentYear.toString());
   
-  // データ取得
-  const { expenses, isLoading, error } = useExpenses({
+  // データ取得（初期フィルターで現在年度を設定）
+  const { 
+    expenses, 
+    isLoading, 
+    error,
+    updateYearFilter
+  } = useExpenses({
     autoFetch: true,
+    initialFilters: {
+      year: currentYear,
+    },
   });
 
   // ExpenseHistoryItem形式への変換
@@ -33,7 +43,10 @@ export default function ExpensesPage() {
   }, [expenses]);
 
   const handleFiscalYearChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setFiscalYear(event.target.value);
+    const newYear = event.target.value;
+    setFiscalYear(newYear);
+    // 年度が変更されたら、年フィルターを更新
+    updateYearFilter(parseInt(newYear, 10));
   };
 
   if (error) {

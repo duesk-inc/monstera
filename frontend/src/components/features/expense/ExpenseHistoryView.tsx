@@ -4,11 +4,10 @@ import {
 } from '@mui/material';
 import { FormRadioGroup, HistoryTable, createExpenseHistoryColumns, type HistoryItem } from '@/components/common';
 
-// 年度オプション
+// 年度オプション - 現在年度のみ表示
+const currentYear = new Date().getFullYear();
 const FISCAL_YEARS = [
-  { value: '2023', label: '2023年度' },
-  { value: '2022', label: '2022年度' },
-  { value: '2021', label: '2021年度' },
+  { value: currentYear.toString(), label: `${currentYear}年度` },
 ];
 
 // 経費申請履歴項目の型定義 (HistoryItemを拡張)

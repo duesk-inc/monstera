@@ -282,6 +282,25 @@ func (h *ExpenseHandler) GetExpenseList(c *gin.Context) {
 		}
 	}
 
+	// 年度フィルター
+	if yearStr := c.Query("year"); yearStr != "" {
+		if year, err := strconv.Atoi(yearStr); err == nil && year >= 2020 && year <= 2050 {
+			filter.Year = &year
+		}
+	}
+
+	if fiscalYearStr := c.Query("fiscal_year"); fiscalYearStr != "" {
+		if fiscalYear, err := strconv.Atoi(fiscalYearStr); err == nil && fiscalYear >= 2020 && fiscalYear <= 2050 {
+			filter.FiscalYear = &fiscalYear
+		}
+	}
+
+	if monthStr := c.Query("month"); monthStr != "" {
+		if month, err := strconv.Atoi(monthStr); err == nil && month >= 1 && month <= 12 {
+			filter.Month = &month
+		}
+	}
+
 	// ソート
 	if sortBy := c.Query("sort_by"); sortBy != "" {
 		filter.SortBy = &sortBy

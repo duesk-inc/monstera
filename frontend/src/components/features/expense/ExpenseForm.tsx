@@ -22,7 +22,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ja } from 'date-fns/locale';
-import { format, parseISO, isValid, endOfDay, formatDistanceToNow } from 'date-fns';
+import { format, parseISO, isValid, endOfDay, formatDistanceToNow, startOfYear, endOfYear } from 'date-fns';
 import { ja as jaLocale } from 'date-fns/locale';
 import { ReceiptUploader } from './ReceiptUploader';
 import { useCategories } from '@/hooks/expense/useCategories';
@@ -37,6 +37,11 @@ import { Save as SaveIcon } from '@mui/icons-material';
 const AMOUNT_STEP = 1;
 const DATE_FORMAT = 'yyyy-MM-dd';
 const DISPLAY_DATE_FORMAT = 'yyyy年MM月dd日';
+
+// 現在年度の範囲を定義
+const currentYear = new Date().getFullYear();
+const currentYearStart = startOfYear(new Date(currentYear, 0, 1));
+const currentYearEnd = endOfYear(new Date(currentYear, 11, 31));
 
 interface ExpenseFormProps {
   expense?: ExpenseData;
@@ -158,6 +163,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         newErrors.push({ field: 'expenseDate', message: '有効な日付を選択してください' });
       } else if (expenseDate > today) {
         newErrors.push({ field: 'expenseDate', message: '未来の日付は選択できません' });
+      } else if (expenseDate < currentYearStart || expenseDate > currentYearEnd) {
+        newErrors.push({ field: 'expenseDate', message: `${currentYear}年の日付を選択してください` });
       }
     }
 
@@ -343,7 +350,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                     onBlur: () => handleFieldBlur('expenseDate'),
                   },
                 }}
-                maxDate={new Date()}
+                minDate={currentYearStart}
+                maxDate={new Date() > currentYearEnd ? currentYearEnd : new Date()}
                 format={DISPLAY_DATE_FORMAT}
                 disabled={isLoading}
               />
