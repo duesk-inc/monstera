@@ -169,17 +169,9 @@ async function apiRequest<T>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+    credentials: 'include', // Cookie認証を使用
     ...options,
   };
-
-  // 認証トークンがある場合は追加
-  const token = localStorage.getItem('accessToken');
-  if (token) {
-    defaultOptions.headers = {
-      ...defaultOptions.headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
 
   try {
     const response = await fetch(url, defaultOptions);
@@ -304,9 +296,7 @@ export async function uploadReceipts(data: ReceiptUploadData): Promise<ReceiptUp
   const response = await fetch(`${API_BASE_URL}${EXPENSE_API_ENDPOINTS.RECEIPTS}`, {
     method: 'POST',
     body: formData,
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-    },
+    credentials: 'include', // Cookie認証を使用
   });
 
   if (!response.ok) {
@@ -342,9 +332,7 @@ export async function generateExpenseReport(params: ExpenseSearchParams & { form
 
   const endpoint = `${EXPENSE_API_ENDPOINTS.REPORTS}?${searchParams.toString()}`;
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
-    },
+    credentials: 'include', // Cookie認証を使用
   });
 
   if (!response.ok) {
