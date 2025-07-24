@@ -210,6 +210,23 @@ export async function getExpenses(params: ExpenseSearchParams = {}): Promise<Exp
   return apiRequest<ExpenseListResponse>(endpoint);
 }
 
+// 経費一覧を取得（型定義をtypes/expenseから使用するバージョン）
+export async function getExpenseList(
+  params: ExpenseSearchParams = {},
+  signal?: AbortSignal
+): Promise<ExpenseListResponse> {
+  const searchParams = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, value.toString());
+    }
+  });
+
+  const endpoint = `${EXPENSE_API_ENDPOINTS.EXPENSES}?${searchParams.toString()}`;
+  return apiRequest<ExpenseListResponse>(endpoint, { signal });
+}
+
 // 経費詳細を取得
 export async function getExpense(id: string): Promise<Expense> {
   return apiRequest<Expense>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`);
