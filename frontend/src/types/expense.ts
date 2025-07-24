@@ -106,29 +106,3 @@ export type SortableFieldType =
   | 'status'
   | 'created_at'
   | 'updated_at';
-
-// 定数定義も追加（useExpensesで参照されているため）
-export const SORT_DIRECTION = {
-  ASC: 'asc' as const,
-  DESC: 'desc' as const,
-};
-
-export const SORTABLE_FIELDS = {
-  DATE: 'date' as const,
-  AMOUNT: 'amount' as const,
-  STATUS: 'status' as const,
-  CREATED_AT: 'created_at' as const,
-  UPDATED_AT: 'updated_at' as const,
-};
-
-export const PAGINATION_CONSTANTS = {
-  DEFAULT_PAGE_SIZE: 20,
-  PAGE_SIZE_OPTIONS: [10, 20, 50, 100],
-  MAX_PAGE_SIZE: 100,
-};
-
-export const FILTER_CONSTANTS = {
-  DEFAULT_DATE_RANGE_DAYS: 30,
-  MAX_DATE_RANGE_DAYS: 365,
-  DEFAULT_STATUS_FILTER: [] as ExpenseStatusType[],
-};
