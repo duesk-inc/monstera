@@ -200,10 +200,13 @@ export const EXPENSE_LIMITS = {
 
 // 経費の期限
 export const EXPENSE_DEADLINES = {
-  SUBMISSION_DAYS: 30, // 30日以内
+  SUBMISSION_DAYS: 30, // 30日以内（レガシー）
+  SUBMISSION_UNTIL_DAY: 10, // 翌月10日まで
   APPROVAL_DAYS: 7, // 7日以内
   PAYMENT_DAYS: 14, // 14日以内
   RECEIPT_UPLOAD_DAYS: 3, // 3日以内
+  WARNING_DAYS: 7, // 期限7日前から警告
+  CRITICAL_DAYS: 3, // 期限3日前から緊急警告
 } as const;
 
 // 領収書の設定
@@ -290,6 +293,11 @@ export const EXPENSE_MESSAGES = {
   CATEGORY_REQUIRED: "カテゴリは必須です。",
   DATE_REQUIRED: "日付は必須です。",
   RECEIPT_REQUIRED: "領収書は必須です。",
+  VALIDATION_ERROR: "入力内容に誤りがあります。",
+  DEADLINE_EXCEEDED: "申請期限を過ぎているため、この経費は申請できません。",
+  DEADLINE_WARNING: "申請期限が近づいています。",
+  DEADLINE_CRITICAL: "申請期限が迫っています。",
+  DEADLINE_EXPIRED: "申請期限を過ぎています。",
 } as const;
 
 // アップロード定数

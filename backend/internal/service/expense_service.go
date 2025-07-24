@@ -14,6 +14,7 @@ import (
 	"github.com/duesk/monstera/internal/metrics"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
+	"github.com/duesk/monstera/internal/utils"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -177,6 +178,11 @@ func (s *expenseService) Create(ctx context.Context, userID uuid.UUID, req *dto.
 		return nil, dto.NewExpenseError(dto.ErrCodeCategoryInactive, "指定されたカテゴリは利用できません")
 	}
 
+	// 期限チェック
+	if !utils.IsAllowableForSubmission(req.ExpenseDate, time.Now()) {
+		return nil, dto.NewExpenseError(dto.ErrCodeDeadlineExceeded, "申請期限を過ぎているため、この日付の経費は申請できません")
+	}
+
 	// 上限チェック
 	limitCheck, err := s.CheckLimits(ctx, userID, req.Amount, req.ExpenseDate)
 	if err != nil {
@@ -292,7 +298,7 @@ func (s *expenseService) Update(ctx context.Context, id uuid.UUID, userID uuid.U
 		}
 	}
 
-	// 金額または日付が変更される場合は上限チェック
+	// 金額または日付が変更される場合は期限・上限チェック
 	newAmount := expense.Amount
 	if req.Amount != nil {
 		newAmount = *req.Amount
@@ -300,6 +306,10 @@ func (s *expenseService) Update(ctx context.Context, id uuid.UUID, userID uuid.U
 	newDate := expense.ExpenseDate
 	if req.ExpenseDate != nil {
 		newDate = *req.ExpenseDate
+		// 日付が変更される場合は期限チェック
+		if !utils.IsAllowableForSubmission(newDate, time.Now()) {
+			return nil, dto.NewExpenseError(dto.ErrCodeDeadlineExceeded, "申請期限を過ぎているため、この日付の経費は申請できません")
+		}
 	}
 
 	if req.Amount != nil || req.ExpenseDate != nil {

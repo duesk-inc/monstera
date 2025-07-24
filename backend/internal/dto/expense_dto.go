@@ -1030,6 +1030,9 @@ const (
 	
 	// 承認者設定関連エラーコード
 	ErrCodeNoApproversConfigured = "EXPENSE_NO_APPROVERS_CONFIGURED"
+	
+	// 期限関連エラーコード
+	ErrCodeDeadlineExceeded = "EXPENSE_DEADLINE_EXCEEDED"
 )
 
 // ExpenseLimitSettingResponse 経費申請上限設定レスポンス

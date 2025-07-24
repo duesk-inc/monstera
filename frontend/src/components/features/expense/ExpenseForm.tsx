@@ -31,7 +31,13 @@ import { useEnhancedErrorHandler } from '@/hooks/common/useEnhancedErrorHandler'
 import { useAutoSave } from '@/hooks/expense/useAutoSave';
 import { VALIDATION_CONSTANTS, EXPENSE_MESSAGES } from '@/constants/expense';
 import type { ExpenseFormData, ExpenseData, ValidationError } from '@/types/expense';
-import { Save as SaveIcon } from '@mui/icons-material';
+import { Save as SaveIcon, Warning as WarningIcon, Error as ErrorIcon } from '@mui/icons-material';
+import { 
+  isWithinDeadline, 
+  getDeadlineWarningLevel, 
+  getDeadlineMessage,
+  isAllowableForSubmission 
+} from '@/utils/expenseDeadline';
 
 // UI定数
 const AMOUNT_STEP = 1;
@@ -99,6 +105,12 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const isReceiptRequired = selectedCategory?.requiresReceipt || 
     (formData.amount >= VALIDATION_CONSTANTS.RECEIPT_REQUIRED_AMOUNT);
 
+  // 期限情報の計算
+  const expenseDate = formData.expenseDate ? parseISO(formData.expenseDate) : null;
+  const deadlineWarningLevel = expenseDate ? getDeadlineWarningLevel(expenseDate) : 'normal';
+  const deadlineMessage = expenseDate ? getDeadlineMessage(expenseDate) : '';
+  const isExpired = deadlineWarningLevel === 'expired';
+
   // フォーム初期化
   useEffect(() => {
     if (expense && mode === 'edit') {
@@ -165,6 +177,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         newErrors.push({ field: 'expenseDate', message: '未来の日付は選択できません' });
       } else if (expenseDate < currentYearStart || expenseDate > currentYearEnd) {
         newErrors.push({ field: 'expenseDate', message: `${currentYear}年の日付を選択してください` });
+      } else if (!isAllowableForSubmission(expenseDate)) {
+        newErrors.push({ field: 'expenseDate', message: '申請期限を過ぎているため、この日付の経費は申請できません' });
       }
     }
 
@@ -355,6 +369,26 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 format={DISPLAY_DATE_FORMAT}
                 disabled={isLoading}
               />
+              {/* 期限情報の表示 */}
+              {formData.expenseDate && (
+                <Box sx={{ mt: 1 }}>
+                  <Chip
+                    icon={
+                      deadlineWarningLevel === 'expired' ? <ErrorIcon /> :
+                      deadlineWarningLevel === 'critical' ? <WarningIcon /> :
+                      deadlineWarningLevel === 'warning' ? <WarningIcon /> : null
+                    }
+                    label={deadlineMessage}
+                    color={
+                      deadlineWarningLevel === 'expired' ? 'error' :
+                      deadlineWarningLevel === 'critical' ? 'error' :
+                      deadlineWarningLevel === 'warning' ? 'warning' : 'info'
+                    }
+                    size="small"
+                    variant={deadlineWarningLevel === 'normal' ? 'outlined' : 'filled'}
+                  />
+                </Box>
+              )}
             </Grid>
 
             {/* カテゴリ */}
@@ -458,6 +492,15 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
               </Grid>
             )}
 
+            {/* 期限切れ警告 */}
+            {isExpired && (
+              <Grid item xs={12}>
+                <Alert severity="error" icon={<ErrorIcon />}>
+                  申請期限を過ぎているため、この経費は申請できません。
+                </Alert>
+              </Grid>
+            )}
+
             {/* アクションボタン */}
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
@@ -471,7 +514,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 <Button
                   type="submit"
                   variant="contained"
-                  disabled={isLoading}
+                  disabled={isLoading || isExpired}
                   startIcon={isLoading && <CircularProgress size={20} />}
                 >
                   {mode === 'create' ? '作成' : '更新'}
