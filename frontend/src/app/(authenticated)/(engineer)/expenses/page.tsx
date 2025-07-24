@@ -1,31 +1,35 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { PageContainer } from '@/components/common/layout/PageContainer';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { ExpenseList } from '@/components/features/expense';
 import { useExpenses } from '@/hooks/expense/useExpenses';
-import { Box, CircularProgress, Alert } from '@mui/material';
+import { Box, CircularProgress, Alert, Typography } from '@mui/material';
+import { subYears, format } from 'date-fns';
 
 /**
  * 経費申請一覧ページ
  * 経費申請の一覧表示、フィルタリング、検索機能を提供
  */
 export default function ExpensesPage() {
-  // 現在年度を動的に取得
-  const currentYear = new Date().getFullYear();
-  const [fiscalYear, setFiscalYear] = useState(currentYear.toString());
+  // 直近1年間の日付範囲を計算
+  const today = new Date();
+  const oneYearAgo = subYears(today, 1);
+  const dateRange = {
+    start: format(oneYearAgo, 'yyyy-MM-dd'),
+    end: format(today, 'yyyy-MM-dd'),
+  };
   
-  // データ取得（初期フィルターで現在年度を設定）
+  // データ取得（直近1年間のデータを取得）
   const { 
     expenses, 
     isLoading, 
     error,
-    updateYearFilter
   } = useExpenses({
     autoFetch: true,
     initialFilters: {
-      year: currentYear,
+      dateRange,
     },
   });
 
@@ -41,13 +45,6 @@ export default function ExpensesPage() {
       rejectionReason: expense.rejectionReason,
     }));
   }, [expenses]);
-
-  const handleFiscalYearChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newYear = event.target.value;
-    setFiscalYear(newYear);
-    // 年度が変更されたら、年フィルターを更新
-    updateYearFilter(parseInt(newYear, 10));
-  };
 
   if (error) {
     return (
@@ -83,9 +80,12 @@ export default function ExpensesPage() {
         title="経費申請一覧"
         subtitle="経費申請の作成・管理を行います"
       />
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          直近1年間の申請履歴を表示しています
+        </Typography>
+      </Box>
       <ExpenseList 
-        fiscalYear={fiscalYear}
-        onFiscalYearChange={handleFiscalYearChange}
         historyData={historyData}
       />
     </PageContainer>
