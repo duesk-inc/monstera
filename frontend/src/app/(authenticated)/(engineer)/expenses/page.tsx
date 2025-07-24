@@ -1,18 +1,23 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageContainer } from '@/components/common/layout/PageContainer';
 import { PageHeader } from '@/components/common/layout/PageHeader';
 import { ExpenseList } from '@/components/features/expense';
 import { useExpenses } from '@/hooks/expense/useExpenses';
 import { Box, CircularProgress, Alert, Typography } from '@mui/material';
 import { subYears, format } from 'date-fns';
+import ActionButton from '@/components/common/ActionButton';
+import { Add as AddIcon } from '@mui/icons-material';
 
 /**
  * 経費申請一覧ページ
  * 経費申請の一覧表示、フィルタリング、検索機能を提供
  */
 export default function ExpensesPage() {
+  const router = useRouter();
+  
   // 直近1年間の日付範囲を計算
   const today = new Date();
   const oneYearAgo = subYears(today, 1);
@@ -52,6 +57,15 @@ export default function ExpensesPage() {
         <PageHeader
           title="経費申請一覧"
           subtitle="エラーが発生しました"
+          actions={
+            <ActionButton
+              buttonType="primary"
+              icon={<AddIcon />}
+              onClick={() => router.push('/expenses/new')}
+            >
+              新規作成
+            </ActionButton>
+          }
         />
         <Alert severity="error" sx={{ mt: 2 }}>
           データの取得中にエラーが発生しました。後ほど再度お試しください。
@@ -66,6 +80,15 @@ export default function ExpensesPage() {
         <PageHeader
           title="経費申請一覧"
           subtitle="経費申請の作成・管理を行います"
+          actions={
+            <ActionButton
+              buttonType="primary"
+              icon={<AddIcon />}
+              onClick={() => router.push('/expenses/new')}
+            >
+              新規作成
+            </ActionButton>
+          }
         />
         <Box display="flex" justifyContent="center" alignItems="center" minHeight={400}>
           <CircularProgress />
@@ -79,6 +102,15 @@ export default function ExpensesPage() {
       <PageHeader
         title="経費申請一覧"
         subtitle="経費申請の作成・管理を行います"
+        actions={
+          <ActionButton
+            buttonType="primary"
+            icon={<AddIcon />}
+            onClick={() => router.push('/expenses/new')}
+          >
+            新規作成
+          </ActionButton>
+        }
       />
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" color="text.secondary">
