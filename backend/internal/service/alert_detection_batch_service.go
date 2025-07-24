@@ -496,10 +496,10 @@ func (s *alertDetectionBatchService) HealthCheck(ctx context.Context) (*BatchHea
 	}
 
 	// アラート設定の存在確認
-	settings, err := s.alertSettingsRepo.GetActiveSettings(ctx)
-	if err != nil || len(settings) == 0 {
+	_, err := s.alertSettingsRepo.GetSettings(ctx)
+	if err != nil {
 		status.AlertSettings = false
-		s.logger.Warn("No active alert settings found")
+		s.logger.Warn("Alert settings not found", zap.Error(err))
 	} else {
 		status.AlertSettings = true
 	}

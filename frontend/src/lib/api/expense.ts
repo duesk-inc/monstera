@@ -107,6 +107,45 @@ export interface ReceiptUploadResponse {
   message: string;
 }
 
+// ファイルアップロード関連の型定義
+export interface UploadFileRequest {
+  fileName: string;
+  fileSize: number;
+  contentType: string;
+}
+
+export interface UploadFileResponse {
+  uploadUrl: string;
+  s3Key: string;
+  expiresAt: string;
+}
+
+export interface UploadProgress {
+  file: File;
+  progress: number;
+  status: 'pending' | 'uploading' | 'completed' | 'error';
+  error?: string;
+  uploadUrl?: string;
+  s3Key?: string;
+}
+
+export interface CompleteUploadRequest {
+  s3Key: string;
+  fileName: string;
+  fileSize: number;
+  contentType: string;
+}
+
+export interface CompleteUploadResponse {
+  receiptUrl: string;
+  s3Key: string;
+  uploadedAt: string;
+}
+
+export interface DeleteUploadRequest {
+  s3Key: string;
+}
+
 // API エラーの型定義
 export interface ApiError {
   message: string;
@@ -169,6 +208,23 @@ export async function getExpenses(params: ExpenseSearchParams = {}): Promise<Exp
 
   const endpoint = `${EXPENSE_API_ENDPOINTS.EXPENSES}?${searchParams.toString()}`;
   return apiRequest<ExpenseListResponse>(endpoint);
+}
+
+// 経費一覧を取得（型定義をtypes/expenseから使用するバージョン）
+export async function getExpenseList(
+  params: ExpenseSearchParams = {},
+  signal?: AbortSignal
+): Promise<ExpenseListResponse> {
+  const searchParams = new URLSearchParams();
+  
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      searchParams.append(key, value.toString());
+    }
+  });
+
+  const endpoint = `${EXPENSE_API_ENDPOINTS.EXPENSES}?${searchParams.toString()}`;
+  return apiRequest<ExpenseListResponse>(endpoint, { signal });
 }
 
 // 経費詳細を取得
@@ -315,5 +371,29 @@ export async function createExpenseTemplate(data: ExpenseCreateData & { name: st
 export async function deleteExpenseTemplate(id: string): Promise<void> {
   return apiRequest<void>(`${EXPENSE_API_ENDPOINTS.TEMPLATES}/${id}`, {
     method: 'DELETE',
+  });
+}
+
+// Pre-signed URLを生成
+export async function generateUploadURL(data: UploadFileRequest): Promise<UploadFileResponse> {
+  return apiRequest<UploadFileResponse>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-url`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// アップロード完了を通知
+export async function completeUpload(data: CompleteUploadRequest): Promise<CompleteUploadResponse> {
+  return apiRequest<CompleteUploadResponse>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-complete`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+// アップロード済みファイルを削除
+export async function deleteUploadedFile(data: DeleteUploadRequest): Promise<void> {
+  return apiRequest<void>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload`, {
+    method: 'DELETE',
+    body: JSON.stringify(data),
   });
 }

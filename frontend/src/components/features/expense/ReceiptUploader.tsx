@@ -18,18 +18,24 @@ import {
   Error as ErrorIcon,
   Visibility as VisibilityIcon,
 } from '@mui/icons-material';
-import { generateUploadURL, completeUpload, deleteUploadedFile } from '@/lib/api/expense';
+import { 
+  generateUploadURL, 
+  completeUpload, 
+  deleteUploadedFile,
+  type UploadFileRequest,
+  type UploadFileResponse,
+  type UploadProgress
+} from '@/lib/api/expense';
 import { useEnhancedErrorHandler } from '@/hooks/common/useEnhancedErrorHandler';
 import { useToast } from '@/components/common/Toast';
 import { UPLOAD_CONSTANTS, EXPENSE_MESSAGES } from '@/constants/expense';
-import type { UploadFileRequest, UploadFileResponse, UploadProgress } from '@/types/expense';
 
 // プログレス更新間隔（ミリ秒）
 const PROGRESS_UPDATE_INTERVAL = 100;
 // 最大ファイルサイズ（バイト）
 const MAX_FILE_SIZE = UPLOAD_CONSTANTS.MAX_FILE_SIZE;
 // 許可されるMIMEタイプ
-const ALLOWED_MIME_TYPES = UPLOAD_CONSTANTS.ALLOWED_MIME_TYPES;
+const ALLOWED_MIME_TYPES = UPLOAD_CONSTANTS.ALLOWED_TYPES;
 // UI定数
 const ICON_SIZE = 48;
 const ICON_SIZE_SMALL = 20;

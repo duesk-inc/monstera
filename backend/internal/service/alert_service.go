@@ -115,15 +115,12 @@ func NewAlertService(
 
 // GetAlertSettings アラート設定を取得
 func (s *alertService) GetAlertSettings(ctx context.Context) (*model.AlertSettings, error) {
-	settings, err := s.alertSettingsRepo.GetActiveSettings(ctx)
+	settings, err := s.alertSettingsRepo.GetSettings(ctx)
 	if err != nil {
 		s.logger.Error("Failed to get alert settings", zap.Error(err))
 		return nil, fmt.Errorf("アラート設定の取得に失敗しました: %w", err)
 	}
-	if len(settings) == 0 {
-		return nil, fmt.Errorf("アクティブな設定が見つかりません")
-	}
-	return settings[0], nil
+	return settings, nil
 }
 
 // UpdateAlertSettings アラート設定を更新

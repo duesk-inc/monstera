@@ -327,6 +327,35 @@ export const VALIDATION_CONSTANTS = {
   },
 } as const;
 
+// ソート方向
+export const SORT_DIRECTION = {
+  ASC: 'asc' as const,
+  DESC: 'desc' as const,
+};
+
+// ソート可能フィールド
+export const SORTABLE_FIELDS = {
+  DATE: 'date' as const,
+  AMOUNT: 'amount' as const,
+  STATUS: 'status' as const,
+  CREATED_AT: 'created_at' as const,
+  UPDATED_AT: 'updated_at' as const,
+};
+
+// ページネーション定数
+export const PAGINATION_CONSTANTS = {
+  DEFAULT_PAGE_SIZE: 20,
+  PAGE_SIZE_OPTIONS: [10, 20, 50, 100],
+  MAX_PAGE_SIZE: 100,
+};
+
+// フィルター定数
+export const FILTER_CONSTANTS = {
+  DEFAULT_DATE_RANGE_DAYS: 30,
+  MAX_DATE_RANGE_DAYS: 365,
+  DEFAULT_STATUS_FILTER: [] as ExpenseStatus[],
+};
+
 // 型定義
 export type ExpenseStatus = typeof EXPENSE_STATUS[keyof typeof EXPENSE_STATUS];
 export type ExpenseCategory = typeof EXPENSE_CATEGORIES[keyof typeof EXPENSE_CATEGORIES];
