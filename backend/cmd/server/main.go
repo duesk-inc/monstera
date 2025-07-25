@@ -51,6 +51,11 @@ func main() {
 
 	// デバッグログ追加
 	logger.Info("Starting application with debug logging enabled")
+	logger.Info("Environment variables",
+		zap.String("GO_ENV", os.Getenv("GO_ENV")),
+		zap.String("USE_MOCK_S3", os.Getenv("USE_MOCK_S3")),
+		zap.String("AWS_REGION", os.Getenv("AWS_REGION")),
+		zap.String("AWS_S3_BUCKET_NAME", os.Getenv("AWS_S3_BUCKET_NAME")))
 
 	// データベース接続
 	db, err := config.InitDatabase(cfg, logger)
@@ -288,15 +293,31 @@ func main() {
 	archiveService := service.NewArchiveService(db, logger)
 
 	// S3サービスを先に初期化
-	s3Service, err := service.NewS3Service(
-		os.Getenv("AWS_S3_BUCKET_NAME"),
-		os.Getenv("AWS_REGION"),
-		os.Getenv("AWS_S3_BASE_URL"),
-		logger,
-	)
-	if err != nil {
-		logger.Error("Failed to initialize S3 service", zap.Error(err))
-		// S3サービスの初期化に失敗してもアプリケーションは継続
+	var s3Service service.S3Service
+	logger.Info("Initializing S3 service",
+		zap.Bool("use_mock", os.Getenv("USE_MOCK_S3") == "true"),
+		zap.Bool("is_development", os.Getenv("GO_ENV") == "development"))
+	
+	if os.Getenv("USE_MOCK_S3") == "true" || os.Getenv("GO_ENV") == "development" {
+		// 開発環境ではモックS3サービスを使用
+		logger.Info("Using mock S3 service for development")
+		s3Service = service.NewMockS3Service(logger)
+	} else {
+		// 本番環境では実際のS3サービスを使用
+		s3Svc, err := service.NewS3Service(
+			os.Getenv("AWS_S3_BUCKET_NAME"),
+			os.Getenv("AWS_REGION"),
+			os.Getenv("AWS_S3_BASE_URL"),
+			logger,
+		)
+		if err != nil {
+			logger.Error("Failed to initialize S3 service", zap.Error(err))
+			// S3サービスの初期化に失敗したらモックを使用
+			logger.Warn("Falling back to mock S3 service")
+			s3Service = service.NewMockS3Service(logger)
+		} else {
+			s3Service = s3Svc
+		}
 	}
 
 	// 経費申請サービスを追加（s3Service, notificationService, userRepo, cacheManager, auditLogServiceを含む）

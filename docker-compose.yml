@@ -120,6 +120,7 @@ services:
       CORS_ALLOW_ORIGINS: http://localhost:3000
       GIN_MODE: debug
       GO_ENV: development
+      USE_MOCK_S3: "true"
       REDIS_ENABLED: "true"
       REDIS_HOST: redis
       REDIS_PORT: 6379

@@ -78,6 +78,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   // フォームデータの状態管理
   const [formData, setFormData] = useState<ExpenseFormData>({
     categoryId: expense?.categoryId || '',
+    categoryCode: undefined,
     amount: expense?.amount || 0,
     description: expense?.description || '',
     receiptUrl: expense?.receiptUrl || undefined,
@@ -106,6 +107,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     if (expense && mode === 'edit') {
       setFormData({
         categoryId: expense.categoryId,
+        categoryCode: undefined,
         amount: expense.amount,
         description: expense.description,
         receiptUrl: expense.receiptUrl,
@@ -343,7 +345,14 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 fullWidth
                 label="カテゴリ *"
                 value={formData.categoryId}
-                onChange={(e) => handleFieldChange('categoryId', e.target.value)}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  const selectedCategory = categories.find(cat => cat.id === selectedId);
+                  handleFieldChange('categoryId', selectedId);
+                  if (selectedCategory) {
+                    handleFieldChange('categoryCode', selectedCategory.code);
+                  }
+                }}
                 onBlur={() => handleFieldBlur('categoryId')}
                 error={touched.categoryId && !!errors.categoryId}
                 helperText={touched.categoryId && errors.categoryId}
