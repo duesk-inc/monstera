@@ -822,6 +822,22 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 			// adminExpenseDeadline.PUT("/:id", expenseDeadlineHandler.UpdateDeadlineSetting)
 			// adminExpenseDeadline.DELETE("/:id", expenseDeadlineHandler.DeleteDeadlineSetting)
 		}
+
+		// 開発環境用のモックアップロードエンドポイント
+		if os.Getenv("USE_MOCK_S3") == "true" || os.Getenv("GO_ENV") == "development" {
+			mockUpload := api.Group("/mock-upload")
+			{
+				// モックアップロードハンドラー（PUTリクエストを受け取って成功を返す）
+				mockUpload.PUT("/*filepath", func(c *gin.Context) {
+					logger.Info("Mock upload received",
+						zap.String("path", c.Param("filepath")),
+						zap.String("method", c.Request.Method))
+					
+					// 成功レスポンスを返す
+					c.Status(http.StatusOK)
+				})
+			}
+		}
 	}
 
 	return router
