@@ -110,9 +110,22 @@ export type SortableFieldType =
 // 経費カテゴリ型
 export interface ExpenseCategory {
   id: string;
+  code: string;
   name: string;
+  requiresDetails?: boolean;
   displayOrder: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+// 経費申請フォーム用データ型
+export interface ExpenseFormData {
+  categoryId: string;
+  categoryCode?: string;
+  amount: number;
+  description: string;
+  receiptUrl?: string;
+  receiptS3Key?: string;
+  expenseDate: string;
 }

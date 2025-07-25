@@ -340,7 +340,9 @@ export async function getExpenseCategories(signal?: AbortSignal): Promise<Expens
   // APIレスポンスをフロントエンドの型にマッピング
   return response.data.map(category => ({
     id: category.id,
+    code: category.code,
     name: category.name,
+    requiresDetails: category.requires_details,
     displayOrder: category.display_order,
     isActive: category.is_active,
     createdAt: category.created_at,
