@@ -15,7 +15,6 @@ export const DEBOUNCE_DELAYS = {
   SEARCH: 300,
   INPUT: 500,
   VALIDATION: 300,
-  AUTO_SAVE: 1000,
   RESIZE: 100,
   SCROLL: 100,
 } as const;
@@ -58,7 +57,6 @@ export const UI_DELAYS = {
 export const FORM_DELAYS = {
   VALIDATION: 300,
   SUBMIT: 500,
-  AUTO_SAVE: 2000,
   FIELD_BLUR: 200,
   ERROR_SHOW: 100,
   SUCCESS_SHOW: 100,

@@ -12,26 +12,19 @@ import {
   Alert,
   Divider,
   Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ja } from 'date-fns/locale';
-import { format, parseISO, isValid, endOfDay, formatDistanceToNow, startOfYear, endOfYear } from 'date-fns';
-import { ja as jaLocale } from 'date-fns/locale';
+import { format, parseISO, isValid, endOfDay, startOfYear, endOfYear } from 'date-fns';
 import { ReceiptUploader } from './ReceiptUploader';
 import { useCategories } from '@/hooks/expense/useCategories';
 import { useExpenseSubmit } from '@/hooks/expense/useExpenseSubmit';
 import { useEnhancedErrorHandler } from '@/hooks/common/useEnhancedErrorHandler';
-import { useAutoSave } from '@/hooks/expense/useAutoSave';
 import { VALIDATION_CONSTANTS, EXPENSE_MESSAGES } from '@/constants/expense';
 import type { ExpenseFormData, ExpenseData, ValidationError } from '@/types/expense';
-import { Save as SaveIcon, Warning as WarningIcon, Error as ErrorIcon } from '@mui/icons-material';
+import { Warning as WarningIcon, Error as ErrorIcon } from '@mui/icons-material';
 import { 
   isWithinDeadline, 
   getDeadlineWarningLevel, 
@@ -44,10 +37,6 @@ const AMOUNT_STEP = 1;
 const DATE_FORMAT = 'yyyy-MM-dd';
 const DISPLAY_DATE_FORMAT = 'yyyy年MM月dd日';
 
-// 現在年度の範囲を定義
-const currentYear = new Date().getFullYear();
-const currentYearStart = startOfYear(new Date(currentYear, 0, 1));
-const currentYearEnd = endOfYear(new Date(currentYear, 11, 31));
 
 interface ExpenseFormProps {
   expense?: ExpenseData;
@@ -70,8 +59,21 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const { handleSubmissionError } = useEnhancedErrorHandler();
   const { categories, getCategoryById, isLoading: isCategoriesLoading } = useCategories();
   const { createExpense, updateExpense, isCreating, isUpdating } = useExpenseSubmit();
-  const [showDraftDialog, setShowDraftDialog] = useState(false);
-  const isAutoSaveEnabled = true; // 設定で変更可能にする場合はstateに戻す
+
+  // 現在日付と年度範囲の状態管理（ハイドレーション対策）
+  const [currentDate, setCurrentDate] = useState<Date | null>(null);
+  const [currentYear, setCurrentYear] = useState<number | null>(null);
+  const [currentYearStart, setCurrentYearStart] = useState<Date | null>(null);
+  const [currentYearEnd, setCurrentYearEnd] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const now = new Date();
+    setCurrentDate(now);
+    const year = now.getFullYear();
+    setCurrentYear(year);
+    setCurrentYearStart(startOfYear(new Date(year, 0, 1)));
+    setCurrentYearEnd(endOfYear(new Date(year, 11, 31)));
+  }, []);
 
   // フォームデータの状態管理
   const [formData, setFormData] = useState<ExpenseFormData>({
@@ -87,18 +89,6 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  // 自動保存機能
-  const {
-    isDraftSaving,
-    lastSavedAt,
-    loadDraft,
-    clearDraft,
-  } = useAutoSave(formData, expense?.id, {
-    enabled: isAutoSaveEnabled && mode === 'create',
-    onSaveError: (error) => {
-      console.error('自動保存エラー:', error);
-    },
-  });
 
   // 選択中のカテゴリ情報
   const selectedCategory = getCategoryById(formData.categoryId);
@@ -122,14 +112,8 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         receiptS3Key: expense.receiptS3Key,
         expenseDate: expense.expenseDate,
       });
-    } else if (mode === 'create') {
-      // 新規作成モードでドラフトがある場合は確認ダイアログを表示
-      const draft = loadDraft();
-      if (draft && draft.formData) {
-        setShowDraftDialog(true);
-      }
     }
-  }, [expense, mode, loadDraft]);
+  }, [expense, mode]);
 
   // バリデーション関数
   const validateForm = useCallback((): ValidationError[] => {
@@ -175,7 +159,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
         newErrors.push({ field: 'expenseDate', message: '有効な日付を選択してください' });
       } else if (expenseDate > today) {
         newErrors.push({ field: 'expenseDate', message: '未来の日付は選択できません' });
-      } else if (expenseDate < currentYearStart || expenseDate > currentYearEnd) {
+      } else if (currentYearStart && currentYearEnd && currentYear && (expenseDate < currentYearStart || expenseDate > currentYearEnd)) {
         newErrors.push({ field: 'expenseDate', message: `${currentYear}年の日付を選択してください` });
       } else if (!isAllowableForSubmission(expenseDate)) {
         newErrors.push({ field: 'expenseDate', message: '申請期限を過ぎているため、この日付の経費は申請できません' });
@@ -269,8 +253,6 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
       
       if (mode === 'create') {
         result = await createExpense(formData);
-        // 作成成功時はドラフトをクリア
-        clearDraft();
       } else {
         if (!expense?.id) {
           throw new Error('経費申請IDが見つかりません');
@@ -292,10 +274,6 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
   // キャンセルハンドラー
   const handleCancel = () => {
-    // 新規作成モードの場合はドラフトをクリア
-    if (mode === 'create') {
-      clearDraft();
-    }
     
     if (onCancel) {
       onCancel();
@@ -304,20 +282,6 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     }
   };
 
-  // ドラフト復元ハンドラー
-  const handleRestoreDraft = () => {
-    const draft = loadDraft();
-    if (draft && draft.formData) {
-      setFormData(draft.formData);
-      setShowDraftDialog(false);
-    }
-  };
-
-  // ドラフト削除ハンドラー
-  const handleDiscardDraft = () => {
-    clearDraft();
-    setShowDraftDialog(false);
-  };
 
   // ローディング中の表示
   const isLoading = isCreating || isUpdating || isCategoriesLoading;
@@ -325,29 +289,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
       <Paper sx={{ p: 3 }}>
-        {/* 自動保存状態の表示 */}
-        {mode === 'create' && isAutoSaveEnabled && lastSavedAt && (
-          <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Chip
-              icon={<SaveIcon />}
-              label={`下書き保存済み (${formatDistanceToNow(lastSavedAt, { 
-                addSuffix: true, 
-                locale: jaLocale 
-              })})`}
-              size="small"
-              color="success"
-              variant="outlined"
-            />
-            {isDraftSaving && (
-              <CircularProgress size={16} sx={{ ml: 1 }} />
-            )}
-          </Box>
-        )}
-        
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             {/* 申請日 */}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <DatePicker
                 label="申請日 *"
                 value={formData.expenseDate ? parseISO(formData.expenseDate) : null}
@@ -365,7 +310,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                   },
                 }}
                 minDate={currentYearStart}
-                maxDate={new Date() > currentYearEnd ? currentYearEnd : new Date()}
+                maxDate={currentDate && currentYearEnd && currentDate > currentYearEnd ? currentYearEnd : currentDate}
                 format={DISPLAY_DATE_FORMAT}
                 disabled={isLoading}
               />
@@ -392,7 +337,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             </Grid>
 
             {/* カテゴリ */}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 select
                 fullWidth
@@ -413,7 +358,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             </Grid>
 
             {/* 金額 */}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 type="number"
@@ -441,10 +386,10 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             </Grid>
 
             {/* 空きスペース */}
-            <Grid item xs={12} sm={6} />
+            <Grid size={{ xs: 12, sm: 6 }} />
 
             {/* 内容 */}
-            <Grid item xs={12}>
+            <Grid size={12}>
               <TextField
                 fullWidth
                 multiline
@@ -464,7 +409,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             </Grid>
 
             {/* 領収書アップロード */}
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Divider sx={{ my: 2 }} />
               <ReceiptUploader
                 value={formData.receiptUrl}
@@ -485,7 +430,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
             {/* エラーメッセージ */}
             {Object.keys(errors).length > 0 && touched.categoryId && (
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Alert severity="error">
                   {EXPENSE_MESSAGES.VALIDATION_ERROR}
                 </Alert>
@@ -494,7 +439,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
             {/* 期限切れ警告 */}
             {isExpired && (
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Alert severity="error" icon={<ErrorIcon />}>
                   申請期限を過ぎているため、この経費は申請できません。
                 </Alert>
@@ -502,7 +447,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             )}
 
             {/* アクションボタン */}
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', mt: 2 }}>
                 <Button
                   variant="outlined"
@@ -523,32 +468,6 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             </Grid>
           </Grid>
         </form>
-        
-        {/* ドラフト復元ダイアログ */}
-        <Dialog
-          open={showDraftDialog}
-          onClose={() => setShowDraftDialog(false)}
-          aria-labelledby="draft-dialog-title"
-          aria-describedby="draft-dialog-description"
-        >
-          <DialogTitle id="draft-dialog-title">
-            保存された下書きがあります
-          </DialogTitle>
-          <DialogContent>
-            <DialogContentText id="draft-dialog-description">
-              前回の入力内容が下書きとして保存されています。
-              復元しますか？
-            </DialogContentText>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleDiscardDraft} color="inherit">
-              破棄する
-            </Button>
-            <Button onClick={handleRestoreDraft} variant="contained" autoFocus>
-              復元する
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Paper>
     </LocalizationProvider>
   );

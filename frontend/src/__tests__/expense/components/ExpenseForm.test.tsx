@@ -5,8 +5,7 @@ import { ExpenseForm } from '@/components/features/expense/ExpenseForm';
 import { customRender } from '../utils';
 import { 
   createMockExpenseData, 
-  createMockExpenseCategories,
-  createMockExpenseFormData 
+  createMockExpenseCategories
 } from '../utils/expenseMockData';
 import { server } from '../utils/expenseTestHelpers';
 
@@ -39,15 +38,6 @@ jest.mock('@/hooks/common/useEnhancedErrorHandler', () => ({
   }),
 }));
 
-jest.mock('@/hooks/expense/useAutoSave', () => ({
-  useAutoSave: () => ({
-    isDraftSaving: false,
-    lastSavedAt: null,
-    loadDraft: jest.fn().mockReturnValue(null),
-    clearDraft: jest.fn(),
-  }),
-}));
-
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: jest.fn(),
@@ -74,7 +64,6 @@ describe('ExpenseForm', () => {
       expect(screen.getByLabelText('金額')).toBeInTheDocument();
       expect(screen.getByLabelText('内容')).toBeInTheDocument();
       expect(screen.getByLabelText('日付')).toBeInTheDocument();
-      expect(screen.getByText('下書き保存')).toBeInTheDocument();
       expect(screen.getByText('申請する')).toBeInTheDocument();
     });
 
@@ -291,38 +280,6 @@ describe('ExpenseForm', () => {
       });
     });
 
-    test('下書き保存が動作する', async () => {
-      const user = userEvent.setup();
-      customRender(<ExpenseForm {...defaultProps} />);
-      
-      // 一部のフィールドを入力
-      const amountInput = screen.getByLabelText('金額');
-      await user.type(amountInput, '1000');
-      
-      const descriptionInput = screen.getByLabelText('内容');
-      await user.type(descriptionInput, 'テスト経費');
-      
-      // 下書き保存ボタンクリック
-      const saveButton = screen.getByText('下書き保存');
-      await user.click(saveButton);
-      
-      // 成功メッセージまたは処理完了を確認
-      await waitFor(() => {
-        expect(saveButton).not.toBeDisabled();
-      });
-    });
-  });
-
-  describe('自動保存機能', () => {
-    test('自動保存状態が表示される', () => {
-      customRender(<ExpenseForm {...defaultProps} />);
-      
-      // 自動保存に関する表示があることを確認
-      const saveIndicator = screen.queryByText(/自動保存/);
-      if (saveIndicator) {
-        expect(saveIndicator).toBeInTheDocument();
-      }
-    });
   });
 
   describe('アクセシビリティ', () => {

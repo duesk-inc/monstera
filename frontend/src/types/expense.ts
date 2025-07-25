@@ -106,3 +106,13 @@ export type SortableFieldType =
   | 'status'
   | 'created_at'
   | 'updated_at';
+
+// 経費カテゴリ型
+export interface ExpenseCategory {
+  id: string;
+  name: string;
+  displayOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
