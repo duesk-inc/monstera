@@ -1,6 +1,7 @@
 // 経費関連のAPI処理ライブラリ
 
 import { EXPENSE_API_ENDPOINTS } from '@/constants/expense';
+import type { ExpenseCategory } from '@/types/expense';
 
 // 経費データの型定義
 export interface Expense {
@@ -316,8 +317,8 @@ export async function deleteReceipt(expenseId: string, receiptUrl: string): Prom
 }
 
 // 経費カテゴリ一覧を取得
-export async function getExpenseCategories(): Promise<string[]> {
-  return apiRequest<string[]>(EXPENSE_API_ENDPOINTS.CATEGORIES);
+export async function getExpenseCategories(signal?: AbortSignal): Promise<ExpenseCategory[]> {
+  return apiRequest<ExpenseCategory[]>(EXPENSE_API_ENDPOINTS.CATEGORIES, { signal });
 }
 
 // 経費レポートを生成

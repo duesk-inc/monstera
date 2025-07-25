@@ -183,14 +183,22 @@ export const useAutoSave = (
       setHasDraft(true);
       setLastSavedAt(new Date(draft.savedAt));
       
-      DebugLogger.log('AUTO_SAVE', 'Draft loaded from localStorage', {
-        expenseId: draft.expenseId,
-        savedAt: draft.savedAt,
-      });
+      DebugLogger.debug(
+        { category: 'AUTO_SAVE', operation: 'Load' },
+        'Draft loaded from localStorage',
+        {
+          expenseId: draft.expenseId,
+          savedAt: draft.savedAt,
+        }
+      );
 
       return draft;
     } catch (error) {
-      DebugLogger.log('AUTO_SAVE', 'Failed to load draft', { error });
+      DebugLogger.debug(
+        { category: 'AUTO_SAVE', operation: 'Load' },
+        'Failed to load draft',
+        { error }
+      );
       return null;
     }
   }, []);
