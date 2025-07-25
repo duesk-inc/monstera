@@ -210,7 +210,6 @@ func (s *expenseService) Create(ctx context.Context, userID uuid.UUID, req *dto.
 		ExpenseDate: req.ExpenseDate,
 		Description: req.Description,
 		ReceiptURL:  req.ReceiptURL,
-		ReceiptURLs: req.ReceiptURLs,
 		Status:      model.ExpenseStatusDraft,
 		Version:     1,
 	}
@@ -219,9 +218,33 @@ func (s *expenseService) Create(ctx context.Context, userID uuid.UUID, req *dto.
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		// リポジトリをトランザクション用に作成
 		txExpenseRepo := repository.NewExpenseRepository(tx, s.logger)
+		txReceiptRepo := repository.NewExpenseReceiptRepository(tx, s.logger)
 
 		if err := txExpenseRepo.Create(ctx, expense); err != nil {
 			return err
+		}
+
+		// 複数レシートの保存処理
+		if len(req.ReceiptURLs) > 0 {
+			receipts := make([]*model.ExpenseReceipt, 0, len(req.ReceiptURLs))
+			for i, url := range req.ReceiptURLs {
+				receipt := &model.ExpenseReceipt{
+					ExpenseID:    expense.ID,
+					ReceiptURL:   url,
+					S3Key:        fmt.Sprintf("expenses/%s/%s", expense.ID, uuid.New().String()),
+					FileName:     fmt.Sprintf("receipt_%d.pdf", i+1),
+					FileSize:     0,
+					ContentType:  "application/pdf",
+					DisplayOrder: i + 1,
+				}
+				receipts = append(receipts, receipt)
+			}
+			if err := txReceiptRepo.CreateBatch(ctx, receipts); err != nil {
+				s.logger.Error("Failed to create expense receipts",
+					zap.Error(err),
+					zap.String("expense_id", expense.ID.String()))
+				return err
+			}
 		}
 
 		return nil
@@ -346,9 +369,7 @@ func (s *expenseService) Update(ctx context.Context, id uuid.UUID, userID uuid.U
 	if req.Description != nil {
 		expense.Description = *req.Description
 	}
-	if req.ReceiptURLs != nil {
-		expense.ReceiptURLs = req.ReceiptURLs
-	}
+	// 複数レシートの更新は別途expense_receiptsテーブルで管理
 
 	// バージョンチェック（楽観的ロック）
 	if req.Version != expense.Version {
@@ -860,7 +881,12 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 	}
 
 	// 領収書が添付されているかチェック
-	if len(expense.ReceiptURLs) == 0 && expense.ReceiptURL == "" {
+	receipts, err := s.receiptRepo.GetByExpenseID(ctx, expense.ID)
+	if err != nil {
+		s.logger.Error("Failed to get expense receipts", zap.Error(err))
+		return nil, dto.NewExpenseError(dto.ErrCodeInternalError, "領収書の取得に失敗しました")
+	}
+	if len(receipts) == 0 && expense.ReceiptURL == "" {
 		return nil, dto.NewExpenseError(dto.ErrCodeReceiptRequired, "領収書の添付が必要です")
 	}
 
@@ -1612,7 +1638,7 @@ func (s *expenseService) GetPendingApprovals(ctx context.Context, approverID uui
 			ApprovalOrder: approval.ApprovalOrder,
 			RequestedAt:   expense.CreatedAt,
 			Description:   expense.Description,
-			ReceiptURLs:   expense.ReceiptURLs,
+			ReceiptURLs:   []string{}, // expense_receiptsテーブルから取得する必要あり（TODO）
 		}
 
 		// 申請者情報を設定
