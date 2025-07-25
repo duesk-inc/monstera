@@ -113,19 +113,4 @@ export const cacheUtils = {
       gcTime: options?.gcTime,
     });
   },
-  
-  // キャッシュサイズの監視（開発用）
-  getCacheSize: () => {
-    if (process.env.NODE_ENV === 'development') {
-      const cache = queryClient.getQueryCache();
-      const queries = cache.getAll();
-      return {
-        totalQueries: queries.length,
-        activeQueries: queries.filter(q => q.getObserversCount() > 0).length,
-        stalQueries: queries.filter(q => q.isStale()).length,
-        memoryUsage: JSON.stringify(queries).length, // 概算のメモリ使用量
-      };
-    }
-    return null;
-  },
 };

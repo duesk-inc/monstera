@@ -686,7 +686,6 @@ Material-UIのテーマシステムを基盤として、統一されたカラー
   - TanStack Queryによる積極的なキャッシュ戦略
   - 画像の遅延読み込み
 - **開発者支援**:
-  - CacheMonitor（キャッシュ状態の可視化）
   - DebugLogger（デバッグ情報の表示）
   - React Query Devtools
 - **アクセシビリティ**:

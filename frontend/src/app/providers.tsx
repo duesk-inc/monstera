@@ -10,7 +10,6 @@ import { ToastProvider, GlobalErrorBoundary } from '@/components/common';
 import { ActiveRoleProvider } from '@/context/ActiveRoleContext';
 import { queryClient } from '@/lib/query-client';
 import { QueryErrorBoundary } from '@/components/common/QueryErrorBoundary';
-import { CacheMonitor } from '@/components/dev/CacheMonitor';
 
 // Providerコンポーネント
 export function Providers({ children }: { children: ReactNode }) {
@@ -30,7 +29,6 @@ export function Providers({ children }: { children: ReactNode }) {
           </ToastProvider>
         </ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />
-        <CacheMonitor />
       </QueryClientProvider>
     </GlobalErrorBoundary>
   );
