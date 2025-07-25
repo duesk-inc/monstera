@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS expenses (
   approver_id VARCHAR(36) NULL,
   approved_at TIMESTAMP(3) NULL,
   paid_at TIMESTAMP(3) NULL,
+  version INT DEFAULT 1 NOT NULL,
   created_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
   updated_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
   deleted_at TIMESTAMP(3) NULL,
@@ -21,6 +22,7 @@ CREATE TABLE IF NOT EXISTS expenses (
 
 -- PostgreSQL用のコメント設定
 COMMENT ON COLUMN expenses.status IS 'ステータス（draft:下書き, submitted:提出済み, approved:承認済み, rejected:却下, paid:支払済み）';
+COMMENT ON COLUMN expenses.version IS '楽観的ロック用バージョン番号';
 
 -- Triggers for automatic timestamp updates
 -- Trigger for expenses table
