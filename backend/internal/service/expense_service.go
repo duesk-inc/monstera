@@ -203,10 +203,13 @@ func (s *expenseService) Create(ctx context.Context, userID uuid.UUID, req *dto.
 	// 経費申請を作成
 	expense := &model.Expense{
 		UserID:      userID,
+		Title:       req.Title,
+		Category:    model.ExpenseCategory(req.Category),
 		CategoryID:  req.CategoryID,
 		Amount:      req.Amount,
 		ExpenseDate: req.ExpenseDate,
 		Description: req.Description,
+		ReceiptURL:  req.ReceiptURL,
 		ReceiptURLs: req.ReceiptURLs,
 		Status:      model.ExpenseStatusDraft,
 		Version:     1,

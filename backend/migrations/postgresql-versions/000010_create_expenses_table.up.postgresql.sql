@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS expenses (
   user_id VARCHAR(36) NOT NULL,
   title VARCHAR(255) NOT NULL,
   category VARCHAR(50) NOT NULL,
+  category_id VARCHAR(36),
   amount INT NOT NULL,
   expense_date TIMESTAMP(3) NOT NULL,
   status VARCHAR(20) DEFAULT 'draft' NOT NULL CHECK (status IN ('draft', 'submitted', 'approved', 'rejected', 'paid')),

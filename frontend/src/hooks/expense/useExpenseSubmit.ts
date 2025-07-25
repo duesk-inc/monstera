@@ -90,7 +90,7 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
         category: requestData.categoryCode || 'other', // カテゴリコード
         category_id: requestData.categoryId,
         amount: requestData.amount,
-        expense_date: requestData.expenseDate,
+        expense_date: new Date(requestData.expenseDate + 'T00:00:00Z').toISOString(),
         description: requestData.description,
         receipt_url: requestData.receiptUrl || '',
       };
@@ -129,7 +129,7 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
         category: requestData.categoryCode || 'other', // カテゴリコード
         category_id: requestData.categoryId,
         amount: requestData.amount,
-        expense_date: requestData.expenseDate,
+        expense_date: new Date(requestData.expenseDate + 'T00:00:00Z').toISOString(),
         description: requestData.description,
         receipt_url: requestData.receiptUrl || '',
       };
