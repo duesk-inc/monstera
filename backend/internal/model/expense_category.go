@@ -28,6 +28,11 @@ func (ec *ExpenseCategoryMaster) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+// TableName GORMに使用するテーブル名を指定
+func (ExpenseCategoryMaster) TableName() string {
+	return "expense_categories"
+}
+
 // IsAvailable 利用可能かチェック
 func (ec *ExpenseCategoryMaster) IsAvailable() bool {
 	return ec.IsActive && ec.DeletedAt.Time.IsZero()
