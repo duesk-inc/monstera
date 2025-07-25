@@ -326,6 +326,43 @@ func (h *ExpenseHandler) GetExpenseList(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
+// GetCategories 経費カテゴリ一覧を取得
+func (h *ExpenseHandler) GetCategories(c *gin.Context) {
+	h.logger.Info("経費カテゴリ一覧取得API開始")
+
+	// 認証済みユーザーIDを取得（権限確認のため）
+	userID, ok := h.handlerUtil.GetAuthenticatedUserID(c)
+	if !ok {
+		return
+	}
+
+	// アクティブなカテゴリのみを取得
+	categories, err := h.expenseService.GetActiveCategories(c.Request.Context())
+	if err != nil {
+		h.logger.Error("Failed to get expense categories", 
+			zap.Error(err), 
+			zap.String("user_id", userID.String()))
+		HandleStandardError(c, http.StatusInternalServerError, 
+			constants.ErrExpenseSaveFailed, 
+			"カテゴリの取得に失敗しました", h.logger, err)
+		return
+	}
+
+	// DTOに変換
+	var response []dto.ExpenseCategoryResponse
+	for _, category := range categories {
+		var categoryDTO dto.ExpenseCategoryResponse
+		categoryDTO.FromModel(&category)
+		response = append(response, categoryDTO)
+	}
+
+	h.logger.Info("経費カテゴリ一覧取得成功",
+		zap.String("user_id", userID.String()),
+		zap.Int("count", len(response)))
+
+	c.JSON(http.StatusOK, gin.H{"data": response})
+}
+
 // SubmitExpense 経費申請を提出
 func (h *ExpenseHandler) SubmitExpense(c *gin.Context) {
 	h.logger.Info("経費申請提出API開始")

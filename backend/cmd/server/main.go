@@ -672,6 +672,7 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 		{
 			// 基本CRUD操作
 			expenses.POST("", expenseHandler.CreateExpense)
+			expenses.GET("/categories", expenseHandler.GetCategories)
 			expenses.GET("", expenseHandler.GetExpenseList)
 			expenses.GET("/:id", expenseHandler.GetExpense)
 			expenses.PUT("/:id", expenseHandler.UpdateExpense)
