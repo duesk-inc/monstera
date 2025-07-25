@@ -79,7 +79,7 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
     if (!s3Key) return;
     
     try {
-      await deleteUploadedFile({ s3Key });
+      await deleteUploadedFile({ s3_key: s3Key });
       onChange(null, null);
       showSuccess('ファイルを削除しました');
     } catch (error) {
@@ -152,9 +152,9 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
 
       // Pre-signed URL取得
       const uploadRequest: UploadFileRequest = {
-        fileName: file.name,
-        fileSize: file.size,
-        contentType: file.type,
+        file_name: file.name,
+        file_size: file.size,
+        content_type: file.type,
       };
 
       const uploadResponse: UploadFileResponse = await generateUploadURL(uploadRequest);
@@ -177,10 +177,10 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
 
       // アップロード完了通知
       await completeUpload({
-        s3Key: uploadResponse.s3Key,
-        fileName: file.name,
-        fileSize: file.size,
-        contentType: file.type,
+        s3_key: uploadResponse.s3Key,
+        file_name: file.name,
+        file_size: file.size,
+        content_type: file.type,
       });
 
       // 成功時の処理

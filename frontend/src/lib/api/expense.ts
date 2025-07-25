@@ -1,6 +1,7 @@
 // 経費関連のAPI処理ライブラリ
 
 import { EXPENSE_API_ENDPOINTS } from '@/constants/expense';
+import type { ExpenseCategory } from '@/types/expense';
 
 // 経費データの型定義
 export interface Expense {
@@ -109,9 +110,9 @@ export interface ReceiptUploadResponse {
 
 // ファイルアップロード関連の型定義
 export interface UploadFileRequest {
-  fileName: string;
-  fileSize: number;
-  contentType: string;
+  file_name: string;
+  file_size: number;
+  content_type: string;
 }
 
 export interface UploadFileResponse {
@@ -130,10 +131,10 @@ export interface UploadProgress {
 }
 
 export interface CompleteUploadRequest {
-  s3Key: string;
-  fileName: string;
-  fileSize: number;
-  contentType: string;
+  s3_key: string;
+  file_name: string;
+  file_size: number;
+  content_type: string;
 }
 
 export interface CompleteUploadResponse {
@@ -143,7 +144,7 @@ export interface CompleteUploadResponse {
 }
 
 export interface DeleteUploadRequest {
-  s3Key: string;
+  s3_key: string;
 }
 
 // API エラーの型定義
@@ -316,8 +317,8 @@ export async function deleteReceipt(expenseId: string, receiptUrl: string): Prom
 }
 
 // 経費カテゴリ一覧を取得
-export async function getExpenseCategories(): Promise<string[]> {
-  return apiRequest<string[]>(EXPENSE_API_ENDPOINTS.CATEGORIES);
+export async function getExpenseCategories(signal?: AbortSignal): Promise<ExpenseCategory[]> {
+  return apiRequest<ExpenseCategory[]>(EXPENSE_API_ENDPOINTS.CATEGORIES, { signal });
 }
 
 // 経費レポートを生成
