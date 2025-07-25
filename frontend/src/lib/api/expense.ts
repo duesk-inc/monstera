@@ -316,9 +316,36 @@ export async function deleteReceipt(expenseId: string, receiptUrl: string): Prom
   });
 }
 
+// 経費カテゴリAPIレスポンスの型定義
+interface ExpenseCategoryApiResponse {
+  data: Array<{
+    id: string;
+    code: string;
+    name: string;
+    requires_details: boolean;
+    is_active: boolean;
+    display_order: number;
+    created_at: string;
+    updated_at: string;
+  }>;
+}
+
 // 経費カテゴリ一覧を取得
 export async function getExpenseCategories(signal?: AbortSignal): Promise<ExpenseCategory[]> {
-  return apiRequest<ExpenseCategory[]>(EXPENSE_API_ENDPOINTS.CATEGORIES, { signal });
+  const response = await apiRequest<ExpenseCategoryApiResponse>(
+    EXPENSE_API_ENDPOINTS.CATEGORIES, 
+    { signal }
+  );
+  
+  // APIレスポンスをフロントエンドの型にマッピング
+  return response.data.map(category => ({
+    id: category.id,
+    name: category.name,
+    displayOrder: category.display_order,
+    isActive: category.is_active,
+    createdAt: category.created_at,
+    updatedAt: category.updated_at,
+  }));
 }
 
 // 経費レポートを生成
