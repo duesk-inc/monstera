@@ -23,6 +23,7 @@ import { useCategories } from '@/hooks/expense/useCategories';
 import { useExpenseSubmit } from '@/hooks/expense/useExpenseSubmit';
 import { useEnhancedErrorHandler } from '@/hooks/common/useEnhancedErrorHandler';
 import { VALIDATION_CONSTANTS, EXPENSE_MESSAGES } from '@/constants/expense';
+import { EXPENSE_VALIDATION, EXPENSE_VALIDATION_MESSAGES } from '@/constants/validation';
 import type { ExpenseFormData, ExpenseData, ValidationError } from '@/types/expense';
 import { Warning as WarningIcon, Error as ErrorIcon } from '@mui/icons-material';
 import { 
@@ -143,11 +144,16 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
     // 説明検証
     if (!formData.description.trim()) {
-      newErrors.push({ field: 'description', message: '内容を入力してください' });
-    } else if (formData.description.length > VALIDATION_CONSTANTS.DESCRIPTION_MAX_LENGTH) {
+      newErrors.push({ field: 'description', message: EXPENSE_VALIDATION_MESSAGES.DESCRIPTION.REQUIRED });
+    } else if (formData.description.length < EXPENSE_VALIDATION.DESCRIPTION.MIN_LENGTH) {
       newErrors.push({ 
         field: 'description', 
-        message: `内容は${VALIDATION_CONSTANTS.DESCRIPTION_MAX_LENGTH}文字以内で入力してください` 
+        message: EXPENSE_VALIDATION_MESSAGES.DESCRIPTION.MIN_LENGTH 
+      });
+    } else if (formData.description.length > EXPENSE_VALIDATION.DESCRIPTION.MAX_LENGTH) {
+      newErrors.push({ 
+        field: 'description', 
+        message: EXPENSE_VALIDATION_MESSAGES.DESCRIPTION.MAX_LENGTH 
       });
     }
 
@@ -411,9 +417,21 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 helperText={
                   touched.description && errors.description
                     ? errors.description
-                    : `${formData.description.length}/${VALIDATION_CONSTANTS.DESCRIPTION_MAX_LENGTH}文字`
+                    : (
+                      <Box component="span" sx={{ 
+                        color: formData.description.length < EXPENSE_VALIDATION.DESCRIPTION.MIN_LENGTH 
+                          ? 'error.main' 
+                          : 'text.secondary' 
+                      }}>
+                        {formData.description.length}/{EXPENSE_VALIDATION.DESCRIPTION.MAX_LENGTH}文字
+                        {formData.description.length < EXPENSE_VALIDATION.DESCRIPTION.MIN_LENGTH && 
+                          ` (最小${EXPENSE_VALIDATION.DESCRIPTION.MIN_LENGTH}文字)`
+                        }
+                      </Box>
+                    )
                 }
                 disabled={isLoading}
+                placeholder={`使用理由を${EXPENSE_VALIDATION.DESCRIPTION.MIN_LENGTH}文字以上で入力してください`}
               />
             </Grid>
 

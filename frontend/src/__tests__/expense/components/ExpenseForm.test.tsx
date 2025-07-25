@@ -8,6 +8,7 @@ import {
   createMockExpenseCategories
 } from '../utils/expenseMockData';
 import { server } from '../utils/expenseTestHelpers';
+import { EXPENSE_VALIDATION, EXPENSE_VALIDATION_MESSAGES } from '@/constants/validation';
 
 // MSWサーバーの起動・停止
 beforeAll(() => server.listen());
@@ -153,7 +154,7 @@ describe('ExpenseForm', () => {
       await waitFor(() => {
         expect(screen.getByText('カテゴリを選択してください')).toBeInTheDocument();
         expect(screen.getByText('金額を入力してください')).toBeInTheDocument();
-        expect(screen.getByText('内容を入力してください')).toBeInTheDocument();
+        expect(screen.getByText(EXPENSE_VALIDATION_MESSAGES.DESCRIPTION.REQUIRED)).toBeInTheDocument();
       });
     });
 
@@ -203,18 +204,55 @@ describe('ExpenseForm', () => {
       });
     });
 
+    test('内容の最小文字数チェックが動作する', async () => {
+      const user = userEvent.setup();
+      customRender(<ExpenseForm {...defaultProps} />);
+      
+      const shortDescription = 'あ'.repeat(EXPENSE_VALIDATION.DESCRIPTION.MIN_LENGTH - 1);
+      const descriptionInput = screen.getByLabelText('内容');
+      await user.type(descriptionInput, shortDescription);
+      await user.tab();
+      
+      await waitFor(() => {
+        expect(screen.getByText(EXPENSE_VALIDATION_MESSAGES.DESCRIPTION.MIN_LENGTH)).toBeInTheDocument();
+      });
+    });
+
     test('内容の文字数制限チェックが動作する', async () => {
       const user = userEvent.setup();
       customRender(<ExpenseForm {...defaultProps} />);
       
-      const longDescription = 'あ'.repeat(501);
+      const longDescription = 'あ'.repeat(EXPENSE_VALIDATION.DESCRIPTION.MAX_LENGTH + 1);
       const descriptionInput = screen.getByLabelText('内容');
       await user.type(descriptionInput, longDescription);
       await user.tab();
       
       await waitFor(() => {
-        expect(screen.getByText(/文字以内で入力してください/)).toBeInTheDocument();
+        expect(screen.getByText(EXPENSE_VALIDATION_MESSAGES.DESCRIPTION.MAX_LENGTH)).toBeInTheDocument();
       });
+    });
+
+    test('内容の文字数カウンターが正しく表示される', async () => {
+      const user = userEvent.setup();
+      customRender(<ExpenseForm {...defaultProps} />);
+      
+      const descriptionInput = screen.getByLabelText('内容');
+      const testText = 'テスト文字列';
+      await user.type(descriptionInput, testText);
+      
+      expect(screen.getByText(`${testText.length}/${EXPENSE_VALIDATION.DESCRIPTION.MAX_LENGTH}文字`)).toBeInTheDocument();
+    });
+
+    test('内容が最小文字数未満の場合、カウンターが警告色で表示される', async () => {
+      const user = userEvent.setup();
+      customRender(<ExpenseForm {...defaultProps} />);
+      
+      const descriptionInput = screen.getByLabelText('内容');
+      const shortText = '短い';
+      await user.type(descriptionInput, shortText);
+      
+      const counter = screen.getByText(new RegExp(`${shortText.length}/${EXPENSE_VALIDATION.DESCRIPTION.MAX_LENGTH}文字`));
+      expect(counter).toHaveStyle({ color: 'rgb(244, 67, 54)' }); // error.main color
     });
   });
 
@@ -235,7 +273,7 @@ describe('ExpenseForm', () => {
       
       // 内容入力
       const descriptionInput = screen.getByLabelText('内容');
-      await user.type(descriptionInput, 'タクシー代');
+      await user.type(descriptionInput, '新宿駅から渋谷駅までのタクシー代');
       
       // 提出ボタンクリック
       const submitButton = screen.getByText('申請する');
@@ -269,7 +307,7 @@ describe('ExpenseForm', () => {
       await user.type(amountInput, '500');
       
       const descriptionInput = screen.getByLabelText('内容');
-      await user.type(descriptionInput, '電車賃');
+      await user.type(descriptionInput, '東京駅から新宿駅までの電車賃');
       
       // 提出ボタンクリック
       const submitButton = screen.getByText('申請する');
@@ -376,7 +414,7 @@ describe('ExpenseForm', () => {
       await user.type(amountInput, '1200');
       
       const descriptionInput = screen.getByLabelText('内容');
-      await user.type(descriptionInput, '電車賃（往復）');
+      await user.type(descriptionInput, '東京駅から新宿駅までの電車賃（往復）');
       
       const dateInput = screen.getByLabelText('日付');
       await user.clear(dateInput);
