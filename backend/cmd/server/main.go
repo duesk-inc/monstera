@@ -319,11 +319,23 @@ func main() {
 		
 		s3Svc, err := service.NewS3Service(bucketName, region, baseURL, logger)
 		if err != nil {
-			logger.Error("Failed to initialize S3 service", zap.Error(err))
+			logger.Error("Failed to initialize S3 service", 
+				zap.Error(err),
+				zap.String("bucket", bucketName),
+				zap.String("region", region),
+				zap.String("base_url", baseURL),
+				zap.String("endpoint", os.Getenv("AWS_S3_ENDPOINT")),
+				zap.String("aws_access_key_id", os.Getenv("AWS_ACCESS_KEY_ID")),
+				zap.Bool("path_style", os.Getenv("AWS_S3_PATH_STYLE") == "true"),
+				zap.Bool("disable_ssl", os.Getenv("AWS_S3_DISABLE_SSL") == "true"))
 			// S3サービスの初期化に失敗したらモックを使用
 			logger.Warn("Falling back to mock S3 service")
 			s3Service = service.NewMockS3Service(logger)
 		} else {
+			logger.Info("S3 service initialized successfully",
+				zap.String("bucket", bucketName),
+				zap.String("region", region),
+				zap.String("endpoint", os.Getenv("AWS_S3_ENDPOINT")))
 			s3Service = s3Svc
 		}
 	}

@@ -69,8 +69,13 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 	
 	cfg, err := config.LoadDefaultConfig(context.TODO(), configOptions...)
 	if err != nil {
-		logger.Error("Failed to load AWS config", zap.Error(err))
-		return nil, err
+		logger.Error("Failed to load AWS config", 
+			zap.Error(err),
+			zap.String("endpoint", endpoint),
+			zap.String("region", region),
+			zap.Bool("path_style", pathStyle),
+			zap.Bool("disable_ssl", disableSSL))
+		return nil, fmt.Errorf("AWS config load failed: %w", err)
 	}
 
 	// S3クライアントを作成（MinIO用の設定を適用）
@@ -86,7 +91,22 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 		}
 	})
 	
-	logger.Info("S3 service initialized",
+	// 接続テスト（バケットの存在確認）
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancel()
+	
+	_, err = s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
+		Bucket: aws.String(bucketName),
+	})
+	if err != nil {
+		logger.Error("Failed to connect to S3/MinIO bucket",
+			zap.Error(err),
+			zap.String("bucket", bucketName),
+			zap.String("endpoint", endpoint))
+		return nil, fmt.Errorf("S3 bucket connection test failed: %w", err)
+	}
+	
+	logger.Info("S3 service initialized successfully",
 		zap.String("bucket", bucketName),
 		zap.String("region", region),
 		zap.String("endpoint", endpoint),
