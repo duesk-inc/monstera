@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -37,17 +38,60 @@ type s3Service struct {
 	logger     *zap.Logger
 }
 
-// NewS3Service S3サービスのインスタンスを生成
+// NewS3Service S3サービスのインスタンスを生成（MinIO対応版）
 func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Service, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
+	// MinIO用のエンドポイントとパススタイルの設定を取得
+	endpoint := os.Getenv("AWS_S3_ENDPOINT")
+	pathStyle := os.Getenv("AWS_S3_PATH_STYLE") == "true"
+	disableSSL := os.Getenv("AWS_S3_DISABLE_SSL") == "true"
+	
+	// AWS設定のオプションを構築
+	configOptions := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
-	)
+	}
+	
+	// カスタムエンドポイントが設定されている場合（MinIOなど）
+	if endpoint != "" {
+		configOptions = append(configOptions, config.WithEndpointResolverWithOptions(
+			aws.EndpointResolverWithOptionsFunc(
+				func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+					if service == s3.ServiceID {
+						return aws.Endpoint{
+							URL:               endpoint,
+							HostnameImmutable: true,
+							Source:            aws.EndpointSourceCustom,
+						}, nil
+					}
+					return aws.Endpoint{}, &aws.EndpointNotFoundError{}
+				})),
+		)
+	}
+	
+	cfg, err := config.LoadDefaultConfig(context.TODO(), configOptions...)
 	if err != nil {
 		logger.Error("Failed to load AWS config", zap.Error(err))
 		return nil, err
 	}
 
-	s3Client := s3.NewFromConfig(cfg)
+	// S3クライアントを作成（MinIO用の設定を適用）
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.UsePathStyle = pathStyle
+		if disableSSL {
+			o.EndpointOptions.DisableHTTPS = true
+		}
+		// MinIOの場合、署名バージョンv4を強制
+		if endpoint != "" {
+			o.UseAccelerate = false
+			o.UseARNRegion = false
+		}
+	})
+	
+	logger.Info("S3 service initialized",
+		zap.String("bucket", bucketName),
+		zap.String("region", region),
+		zap.String("endpoint", endpoint),
+		zap.Bool("path_style", pathStyle),
+		zap.Bool("disable_ssl", disableSSL))
 
 	return &s3Service{
 		s3Client:   s3Client,

@@ -1,4 +1,4 @@
-.PHONY: help setup dev dev-logs down test lint format migrate migrate-down migrate-up migrate-status migrate-create db-reset db-dump db-restore db-psql clean build test-e2e-setup test-e2e test-e2e-ui test-e2e-debug test-e2e-cleanup test-e2e-logs
+.PHONY: help setup dev dev-logs down test lint format migrate migrate-down migrate-up migrate-status migrate-create db-reset db-dump db-restore db-psql minio-console minio-create-bucket minio-ls clean build test-e2e-setup test-e2e test-e2e-ui test-e2e-debug test-e2e-cleanup test-e2e-logs
 
 # デフォルトターゲット
 .DEFAULT_GOAL := help
@@ -157,6 +157,24 @@ db-restore: ## データベースリストア（使用例: make db-restore DUMP_
 db-seed: ## テストデータ投入
 	@echo "=== テストデータを投入 ==="
 	@echo "TODO: シードスクリプトを実装してください"
+
+# MinIO管理
+minio-console: ## MinIOコンソールのアクセス情報を表示
+	@echo "=== MinIO Console ==="
+	@echo "URL: http://localhost:9001"
+	@echo "Username: minioadmin"
+	@echo "Password: minioadmin"
+	@echo ""
+	@echo "※ 開発環境用の認証情報です。本番環境では変更してください。"
+
+minio-create-bucket: ## MinIOのバケットを作成
+	@echo "=== MinIOバケットを作成 ==="
+	@docker-compose exec minio sh -c 'mc alias set local http://localhost:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} && mc mb local/monstera-files --ignore-existing'
+	@echo "✓ バケット作成完了"
+
+minio-ls: ## MinIOのファイル一覧を表示
+	@echo "=== MinIO内のファイル一覧 ==="
+	@docker-compose exec minio sh -c 'mc alias set local http://localhost:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin} && mc ls -r local/monstera-files'
 
 # API テスト
 api-test: ## APIテストスクリプトを実行

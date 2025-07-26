@@ -296,20 +296,28 @@ func main() {
 	var s3Service service.S3Service
 	logger.Info("Initializing S3 service",
 		zap.Bool("use_mock", os.Getenv("USE_MOCK_S3") == "true"),
-		zap.Bool("is_development", os.Getenv("GO_ENV") == "development"))
+		zap.Bool("is_development", os.Getenv("GO_ENV") == "development"),
+		zap.String("endpoint", os.Getenv("AWS_S3_ENDPOINT")))
 	
-	if os.Getenv("USE_MOCK_S3") == "true" || os.Getenv("GO_ENV") == "development" {
-		// 開発環境ではモックS3サービスを使用
-		logger.Info("Using mock S3 service for development")
+	if os.Getenv("USE_MOCK_S3") == "true" {
+		// モックS3サービスを使用
+		logger.Info("Using mock S3 service")
 		s3Service = service.NewMockS3Service(logger)
 	} else {
-		// 本番環境では実際のS3サービスを使用
-		s3Svc, err := service.NewS3Service(
-			os.Getenv("AWS_S3_BUCKET_NAME"),
-			os.Getenv("AWS_REGION"),
-			os.Getenv("AWS_S3_BASE_URL"),
-			logger,
-		)
+		// 実際のS3サービスまたはMinIOを使用
+		bucketName := os.Getenv("AWS_S3_BUCKET_NAME")
+		if bucketName == "" {
+			bucketName = "monstera-files"
+		}
+		
+		region := os.Getenv("AWS_REGION")
+		if region == "" {
+			region = "us-east-1"
+		}
+		
+		baseURL := os.Getenv("AWS_S3_BASE_URL")
+		
+		s3Svc, err := service.NewS3Service(bucketName, region, baseURL, logger)
 		if err != nil {
 			logger.Error("Failed to initialize S3 service", zap.Error(err))
 			// S3サービスの初期化に失敗したらモックを使用

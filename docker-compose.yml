@@ -92,6 +92,29 @@ services:
       timeout: 5s
       retries: 5
 
+  # MinIO Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: monstera-minio
+    restart: unless-stopped
+    ports:
+      - "${MINIO_PORT:-9000}:9000"      # API Port
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"  # Console Port
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      MINIO_DEFAULT_BUCKETS: ${MINIO_DEFAULT_BUCKETS:-monstera-files}
+    volumes:
+      - minio_data:/data
+    networks:
+      - monstera-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
   # バックエンドAPI
   backend:
     build:
@@ -120,7 +143,14 @@ services:
       CORS_ALLOW_ORIGINS: http://localhost:3000
       GIN_MODE: debug
       GO_ENV: development
-      USE_MOCK_S3: "true"
+      USE_MOCK_S3: ${USE_MOCK_S3:-false}
+      # S3/MinIO Configuration
+      AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT:-http://minio:9000}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-monstera-files}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BASE_URL: ${AWS_S3_BASE_URL:-http://localhost:9000/monstera-files}
+      AWS_S3_PATH_STYLE: "true"
+      AWS_S3_DISABLE_SSL: "true"
       REDIS_ENABLED: "true"
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -230,5 +260,6 @@ volumes:
   postgres_data:
   pgadmin_data:
   redis_data:
+  minio_data:
   batch_logs:
   cron_logs:

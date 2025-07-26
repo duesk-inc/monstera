@@ -455,3 +455,73 @@ export async function deleteUploadedFile(data: DeleteUploadRequest): Promise<voi
     body: JSON.stringify(data),
   });
 }
+
+// ファイルを直接S3/MinIOにアップロード
+export async function uploadFileToS3(
+  file: File, 
+  uploadUrl: string, 
+  onProgress?: (progress: number) => void
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    
+    // アップロード進捗の監視
+    xhr.upload.addEventListener('progress', (e) => {
+      if (e.lengthComputable && onProgress) {
+        const progress = (e.loaded / e.total) * 100;
+        onProgress(progress);
+      }
+    });
+    
+    xhr.addEventListener('load', () => {
+      if (xhr.status === 200 || xhr.status === 204) {
+        resolve();
+      } else {
+        reject(new Error(`Upload failed with status: ${xhr.status}`));
+      }
+    });
+    
+    xhr.addEventListener('error', () => {
+      reject(new Error('Network error during upload'));
+    });
+    
+    xhr.addEventListener('abort', () => {
+      reject(new Error('Upload aborted'));
+    });
+    
+    xhr.open('PUT', uploadUrl);
+    xhr.setRequestHeader('Content-Type', file.type);
+    xhr.send(file);
+  });
+}
+
+// 領収書アップロードの完全なフロー
+export async function uploadReceiptComplete(
+  file: File,
+  onProgress?: (progress: number) => void
+): Promise<CompleteUploadResponse> {
+  try {
+    // 1. Pre-signed URLを生成
+    const uploadUrlData = await generateUploadURL({
+      file_name: file.name,
+      file_size: file.size,
+      content_type: file.type,
+    });
+    
+    // 2. ファイルを直接S3/MinIOにアップロード
+    await uploadFileToS3(file, uploadUrlData.uploadUrl, onProgress);
+    
+    // 3. アップロード完了を通知
+    const completeResponse = await completeUpload({
+      s3_key: uploadUrlData.s3Key,
+      file_name: file.name,
+      file_size: file.size,
+      content_type: file.type,
+    });
+    
+    return completeResponse;
+  } catch (error) {
+    console.error('Receipt upload failed:', error);
+    throw error;
+  }
+}
