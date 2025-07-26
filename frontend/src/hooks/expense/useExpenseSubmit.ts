@@ -92,8 +92,11 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
         amount: requestData.amount,
         expense_date: new Date(requestData.expenseDate + 'T00:00:00Z').toISOString(),
         description: requestData.description,
-        receipt_url: requestData.receiptUrl || '',
       };
+      // receipt_urlは値がある場合のみ追加
+      if (requestData.receiptUrl) {
+        apiRequestData.receipt_url = requestData.receiptUrl;
+      }
       const response = await expenseApi.createExpense(apiRequestData);
       return transformResponseToExpenseData(response);
     },
@@ -131,8 +134,11 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
         amount: requestData.amount,
         expense_date: new Date(requestData.expenseDate + 'T00:00:00Z').toISOString(),
         description: requestData.description,
-        receipt_url: requestData.receiptUrl || '',
       };
+      // receipt_urlは値がある場合のみ追加
+      if (requestData.receiptUrl) {
+        apiRequestData.receipt_url = requestData.receiptUrl;
+      }
       const response = await expenseApi.updateExpense(apiRequestData);
       return transformResponseToExpenseData(response);
     },
