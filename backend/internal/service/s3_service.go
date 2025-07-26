@@ -32,16 +32,22 @@ type S3Service interface {
 
 // s3Service S3サービスの実装
 type s3Service struct {
-	s3Client   *s3.Client
-	bucketName string
-	baseURL    string
-	logger     *zap.Logger
+	s3Client       *s3.Client
+	s3ClientExternal *s3.Client // 外部アクセス用のクライアント（Pre-signed URL生成用）
+	bucketName     string
+	baseURL        string
+	externalEndpoint string
+	logger         *zap.Logger
 }
 
 // NewS3Service S3サービスのインスタンスを生成（MinIO対応版）
 func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Service, error) {
 	// MinIO用のエンドポイントとパススタイルの設定を取得
 	endpoint := os.Getenv("AWS_S3_ENDPOINT")
+	externalEndpoint := os.Getenv("AWS_S3_ENDPOINT_EXTERNAL")
+	if externalEndpoint == "" {
+		externalEndpoint = endpoint // 外部エンドポイントが設定されていない場合は内部エンドポイントを使用
+	}
 	pathStyle := os.Getenv("AWS_S3_PATH_STYLE") == "true"
 	disableSSL := os.Getenv("AWS_S3_DISABLE_SSL") == "true"
 	
@@ -117,6 +123,7 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 		s3Client:   s3Client,
 		bucketName: bucketName,
 		baseURL:    baseURL,
+		externalEndpoint: externalEndpoint,
 		logger:     logger,
 	}, nil
 }
@@ -158,8 +165,22 @@ func (s *s3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req
 		return nil, fmt.Errorf("Pre-signed URLの生成に失敗しました")
 	}
 
+	// URLの内部エンドポイントを外部エンドポイントに置換
+	uploadURL := presignedRequest.URL
+	if s.externalEndpoint != "" {
+		// エンドポイントのURLから内部ホストを抽出
+		endpoint := os.Getenv("AWS_S3_ENDPOINT")
+		if endpoint != "" && strings.Contains(uploadURL, endpoint) {
+			// 内部エンドポイントを外部エンドポイントに置換
+			uploadURL = strings.Replace(uploadURL, endpoint, s.externalEndpoint, 1)
+			s.logger.Debug("Replaced internal endpoint with external",
+				zap.String("original_url", presignedRequest.URL),
+				zap.String("new_url", uploadURL))
+		}
+	}
+
 	response := &dto.UploadURLResponse{
-		UploadURL: presignedRequest.URL,
+		UploadURL: uploadURL,
 		S3Key:     s3Key,
 		ExpiresAt: expiresAt,
 	}
@@ -167,7 +188,8 @@ func (s *s3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req
 	s.logger.Info("Pre-signed URL generated successfully",
 		zap.String("s3_key", s3Key),
 		zap.String("user_id", userID.String()),
-		zap.Time("expires_at", expiresAt))
+		zap.Time("expires_at", expiresAt),
+		zap.String("upload_url", uploadURL))
 
 	return response, nil
 }

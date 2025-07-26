@@ -146,6 +146,7 @@ services:
       USE_MOCK_S3: ${USE_MOCK_S3:-false}
       # S3/MinIO Configuration
       AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT:-http://minio:9000}
+      AWS_S3_ENDPOINT_EXTERNAL: ${AWS_S3_ENDPOINT_EXTERNAL:-http://localhost:9000}
       AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME:-monstera-files}
       AWS_REGION: ${AWS_REGION:-us-east-1}
       AWS_S3_BASE_URL: ${AWS_S3_BASE_URL:-http://localhost:9000/monstera-files}
@@ -165,8 +166,8 @@ services:
       COGNITO_CLIENT_SECRET: ${COGNITO_CLIENT_SECRET:-47c44j2dkj2y4tkf777zqgpiw}
       COGNITO_ENDPOINT: ${COGNITO_ENDPOINT:-http://cognito-local:9229}
       # AWS Credentials for local development
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-local}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-local}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-minioadmin}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-minioadmin}
       AWS_EC2_METADATA_DISABLED: "true"
       CHROME_PATH: /usr/bin/chromium
       PDF_GENERATION_TIMEOUT: 30

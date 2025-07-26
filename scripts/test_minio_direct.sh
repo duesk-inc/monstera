@@ -1,32 +1,29 @@
-#!/bin/bash
+#\!/bin/bash
 
-echo "=== MinIO直接アクセステスト ==="
+# MinIO直接アップロードテスト
 
-# 1. MinIOヘルスチェック
-echo "1. MinIOヘルスチェック"
-curl -s http://localhost:9000/minio/health/live
+echo "=== MinIO直接アップロードテスト ==="
+
+# テストファイルを作成
+echo "Creating test file..."
+echo "%PDF-1.4
+Test PDF Content for MinIO Direct Upload Test" > /tmp/test-direct.pdf
+
+# MinIOに直接アップロード（mc CLIを使用）
 echo ""
+echo "Uploading file directly to MinIO..."
+docker exec monstera-minio sh -c "echo '%PDF-1.4
+Test PDF Content' > /tmp/test.pdf && mc cp /tmp/test.pdf local/monstera-files/test/direct-upload.pdf"
 
-# 2. バケット一覧
-echo "2. バケット一覧"
-docker exec monstera-minio mc ls local/
-
-# 3. テストファイルアップロード
+# アップロードしたファイルを確認
 echo ""
-echo "3. テストファイルアップロード"
-echo "Test content" > /tmp/test.txt
-docker cp /tmp/test.txt monstera-minio:/tmp/test.txt
-docker exec monstera-minio mc cp /tmp/test.txt local/monstera-files/test.txt
+echo "Checking uploaded file..."
+docker exec monstera-minio mc ls local/monstera-files/test/
 
-# 4. アップロードしたファイルの確認
+# HTTPでアクセス可能か確認
 echo ""
-echo "4. アップロードしたファイルの確認"
-docker exec monstera-minio mc ls local/monstera-files/
-
-# 5. ファイルの内容確認
-echo ""
-echo "5. ファイルの内容確認"
-docker exec monstera-minio mc cat local/monstera-files/test.txt
+echo "Testing HTTP access..."
+curl -I http://localhost:9000/monstera-files/test/direct-upload.pdf
 
 echo ""
 echo "=== テスト完了 ==="
