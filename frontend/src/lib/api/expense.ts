@@ -227,19 +227,21 @@ export async function getExpense(id: string): Promise<Expense> {
 
 // 経費を作成
 export async function createExpense(data: ExpenseCreateData): Promise<Expense> {
-  return apiRequest<Expense>(EXPENSE_API_ENDPOINTS.EXPENSES, {
+  const response = await apiRequest<{ data: Expense }>(EXPENSE_API_ENDPOINTS.EXPENSES, {
     method: 'POST',
     body: JSON.stringify(data),
   });
+  return response.data;
 }
 
 // 経費を更新
 export async function updateExpense(data: ExpenseUpdateData): Promise<Expense> {
   const { id, ...updateData } = data;
-  return apiRequest<Expense>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`, {
+  const response = await apiRequest<{ data: Expense }>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`, {
     method: 'PUT',
     body: JSON.stringify(updateData),
   });
+  return response.data;
 }
 
 // 経費を削除
