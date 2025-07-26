@@ -139,3 +139,11 @@ CREATE TRIGGER update_expense_summaries_updated_at
     BEFORE UPDATE ON expense_summaries
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
+
+-- 8. expensesテーブルにcategory_idの外部キー制約を追加
+ALTER TABLE expenses 
+    ADD CONSTRAINT fk_expenses_category 
+    FOREIGN KEY (category_id) 
+    REFERENCES expense_categories(id) 
+    ON DELETE SET NULL 
+    ON UPDATE CASCADE;

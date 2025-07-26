@@ -27,7 +27,7 @@ import { useDashboardStats } from '@/hooks/admin/useWeeklyReportSummary';
 import StatsSummaryCard from '@/components/admin/dashboard/StatsSummaryCard';
 import WeeklyReportChart from '@/components/admin/dashboard/WeeklyReportChart';
 import PeriodSelector from '@/components/admin/dashboard/PeriodSelector';
-import LowMoodAlert from '@/components/admin/dashboard/LowMoodAlert';
+// import LowMoodAlert from '@/components/admin/dashboard/LowMoodAlert'; // Mood機能削除により無効化
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -129,8 +129,8 @@ export default function AdminDashboard() {
       {/* 未提出者アラート */}
       <UnsubmittedAlert />
       
-      {/* 低ムードユーザーアラート */}
-      {stats?.current?.moodStats?.lowMoodUsers && (
+      {/* 低ムードユーザーアラート - Mood機能削除により無効化 */}
+      {/* {stats?.current?.moodStats?.lowMoodUsers && (
         <LowMoodAlert 
           lowMoodUsers={stats.current.moodStats.lowMoodUsers} 
           onUserClick={(userId) => {
@@ -141,7 +141,7 @@ export default function AdminDashboard() {
             }
           }}
         />
-      )}
+      )} */}
       
       {/* 期間選択 */}
       <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

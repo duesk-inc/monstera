@@ -323,19 +323,30 @@ func main() {
 	// 経費申請サービスを追加（s3Service, notificationService, userRepo, cacheManager, auditLogServiceを含む）
 	// 経費領収書リポジトリを初期化
 	expenseReceiptRepo := internalRepo.NewExpenseReceiptRepository(db, logger)
-	// ウイルススキャンエンジンを初期化
-	clamavHost := os.Getenv("CLAMAV_HOST")
-	if clamavHost == "" {
-		clamavHost = "localhost"
-	}
-	clamavPort := 3310
-	if port := os.Getenv("CLAMAV_PORT"); port != "" {
-		if p, err := strconv.Atoi(port); err == nil {
-			clamavPort = p
+	
+	// ウイルススキャンサービスの初期化
+	var virusScanService service.VirusScanService
+	disableVirusScan := os.Getenv("DISABLE_VIRUS_SCAN")
+	if disableVirusScan == "true" {
+		// 開発環境用のモックサービスを使用
+		logger.Warn("ウイルススキャンが無効化されています（開発環境用）")
+		virusScanService = service.NewMockVirusScanService(logger)
+	} else {
+		// 本番環境用のClamAVサービスを使用
+		clamavHost := os.Getenv("CLAMAV_HOST")
+		if clamavHost == "" {
+			clamavHost = "localhost"
 		}
+		clamavPort := 3310
+		if port := os.Getenv("CLAMAV_PORT"); port != "" {
+			if p, err := strconv.Atoi(port); err == nil {
+				clamavPort = p
+			}
+		}
+		scanEngine := service.NewClamAVEngine(clamavHost, clamavPort, 30*time.Second, 100*1024*1024) // 100MB max
+		virusScanService = service.NewVirusScanService(logger, scanEngine, "./quarantine", 100*1024*1024)
 	}
-	scanEngine := service.NewClamAVEngine(clamavHost, clamavPort, 30*time.Second, 100*1024*1024) // 100MB max
-	virusScanService := service.NewVirusScanService(logger, scanEngine, "./quarantine", 100*1024*1024)
+	
 	expenseService := service.NewExpenseService(db, expenseRepo, expenseCategoryRepo, expenseLimitRepo, expenseApprovalRepo, expenseReceiptRepo, expenseDeadlineSettingRepo, s3Service, notificationService, userRepo, cacheManager, auditLogService, virusScanService, logger)
 	// 経費承認者設定サービスを追加
 	expenseApproverSettingService := service.NewExpenseApproverSettingService(db, expenseApproverSettingRepo, userRepo, logger)
@@ -821,6 +832,22 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 			// adminExpenseDeadline.POST("", expenseDeadlineHandler.CreateDeadlineSetting)
 			// adminExpenseDeadline.PUT("/:id", expenseDeadlineHandler.UpdateDeadlineSetting)
 			// adminExpenseDeadline.DELETE("/:id", expenseDeadlineHandler.DeleteDeadlineSetting)
+		}
+
+		// 開発環境用のモックアップロードエンドポイント
+		if os.Getenv("USE_MOCK_S3") == "true" || os.Getenv("GO_ENV") == "development" {
+			mockUpload := api.Group("/mock-upload")
+			{
+				// モックアップロードハンドラー（PUTリクエストを受け取って成功を返す）
+				mockUpload.PUT("/*filepath", func(c *gin.Context) {
+					logger.Info("Mock upload received",
+						zap.String("path", c.Param("filepath")),
+						zap.String("method", c.Request.Method))
+					
+					// 成功レスポンスを返す
+					c.Status(http.StatusOK)
+				})
+			}
 		}
 	}
 

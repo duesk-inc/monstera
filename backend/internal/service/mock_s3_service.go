@@ -34,8 +34,8 @@ func (s *mockS3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID,
 	// S3キーを生成
 	s3Key := req.GenerateS3Key(userID)
 
-	// モックのURLを生成
-	uploadURL := fmt.Sprintf("http://localhost:9000/mock-bucket/%s?mock=true", s3Key)
+	// モックのURLを生成（バックエンドのモックアップロードエンドポイントを指定）
+	uploadURL := fmt.Sprintf("http://localhost:8080/api/v1/mock-upload/%s?mock=true", s3Key)
 	expiresAt := time.Now().Add(15 * time.Minute)
 
 	response := &dto.UploadURLResponse{

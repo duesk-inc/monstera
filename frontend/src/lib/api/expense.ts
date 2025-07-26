@@ -332,6 +332,24 @@ interface ExpenseCategoryApiResponse {
   }>;
 }
 
+// アップロードURL生成APIレスポンスの型定義
+interface GenerateUploadURLApiResponse {
+  data: {
+    upload_url: string;
+    s3_key: string;
+    expires_at: string;
+  };
+}
+
+// アップロード完了APIレスポンスの型定義
+interface CompleteUploadApiResponse {
+  data: {
+    receipt_url: string;
+    s3_key: string;
+    uploaded_at: string;
+  };
+}
+
 // 経費カテゴリ一覧を取得
 export async function getExpenseCategories(signal?: AbortSignal): Promise<ExpenseCategory[]> {
   const response = await apiRequest<ExpenseCategoryApiResponse>(
@@ -396,18 +414,38 @@ export async function deleteExpenseTemplate(id: string): Promise<void> {
 
 // Pre-signed URLを生成
 export async function generateUploadURL(data: UploadFileRequest): Promise<UploadFileResponse> {
-  return apiRequest<UploadFileResponse>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-url`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  const response = await apiRequest<GenerateUploadURLApiResponse>(
+    `${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-url`, 
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  );
+  
+  // snake_caseからcamelCaseへの変換
+  return {
+    uploadUrl: response.data.upload_url,
+    s3Key: response.data.s3_key,
+    expiresAt: response.data.expires_at,
+  };
 }
 
 // アップロード完了を通知
 export async function completeUpload(data: CompleteUploadRequest): Promise<CompleteUploadResponse> {
-  return apiRequest<CompleteUploadResponse>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-complete`, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  const response = await apiRequest<CompleteUploadApiResponse>(
+    `${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-complete`, 
+    {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }
+  );
+  
+  // snake_caseからcamelCaseへの変換
+  return {
+    receiptUrl: response.data.receipt_url,
+    s3Key: response.data.s3_key,
+    uploadedAt: response.data.uploaded_at,
+  };
 }
 
 // アップロード済みファイルを削除
