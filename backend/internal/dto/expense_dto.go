@@ -17,7 +17,7 @@ type CreateExpenseRequest struct {
 	Amount        int       `json:"amount" binding:"required,min=1,max=10000000"`                                           // 金額（1円〜1000万円）
 	ExpenseDate   time.Time `json:"expense_date" binding:"required"`                                                        // 使用日
 	Description   string    `json:"description" binding:"required,min=10,max=1000"`                                         // 使用理由（10文字以上）
-	ReceiptURL    string    `json:"receipt_url" binding:"required,url"`                                                     // 領収書URL
+	ReceiptURL    string    `json:"receipt_url" binding:"omitempty,url"`                                                    // 領収書URL
 	ReceiptURLs   []string  `json:"receipt_urls" binding:"omitempty,dive,url"`                                              // 領収書URL（複数）
 	OtherCategory string    `json:"other_category,omitempty" binding:"omitempty,max=100"`                                   // その他カテゴリの詳細
 }
