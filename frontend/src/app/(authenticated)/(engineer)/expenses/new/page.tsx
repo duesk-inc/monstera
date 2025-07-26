@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Box,
   Button,
@@ -23,15 +24,19 @@ import type { ExpenseData } from '@/types/expense';
  */
 export default function NewExpensePage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { showSuccess } = useToast();
 
   /**
    * 作成成功時のハンドラー
-   * 作成された経費申請の詳細画面に遷移
+   * 一覧画面に遷移して最新データを表示
    */
   const handleSuccess = (expense: ExpenseData) => {
     showSuccess('経費申請を作成しました');
-    router.push(`/expenses/${expense.id}`);
+    // 経費一覧のキャッシュをクリアして最新データを取得
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    // 一覧画面に遷移
+    router.push('/expenses');
   };
 
   /**
