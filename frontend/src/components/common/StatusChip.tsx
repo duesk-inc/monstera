@@ -1,5 +1,13 @@
 import React from 'react';
 import { Chip, ChipProps } from '@mui/material';
+import {
+  CheckCircle as CheckCircleIcon,
+  Edit as EditIcon,
+  Cancel as CancelIcon,
+  Schedule as ScheduleIcon,
+  Send as SendIcon,
+  Description as DescriptionIcon,
+} from '@mui/icons-material';
 
 // 申請ステータスの型定義
 export type ApplicationStatus = 'approved' | 'pending' | 'rejected' | 'submitted' | 'draft' | 'not_submitted';
@@ -25,8 +33,18 @@ const STATUS_COLORS: Record<ApplicationStatus, ChipProps['color']> = {
   pending: 'warning',
   rejected: 'error', 
   submitted: 'success',
-  draft: 'warning',
+  draft: 'info',
   not_submitted: 'default',
+};
+
+// ステータスアイコンの定義
+const STATUS_ICONS: Record<ApplicationStatus, React.ReactElement | null> = {
+  approved: <CheckCircleIcon fontSize="small" />,
+  pending: <ScheduleIcon fontSize="small" />,
+  rejected: <CancelIcon fontSize="small" />,
+  submitted: <SendIcon fontSize="small" />,
+  draft: <EditIcon fontSize="small" />,
+  not_submitted: null,
 };
 
 /**
@@ -43,16 +61,26 @@ export const StatusChip: React.FC<StatusChipProps> = ({
 }) => {
   const label = customLabel || STATUS_LABELS[status];
   const color = STATUS_COLORS[status];
+  const icon = STATUS_ICONS[status];
 
   return (
     <Chip
       label={label}
       color={color}
       size={size}
+      icon={icon || undefined}
       {...props}
       sx={{
         fontWeight: 'medium',
         borderRadius: 1,
+        // draftステータスの場合、より目立つスタイルを適用
+        ...(status === 'draft' && {
+          backgroundColor: 'info.light',
+          color: 'info.dark',
+          '& .MuiChip-icon': {
+            color: 'info.dark',
+          },
+        }),
         ...props.sx,
       }}
     />
