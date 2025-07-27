@@ -1,7 +1,8 @@
 // 経費関連のAPI処理ライブラリ
 
 import { EXPENSE_API_ENDPOINTS } from '@/constants/expense';
-import type { ExpenseCategory } from '@/types/expense';
+import type { ExpenseCategory, ExpenseListResponse, ExpenseListBackendResponse } from '@/types/expense';
+import { mapBackendExpenseListToExpenseList } from '@/utils/expenseMappers';
 
 // 経費データの型定義
 export interface Expense {
@@ -200,7 +201,10 @@ export async function getExpenses(params: ExpenseSearchParams = {}): Promise<Exp
   });
 
   const endpoint = `${EXPENSE_API_ENDPOINTS.EXPENSES}?${searchParams.toString()}`;
-  return apiRequest<ExpenseListResponse>(endpoint);
+  const backendResponse = await apiRequest<{ data: ExpenseListBackendResponse }>(endpoint);
+  
+  // バックエンドレスポンスをフロントエンドの形式に変換
+  return mapBackendExpenseListToExpenseList(backendResponse.data);
 }
 
 // 経費一覧を取得（型定義をtypes/expenseから使用するバージョン）
@@ -217,7 +221,10 @@ export async function getExpenseList(
   });
 
   const endpoint = `${EXPENSE_API_ENDPOINTS.EXPENSES}?${searchParams.toString()}`;
-  return apiRequest<ExpenseListResponse>(endpoint, { signal });
+  const backendResponse = await apiRequest<{ data: ExpenseListBackendResponse }>(endpoint, { signal });
+  
+  // バックエンドレスポンスをフロントエンドの形式に変換
+  return mapBackendExpenseListToExpenseList(backendResponse.data);
 }
 
 // 経費詳細を取得

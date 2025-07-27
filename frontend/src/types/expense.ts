@@ -1,5 +1,37 @@
 // 経費関連の型定義
 
+// バックエンドからのレスポンス型
+export interface ExpenseBackendResponse {
+  id: string;
+  user_id: string;
+  title: string;
+  category: string;
+  amount: number;
+  expense_date: string;
+  status: string;
+  description: string;
+  receipt_url?: string;
+  approver_id?: string;
+  approved_at?: string;
+  paid_at?: string;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    name: string;
+  };
+  approver?: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    name: string;
+  };
+}
+
 // 基本的な経費データ型
 export interface ExpenseData {
   id: string;
@@ -45,6 +77,15 @@ export interface ExpenseListParams {
   year?: number;
   fiscalYear?: number;
   month?: number;
+}
+
+// バックエンド経費一覧レスポンス
+export interface ExpenseListBackendResponse {
+  items: ExpenseBackendResponse[];
+  total: number;
+  page: number;
+  limit: number;
+  total_pages?: number;
 }
 
 // 経費一覧レスポンス
