@@ -30,8 +30,10 @@ interface UseExpenseSubmitOptions {
 interface UseExpenseSubmitReturn {
   createExpense: (data: ExpenseFormData) => Promise<ExpenseData>;
   updateExpense: (id: string, data: ExpenseFormData) => Promise<ExpenseData>;
+  submitExpense: (id: string) => Promise<ExpenseData>;
   isCreating: boolean;
   isUpdating: boolean;
+  isSubmitting: boolean;
   error: Error | null;
   reset: () => void;
 }
@@ -164,6 +166,34 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
     },
   });
 
+  // 経費提出のミューテーション
+  const submitMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await expenseApi.submitExpense(id);
+      return transformResponseToExpenseData(response);
+    },
+    onSuccess: (data) => {
+      setError(null);
+      // 経費一覧と詳細のキャッシュを無効化
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['expense', data.id] });
+      
+      // 成功コールバックを実行
+      if (options.onSuccess) {
+        options.onSuccess(data);
+      }
+    },
+    onError: (error: any) => {
+      const errorObj = error instanceof Error ? error : new Error('経費申請の提出に失敗しました');
+      setError(errorObj);
+      
+      // エラーコールバックを実行
+      if (options.onError) {
+        options.onError(errorObj);
+      }
+    },
+  });
+
   // 経費作成関数
   const createExpense = useCallback(async (data: ExpenseFormData): Promise<ExpenseData> => {
     setError(null);
@@ -176,18 +206,27 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
     return updateMutation.mutateAsync({ id, data });
   }, [updateMutation]);
 
+  // 経費提出関数
+  const submitExpense = useCallback(async (id: string): Promise<ExpenseData> => {
+    setError(null);
+    return submitMutation.mutateAsync(id);
+  }, [submitMutation]);
+
   // リセット関数
   const reset = useCallback(() => {
     setError(null);
     createMutation.reset();
     updateMutation.reset();
-  }, [createMutation, updateMutation]);
+    submitMutation.reset();
+  }, [createMutation, updateMutation, submitMutation]);
 
   return {
     createExpense,
     updateExpense,
+    submitExpense,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
+    isSubmitting: submitMutation.isPending,
     error,
     reset,
   };

@@ -59,7 +59,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   const router = useRouter();
   const { handleSubmissionError } = useEnhancedErrorHandler();
   const { categories, getCategoryById, isLoading: isCategoriesLoading } = useCategories();
-  const { createExpense, updateExpense, isCreating, isUpdating } = useExpenseSubmit();
+  const { createExpense, updateExpense, submitExpense, isCreating, isUpdating, isSubmitting } = useExpenseSubmit();
 
   // 現在日付と年度範囲の状態管理（ハイドレーション対策）
   const [currentDate, setCurrentDate] = useState<Date | null>(null);
@@ -293,9 +293,33 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     }
   };
 
+  // 提出ハンドラー
+  const handleSubmitExpense = async () => {
+    try {
+      if (!expense?.id) {
+        throw new Error('経費申請IDが見つかりません');
+      }
+
+      const result = await submitExpense(expense.id);
+      
+      // 成功メッセージ
+      if (onSuccess) {
+        onSuccess(result);
+      } else {
+        // デフォルトの成功処理
+        router.push('/expenses');
+      }
+    } catch (error) {
+      handleSubmissionError(error, '経費申請の提出');
+    }
+  };
+
 
   // ローディング中の表示
-  const isLoading = isCreating || isUpdating || isCategoriesLoading;
+  const isLoading = isCreating || isUpdating || isSubmitting || isCategoriesLoading;
+  
+  // draftステータスかどうかの判定
+  const isDraft = expense?.status === 'draft' || expense?.status === '下書き';
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
@@ -490,10 +514,22 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                   type="submit"
                   variant="contained"
                   disabled={isLoading || isExpired}
-                  startIcon={isLoading && <CircularProgress size={20} />}
+                  startIcon={isLoading && !isSubmitting && <CircularProgress size={20} />}
                 >
                   {mode === 'create' ? '作成' : '更新'}
                 </Button>
+                {/* 編集モードでdraftステータスの場合のみ提出ボタンを表示 */}
+                {mode === 'edit' && isDraft && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSubmitExpense}
+                    disabled={isLoading || isExpired}
+                    startIcon={isSubmitting && <CircularProgress size={20} />}
+                  >
+                    提出
+                  </Button>
+                )}
               </Box>
             </Grid>
           </Grid>
