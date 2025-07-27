@@ -8,7 +8,7 @@ export type CategoryType = 'project' | 'expense' | 'leave';
 export type ProjectCategory = 'フロントエンド' | 'バックエンド' | 'インフラ' | 'デザイン' | 'PM' | 'その他';
 
 // 経費カテゴリの型定義  
-export type ExpenseCategory = 'transport' | 'meal' | 'accommodation' | 'entertainment' | 'office_supplies' | 'book' | 'seminar' | 'other';
+export type ExpenseCategory = 'transport' | 'entertainment' | 'supplies' | 'books' | 'seminar' | 'other';
 
 // 休暇カテゴリの型定義
 export type LeaveCategory = 'paid' | 'sick' | 'special' | 'condolence' | 'maternity' | 'childcare' | 'nursing';
@@ -20,13 +20,11 @@ interface CategoryChipProps extends Omit<ChipProps, 'label' | 'color'> {
 
 // 経費カテゴリラベルの統一定義
 const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
-  transport: '交通費',
-  meal: '食費',
-  accommodation: '宿泊費', 
-  entertainment: '接待費',
-  office_supplies: '備品',
-  book: '書籍',
-  seminar: 'セミナー・研修',
+  transport: '旅費交通費',
+  entertainment: '交際費',
+  supplies: '備品',
+  books: '書籍',
+  seminar: 'セミナー',
   other: 'その他',
 };
 

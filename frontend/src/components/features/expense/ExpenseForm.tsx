@@ -90,6 +90,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   // バリデーションエラーの状態管理
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
 
 
   // 選択中のカテゴリ情報
@@ -236,6 +237,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   // フォーム送信ハンドラー
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitAttempted(true);
     
     // 全フィールドをタッチ済みに設定
     const allFields = ['categoryId', 'amount', 'description', 'expenseDate', 'receipt'];
@@ -282,6 +284,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
 
   // キャンセルハンドラー
   const handleCancel = () => {
+    setSubmitAttempted(false);
     
     if (onCancel) {
       onCancel();
@@ -456,7 +459,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
             </Grid>
 
             {/* エラーメッセージ */}
-            {Object.keys(errors).length > 0 && touched.categoryId && (
+            {Object.keys(errors).length > 0 && submitAttempted && (
               <Grid size={12}>
                 <Alert severity="error">
                   {EXPENSE_MESSAGES.VALIDATION_ERROR}
