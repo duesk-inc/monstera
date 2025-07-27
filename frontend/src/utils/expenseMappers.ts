@@ -1,13 +1,41 @@
 import { ExpenseBackendResponse, ExpenseData, ExpenseListBackendResponse, ExpenseListResponse } from '@/types/expense';
 
 /**
+ * カテゴリコードから日本語名へのマッピング
+ */
+const CATEGORY_NAME_MAP: Record<string, string> = {
+  transport: '交通費',
+  meal: '食事・接待費',
+  accommodation: '宿泊費',
+  entertainment: 'エンターテイメント',
+  office_supplies: '事務用品',
+  book: '書籍・資料',
+  seminar: 'セミナー・研修',
+  other: 'その他'
+};
+
+/**
+ * ステータスコードから日本語名へのマッピング
+ */
+const STATUS_NAME_MAP: Record<string, string> = {
+  draft: '下書き',
+  submitted: '申請中',
+  approved: '承認済み',
+  rejected: '却下',
+  paid: '支払済み',
+  cancelled: 'キャンセル',
+  expired: '期限切れ',
+  closed: 'クローズド'
+};
+
+/**
  * バックエンドの経費レスポンスをフロントエンドの形式に変換
  */
 export function mapBackendExpenseToExpenseData(backendExpense: ExpenseBackendResponse): ExpenseData {
   return {
     id: backendExpense.id,
     userId: backendExpense.user_id,
-    category: backendExpense.category,
+    category: CATEGORY_NAME_MAP[backendExpense.category] || backendExpense.category,
     amount: backendExpense.amount,
     currency: 'JPY', // デフォルト値
     date: backendExpense.expense_date,
@@ -16,7 +44,7 @@ export function mapBackendExpenseToExpenseData(backendExpense: ExpenseBackendRes
     taxRate: 10, // デフォルト値
     taxAmount: Math.floor(backendExpense.amount * 0.1), // 10%税率で計算
     totalAmount: backendExpense.amount,
-    status: backendExpense.status,
+    status: STATUS_NAME_MAP[backendExpense.status] || backendExpense.status,
     receiptUrls: backendExpense.receipt_url ? [backendExpense.receipt_url] : [],
     isBusinessTrip: false, // デフォルト値
     submittedAt: undefined, // TODO: バックエンドから取得できるようになったら修正
