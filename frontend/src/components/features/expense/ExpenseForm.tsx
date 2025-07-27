@@ -314,6 +314,49 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
     }
   };
 
+  // 作成して提出ハンドラー
+  const handleCreateAndSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitAttempted(true);
+    
+    // 全フィールドをタッチ済みに設定
+    const allFields = ['categoryId', 'amount', 'description', 'expenseDate', 'receipt'];
+    const newTouched: Record<string, boolean> = {};
+    allFields.forEach(field => {
+      newTouched[field] = true;
+    });
+    setTouched(newTouched);
+    
+    // バリデーション実行
+    const validationErrors = validateForm();
+    if (validationErrors.length > 0) {
+      const errorMap: Record<string, string> = {};
+      validationErrors.forEach(error => {
+        errorMap[error.field] = error.message;
+      });
+      setErrors(errorMap);
+      return;
+    }
+    
+    try {
+      // 1. まず作成
+      const createdExpense = await createExpense(formData);
+      
+      // 2. 次に提出
+      const submittedExpense = await submitExpense(createdExpense.id);
+      
+      // 成功時の処理
+      if (onSuccess) {
+        onSuccess(submittedExpense);
+      } else {
+        // デフォルトの動作：一覧画面に遷移
+        router.push('/expenses');
+      }
+    } catch (error) {
+      handleSubmissionError(error, '経費申請の作成と提出');
+    }
+  };
+
 
   // ローディング中の表示
   const isLoading = isCreating || isUpdating || isSubmitting || isCategoriesLoading;
@@ -510,25 +553,52 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
                 >
                   キャンセル
                 </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={isLoading || isExpired}
-                  startIcon={isLoading && !isSubmitting && <CircularProgress size={20} />}
-                >
-                  {mode === 'create' ? '作成' : '更新'}
-                </Button>
-                {/* 編集モードでdraftステータスの場合のみ提出ボタンを表示 */}
-                {mode === 'edit' && isDraft && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={handleSubmitExpense}
-                    disabled={isLoading || isExpired}
-                    startIcon={isSubmitting && <CircularProgress size={20} />}
-                  >
-                    提出
-                  </Button>
+                {/* 作成モードの場合 */}
+                {mode === 'create' ? (
+                  <>
+                    <Button
+                      type="submit"
+                      variant="outlined"
+                      color="primary"
+                      disabled={isLoading || isExpired}
+                      startIcon={isLoading && !isSubmitting && <CircularProgress size={20} />}
+                    >
+                      下書き保存
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleCreateAndSubmit}
+                      disabled={isLoading || isExpired}
+                      startIcon={isLoading && <CircularProgress size={20} />}
+                    >
+                      作成して提出
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    {/* 編集モードの場合 */}
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={isLoading || isExpired}
+                      startIcon={isLoading && !isSubmitting && <CircularProgress size={20} />}
+                    >
+                      更新
+                    </Button>
+                    {/* draftステータスの場合のみ提出ボタンを表示 */}
+                    {isDraft && (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSubmitExpense}
+                        disabled={isLoading || isExpired}
+                        startIcon={isSubmitting && <CircularProgress size={20} />}
+                      >
+                        提出
+                      </Button>
+                    )}
+                  </>
                 )}
               </Box>
             </Grid>
