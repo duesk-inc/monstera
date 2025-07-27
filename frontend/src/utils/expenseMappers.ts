@@ -1,20 +1,6 @@
 import { ExpenseBackendResponse, ExpenseData, ExpenseListBackendResponse, ExpenseListResponse } from '@/types/expense';
 
 /**
- * カテゴリコードから日本語名へのマッピング
- */
-const CATEGORY_NAME_MAP: Record<string, string> = {
-  transport: '交通費',
-  meal: '食事・接待費',
-  accommodation: '宿泊費',
-  entertainment: 'エンターテイメント',
-  office_supplies: '事務用品',
-  book: '書籍・資料',
-  seminar: 'セミナー・研修',
-  other: 'その他'
-};
-
-/**
  * ステータスコードから日本語名へのマッピング
  */
 const STATUS_NAME_MAP: Record<string, string> = {
@@ -35,7 +21,7 @@ export function mapBackendExpenseToExpenseData(backendExpense: ExpenseBackendRes
   return {
     id: backendExpense.id,
     userId: backendExpense.user_id,
-    category: CATEGORY_NAME_MAP[backendExpense.category] || backendExpense.category,
+    category: backendExpense.category, // カテゴリコードをそのまま使用
     amount: backendExpense.amount,
     currency: 'JPY', // デフォルト値
     date: backendExpense.expense_date,
