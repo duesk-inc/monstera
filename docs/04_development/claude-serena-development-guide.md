@@ -126,6 +126,29 @@ write_memory("common_pitfalls_[機能名]", "内容")
 /db-optimization → /test
 ```
 
+#### ドキュメント管理
+```bash
+# 監査から始める包括的な管理
+/docs-audit → /docs-update → /docs-cleanup → /docs-organize
+
+# 個別の作業
+/docs-update     # 古い情報の更新のみ
+/docs-cleanup    # 不要文書の削除のみ
+/docs-organize   # ディレクトリ整理のみ
+```
+
+#### 品質改善
+```bash
+# 品質監査から改善実施
+/quality-audit → /quality-improve → /test
+
+# 不具合が見つかった場合
+/quality-audit → /bug-fix → /test
+
+# 設計書が必要な場合
+/quality-audit → /new-feature-plan（設計書作成）→ /quality-improve
+```
+
 ## ⚠️ 注意事項
 
 ### 1. デグレ防止
