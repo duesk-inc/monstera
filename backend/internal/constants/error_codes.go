@@ -21,6 +21,12 @@ const (
 
 	// システムエラー
 	ErrExpenseSaveFailed = "E001S001" // 経費申請の保存に失敗しました
+	
+	// 承認者設定エラー
+	ErrExpenseApproverNotConfigured = "E001C001" // 承認者が設定されていません
+	
+	// ステータスエラー
+	ErrExpenseInvalidStatus = "E001S002" // 無効なステータスです
 )
 
 // 承認フロー管理 (E002)
@@ -115,8 +121,10 @@ var ErrorMessages = map[string]string{
 	ErrExpenseAlreadySubmitted:   "既に提出済みの申請は編集できません",
 	ErrExpenseAlreadyApproved:    "承認済みの申請は取り消しできません",
 	ErrExpenseExpired:            "申請期限を過ぎた経費は申請できません",
-	ErrExpenseNotFound:           "指定された経費申請が見つかりません",
-	ErrExpenseSaveFailed:         "経費申請の保存に失敗しました",
+	ErrExpenseNotFound:              "指定された経費申請が見つかりません",
+	ErrExpenseSaveFailed:            "経費申請の保存に失敗しました",
+	ErrExpenseApproverNotConfigured: "承認者が設定されていません。システム管理者に承認者の設定を依頼してください",
+	ErrExpenseInvalidStatus:         "この経費申請は現在のステータスでは実行できません",
 
 	// 承認フロー管理
 	ErrApprovalCommentTooLong:   "承認コメントは500文字以内で入力してください",

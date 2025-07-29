@@ -143,6 +143,7 @@ services:
       CORS_ALLOW_ORIGINS: http://localhost:3000
       GIN_MODE: debug
       GO_ENV: development
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
       USE_MOCK_S3: ${USE_MOCK_S3:-false}
       # S3/MinIO Configuration
       AWS_S3_ENDPOINT: ${AWS_S3_ENDPOINT:-http://minio:9000}

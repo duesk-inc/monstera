@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -391,7 +392,32 @@ func (h *ExpenseHandler) SubmitExpense(c *gin.Context) {
 	if err != nil {
 		h.logger.Error("Failed to submit expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
 
-		// エラーメッセージから適切なステータスコードを判定
+		// ExpenseErrorタイプを確認
+		var expenseErr *dto.ExpenseError
+		if errors.As(err, &expenseErr) {
+			switch expenseErr.Code {
+			case dto.ErrCodeExpenseNotFound:
+				RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrExpenseNotFound, expenseErr.Message)
+				return
+			case dto.ErrCodeUnauthorized:
+				RespondStandardErrorWithCode(c, http.StatusForbidden, constants.ErrApprovalPermissionDenied, expenseErr.Message)
+				return
+			case dto.ErrCodeExpenseNotSubmittable:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrExpenseInvalidStatus, expenseErr.Message)
+				return
+			case dto.ErrCodeReceiptRequired:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrExpenseReceiptRequired, expenseErr.Message)
+				return
+			case dto.ErrCodeNoApproversConfigured:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrExpenseApproverNotConfigured, expenseErr.Message)
+				return
+			default:
+				HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, expenseErr.Message, h.logger, err)
+				return
+			}
+		}
+
+		// エラーメッセージから適切なステータスコードを判定（後方互換性のため残す）
 		if err.Error() == "経費申請が見つかりません" {
 			RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrExpenseNotFound, "経費申請が見つかりません")
 			return

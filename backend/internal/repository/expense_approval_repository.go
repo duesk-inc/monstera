@@ -33,7 +33,7 @@ type ExpenseApprovalRepository interface {
 	CountPendingByApproverID(ctx context.Context, approverID uuid.UUID) (int64, error)
 
 	// 承認フロー管理
-	CreateApprovalFlow(ctx context.Context, expenseID uuid.UUID, amount int) error
+	CreateApprovalFlow(ctx context.Context, expenseID uuid.UUID, amount int, settingRepo ExpenseApproverSettingRepository) error
 	UpdateApprovalStatus(ctx context.Context, approvalID uuid.UUID, status model.ApprovalStatus, comment string, approverID uuid.UUID) error
 	GetNextPendingApproval(ctx context.Context, expenseID uuid.UUID) (*model.ExpenseApproval, error)
 	IsApprovalCompleted(ctx context.Context, expenseID uuid.UUID) (bool, error)
@@ -399,22 +399,27 @@ func (r *ExpenseApprovalRepositoryImpl) CountPendingByApproverID(ctx context.Con
 // ========================================
 
 // CreateApprovalFlow 承認フローを作成（金額に応じて必要な承認者を設定）
-func (r *ExpenseApprovalRepositoryImpl) CreateApprovalFlow(ctx context.Context, expenseID uuid.UUID, amount int) error {
+func (r *ExpenseApprovalRepositoryImpl) CreateApprovalFlow(ctx context.Context, expenseID uuid.UUID, amount int, settingRepo ExpenseApproverSettingRepository) error {
 	// 承認フローの設計:
 	// 5万円未満: 管理部のみ
 	// 5万円以上: 管理部 → 役員
 
+	r.logger.Info("Starting CreateApprovalFlow",
+		zap.String("expense_id", expenseID.String()),
+		zap.Int("amount", amount))
+
 	var approvals []model.ExpenseApproval
 
-	// 承認者設定から動的に取得
-	settingRepo := NewExpenseApproverSettingRepository(r.db, r.logger)
-
 	// 管理部承認者を取得
+	r.logger.Info("Getting manager approvers")
 	managerSettings, err := settingRepo.GetActiveByApprovalType(ctx, model.ApprovalTypeManager)
 	if err != nil {
 		r.logger.Error("Failed to get manager approvers", zap.Error(err))
 		return err
 	}
+
+	r.logger.Info("Manager settings retrieved",
+		zap.Int("count", len(managerSettings)))
 
 	if len(managerSettings) == 0 {
 		r.logger.Error("No active manager approvers found")

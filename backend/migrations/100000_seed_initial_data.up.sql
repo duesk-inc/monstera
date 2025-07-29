@@ -231,4 +231,15 @@ INSERT INTO certifications (id, name, issuer, description, is_common, display_or
   (@cert_toeic_id, 'TOEIC', 'ETS', '英語コミュニケーション能力を測定するテスト', true, 40, 'その他'),
   (@cert_oracle_db_id, 'Oracle Master Bronze', 'Oracle', 'Oracleデータベースの基本的な管理スキルを認定', true, 25, 'ベンダー資格'),
   (@cert_azure_fund_id, 'Microsoft Azure Fundamentals', 'Microsoft', 'Azureクラウドサービスの基礎知識を認定', true, 12, 'ベンダー資格'),
-  (@cert_gcp_ace_id, 'Google Cloud Associate Cloud Engineer', 'Google', 'GCPの基本的な運用スキルを認定', true, 13, 'ベンダー資格'); 
+  (@cert_gcp_ace_id, 'Google Cloud Associate Cloud Engineer', 'Google', 'GCPの基本的な運用スキルを認定', true, 13, 'ベンダー資格');
+
+-- 経費申請承認者設定
+-- 管理部承認者としてadmin@duesk.co.jpを設定
+SET @approver_manager_id = 'g0eebc99-9c0b-4ef8-bb6d-6bb9bd380f01';
+INSERT INTO expense_approver_settings (id, approval_type, approver_id, is_active, priority, created_by)
+VALUES (@approver_manager_id, 'manager', @admin_id, true, 1, @admin_id);
+
+-- 役員承認者としてもadmin@duesk.co.jpを設定
+SET @approver_executive_id = 'g0eebc99-9c0b-4ef8-bb6d-6bb9bd380f02';
+INSERT INTO expense_approver_settings (id, approval_type, approver_id, is_active, priority, created_by)
+VALUES (@approver_executive_id, 'executive', @admin_id, true, 1, @admin_id); 

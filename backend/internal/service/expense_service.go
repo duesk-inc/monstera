@@ -912,6 +912,7 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 		// リポジトリをトランザクション用に作成
 		txExpenseRepo := repository.NewExpenseRepository(tx, s.logger)
 		txApprovalRepo := repository.NewExpenseApprovalRepository(tx, s.logger)
+		txApproverSettingRepo := repository.NewExpenseApproverSettingRepository(tx, s.logger)
 
 		// ステータスを「申請中」に更新
 		expense.Status = model.ExpenseStatusSubmitted
@@ -950,7 +951,20 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 		}
 
 		// 承認フローを作成
-		if err := txApprovalRepo.CreateApprovalFlow(ctx, expense.ID, expense.Amount); err != nil {
+		s.logger.Info("Creating approval flow",
+			zap.String("expense_id", expense.ID.String()),
+			zap.Int("amount", expense.Amount))
+		
+		if err := txApprovalRepo.CreateApprovalFlow(ctx, expense.ID, expense.Amount, txApproverSettingRepo); err != nil {
+			s.logger.Error("CreateApprovalFlow failed",
+				zap.Error(err),
+				zap.String("expense_id", expense.ID.String()))
+			
+			// 承認者未設定エラーの場合は、ユーザーフレンドリーなメッセージをそのまま返す
+			var expenseErr *dto.ExpenseError
+			if errors.As(err, &expenseErr) && expenseErr.Code == dto.ErrCodeNoApproversConfigured {
+				return err
+			}
 			return fmt.Errorf("承認フローの作成に失敗しました: %w", err)
 		}
 
@@ -969,6 +983,11 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 		s.logger.Error("Failed to submit expense",
 			zap.Error(err),
 			zap.String("expense_id", id.String()))
+		// 承認者未設定エラーの場合は、そのエラーをそのまま返す
+		var expenseErr *dto.ExpenseError
+		if errors.As(err, &expenseErr) {
+			return nil, err
+		}
 		return nil, dto.NewExpenseError(dto.ErrCodeInternalError, "経費申請の提出に失敗しました")
 	}
 
