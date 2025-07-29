@@ -132,9 +132,10 @@ write_memory("common_pitfalls_[機能名]", "内容")
 /docs-audit → /docs-update → /docs-cleanup → /docs-organize
 
 # 個別の作業
-/docs-update     # 古い情報の更新のみ
-/docs-cleanup    # 不要文書の削除のみ
-/docs-organize   # ディレクトリ整理のみ
+/docs-update      # 古い情報の更新のみ
+/docs-cleanup     # 不要文書の削除のみ
+/docs-consolidate # 散在情報の統合・簡潔化
+/docs-organize    # ディレクトリ整理のみ
 ```
 
 #### 品質改善
