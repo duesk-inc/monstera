@@ -1,296 +1,452 @@
-# エラーコード規則仕様書
+# エラーコード標準
 
-## 1. 概要
+## 概要
+Monsteraプロジェクトにおけるエラーコード体系の標準仕様を定義します。
 
-Monsteraプロジェクトで使用するエラーコードの統一規則を定義する。
+## エラーコードフォーマット
+`[カテゴリ][番号]` の形式で構成
+- カテゴリ: 3-4文字の英字
+- 番号: 3桁の数字
 
-## 2. エラーコード体系
+例: `AUTH001`, `VAL002`, `W001V003`
 
-### 2.1 基本フォーマット
+## エラーコード体系
 
-```
-[システム][機能][種別][連番]
+### カテゴリコード
+- **AUTH**: 認証・認可関連
+- **VAL**: バリデーション関連
+- **RES**: リソース関連
+- **BIZ**: ビジネスロジック関連
+- **SYS**: システムエラー関連
+- **DAT**: データアクセス関連
+- **W**: 週報固有
+- **U**: ユーザー管理固有
+- **E**: 経費申請固有
 
-例: W001V001 (Weekly report - 001 - Validation - 001)
-```
+### HTTPステータスコードとの対応
+- 400: クライアントエラー（入力値不正、ビジネスルール違反）
+- 401: 認証エラー
+- 403: 認可エラー
+- 404: リソースが見つからない
+- 409: 競合（重複、楽観的ロック）
+- 500: サーバーエラー
+- 502: 外部サービスエラー
+- 503: サービス利用不可
+- 504: タイムアウト
 
-### 2.2 システムコード（1文字）
+## マッピング表
 
-| コード | システム | 説明 |
-|--------|----------|------|
-| A | Auth | 認証・認可 |
-| U | User | ユーザー管理 |
-| W | WeeklyReport | 週報管理 |
-| N | Notification | 通知システム |
-| E | Export | エクスポート機能 |
-| S | System | システム全般 |
+### 認証関連（AUTH）
 
-### 2.3 機能コード（3桁）
+| 既存メッセージ定数 | メッセージ内容 | エラーコード | HTTPステータス |
+|------------------|--------------|-------------|---------------|
+| MsgAuthRequired | 認証が必要です | AUTH001 | 401 |
+| MsgInvalidCredentials | メールアドレスまたはパスワードが正しくありません | AUTH002 | 401 |
+| MsgTokenExpired | 認証トークンの有効期限が切れています | AUTH003 | 401 |
+| MsgTokenInvalid | 無効な認証トークンです | AUTH004 | 401 |
+| MsgRefreshTokenExpired | リフレッシュトークンの有効期限が切れています | AUTH005 | 401 |
+| MsgRefreshTokenInvalid | 無効なリフレッシュトークンです | AUTH006 | 401 |
+| MsgPermissionDenied | この操作を実行する権限がありません | AUTH007 | 403 |
+| MsgAccessDenied | アクセスが拒否されました | AUTH008 | 403 |
 
-#### 週報管理（W）
-| コード | 機能 |
-|--------|------|
-| 001 | 週報基本操作 |
-| 002 | 未提出者管理 |
-| 003 | アラート管理 |
-| 004 | 月次サマリー |
+### バリデーション関連（VAL）
 
-#### 認証・認可（A）
-| コード | 機能 |
-|--------|------|
-| 001 | ログイン |
-| 002 | 権限チェック |
-| 003 | トークン管理 |
+| 既存メッセージ定数 | メッセージ内容 | エラーコード | HTTPステータス |
+|------------------|--------------|-------------|---------------|
+| MsgInvalidRequest | 無効なリクエストデータです | VAL001 | 400 |
+| MsgRequiredField | 必須項目です | VAL002 | 400 |
+| MsgInvalidFormat | 形式が正しくありません | VAL003 | 400 |
+| MsgInvalidDateFormat | 日付の形式が正しくありません | VAL004 | 400 |
+| MsgInvalidTimeRange | 時間の範囲が正しくありません | VAL005 | 400 |
+| MsgInvalidEmailFormat | メールアドレスの形式が正しくありません | VAL006 | 400 |
+| MsgPasswordTooShort | パスワードは8文字以上で入力してください | VAL007 | 400 |
+| MsgInvalidStatus | 無効なステータスです | VAL008 | 400 |
 
-#### システム全般（S）
-| コード | 機能 |
-|--------|------|
-| 001 | データベース |
-| 002 | バッチ処理 |
-| 003 | 外部連携 |
+### リソース関連（RES）
 
-### 2.4 種別コード（1文字）
+| 既存メッセージ定数 | メッセージ内容 | エラーコード | HTTPステータス |
+|------------------|--------------|-------------|---------------|
+| MsgResourceNotFound | リソースが見つかりません | RES001 | 404 |
+| MsgWeeklyReportNotFound | 週報が見つかりません | RES002 | 404 |
+| MsgUserNotFound | ユーザーが見つかりません | RES003 | 404 |
+| MsgAlreadyExists | 既に存在します | RES004 | 409 |
+| MsgWeeklyReportAlreadyExists | この期間の週報は既に存在します | RES005 | 409 |
+| MsgEmailAlreadyExists | このメールアドレスは既に使用されています | RES006 | 409 |
+| MsgDataConflict | データの競合が発生しました | RES007 | 409 |
+| MsgOptimisticLockError | 他のユーザーによって更新されています | RES008 | 409 |
 
-| コード | 種別 | 説明 |
-|--------|------|------|
-| V | Validation | バリデーションエラー |
-| B | Business | ビジネスロジックエラー |
-| S | System | システムエラー |
-| A | Auth | 認証・認可エラー |
-| N | NotFound | リソースが見つからない |
-| P | Permission | 権限不足 |
+### ビジネスロジック関連（BIZ）
 
-### 2.5 連番（3桁）
+| 既存メッセージ定数 | メッセージ内容 | エラーコード | HTTPステータス |
+|------------------|--------------|-------------|---------------|
+| MsgAlreadySubmitted | 既に提出済みです | BIZ001 | 400 |
+| MsgCannotEditSubmitted | 提出済みの週報は編集できません | BIZ002 | 400 |
+| MsgInvalidDateRange | 無効な日付範囲です | BIZ003 | 400 |
+| MsgExceedsLimit | 制限を超えています | BIZ004 | 400 |
+| MsgInvalidOperation | 無効な操作です | BIZ005 | 400 |
+| MsgStatusTransitionError | ステータスの変更ができません | BIZ006 | 400 |
+| MsgDependencyError | 依存関係エラーです | BIZ007 | 400 |
 
-同一機能・種別内での通し番号（001〜999）
+### システムエラー関連（SYS）
 
-## 3. エラーコード一覧
+| 既存メッセージ定数 | メッセージ内容 | エラーコード | HTTPステータス |
+|------------------|--------------|-------------|---------------|
+| MsgInternalServerError | サーバー内部エラーが発生しました | SYS001 | 500 |
+| MsgServiceUnavailable | サービスが一時的に利用できません | SYS002 | 503 |
+| MsgTimeout | タイムアウトが発生しました | SYS003 | 504 |
+| MsgExternalServiceError | 外部サービスでエラーが発生しました | SYS004 | 502 |
+| MsgConfigurationError | 設定エラーが発生しました | SYS005 | 500 |
+| MsgNetworkError | ネットワークエラーが発生しました | SYS006 | 500 |
 
-### 3.1 週報管理エラー
+### データアクセス関連（DAT）
 
-#### 週報基本操作（W001）
-| エラーコード | 種別 | メッセージ | 説明 |
-|-------------|------|-----------|------|
-| W001V001 | Validation | 開始日は必須です | 週報期間の開始日未入力 |
-| W001V002 | Validation | 終了日は必須です | 週報期間の終了日未入力 |
-| W001V003 | Validation | 勤務時間は0時間以上で入力してください | 勤務時間の値不正 |
-| W001V004 | Validation | 備考は1000文字以内で入力してください | 備考文字数超過 |
-| W001B001 | Business | 既に提出済みの週報は編集できません | 提出済み週報の編集試行 |
-| W001B002 | Business | 過去の週報期間は編集できません | 期限切れ週報の編集試行 |
-| W001N001 | NotFound | 指定された週報が見つかりません | 週報ID不正 |
-| W001S001 | System | 週報の保存に失敗しました | DB保存エラー |
+| 既存メッセージ定数 | メッセージ内容 | エラーコード | HTTPステータス |
+|------------------|--------------|-------------|---------------|
+| MsgDatabaseError | データベースエラーが発生しました | DAT001 | 500 |
+| MsgTransactionError | トランザクション処理中にエラーが発生しました | DAT002 | 500 |
+| MsgConnectionError | データベース接続エラーが発生しました | DAT003 | 500 |
+| MsgQueryError | クエリ実行エラーが発生しました | DAT004 | 500 |
+| MsgDataIntegrityError | データ整合性エラーが発生しました | DAT005 | 500 |
+| MsgDuplicateKeyError | 重複キーエラーが発生しました | DAT006 | 409 |
 
-#### 未提出者管理（W002）
-| エラーコード | 種別 | メッセージ | 説明 |
-|-------------|------|-----------|------|
-| W002V001 | Validation | 送信対象を選択してください | リマインド対象未選択 |
-| W002V002 | Validation | メッセージは500文字以内で入力してください | カスタムメッセージ超過 |
-| W002P001 | Permission | リマインド送信権限がありません | 一般ユーザーの送信試行 |
-| W002S001 | System | リマインド送信に失敗しました | 通知システムエラー |
+### 週報固有エラー（W）
 
-#### アラート管理（W003）
-| エラーコード | 種別 | メッセージ | 説明 |
-|-------------|------|-----------|------|
-| W003V001 | Validation | 労働時間上限は1以上の数値で入力してください | 設定値不正 |
-| W003V002 | Validation | コメントは1000文字以内で入力してください | 解決コメント超過 |
-| W003P001 | Permission | アラート設定の変更権限がありません | 一般管理部の設定変更試行 |
-| W003N001 | NotFound | 指定されたアラートが見つかりません | アラートID不正 |
-| W003S001 | System | アラート設定の保存に失敗しました | DB保存エラー |
+| 既存メッセージ定数 | メッセージ内容 | エラーコード | HTTPステータス |
+|------------------|--------------|-------------|---------------|
+| MsgWeeklyReportCreateFailed | 週報の作成に失敗しました | W001V001 | 400 |
+| MsgWeeklyReportUpdateFailed | 週報の更新に失敗しました | W001V002 | 400 |
+| MsgWeeklyReportDeleteFailed | 週報の削除に失敗しました | W001V003 | 400 |
+| MsgWeeklyReportGetFailed | 週報の取得に失敗しました | W001R001 | 404 |
+| MsgWeeklyReportListGetFailed | 週報一覧の取得に失敗しました | W001R002 | 500 |
+| MsgDailyRecordCreateFailed | 日次勤怠記録の作成に失敗しました | W002V001 | 400 |
+| MsgDailyRecordUpdateFailed | 日次勤怠記録の更新に失敗しました | W002V002 | 400 |
+| MsgDailyRecordDeleteFailed | 日次勤怠記録の削除に失敗しました | W002V003 | 400 |
+| MsgWorkHoursCalculationFailed | 作業時間の計算に失敗しました | W003B001 | 500 |
+| MsgTotalWorkHoursUpdateFailed | 合計作業時間の更新に失敗しました | W003B002 | 500 |
 
-#### 月次サマリー（W004）
-| エラーコード | 種別 | メッセージ | 説明 |
-|-------------|------|-----------|------|
-| W004V001 | Validation | 年は有効な値で入力してください | 年の値不正 |
-| W004V002 | Validation | 月は1〜12の範囲で入力してください | 月の値不正 |
-| W004S001 | System | サマリーデータの取得に失敗しました | 集計処理エラー |
+### ユーザー管理関連（U）
 
-### 3.2 認証・認可エラー
+| 既存メッセージ定数 | メッセージ内容 | エラーコード | HTTPステータス |
+|------------------|--------------|-------------|---------------|
+| MsgUserCreateFailed | ユーザーの作成に失敗しました | U001V001 | 400 |
+| MsgUserUpdateFailed | ユーザーの更新に失敗しました | U001V002 | 400 |
+| MsgUserDeleteFailed | ユーザーの削除に失敗しました | U001V003 | 400 |
+| MsgUserGetFailed | ユーザーの取得に失敗しました | U001R001 | 404 |
+| MsgUserListGetFailed | ユーザー一覧の取得に失敗しました | U001R002 | 500 |
+| MsgPasswordChangeFailed | パスワードの変更に失敗しました | U002V001 | 400 |
+| MsgProfileUpdateFailed | プロフィールの更新に失敗しました | U002V002 | 400 |
 
-#### ログイン（A001）
-| エラーコード | 種別 | メッセージ | 説明 |
-|-------------|------|-----------|------|
-| A001V001 | Validation | メールアドレスは必須です | メールアドレス未入力 |
-| A001V002 | Validation | パスワードは必須です | パスワード未入力 |
-| A001A001 | Auth | メールアドレスまたはパスワードが正しくありません | 認証失敗 |
-| A001A002 | Auth | アカウントが無効化されています | 無効ユーザー |
+## 実装例
 
-#### 権限チェック（A002）
-| エラーコード | 種別 | メッセージ | 説明 |
-|-------------|------|-----------|------|
-| A002A001 | Auth | 認証が必要です | 未認証アクセス |
-| A002P001 | Permission | この操作を実行する権限がありません | 権限不足 |
-| A002A002 | Auth | セッションが期限切れです | トークン期限切れ |
-
-### 3.3 システム全般エラー
-
-#### データベース（S001）
-| エラーコード | 種別 | メッセージ | 説明 |
-|-------------|------|-----------|------|
-| S001S001 | System | データベース接続に失敗しました | DB接続エラー |
-| S001S002 | System | トランザクション処理に失敗しました | トランザクションエラー |
-
-#### バッチ処理（S002）
-| エラーコード | 種別 | メッセージ | 説明 |
-|-------------|------|-----------|------|
-| S002S001 | System | バッチ処理の実行に失敗しました | バッチエラー |
-| S002S002 | System | 設定ファイルの読み込みに失敗しました | 設定エラー |
-
-## 4. 実装指針
-
-### 4.1 バックエンド実装
+### バックエンド（Go）
 
 ```go
-// エラーコード定数定義
-const (
-    // 週報関連
-    ErrWeeklyReportStartDateRequired = "W001V001"
-    ErrWeeklyReportEndDateRequired   = "W001V002"
-    ErrWeeklyReportAlreadySubmitted  = "W001B001"
-    
-    // 認証関連
-    ErrAuthEmailRequired     = "A001V001"
-    ErrAuthInvalidCredentials = "A001A001"
-)
-
-// エラーレスポンス構造体
-type ErrorResponse struct {
-    ErrorCode string `json:"error_code"`
-    Message   string `json:"message"`
-    Details   string `json:"details,omitempty"`
+// 従来の実装
+if user == nil {
+    return fmt.Errorf(message.MsgUserNotFound)
 }
 
-// エラーレスポンス関数
-func RespondErrorWithCode(c *gin.Context, statusCode int, errorCode string, message string) {
-    c.JSON(statusCode, ErrorResponse{
-        ErrorCode: errorCode,
-        Message:   message,
-    })
+// 新しい実装
+if user == nil {
+    return message.NewAppError("RES003", message.MsgUserNotFound, 
+        map[string]interface{}{"user_id": userID})
 }
 ```
 
-### 4.2 フロントエンド実装
+### フロントエンド（TypeScript）
 
 ```typescript
-// エラーコード定数
-export const ERROR_CODES = {
-  WEEKLY_REPORT: {
-    START_DATE_REQUIRED: 'W001V001',
-    END_DATE_REQUIRED: 'W001V002',
-    ALREADY_SUBMITTED: 'W001B001',
-  },
-  AUTH: {
-    EMAIL_REQUIRED: 'A001V001',
-    INVALID_CREDENTIALS: 'A001A001',
-  },
-  EXPENSE: {
-    // 基本操作
-    TITLE_REQUIRED: 'E001V001',
-    AMOUNT_INVALID: 'E001V002',
-    DATE_REQUIRED: 'E001V003',
-    DESCRIPTION_INVALID: 'E001V004',
-    RECEIPT_REQUIRED: 'E001V005',
-    ALREADY_SUBMITTED: 'E001B001',
-    ALREADY_APPROVED: 'E001B002',
-    EXPIRED: 'E001B003',
-    NOT_FOUND: 'E001N001',
-    SAVE_FAILED: 'E001S001',
-    // 承認フロー
-    APPROVAL_COMMENT_TOO_LONG: 'E002V001',
-    REJECTION_REASON_REQUIRED: 'E002V002',
-    APPROVAL_ALREADY_APPROVED: 'E002B001',
-    APPROVAL_ALREADY_REJECTED: 'E002B002',
-    NO_APPROVAL_AUTHORITY: 'E002B003',
-    APPROVAL_PERMISSION_DENIED: 'E002P001',
-    APPROVAL_TARGET_NOT_FOUND: 'E002N001',
-    APPROVAL_PROCESS_FAILED: 'E002S001',
-    // 上限管理
-    LIMIT_AMOUNT_INVALID: 'E003V001',
-    LIMIT_EFFECTIVE_DATE_REQUIRED: 'E003V002',
-    LIMIT_SCOPE_TARGET_REQUIRED: 'E003V003',
-    MONTHLY_LIMIT_EXCEEDED: 'E003B001',
-    YEARLY_LIMIT_EXCEEDED: 'E003B002',
-    LIMIT_ALREADY_EXISTS: 'E003B003',
-    LIMIT_CHANGE_PERMISSION_DENIED: 'E003P001',
-    LIMIT_NOT_FOUND: 'E003N001',
-    LIMIT_SAVE_FAILED: 'E003S001',
-    // カテゴリ管理
-    CATEGORY_CODE_INVALID: 'E004V001',
-    CATEGORY_NAME_REQUIRED: 'E004V002',
-    DEFAULT_CATEGORY_DELETE: 'E004B001',
-    CATEGORY_CODE_DUPLICATE: 'E004B002',
-    CATEGORY_IN_USE: 'E004B003',
-    CATEGORY_PERMISSION_DENIED: 'E004P001',
-    CATEGORY_NOT_FOUND: 'E004N001',
-    CATEGORY_SAVE_FAILED: 'E004S001',
-    // 集計・レポート
-    SUMMARY_YEAR_INVALID: 'E005V001',
-    SUMMARY_MONTH_INVALID: 'E005V002',
-    FISCAL_YEAR_INVALID: 'E005V003',
-    SUMMARY_DATA_NOT_FOUND: 'E005B001',
-    SUMMARY_PERMISSION_DENIED: 'E005P001',
-    SUMMARY_PROCESS_FAILED: 'E005S001',
-  },
-} as const;
+// エラーレスポンスの処理
+if (error.code === 'RES003') {
+    // ユーザーが見つからない場合の処理
+    showError('指定されたユーザーが見つかりません');
+    router.push('/users');
+}
+```
 
-// エラーレスポンス型
+## 実装ガイドライン
+
+### エラーコード定数（バックエンド）
+
+```go
+const (
+    // 認証関連
+    ErrCodeAuthRequired = "AUTH001"
+    ErrCodeInvalidCredentials = "AUTH002"
+    
+    // バリデーション関連
+    ErrCodeInvalidRequest = "VAL001"
+    ErrCodeRequiredField = "VAL002"
+)
+```
+
+### エラーレスポンス構造体
+
+```go
+type ErrorResponse struct {
+    Error   string                 `json:"error"`
+    Code    string                 `json:"code"`
+    Details map[string]interface{} `json:"details,omitempty"`
+}
+```
+
+### フロントエンドエラーハンドリング
+
+```typescript
 interface ApiErrorResponse {
-  error_code: string;
-  message: string;
-  details?: string;
+    error: string;
+    code: string;
+    details?: Record<string, any>;
 }
 
-// エラーハンドリング
 export const handleApiError = (error: ApiErrorResponse) => {
-  const { error_code, message } = error;
-  
-  // エラーコードに基づく特別な処理
-  switch (error_code) {
-    case ERROR_CODES.AUTH.INVALID_CREDENTIALS:
-      // ログイン画面にリダイレクト
-      router.push('/login');
-      break;
-    case ERROR_CODES.WEEKLY_REPORT.ALREADY_SUBMITTED:
-      // 画面をリロードして最新状態を取得
-      window.location.reload();
-      break;
-    default:
-      // 通常のエラートースト表示
-      showErrorToast(message);
+    const enhancedError = getEnhancedError(error.code, error.details);
+    
+    switch (enhancedError.category) {
+        case 'AUTH':
+            showError(enhancedError.userMessage);
+            router.push('/login');
+            break;
+        case 'VAL':
+            showWarning(enhancedError.userMessage);
+            break;
+        default:
+            showError(enhancedError.userMessage);
+    }
+};
+```
+
+## 移行サンプル
+
+### バックエンド
+
+#### Handler層の移行
+
+```go
+// Before
+func (h *AdminWeeklyReportHandler) GetWeeklyReports(c *gin.Context) {
+    reports, total, err := h.service.GetWeeklyReports(ctx, page, limit, status, userID, dateFrom, dateTo)
+    if err != nil {
+        h.util.handleError(c, err, "週報一覧の取得に失敗しました")
+        return
+    }
+}
+
+// After
+func (h *AdminWeeklyReportHandler) GetWeeklyReports(c *gin.Context) {
+    reports, total, err := h.service.GetWeeklyReports(ctx, page, limit, status, userID, dateFrom, dateTo)
+    if err != nil {
+        if appErr, ok := err.(*message.AppError); ok {
+            h.util.RespondErrorWithCode(c, appErr)
+            return
+        }
+        appErr := message.NewAppError(message.ErrCodeInternalServer, 
+            "週報一覧の取得に失敗しました", 
+            map[string]interface{}{
+                "original_error": err.Error(),
+                "filters": map[string]interface{}{
+                    "status": status,
+                    "user_id": userID,
+                    "date_from": dateFrom,
+                    "date_to": dateTo,
+                },
+            })
+        h.util.RespondErrorWithCode(c, appErr)
+        return
+    }
+}
+```
+
+#### Service層の移行
+
+```go
+// Before
+func (s *adminWeeklyReportService) GetWeeklyReportDetail(ctx context.Context, reportID uuid.UUID) (*dto.AdminWeeklyReportDetailDTO, error) {
+    var report model.WeeklyReport
+    if err := s.db.WithContext(ctx).First(&report).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            return nil, fmt.Errorf("週報が見つかりません")
+        }
+        s.logger.Error("Failed to get weekly report detail", zap.Error(err))
+        return nil, err
+    }
+}
+
+// After
+func (s *adminWeeklyReportService) GetWeeklyReportDetail(ctx context.Context, reportID uuid.UUID) (*dto.AdminWeeklyReportDetailDTO, error) {
+    var report model.WeeklyReport
+    if err := s.db.WithContext(ctx).First(&report).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            return nil, message.NewAppError("W001R001", 
+                "週報が見つかりません",
+                map[string]interface{}{"report_id": reportID.String()})
+        }
+        s.logger.Error("Failed to get weekly report detail", 
+            zap.Error(err),
+            zap.String("report_id", reportID.String()))
+        return nil, message.NewAppError("DAT001",
+            "データベースエラーが発生しました",
+            map[string]interface{}{
+                "operation": "get_weekly_report_detail",
+                "report_id": reportID.String(),
+            })
+    }
+}
+```
+
+### フロントエンド
+
+#### API呼び出しの更新
+
+```typescript
+// Before
+const fetchWeeklyReports = async () => {
+  try {
+    const response = await apiClient.get('/admin/weekly-reports');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      showError(error.response?.data?.error || 'エラーが発生しました');
+    }
+    throw error;
+  }
+};
+
+// After
+const fetchWeeklyReports = async () => {
+  try {
+    const response = await apiClient.get('/admin/weekly-reports');
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data) {
+      const errorData = error.response.data;
+      
+      if (errorData.code) {
+        const enhancedError = getEnhancedError(
+          errorData.code,
+          errorData.details
+        );
+        
+        switch (enhancedError.category) {
+          case 'AUTH':
+            showError(enhancedError.userMessage);
+            router.push('/login');
+            break;
+          case 'RES':
+            showWarning(enhancedError.userMessage);
+            break;
+          default:
+            showError(enhancedError.userMessage);
+        }
+        
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Error Details:', {
+            code: errorData.code,
+            details: errorData.details,
+            suggestion: enhancedError.suggestion
+          });
+        }
+      } else {
+        showError(errorData.error || 'エラーが発生しました');
+      }
+    }
+    throw error;
   }
 };
 ```
 
-### 4.3 ログ出力
+## 移行用ヘルパー関数
+
+### バックエンド
 
 ```go
-// 構造化ログでエラーコードを記録
-logger.Error("週報保存エラー",
-    zap.String("error_code", "W001S001"),
-    zap.String("user_id", userID),
-    zap.String("weekly_report_id", reportID),
-    zap.Error(err))
+package helper
+
+import (
+    "strings"
+    "github.com/duesk/monstera/internal/message"
+)
+
+// エラーメッセージとコードのマッピング
+var errorMessageToCode = map[string]string{
+    "認証が必要です": "AUTH001",
+    "メールアドレスまたはパスワードが正しくありません": "AUTH002",
+    "週報が見つかりません": "W001R001",
+    "ユーザーが見つかりません": "RES003",
+}
+
+// ConvertToAppError 既存のエラーをAppErrorに変換
+func ConvertToAppError(err error, defaultCode string, details map[string]interface{}) *message.AppError {
+    if err == nil {
+        return nil
+    }
+    
+    if appErr, ok := err.(*message.AppError); ok {
+        return appErr
+    }
+    
+    errMsg := err.Error()
+    
+    for msg, code := range errorMessageToCode {
+        if strings.Contains(errMsg, msg) {
+            return message.NewAppError(code, msg, details)
+        }
+    }
+    
+    return message.NewAppError(defaultCode, errMsg, details)
+}
 ```
 
-## 5. 運用指針
+### フロントエンド
 
-### 5.1 エラーコード追加ルール
+```typescript
+// レガシーエラーメッセージからエラーコードを推定
+const legacyMessageToCode: Record<string, string> = {
+  '認証が必要です': 'AUTH001',
+  'メールアドレスまたはパスワードが正しくありません': 'AUTH002',
+  '週報が見つかりません': 'W001R001',
+  'ユーザーが見つかりません': 'RES003',
+};
 
-1. 新機能追加時は、事前にエラーコードを定義
-2. 機能コード（3桁）は10単位で割り当て（001, 011, 021...）
-3. エラーコード追加時は、この仕様書を更新
+export const inferErrorCode = (errorMessage: string): string | null => {
+  for (const [message, code] of Object.entries(legacyMessageToCode)) {
+    if (errorMessage.includes(message)) {
+      return code;
+    }
+  }
+  return null;
+};
 
-### 5.2 監視・分析
+// レガシーエラーレスポンスを新形式に変換
+export const convertLegacyError = (error: any): ApiErrorResponse => {
+  if (error.code) {
+    return error;
+  }
+  
+  const errorMessage = error.error || error.message || 'エラーが発生しました';
+  const inferredCode = inferErrorCode(errorMessage);
+  
+  return {
+    error: errorMessage,
+    code: inferredCode || 'SYS001',
+    details: {
+      legacy: true,
+      originalError: error
+    }
+  };
+};
+```
 
-- エラーコード別の発生頻度を監視
-- 高頻度エラーはアラート設定
-- 月次でエラー傾向を分析し、改善点を特定
-
-## 6. 更新履歴
+## 更新履歴
 
 | 日付 | バージョン | 変更内容 | 変更者 |
 |------|------------|----------|--------|
 | 2024-01 | 1.0 | 初版作成 | システム開発部 |
+| 2025-01-30 | 1.1 | error-code-migration-samples.mdとerror-code-mapping.mdの内容を統合 | Claude Code |
 
 ---
 
-**注意**: エラーコードは一度リリース後は変更しないこと。ログ分析や障害対応に影響するため。
+**注意事項**
+- エラーコードは一度リリース後は変更しないこと
+- 新機能追加時は事前にエラーコードを定義すること
+- エラーコード追加時は必ずこの仕様書を更新すること
