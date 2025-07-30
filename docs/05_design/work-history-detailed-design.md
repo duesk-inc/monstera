@@ -218,13 +218,13 @@ Authorization: Bearer <token>
 #### 3.1.1 technology_master (新規作成)
 ```sql
 CREATE TABLE IF NOT EXISTS technology_master (
-  id VARCHAR(36) PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) NOT NULL,
   normalized_name VARCHAR(255) NOT NULL, -- 正規化された名称
   category VARCHAR(50) NOT NULL,
   usage_count INT DEFAULT 0, -- 使用回数
   is_active BOOLEAN DEFAULT TRUE,
-  created_by VARCHAR(36), -- 作成者（管理者）
+  created_by UUID, -- 作成者（管理者）
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   

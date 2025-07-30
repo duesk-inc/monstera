@@ -28,8 +28,8 @@
 #### work_histories テーブル（職務経歴）
 ```sql
 CREATE TABLE work_histories (
-    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    user_id CHAR(36) NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
     project_name VARCHAR(200) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE,
@@ -66,7 +66,7 @@ CREATE TABLE work_histories (
 #### technology_master テーブル（技術マスタ）
 ```sql
 CREATE TABLE technology_master (
-    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     category VARCHAR(50) NOT NULL, -- 'programming_language', 'server_db', 'tool'
     name VARCHAR(100) NOT NULL,
     display_name VARCHAR(100),

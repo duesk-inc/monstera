@@ -59,7 +59,7 @@
 
 ```sql
 CREATE TABLE email_queue (
-    id CHAR(36) PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     subject VARCHAR(255) NOT NULL,
     body TEXT NOT NULL,
     body_html LONGTEXT,
@@ -84,7 +84,7 @@ CREATE TABLE email_queue (
     
     -- Metadata
     message_type VARCHAR(100),
-    related_entity_id CHAR(36),
+    related_entity_id UUID,
     related_entity_type VARCHAR(100),
     
     -- Processing tracking
@@ -100,7 +100,7 @@ CREATE TABLE email_queue (
 
 ```sql
 CREATE TABLE email_templates (
-    id CHAR(36) PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) UNIQUE NOT NULL,
     subject VARCHAR(255) NOT NULL,
     body_text TEXT NOT NULL,
