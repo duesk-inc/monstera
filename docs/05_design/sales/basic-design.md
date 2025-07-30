@@ -64,10 +64,10 @@ SES企業の営業活動効率化を目的とした管理機能の追加開発
 #### 1. proposals（提案管理）
 ```sql
 CREATE TABLE proposals (
-    id VARCHAR(36) PRIMARY KEY,
-    project_id VARCHAR(36) NOT NULL, -- monstera-poc案件ID
-    engineer_id VARCHAR(36) NOT NULL REFERENCES users(id),
-    client_id VARCHAR(36) NOT NULL REFERENCES clients(id),
+    id VARUUID PRIMARY KEY,
+    project_id VARUUID NOT NULL, -- monstera-poc案件ID
+    engineer_id VARUUID NOT NULL REFERENCES users(id),
+    client_id VARUUID NOT NULL REFERENCES clients(id),
     
     -- 提案情報
     proposal_date DATE NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE proposals (
     acceptance_conditions TEXT,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
     deleted_at TIMESTAMP NULL,
     
     INDEX idx_proposals_engineer (engineer_id),
@@ -104,9 +104,9 @@ CREATE TABLE proposals (
 #### 2. contract_extensions（延長確認管理）
 ```sql
 CREATE TABLE contract_extensions (
-    id VARCHAR(36) PRIMARY KEY,
-    engineer_id VARCHAR(36) NOT NULL REFERENCES users(id),
-    project_id VARCHAR(36), -- 現在参画中の案件
+    id VARUUID PRIMARY KEY,
+    engineer_id VARUUID NOT NULL REFERENCES users(id),
+    project_id VARUUID, -- 現在参画中の案件
     
     -- 契約情報
     current_contract_end_date DATE NOT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE contract_extensions (
     notes TEXT,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
     deleted_at TIMESTAMP NULL,
     
     INDEX idx_extensions_engineer (engineer_id),
@@ -137,8 +137,8 @@ CREATE TABLE contract_extensions (
 #### 3. interview_schedules（面談日程管理）
 ```sql
 CREATE TABLE interview_schedules (
-    id VARCHAR(36) PRIMARY KEY,
-    proposal_id VARCHAR(36) NOT NULL REFERENCES proposals(id),
+    id VARUUID PRIMARY KEY,
+    proposal_id VARUUID NOT NULL REFERENCES proposals(id),
     
     -- 面談情報
     scheduled_date DATETIME NOT NULL,
@@ -162,7 +162,7 @@ CREATE TABLE interview_schedules (
     next_steps TEXT,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
     deleted_at TIMESTAMP NULL,
     
     INDEX idx_interviews_proposal (proposal_id),
@@ -174,7 +174,7 @@ CREATE TABLE interview_schedules (
 #### 4. email_templates（メールテンプレート）
 ```sql
 CREATE TABLE email_templates (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARUUID PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     subject VARCHAR(200) NOT NULL,
     body_html TEXT NOT NULL,
@@ -188,7 +188,7 @@ CREATE TABLE email_templates (
     is_active BOOLEAN DEFAULT TRUE,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
     deleted_at TIMESTAMP NULL,
     
     INDEX idx_templates_category (category),
@@ -199,9 +199,9 @@ CREATE TABLE email_templates (
 #### 5. email_campaigns（メール送信履歴）
 ```sql
 CREATE TABLE email_campaigns (
-    id VARCHAR(36) PRIMARY KEY,
-    template_id VARCHAR(36) REFERENCES email_templates(id),
-    sender_id VARCHAR(36) NOT NULL REFERENCES users(id),
+    id VARUUID PRIMARY KEY,
+    template_id VARUUID REFERENCES email_templates(id),
+    sender_id VARUUID NOT NULL REFERENCES users(id),
     
     -- 送信情報
     subject VARCHAR(200) NOT NULL,
@@ -220,7 +220,7 @@ CREATE TABLE email_campaigns (
     completed_at TIMESTAMP NULL,
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
     
     INDEX idx_campaigns_sender (sender_id),
     INDEX idx_campaigns_status (status),
@@ -234,7 +234,7 @@ CREATE TABLE email_campaigns (
 ```sql
 ALTER TABLE clients ADD COLUMN (
     -- 営業管理情報
-    primary_sales_rep_id VARCHAR(36) REFERENCES users(id),
+    primary_sales_rep_id VARUUID REFERENCES users(id),
     business_status ENUM('active', 'inactive', 'suspended') DEFAULT 'active',
     company_size ENUM('small', 'medium', 'large', 'enterprise'),
     industry_type VARCHAR(100),
@@ -260,7 +260,7 @@ ALTER TABLE clients ADD COLUMN (
 #### poc_projects（案件情報同期）
 ```sql
 CREATE TABLE poc_projects (
-    id VARCHAR(36) PRIMARY KEY, -- monstera-poc側のproject_id
+    id VARUUID PRIMARY KEY, -- monstera-poc側のproject_id
     sync_status ENUM('pending', 'synced', 'error') DEFAULT 'pending',
     last_synced_at TIMESTAMP NULL,
     sync_error_message TEXT,
@@ -269,7 +269,7 @@ CREATE TABLE poc_projects (
     project_data JSON, -- 元データのJSONバックアップ
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
     
     INDEX idx_poc_projects_sync_status (sync_status),
     INDEX idx_poc_projects_synced_at (last_synced_at DESC)

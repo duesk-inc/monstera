@@ -52,7 +52,7 @@ SES企業のエンジニア社員が休暇申請を行い、管理者が申請�
 #### 3.1.1 leave_types（休暇種別マスタ）
 | カラム名 | 型 | 説明 | 制約 |
 |---------|-----|------|------|
-| id | VARCHAR(36) | 主キー（UUID） | PK |
+| id | VARUUID | 主キー（UUID） | PK |
 | code | VARCHAR(20) | 休暇種別コード | UNIQUE, NOT NULL |
 | name | VARCHAR(50) | 休暇種別名 | NOT NULL |
 | description | TEXT | 説明 | |
@@ -66,15 +66,15 @@ SES企業のエンジニア社員が休暇申請を行い、管理者が申請�
 #### 3.1.2 leave_requests（休暇申請）
 | カラム名 | 型 | 説明 | 制約 |
 |---------|-----|------|------|
-| id | VARCHAR(36) | 主キー（UUID） | PK |
-| user_id | VARCHAR(36) | 申請者ID | FK(users), NOT NULL |
-| leave_type_id | VARCHAR(36) | 休暇種別ID | FK(leave_types), NOT NULL |
+| id | VARUUID | 主キー（UUID） | PK |
+| user_id | VARUUID | 申請者ID | FK(users), NOT NULL |
+| leave_type_id | VARUUID | 休暇種別ID | FK(leave_types), NOT NULL |
 | request_date | DATE | 申請日 | NOT NULL |
 | is_hourly_based | BOOLEAN | 時間単位フラグ | NOT NULL |
 | reason | TEXT | 理由 | |
 | total_days | DECIMAL(5,1) | 合計日数 | NOT NULL |
 | status | ENUM | ステータス | DEFAULT 'pending' |
-| approver_id | VARCHAR(36) | 承認者ID | FK(users) |
+| approver_id | VARUUID | 承認者ID | FK(users) |
 | processed_at | TIMESTAMP | 処理日時 | |
 | rejection_reason | TEXT | 却下理由 | |
 
@@ -87,8 +87,8 @@ SES企業のエンジニア社員が休暇申請を行い、管理者が申請�
 #### 3.1.3 leave_request_details（休暇申請詳細）
 | カラム名 | 型 | 説明 | 制約 |
 |---------|-----|------|------|
-| id | VARCHAR(36) | 主キー（UUID） | PK |
-| leave_request_id | VARCHAR(36) | 休暇申請ID | FK(leave_requests), NOT NULL |
+| id | VARUUID | 主キー（UUID） | PK |
+| leave_request_id | VARUUID | 休暇申請ID | FK(leave_requests), NOT NULL |
 | leave_date | DATE | 休暇日 | NOT NULL |
 | start_time | VARCHAR(10) | 開始時刻 | |
 | end_time | VARCHAR(10) | 終了時刻 | |
@@ -97,9 +97,9 @@ SES企業のエンジニア社員が休暇申請を行い、管理者が申請�
 #### 3.1.4 user_leave_balances（ユーザー休暇残高）
 | カラム名 | 型 | 説明 | 制約 |
 |---------|-----|------|------|
-| id | VARCHAR(36) | 主キー（UUID） | PK |
-| user_id | VARCHAR(36) | ユーザーID | FK(users), NOT NULL |
-| leave_type_id | VARCHAR(36) | 休暇種別ID | FK(leave_types), NOT NULL |
+| id | VARUUID | 主キー（UUID） | PK |
+| user_id | VARUUID | ユーザーID | FK(users), NOT NULL |
+| leave_type_id | VARUUID | 休暇種別ID | FK(leave_types), NOT NULL |
 | fiscal_year | INT | 年度 | NOT NULL |
 | total_days | DECIMAL(5,1) | 付与日数 | DEFAULT 0.0 |
 | used_days | DECIMAL(5,1) | 使用日数 | DEFAULT 0.0 |

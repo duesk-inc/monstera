@@ -81,16 +81,16 @@ backend/
 #### 2.1.1 usersテーブル拡張
 ```sql
 -- マイグレーションファイル: 200012_extend_users_for_engineers.up.sql
-ALTER TABLE users ADD COLUMN sei VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '姓';
-ALTER TABLE users ADD COLUMN mei VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '名';
-ALTER TABLE users ADD COLUMN sei_kana VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT 'セイ';
-ALTER TABLE users ADD COLUMN mei_kana VARCHAR(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT 'メイ';
-ALTER TABLE users ADD COLUMN employee_number VARCHAR(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci UNIQUE COMMENT '社員番号';
-ALTER TABLE users ADD COLUMN department VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '所属部署';
-ALTER TABLE users ADD COLUMN position VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '役職';
+ALTER TABLE users ADD COLUMN sei VARCHAR(50) COMMENT '姓';
+ALTER TABLE users ADD COLUMN mei VARCHAR(50) COMMENT '名';
+ALTER TABLE users ADD COLUMN sei_kana VARCHAR(50) COMMENT 'セイ';
+ALTER TABLE users ADD COLUMN mei_kana VARCHAR(50) COMMENT 'メイ';
+ALTER TABLE users ADD COLUMN employee_number VARCHAR(6) UNIQUE COMMENT '社員番号';
+ALTER TABLE users ADD COLUMN department VARCHAR(100) COMMENT '所属部署';
+ALTER TABLE users ADD COLUMN position VARCHAR(100) COMMENT '役職';
 ALTER TABLE users ADD COLUMN hire_date DATE COMMENT '入社日';
-ALTER TABLE users ADD COLUMN education VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '最終学歴';
-ALTER TABLE users ADD COLUMN phone_number VARCHAR(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '電話番号';
+ALTER TABLE users ADD COLUMN education VARCHAR(200) COMMENT '最終学歴';
+ALTER TABLE users ADD COLUMN phone_number VARCHAR(20) COMMENT '電話番号';
 ALTER TABLE users ADD COLUMN engineer_status ENUM('active', 'standby', 'resigned', 'long_leave') DEFAULT 'active' COMMENT 'エンジニアステータス';
 
 -- インデックス追加
@@ -104,14 +104,14 @@ CREATE INDEX idx_users_sei_kana_mei_kana ON users(sei_kana, mei_kana);
 ```sql
 -- マイグレーションファイル: 200013_create_engineer_status_history.up.sql
 CREATE TABLE IF NOT EXISTS engineer_status_history (
-  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,
-  user_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  id VARUUID PRIMARY KEY,
+  user_id VARUUID NOT NULL,
   previous_status ENUM('active', 'standby', 'resigned', 'long_leave'),
   new_status ENUM('active', 'standby', 'resigned', 'long_leave') NOT NULL,
-  change_reason TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '変更理由',
-  changed_by VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '変更実行者',
-  changed_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  change_reason TEXT COMMENT '変更理由',
+  changed_by VARUUID NOT NULL COMMENT '変更実行者',
+  changed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   CONSTRAINT fk_status_history_user FOREIGN KEY (user_id) REFERENCES users(id),
   CONSTRAINT fk_status_history_changed_by FOREIGN KEY (changed_by) REFERENCES users(id),
   INDEX idx_status_history_user_id (user_id),
@@ -123,12 +123,12 @@ CREATE TABLE IF NOT EXISTS engineer_status_history (
 ```sql
 -- マイグレーションファイル: 200014_create_engineer_skills.up.sql
 CREATE TABLE IF NOT EXISTS engineer_skill_categories (
-  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,
-  name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'カテゴリ名',
-  parent_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '親カテゴリID',
+  id VARUUID PRIMARY KEY,
+  name VARCHAR(100) NOT NULL COMMENT 'カテゴリ名',
+  parent_id VARUUID COMMENT '親カテゴリID',
   sort_order INT DEFAULT 0,
-  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
   CONSTRAINT fk_skill_category_parent FOREIGN KEY (parent_id) REFERENCES engineer_skill_categories(id),
   INDEX idx_skill_category_parent (parent_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='エンジニアスキルカテゴリ';
@@ -143,13 +143,13 @@ INSERT INTO engineer_skill_categories (id, name, parent_id, sort_order) VALUES
 #### 2.1.4 engineer_skillsテーブル
 ```sql
 CREATE TABLE IF NOT EXISTS engineer_skills (
-  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,
-  user_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  skill_category_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  skill_name VARCHAR(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'スキル名',
+  id VARUUID PRIMARY KEY,
+  user_id VARUUID NOT NULL,
+  skill_category_id VARUUID NOT NULL,
+  skill_name VARCHAR(100) NOT NULL COMMENT 'スキル名',
   skill_level INT CHECK (skill_level BETWEEN 1 AND 5) COMMENT 'スキルレベル(1-5)',
-  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
   CONSTRAINT fk_engineer_skill_user FOREIGN KEY (user_id) REFERENCES users(id),
   CONSTRAINT fk_engineer_skill_category FOREIGN KEY (skill_category_id) REFERENCES engineer_skill_categories(id),
   UNIQUE KEY uk_user_skill (user_id, skill_name),
@@ -162,15 +162,15 @@ CREATE TABLE IF NOT EXISTS engineer_skills (
 ```sql
 -- マイグレーションファイル: 200015_create_engineer_project_history.up.sql
 CREATE TABLE IF NOT EXISTS engineer_project_history (
-  id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,
-  user_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
-  project_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  id VARUUID PRIMARY KEY,
+  user_id VARUUID NOT NULL,
+  project_id VARUUID NOT NULL,
   role ENUM('manager', 'leader', 'member') NOT NULL COMMENT '役割',
   start_date DATE NOT NULL COMMENT '参画開始日',
   end_date DATE COMMENT '参画終了日',
   is_current BOOLEAN DEFAULT FALSE COMMENT '現在参画中フラグ',
-  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
   CONSTRAINT fk_project_history_user FOREIGN KEY (user_id) REFERENCES users(id),
   CONSTRAINT fk_project_history_project FOREIGN KEY (project_id) REFERENCES projects(id),
   INDEX idx_project_history_user (user_id),

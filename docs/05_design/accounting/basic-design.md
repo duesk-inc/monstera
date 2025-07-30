@@ -55,14 +55,14 @@
 #### 3.1.1 project_groups（プロジェクトグループ）
 ```sql
 CREATE TABLE project_groups (
-  id VARCHAR(36) PRIMARY KEY,
+  id VARUUID PRIMARY KEY,
   group_name VARCHAR(255) NOT NULL COMMENT 'グループ名',
-  client_id VARCHAR(36) NOT NULL COMMENT '取引先ID',
+  client_id VARUUID NOT NULL COMMENT '取引先ID',
   description TEXT COMMENT '説明',
-  created_by VARCHAR(36) NOT NULL,
-  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-  deleted_at DATETIME(3) NULL,
+  created_by VARUUID NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
+  deleted_at TIMESTAMP NULL,
   FOREIGN KEY (client_id) REFERENCES clients(id),
   FOREIGN KEY (created_by) REFERENCES users(id)
 ) COMMENT='プロジェクトグループ管理';
@@ -71,10 +71,10 @@ CREATE TABLE project_groups (
 #### 3.1.2 project_group_mappings（プロジェクトグループマッピング）
 ```sql
 CREATE TABLE project_group_mappings (
-  id VARCHAR(36) PRIMARY KEY,
-  project_group_id VARCHAR(36) NOT NULL,
-  project_id VARCHAR(36) NOT NULL,
-  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  id VARUUID PRIMARY KEY,
+  project_group_id VARUUID NOT NULL,
+  project_id VARUUID NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   FOREIGN KEY (project_group_id) REFERENCES project_groups(id),
   FOREIGN KEY (project_id) REFERENCES projects(id),
   UNIQUE KEY idx_group_project (project_group_id, project_id)
@@ -84,15 +84,15 @@ CREATE TABLE project_group_mappings (
 #### 3.1.3 freee_sync_logs（freee同期ログ）
 ```sql
 CREATE TABLE freee_sync_logs (
-  id VARCHAR(36) PRIMARY KEY,
+  id VARUUID PRIMARY KEY,
   sync_type ENUM('invoice_create', 'invoice_update', 'payment_sync', 'client_sync') NOT NULL,
-  target_id VARCHAR(36) COMMENT '対象ID（請求書ID等）',
+  target_id VARUUID COMMENT '対象ID（請求書ID等）',
   freee_id INT COMMENT 'freee側のID',
   status ENUM('success', 'failed', 'pending') NOT NULL,
   error_message TEXT,
   request_data JSON,
   response_data JSON,
-  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
 ) COMMENT='freee API同期ログ';
 ```
 
@@ -103,7 +103,7 @@ CREATE TABLE freee_sync_logs (
 ALTER TABLE clients ADD COLUMN billing_closing_day INT DEFAULT 31 COMMENT '請求締め日（1-31、31は月末）';
 ALTER TABLE clients ADD COLUMN freee_client_id INT COMMENT 'freee取引先ID';
 ALTER TABLE clients ADD COLUMN freee_sync_status ENUM('synced', 'pending', 'failed') DEFAULT 'pending';
-ALTER TABLE clients ADD COLUMN freee_synced_at DATETIME(3);
+ALTER TABLE clients ADD COLUMN freee_synced_at TIMESTAMP;
 ```
 
 #### 3.2.2 invoices（請求書）テーブルへの追加カラム
@@ -111,8 +111,8 @@ ALTER TABLE clients ADD COLUMN freee_synced_at DATETIME(3);
 ALTER TABLE invoices ADD COLUMN freee_invoice_id INT COMMENT 'freee請求書ID';
 ALTER TABLE invoices ADD COLUMN freee_company_id INT DEFAULT 12078529 COMMENT 'freee事業所ID';
 ALTER TABLE invoices ADD COLUMN freee_sync_status ENUM('synced', 'pending', 'failed') DEFAULT 'pending';
-ALTER TABLE invoices ADD COLUMN freee_synced_at DATETIME(3);
-ALTER TABLE invoices ADD COLUMN project_group_id VARCHAR(36) COMMENT 'プロジェクトグループID';
+ALTER TABLE invoices ADD COLUMN freee_synced_at TIMESTAMP;
+ALTER TABLE invoices ADD COLUMN project_group_id VARUUID COMMENT 'プロジェクトグループID';
 ALTER TABLE invoices ADD FOREIGN KEY (project_group_id) REFERENCES project_groups(id);
 ```
 

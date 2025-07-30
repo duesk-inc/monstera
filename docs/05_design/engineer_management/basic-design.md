@@ -103,12 +103,12 @@ ALTER TABLE users ADD COLUMN (
 #### 3.1.2 engineer_status_historyテーブル新規作成
 ```sql
 CREATE TABLE engineer_status_history (
-  id CHAR(36) PRIMARY KEY,
-  user_id CHAR(36) NOT NULL,
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL,
   previous_status ENUM('active', 'standby', 'resigned', 'long_leave'),
   new_status ENUM('active', 'standby', 'resigned', 'long_leave') NOT NULL,
   change_reason TEXT COMMENT '変更理由',
-  changed_by CHAR(36) NOT NULL COMMENT '変更実行者',
+  changed_by UUID NOT NULL COMMENT '変更実行者',
   changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (changed_by) REFERENCES users(id)
@@ -118,25 +118,25 @@ CREATE TABLE engineer_status_history (
 #### 3.1.3 engineer_skill_categoriesテーブル新規作成
 ```sql
 CREATE TABLE engineer_skill_categories (
-  id CHAR(36) PRIMARY KEY,
+  id UUID PRIMARY KEY,
   name VARCHAR(100) NOT NULL COMMENT 'カテゴリ名',
-  parent_id CHAR(36) COMMENT '親カテゴリID（大分類用）',
+  parent_id UUID COMMENT '親カテゴリID（大分類用）',
   sort_order INT DEFAULT 0,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL
 );
 ```
 
 #### 3.1.4 engineer_skillsテーブル新規作成
 ```sql
 CREATE TABLE engineer_skills (
-  id CHAR(36) PRIMARY KEY,
-  user_id CHAR(36) NOT NULL,
-  skill_category_id CHAR(36) NOT NULL,
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL,
+  skill_category_id UUID NOT NULL,
   skill_name VARCHAR(100) NOT NULL COMMENT 'スキル名',
   skill_level INT CHECK (skill_level BETWEEN 1 AND 5) COMMENT 'スキルレベル(1-5)',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (skill_category_id) REFERENCES engineer_skill_categories(id)
 );
@@ -145,15 +145,15 @@ CREATE TABLE engineer_skills (
 #### 3.1.5 engineer_project_historyテーブル新規作成
 ```sql
 CREATE TABLE engineer_project_history (
-  id CHAR(36) PRIMARY KEY,
-  user_id CHAR(36) NOT NULL,
-  project_id CHAR(36) NOT NULL,
+  id UUID PRIMARY KEY,
+  user_id UUID NOT NULL,
+  project_id UUID NOT NULL,
   role ENUM('manager', 'leader', 'member') NOT NULL COMMENT '役割',
   start_date DATE NOT NULL COMMENT '参画開始日',
   end_date DATE COMMENT '参画終了日',
   is_current BOOLEAN DEFAULT FALSE COMMENT '現在参画中フラグ',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (project_id) REFERENCES projects(id)
 );

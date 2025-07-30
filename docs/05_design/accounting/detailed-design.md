@@ -734,11 +734,11 @@ CREATE INDEX idx_invoices_project_group ON invoices(project_group_id);
 ```sql
 -- 請求書の変更履歴を自動記録するトリガー
 CREATE TABLE invoice_audit_logs (
-    id VARCHAR(36) PRIMARY KEY,
-    invoice_id VARCHAR(36) NOT NULL,
+    id VARUUID PRIMARY KEY,
+    invoice_id VARUUID NOT NULL,
     action ENUM('CREATE', 'UPDATE', 'DELETE') NOT NULL,
-    changed_by VARCHAR(36) NOT NULL,
-    changed_at DATETIME(3) NOT NULL,
+    changed_by VARUUID NOT NULL,
+    changed_at TIMESTAMP NOT NULL,
     old_values JSON,
     new_values JSON,
     FOREIGN KEY (invoice_id) REFERENCES invoices(id),

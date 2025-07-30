@@ -115,7 +115,7 @@ CREATE TABLE `weekly_reports` (
   CONSTRAINT `fk_weekly_reports_commented_by` FOREIGN KEY (`commented_by`) REFERENCES `users` (`id`),
   CONSTRAINT `fk_weekly_reports_manager` FOREIGN KEY (`manager_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_weekly_reports_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ;
 ```
 
 #### 3.1.2 daily_records テーブル
@@ -147,7 +147,7 @@ CREATE TABLE `daily_records` (
   KEY `idx_daily_records_client_work` (`has_client_work`,`client_work_hours`),
   KEY `idx_daily_records_covering` (`weekly_report_id`,`date`,`work_hours`,`client_work_hours`,`is_holiday_work`),
   CONSTRAINT `fk_daily_records_weekly_report` FOREIGN KEY (`weekly_report_id`) REFERENCES `weekly_reports` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ;
 ```
 
 ### 3.2 インデックス設計詳細
@@ -229,7 +229,7 @@ CREATE TABLE `weekly_reports_archive` (
   KEY `idx_archive_fiscal` (`fiscal_year`,`fiscal_quarter`),
   KEY `idx_archive_user` (`user_name`,`archived_at`),
   KEY `idx_archive_original` (`original_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ;
 ```
 
 ## 4. API詳細設計

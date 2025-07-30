@@ -17,14 +17,14 @@
 #### 2.1.1 proposalsテーブル
 ```sql
 CREATE TABLE proposals (
-    id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,
-    project_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'monstera_poc.projects.id参照',
-    user_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'エンジニアID',
+    id VARUUID PRIMARY KEY,
+    project_id VARUUID NOT NULL COMMENT 'monstera_poc.projects.id参照',
+    user_id VARUUID NOT NULL COMMENT 'エンジニアID',
     status ENUM('proposed', 'proceed', 'declined') NOT NULL DEFAULT 'proposed' COMMENT '提案ステータス',
-    responded_at DATETIME(3) COMMENT '回答日時',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '作成日時',
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新日時',
-    deleted_at DATETIME(3) NULL COMMENT '削除日時',
+    responded_at TIMESTAMP COMMENT '回答日時',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '作成日時',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL COMMENT '更新日時',
+    deleted_at TIMESTAMP NULL COMMENT '削除日時',
     
     CONSTRAINT fk_proposals_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
     INDEX idx_proposals_user_id (user_id),
@@ -38,16 +38,16 @@ CREATE TABLE proposals (
 #### 2.1.2 proposal_questionsテーブル
 ```sql
 CREATE TABLE proposal_questions (
-    id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci PRIMARY KEY,
-    proposal_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '提案ID',
-    question_text TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '質問内容',
-    response_text TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '回答内容',
-    sales_user_id VARCHAR(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci COMMENT '営業担当者ID',
+    id VARUUID PRIMARY KEY,
+    proposal_id VARUUID NOT NULL COMMENT '提案ID',
+    question_text TEXT NOT NULL COMMENT '質問内容',
+    response_text TEXT COMMENT '回答内容',
+    sales_user_id VARUUID COMMENT '営業担当者ID',
     is_responded BOOLEAN NOT NULL DEFAULT FALSE COMMENT '回答済みフラグ',
-    responded_at DATETIME(3) COMMENT '回答日時',
-    created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '作成日時',
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT '更新日時',
-    deleted_at DATETIME(3) NULL COMMENT '削除日時',
+    responded_at TIMESTAMP COMMENT '回答日時',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3) COMMENT '作成日時',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL COMMENT '更新日時',
+    deleted_at TIMESTAMP NULL COMMENT '削除日時',
     
     CONSTRAINT fk_proposal_questions_proposal FOREIGN KEY (proposal_id) REFERENCES proposals(id) ON DELETE CASCADE ON UPDATE CASCADE,
     CONSTRAINT fk_proposal_questions_sales_user FOREIGN KEY (sales_user_id) REFERENCES users(id) ON DELETE SET NULL ON UPDATE CASCADE,

@@ -44,16 +44,16 @@ CREATE INDEX idx_expenses_amount ON expenses(amount);
 #### 3.2.1 expense_approvals（承認履歴）
 ```sql
 CREATE TABLE expense_approvals (
-    id VARCHAR(36) PRIMARY KEY,
-    expense_id VARCHAR(36) NOT NULL,
-    approver_id VARCHAR(36) NOT NULL,
+    id VARUUID PRIMARY KEY,
+    expense_id VARUUID NOT NULL,
+    approver_id VARUUID NOT NULL,
     approval_type ENUM('manager', 'executive') NOT NULL,
     approval_order INT NOT NULL DEFAULT 1,
     status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
     comment TEXT,
-    approved_at DATETIME(3),
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    approved_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
     
     INDEX idx_expense_approvals_expense_id (expense_id),
     INDEX idx_expense_approvals_approver_status (approver_id, status),
@@ -67,13 +67,13 @@ CREATE TABLE expense_approvals (
 #### 3.2.2 expense_limits（申請上限）
 ```sql
 CREATE TABLE expense_limits (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARUUID PRIMARY KEY,
     limit_type ENUM('monthly', 'yearly') NOT NULL,
     amount INT NOT NULL,
-    effective_from DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    created_by VARCHAR(36) NOT NULL,
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    effective_from TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    created_by VARUUID NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
     
     INDEX idx_expense_limits_type_date (limit_type, effective_from),
     
@@ -84,15 +84,15 @@ CREATE TABLE expense_limits (
 #### 3.2.3 expense_categories（カテゴリマスタ）
 ```sql
 CREATE TABLE expense_categories (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARUUID PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
     name VARCHAR(100) NOT NULL,
     requires_details BOOLEAN DEFAULT false,
     is_active BOOLEAN DEFAULT true,
     display_order INT NOT NULL,
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-    deleted_at DATETIME(3),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
+    deleted_at TIMESTAMP,
     
     INDEX idx_expense_categories_active (is_active, display_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -110,15 +110,15 @@ INSERT INTO expense_categories (id, code, name, requires_details, is_active, dis
 #### 3.2.4 expense_summaries（集計テーブル）
 ```sql
 CREATE TABLE expense_summaries (
-    id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    id VARUUID PRIMARY KEY,
+    user_id VARUUID NOT NULL,
     year INT NOT NULL,
     month INT NOT NULL,
     total_amount INT NOT NULL DEFAULT 0,
     approved_amount INT NOT NULL DEFAULT 0,
     pending_amount INT NOT NULL DEFAULT 0,
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
     
     UNIQUE KEY uk_user_period (user_id, year, month),
     INDEX idx_expense_summaries_user (user_id),

@@ -102,21 +102,21 @@ SES企業のエンジニア社員が業務で発生した経費を申請し、�
 #### expenses テーブル
 ```sql
 CREATE TABLE expenses (
-    id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    id VARUUID PRIMARY KEY,
+    user_id VARUUID NOT NULL,
     title VARCHAR(255) NOT NULL,
     category VARCHAR(50) NOT NULL,
     amount INT NOT NULL,
-    expense_date DATETIME(3) NOT NULL,
+    expense_date TIMESTAMP NOT NULL,
     status ENUM('draft', 'submitted', 'approved', 'rejected', 'paid') DEFAULT 'draft' NOT NULL,
     description TEXT,
     receipt_url VARCHAR(255),
-    approver_id VARCHAR(36),
-    approved_at DATETIME(3),
-    paid_at DATETIME(3),
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-    deleted_at DATETIME(3),
+    approver_id VARUUID,
+    approved_at TIMESTAMP,
+    paid_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
+    deleted_at TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (approver_id) REFERENCES users(id)
 );
@@ -127,15 +127,15 @@ CREATE TABLE expenses (
 #### expense_approvals テーブル（新規）
 ```sql
 CREATE TABLE expense_approvals (
-    id VARCHAR(36) PRIMARY KEY,
-    expense_id VARCHAR(36) NOT NULL,
-    approver_id VARCHAR(36) NOT NULL,
+    id VARUUID PRIMARY KEY,
+    expense_id VARUUID NOT NULL,
+    approver_id VARUUID NOT NULL,
     approval_type ENUM('manager', 'executive') NOT NULL,
     status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending' NOT NULL,
     comment TEXT,
-    approved_at DATETIME(3),
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    approved_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
     FOREIGN KEY (expense_id) REFERENCES expenses(id),
     FOREIGN KEY (approver_id) REFERENCES users(id)
 );
@@ -144,12 +144,12 @@ CREATE TABLE expense_approvals (
 #### expense_limits テーブル（新規）
 ```sql
 CREATE TABLE expense_limits (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARUUID PRIMARY KEY,
     limit_type ENUM('monthly', 'yearly') NOT NULL,
     amount INT NOT NULL,
-    created_by VARCHAR(36) NOT NULL,
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    created_by VARUUID NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 ```
@@ -157,14 +157,14 @@ CREATE TABLE expense_limits (
 #### expense_categories テーブル（新規）
 ```sql
 CREATE TABLE expense_categories (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARUUID PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     display_name VARCHAR(100) NOT NULL,
     is_active BOOLEAN DEFAULT true,
     display_order INT NOT NULL,
-    created_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3),
-    updated_at DATETIME(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-    deleted_at DATETIME(3)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3),
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP(3) -- Requires UPDATE trigger in PostgreSQL,
+    deleted_at TIMESTAMP
 );
 ```
 

@@ -54,7 +54,7 @@ CREATE TABLE work_histories (
     display_order INT NOT NULL DEFAULT 0,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
     deleted_at TIMESTAMP NULL,
     INDEX idx_work_histories_user_id (user_id),
     INDEX idx_work_histories_start_date (start_date),
@@ -74,7 +74,7 @@ CREATE TABLE technology_master (
     usage_count INT NOT NULL DEFAULT 0,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP -- Requires UPDATE trigger in PostgreSQL,
     UNIQUE KEY idx_technology_category_name (category, name),
     INDEX idx_technology_usage (usage_count DESC)
 );
