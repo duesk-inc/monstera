@@ -150,7 +150,16 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
     },
     {
       title: "設定",
-      path: "/admin/settings",
+      children: [
+        {
+          title: "一般設定",
+          path: "/admin/settings",
+        },
+        {
+          title: "経費承認者設定",
+          path: "/admin/expense-approvers",
+        },
+      ],
     },
   ];
 
