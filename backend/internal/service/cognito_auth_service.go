@@ -409,12 +409,27 @@ func (s *CognitoAuthService) syncUserWithDB(ctx context.Context, cognitoUser map
 	cognitoSub := cognitoUser["sub"]
 	email := cognitoUser["email"]
 
+	// デバッグログ追加
+	s.logger.Info("syncUserWithDB called",
+		zap.String("cognito_sub", cognitoSub),
+		zap.String("email", email),
+		zap.Any("cognito_user_attributes", cognitoUser),
+	)
+
 	// CognitoサブIDまたはメールアドレスでユーザーを検索
 	user, err := s.userRepo.GetByCognitoSub(ctx, cognitoSub)
 	if err != nil {
+		s.logger.Info("GetByCognitoSub failed",
+			zap.String("cognito_sub", cognitoSub),
+			zap.Error(err),
+		)
 		// メールアドレスで検索
 		user, err = s.userRepo.GetByEmail(ctx, email)
 		if err != nil {
+			s.logger.Info("GetByEmail also failed",
+				zap.String("email", email),
+				zap.Error(err),
+			)
 			// 新規ユーザーとして作成
 			roleStr := cognitoUser["custom:role"]
 			role := 4 // デフォルトはemployee

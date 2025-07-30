@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS business_experiences;
+DROP TABLE IF EXISTS framework_skills;
+DROP TABLE IF EXISTS language_skills;
+DROP TABLE IF EXISTS work_history_histories;
+DROP TABLE IF EXISTS profile_histories;
+DROP TABLE IF EXISTS work_history_technologies;
+DROP TABLE IF EXISTS work_histories;
+DROP TABLE IF EXISTS profiles;
+DROP TABLE IF EXISTS technology_categories;
+DROP TABLE IF EXISTS processes;
+DROP TABLE IF EXISTS industries; 

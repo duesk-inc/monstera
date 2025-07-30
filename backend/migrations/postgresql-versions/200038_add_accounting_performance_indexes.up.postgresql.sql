@@ -33,7 +33,13 @@ END $$;
 CREATE INDEX IF NOT EXISTS idx_invoices_due_date_status ON invoices(due_date, status) WHERE status != 'paid';
 
 -- project_assignmentsテーブルのパフォーマンスインデックス
-CREATE INDEX IF NOT EXISTS idx_assignments_billing_type_dates ON project_assignments(billing_type, start_date, end_date) WHERE deleted_at IS NULL;
+-- billing_typeカラムが存在する場合のみ作成
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'project_assignments' AND column_name = 'billing_type') THEN
+        CREATE INDEX IF NOT EXISTS idx_assignments_billing_type_dates ON project_assignments(billing_type, start_date, end_date) WHERE deleted_at IS NULL;
+    END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_assignments_project_active ON project_assignments(project_id, end_date) WHERE deleted_at IS NULL;
 
 -- freee_sync_logsテーブルのパフォーマンスインデックス

@@ -3671,6 +3671,12 @@ func (s *expenseService) ProcessExpenseReminders(ctx context.Context) error {
 		s.logger.Error("Failed to get global deadline setting", zap.Error(err))
 		return err
 	}
+	
+	// globalSettingがnilの場合はスキップ
+	if globalSetting == nil {
+		s.logger.Warn("No global deadline setting found, skipping reminder processing")
+		return nil
+	}
 
 	// リマインダー日付を計算（現在日時 + リマインダー日数）
 	reminderDate := time.Now().AddDate(0, 0, globalSetting.ReminderDaysBefore)

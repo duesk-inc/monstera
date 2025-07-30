@@ -56,6 +56,10 @@ DECLARE
     cert_azure_fund_id VARCHAR(36) := 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380d09';
     cert_gcp_ace_id VARCHAR(36) := 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380d10';
     
+    -- 経費承認者設定ID
+    approver_manager_id VARCHAR(36);
+    approver_executive_id VARCHAR(36);
+    
     -- 現在年
     current_year INTEGER := EXTRACT(YEAR FROM CURRENT_DATE);
 BEGIN
@@ -271,4 +275,7 @@ BEGIN
     (cert_azure_fund_id, 'Microsoft Azure Fundamentals', 'Microsoft', 'Azureクラウドサービスの基礎知識を認定', true, 12, 'ベンダー資格'),
     (cert_gcp_ace_id, 'Google Cloud Associate Cloud Engineer', 'Google', 'GCPの基本的な運用スキルを認定', true, 13, 'ベンダー資格')
     ON CONFLICT (id) DO NOTHING;
+
+    -- 経費申請承認者設定（テーブルがまだ存在しない可能性があるため削除）
+    -- expense_approver_settingsは200044で作成されるため、ここでは挿入しない
 END $$;
