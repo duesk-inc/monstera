@@ -87,6 +87,43 @@ docker-compose exec postgres psql -U postgres -d monstera -c "\d users"  # テ�
 
 詳細は[Claude Code 活用](.cursor/rules/claude-code-guide.md)を参照してください。
 
+## 🤖 Claude Code コマンド自動選択システム
+
+### 概要
+ユーザーの要求を分析し、最適なコマンドを自動的に選択・実行するシステムです。
+
+### 動作原則
+1. **コマンド優先**: `.claude/commands/`内に適切なコマンドがある場合は必ず使用
+2. **自動判定**: ユーザーの要求からコマンドを自動選択
+3. **確認不要**: コマンド名の指定は不要（自然言語で要求するだけ）
+4. **連携実行**: 必要に応じて複数コマンドを順次実行
+
+### コマンド選択プロセス
+```
+1. ユーザー要求の分析
+   ↓
+2. キーワードとコンテキストの抽出
+   ↓
+3. INDEX.mdを参照してコマンド候補を特定
+   ↓
+4. 最適なコマンドを選択
+   ↓
+5. 必要に応じて確認後、実行
+```
+
+### 実行例
+- 「経費申請のバグを修正したい」 → `/bug-investigate` → `/bug-fix`
+- 「docsフォルダを整理して」 → `/docs-organize`
+- 「新機能を実装したい」 → `/new-feature-investigate` → `/new-feature-plan` → `/new-feature-implement`
+
+### コマンドインデックス
+詳細は[コマンドインデックス](.claude/commands/INDEX.md)を参照してください。
+
+### 注意事項
+- コマンドが存在する作業は必ずコマンドを使用すること
+- 手動実行よりもコマンド実行を優先すること
+- 不明な場合はINDEX.mdを確認すること
+
 ## コーディング規約
 
 詳細は[コーディング規約](docs/06_standards/coding-standards.md)を参照してください。
