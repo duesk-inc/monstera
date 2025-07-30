@@ -40,7 +40,6 @@ The following PostgreSQL migration files were updated:
 23. `200044_create_expense_approver_settings.up.postgresql.sql`
 24. `200046_create_expense_receipts_table.up.postgresql.sql`
 25. `200047_add_expense_deadline_fields.up.postgresql.sql`
-26. `200048_create_virus_scan_logs_table.up.postgresql.sql`
 
 ### Key Changes Made
 

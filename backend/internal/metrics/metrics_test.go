@@ -65,32 +65,6 @@ func TestRecordCacheMetrics(t *testing.T) {
 	assert.Equal(t, float64(1), testutil.ToFloat64(CacheMisses.WithLabelValues("summary", "monthly")))
 }
 
-func TestRecordVirusScan(t *testing.T) {
-	// カウンターをリセット
-	VirusScanTotal.Reset()
-	VirusDetectionsTotal.Reset()
-
-	// ウイルススキャンを記録
-	RecordVirusScan("clean", "pdf", 1.5)
-	RecordVirusScan("clean", "jpg", 0.5)
-	RecordVirusScan("infected", "exe", 2.0)
-	RecordVirusScan("error", "pdf", 0.1)
-
-	// ウイルス検出を記録
-	RecordVirusDetection("EICAR-Test-File", "exe")
-	RecordVirusDetection("Trojan.Generic", "exe")
-	RecordVirusDetection("EICAR-Test-File", "zip")
-
-	// カウンターの値を確認
-	assert.Equal(t, float64(1), testutil.ToFloat64(VirusScanTotal.WithLabelValues("clean", "pdf")))
-	assert.Equal(t, float64(1), testutil.ToFloat64(VirusScanTotal.WithLabelValues("clean", "jpg")))
-	assert.Equal(t, float64(1), testutil.ToFloat64(VirusScanTotal.WithLabelValues("infected", "exe")))
-	assert.Equal(t, float64(1), testutil.ToFloat64(VirusScanTotal.WithLabelValues("error", "pdf")))
-
-	assert.Equal(t, float64(1), testutil.ToFloat64(VirusDetectionsTotal.WithLabelValues("EICAR-Test-File", "exe")))
-	assert.Equal(t, float64(1), testutil.ToFloat64(VirusDetectionsTotal.WithLabelValues("EICAR-Test-File", "zip")))
-	assert.Equal(t, float64(1), testutil.ToFloat64(VirusDetectionsTotal.WithLabelValues("Trojan.Generic", "exe")))
-}
 
 func TestRecordError(t *testing.T) {
 	// カウンターをリセット

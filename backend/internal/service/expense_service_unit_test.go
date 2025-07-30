@@ -38,6 +38,8 @@ func TestExpenseService_SimpleValidation(t *testing.T) {
 			nil,
 			nil,
 			nil,
+			nil,
+			nil,
 			logger,
 		)
 

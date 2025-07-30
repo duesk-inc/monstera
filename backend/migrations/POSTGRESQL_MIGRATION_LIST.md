@@ -67,7 +67,6 @@
 - 200044_create_expense_approver_settings - 経費承認者設定
 - 200045_create_reminder_settings - リマインダー設定
 - 200046_create_expense_receipts_table - 経費領収書
-- 200048_create_virus_scan_logs_table - ウイルススキャンログ
 - 200050_create_export_jobs_table - エクスポートジョブ
 - 200051_create_weekly_reports_archive_table - 週報アーカイブ
 - 200052_create_archive_procedures - アーカイブプロシージャ

@@ -70,10 +70,7 @@ func normalizePath(path string) string {
 		"/api/v1/admin/expenses/:id/reject":        "/api/v1/admin/expenses/:id/reject",
 		"/api/v1/admin/expense-categories/:id":     "/api/v1/admin/expense-categories/:id",
 		"/api/v1/admin/expense-limits/:id":         "/api/v1/admin/expense-limits/:id",
-		"/api/v1/admin/users/:id":                  "/api/v1/admin/users/:id",
-		"/api/v1/virus-scan/results/:id":           "/api/v1/virus-scan/results/:id",
-		"/api/v1/admin/virus-scan/quarantined/:id": "/api/v1/admin/virus-scan/quarantined/:id",
-	}
+		"/api/v1/admin/users/:id":                  "/api/v1/admin/users/:id",	}
 
 	// 既知のパターンに一致するか確認
 	for pattern, replacement := range replacements {

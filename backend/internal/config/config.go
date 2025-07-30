@@ -20,7 +20,6 @@ type Config struct {
 	Redis      RedisConfig
 	Freee      FreeeConfig
 	Encryption EncryptionConfig
-	ClamAV     ClamAVConfig
 	Prometheus PrometheusConfig
 	Cognito    CognitoConfig
 }
@@ -125,17 +124,6 @@ type FreeeConfig struct {
 type EncryptionConfig struct {
 	Key       string
 	Algorithm string
-}
-
-// ClamAVConfig ClamAV設定
-type ClamAVConfig struct {
-	Enabled        bool
-	Host           string
-	Port           int
-	Timeout        time.Duration
-	MaxScanSize    int64
-	QuarantineDir  string
-	AutoQuarantine bool
 }
 
 // PrometheusConfig Prometheus設定
@@ -425,15 +413,6 @@ func Load(envFile ...string) (*Config, error) {
 		Encryption: EncryptionConfig{
 			Key:       getEnv("TOKEN_ENCRYPTION_KEY", ""),
 			Algorithm: getEnv("TOKEN_ENCRYPTION_ALGORITHM", "AES-GCM"),
-		},
-		ClamAV: ClamAVConfig{
-			Enabled:        getEnv("CLAMAV_ENABLED", "false") == "true",
-			Host:           getEnv("CLAMAV_HOST", "localhost"),
-			Port:           getEnvInt("CLAMAV_PORT", 3310),
-			Timeout:        time.Duration(getEnvInt("CLAMAV_TIMEOUT_SECONDS", 60)) * time.Second,
-			MaxScanSize:    int64(getEnvInt("CLAMAV_MAX_SCAN_SIZE_MB", 100)) * 1024 * 1024,
-			QuarantineDir:  getEnv("CLAMAV_QUARANTINE_DIR", "/var/quarantine"),
-			AutoQuarantine: getEnv("CLAMAV_AUTO_QUARANTINE", "true") == "true",
 		},
 		Prometheus: PrometheusConfig{
 			Enabled:                getEnv("PROMETHEUS_ENABLED", "true") == "true",

@@ -130,32 +130,6 @@ var (
 		[]string{"cache_type"},
 	)
 
-	// ウイルススキャンメトリクス
-	VirusScanTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "virus_scan_total",
-			Help: "Total number of virus scans performed",
-		},
-		[]string{"result", "file_type"},
-	)
-
-	VirusScanDuration = promauto.NewHistogramVec(
-		prometheus.HistogramOpts{
-			Name:    "virus_scan_duration_seconds",
-			Help:    "Duration of virus scans in seconds",
-			Buckets: prometheus.DefBuckets,
-		},
-		[]string{"result", "file_type"},
-	)
-
-	VirusDetectionsTotal = promauto.NewCounterVec(
-		prometheus.CounterOpts{
-			Name: "virus_detections_total",
-			Help: "Total number of virus detections",
-		},
-		[]string{"virus_name", "file_type"},
-	)
-
 	// 通知メトリクス
 	NotificationsSentTotal = promauto.NewCounterVec(
 		prometheus.CounterOpts{
@@ -263,17 +237,6 @@ func RecordCacheHit(cacheType, keyType string) {
 // RecordCacheMiss キャッシュミスを記録
 func RecordCacheMiss(cacheType, keyType string) {
 	CacheMisses.WithLabelValues(cacheType, keyType).Inc()
-}
-
-// RecordVirusScan ウイルススキャンのメトリクスを記録
-func RecordVirusScan(result, fileType string, duration float64) {
-	VirusScanTotal.WithLabelValues(result, fileType).Inc()
-	VirusScanDuration.WithLabelValues(result, fileType).Observe(duration)
-}
-
-// RecordVirusDetection ウイルス検出を記録
-func RecordVirusDetection(virusName, fileType string) {
-	VirusDetectionsTotal.WithLabelValues(virusName, fileType).Inc()
 }
 
 // RecordNotification 通知送信を記録

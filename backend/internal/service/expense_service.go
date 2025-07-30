@@ -118,7 +118,6 @@ type expenseService struct {
 	userRepo            repository.UserRepository
 	cacheManager        *cache.CacheManager
 	auditService        AuditLogService
-	virusScanService    VirusScanService
 	logger              *zap.Logger
 }
 
@@ -136,7 +135,6 @@ func NewExpenseService(
 	userRepo repository.UserRepository,
 	cacheManager *cache.CacheManager,
 	auditService AuditLogService,
-	virusScanService VirusScanService,
 	logger *zap.Logger,
 ) ExpenseService {
 	return &expenseService{
@@ -152,7 +150,6 @@ func NewExpenseService(
 		userRepo:            userRepo,
 		cacheManager:        cacheManager,
 		auditService:        auditService,
-		virusScanService:    virusScanService,
 		logger:              logger,
 	}
 }
@@ -1739,55 +1736,6 @@ func (s *expenseService) CompleteUpload(ctx context.Context, userID uuid.UUID, r
 	fileInfo, err := s.s3Service.GetFileInfo(ctx, req.S3Key)
 	if err != nil {
 		return nil, err
-	}
-
-	// ウイルススキャンを実行（VirusScanServiceが設定されている場合）
-	if s.virusScanService != nil {
-		s.logger.Info("Starting virus scan",
-			zap.String("s3_key", req.S3Key),
-			zap.String("file_name", fileInfo.FileName))
-
-		// ファイルIDを生成
-		fileID := uuid.New()
-
-		// S3からファイルを取得してスキャン
-		scanResult, err := s.virusScanService.ScanFileByPath(ctx, fileID, req.S3Key)
-		if err != nil {
-			s.logger.Error("Virus scan failed",
-				zap.Error(err),
-				zap.String("s3_key", req.S3Key))
-			// スキャンエラーの場合は続行（設定により変更可能）
-		} else if scanResult != nil && scanResult.ScanStatus == "infected" {
-			// ウイルスが検出された場合
-			s.logger.Warn("Virus detected in uploaded file",
-				zap.String("s3_key", req.S3Key),
-				zap.String("virus_name", scanResult.VirusName))
-
-			// ファイルを削除
-			if err := s.s3Service.DeleteFile(ctx, req.S3Key); err != nil {
-				s.logger.Error("Failed to delete infected file",
-					zap.Error(err),
-					zap.String("s3_key", req.S3Key))
-			}
-
-			// 監査ログに記録
-			s.auditService.LogActivity(ctx, LogActivityParams{
-				UserID:       userID,
-				Action:       "FILE_VIRUS_DETECTED",
-				ResourceType: model.ResourceTypeFile,
-				ResourceID:   &req.S3Key,
-				Method:       "POST",
-				Path:         "/api/v1/expenses/upload/complete",
-				StatusCode:   400,
-				RequestBody: map[string]interface{}{
-					"virus_name": scanResult.VirusName,
-					"file_name":  fileInfo.FileName,
-				},
-			})
-
-			return nil, dto.NewExpenseError(dto.ErrCodeVirusDetected,
-				fmt.Sprintf("アップロードされたファイルからウイルスが検出されました: %s", scanResult.VirusName))
-		}
 	}
 
 	// 公開URLを生成

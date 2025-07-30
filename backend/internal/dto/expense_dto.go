@@ -1010,7 +1010,6 @@ const (
 	ErrCodeFileNotFound         = "EXPENSE_FILE_NOT_FOUND"
 	ErrCodeFileSizeExceeded     = "EXPENSE_FILE_SIZE_EXCEEDED"
 	ErrCodeInvalidFileType      = "EXPENSE_INVALID_FILE_TYPE"
-	ErrCodeVirusDetected        = "EXPENSE_VIRUS_DETECTED"
 
 	// 上限関連エラーコード
 	ErrCodeLimitExceeded = "EXPENSE_LIMIT_EXCEEDED"
