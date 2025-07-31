@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { HistoryTable, createExpenseHistoryColumns, type HistoryItem } from '@/components/common';
 import { useCategories } from '@/hooks/expense/useCategories';
@@ -22,7 +22,7 @@ interface ExpenseHistoryViewProps {
  * 経費申請履歴表示コンポーネント
  * 履歴テーブルを管理
  */
-export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
+export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = React.memo(({
   historyData,
 }) => {
   const router = useRouter();
@@ -59,22 +59,25 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
         label: isMobile ? '編集' : 'アクション',
         align: 'center' as const,
         minWidth: isMobile ? 60 : undefined,
-        format: (_: unknown, row: ExpenseHistoryItem) => {
+        format: useCallback((_: unknown, row: ExpenseHistoryItem) => {
           // 下書き状態の場合のみ編集ボタンを表示
           if (row.status === 'draft') {
+            const handleClick = () => router.push(`/expenses/${row.id}/edit`);
+            const handleKeyDown = (e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleClick();
+              }
+            };
+            
             return (
               <IconButton
                 size={isMobile ? "medium" : "small"}
-                onClick={() => router.push(`/expenses/${row.id}/edit`)}
+                onClick={handleClick}
                 title={`${row.title || '経費申請'}を編集`}
                 aria-label={`${row.title || '経費申請'}を編集`}
                 tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    router.push(`/expenses/${row.id}/edit`);
-                  }
-                }}
+                onKeyDown={handleKeyDown}
                 sx={{
                   transition: 'all 0.2s',
                   // モバイルの場合はタッチターゲットを大きくする
@@ -111,13 +114,13 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
             );
           }
           return null;
-        },
+        }, [router, isMobile]),
       },
     ];
   }, [router, isMobile]);
 
   // 編集可能行の視覚的フィードバック
-  const getRowStyles = (row: ExpenseHistoryItem) => ({
+  const getRowStyles = useCallback((row: ExpenseHistoryItem) => ({
     // 下書き状態の行を視覚的に区別
     ...(row.status === 'draft' && {
       backgroundColor: 'primary.50',
@@ -125,19 +128,19 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
         backgroundColor: 'primary.100',
       },
     }),
-  });
+  }), []);
 
-  const getRowClassName = (row: ExpenseHistoryItem) => {
+  const getRowClassName = useCallback((row: ExpenseHistoryItem) => {
     return row.status === 'draft' ? 'editable-row' : '';
-  };
+  }, []);
 
   // アクセシビリティ用のaria-label生成
-  const getRowAriaLabel = (row: ExpenseHistoryItem) => {
+  const getRowAriaLabel = useCallback((row: ExpenseHistoryItem) => {
     if (row.status === 'draft') {
       return `編集可能な経費申請: ${row.title || 'タイトルなし'}, 金額: ${row.amount}円, カテゴリ: ${categoryMap[row.category] || row.category}`;
     }
     return undefined;
-  };
+  }, [categoryMap]);
 
   return (
     <HistoryTable
@@ -149,4 +152,7 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
       getRowClassName={getRowClassName}
     />
   );
-}; 
+});
+
+// 表示名を設定（デバッグ時に便利）
+ExpenseHistoryView.displayName = 'ExpenseHistoryView'; 
