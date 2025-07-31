@@ -36,6 +36,8 @@ export interface DataTableProps<T = Record<string, unknown>> {
   minWidth?: number;
   variant?: 'elevation' | 'outlined';
   sx?: SxProps<Theme>;
+  getRowStyles?: (row: T) => SxProps<Theme>;
+  getRowClassName?: (row: T) => string;
 }
 
 export const DataTable = <T extends Record<string, any> = Record<string, any>>({
@@ -50,6 +52,8 @@ export const DataTable = <T extends Record<string, any> = Record<string, any>>({
   minWidth = 650,
   variant = 'outlined',
   sx,
+  getRowStyles,
+  getRowClassName,
 }: DataTableProps<T>) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -110,6 +114,7 @@ export const DataTable = <T extends Record<string, any> = Record<string, any>>({
             data.map((row) => (
               <TableRow
                 key={String(row[keyField])}
+                className={getRowClassName?.(row)}
                 sx={{
                   '&:last-child td, &:last-child th': { border: 0 },
                   ...(onRowClick && {
@@ -118,6 +123,7 @@ export const DataTable = <T extends Record<string, any> = Record<string, any>>({
                       backgroundColor: 'action.hover',
                     },
                   }),
+                  ...(getRowStyles?.(row) || {}),
                 }}
                 onClick={() => onRowClick?.(row)}
               >

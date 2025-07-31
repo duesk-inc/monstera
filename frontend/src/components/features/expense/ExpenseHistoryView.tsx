@@ -64,6 +64,13 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
                 onClick={() => router.push(`/expenses/${row.id}/edit`)}
                 title="編集"
                 aria-label="編集"
+                sx={{
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                    color: 'primary.main',
+                  },
+                }}
               >
                 <EditIcon fontSize="small" />
               </IconButton>
@@ -75,12 +82,29 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
     ];
   }, [router]);
 
+  // 編集可能行の視覚的フィードバック
+  const getRowStyles = (row: ExpenseHistoryItem) => ({
+    // 下書き状態の行を視覚的に区別
+    ...(row.status === 'draft' && {
+      backgroundColor: 'primary.50',
+      '&:hover': {
+        backgroundColor: 'primary.100',
+      },
+    }),
+  });
+
+  const getRowClassName = (row: ExpenseHistoryItem) => {
+    return row.status === 'draft' ? 'editable-row' : '';
+  };
+
   return (
     <HistoryTable
       data={transformedData}
       columns={historyColumns}
       keyField="id"
       emptyMessage="該当する申請履歴がありません"
+      getRowStyles={getRowStyles}
+      getRowClassName={getRowClassName}
     />
   );
 }; 
