@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { ExpenseHistoryView } from '../ExpenseHistoryView';
 import { useRouter } from 'next/navigation';
 import { useCategories } from '@/hooks/expense/useCategories';
+import { useMediaQuery } from '@mui/material';
 
 // Mock the dependencies
 jest.mock('next/navigation', () => ({
@@ -11,6 +12,16 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/hooks/expense/useCategories', () => ({
   useCategories: jest.fn(),
+}));
+
+jest.mock('@mui/material', () => ({
+  ...jest.requireActual('@mui/material'),
+  useMediaQuery: jest.fn(),
+  useTheme: () => ({
+    breakpoints: {
+      down: jest.fn(),
+    },
+  }),
 }));
 
 describe('ExpenseHistoryView', () => {
@@ -59,6 +70,7 @@ describe('ExpenseHistoryView', () => {
     (useCategories as jest.Mock).mockReturnValue({
       categories: mockCategories,
     });
+    (useMediaQuery as jest.Mock).mockReturnValue(false); // デフォルトはデスクトップ
   });
 
   it('should render the expense history table', () => {
@@ -138,5 +150,67 @@ describe('ExpenseHistoryView', () => {
     
     // Should display the category code when mapping is not found
     expect(screen.getByText('unknown')).toBeInTheDocument();
+  });
+
+  describe('UI/UX improvements', () => {
+    it('should render larger button on mobile', () => {
+      (useMediaQuery as jest.Mock).mockReturnValue(true); // モバイル表示
+      
+      render(<ExpenseHistoryView historyData={mockHistoryData} />);
+      
+      const editButton = screen.getByLabelText('交通費申請を編集');
+      expect(editButton).toHaveClass('MuiIconButton-sizeMedium');
+    });
+
+    it('should show simplified action column label on mobile', () => {
+      (useMediaQuery as jest.Mock).mockReturnValue(true); // モバイル表示
+      
+      render(<ExpenseHistoryView historyData={mockHistoryData} />);
+      
+      expect(screen.getByText('編集')).toBeInTheDocument();
+      expect(screen.queryByText('アクション')).not.toBeInTheDocument();
+    });
+
+    it('should handle keyboard navigation', () => {
+      render(<ExpenseHistoryView historyData={mockHistoryData} />);
+      
+      const editButton = screen.getByLabelText('交通費申請を編集');
+      
+      // Enter key
+      fireEvent.keyDown(editButton, { key: 'Enter' });
+      expect(mockPush).toHaveBeenCalledWith('/expenses/1/edit');
+      
+      jest.clearAllMocks();
+      
+      // Space key
+      fireEvent.keyDown(editButton, { key: ' ' });
+      expect(mockPush).toHaveBeenCalledWith('/expenses/1/edit');
+    });
+
+    it('should have proper aria-label for accessibility', () => {
+      render(<ExpenseHistoryView historyData={mockHistoryData} />);
+      
+      const editButton = screen.getByLabelText('交通費申請を編集');
+      expect(editButton).toHaveAttribute('title', '交通費申請を編集');
+      expect(editButton).toHaveAttribute('tabIndex', '0');
+    });
+
+    it('should use generic label when title is not provided', () => {
+      const dataWithoutTitle = [
+        {
+          id: '5',
+          category: 'travel',
+          amount: 2000,
+          status: 'draft' as const,
+          createdAt: '2024-01-01T00:00:00Z',
+          updatedAt: '2024-01-01T00:00:00Z',
+        },
+      ];
+      
+      render(<ExpenseHistoryView historyData={dataWithoutTitle} />);
+      
+      const editButton = screen.getByLabelText('経費申請を編集');
+      expect(editButton).toBeInTheDocument();
+    });
   });
 });
