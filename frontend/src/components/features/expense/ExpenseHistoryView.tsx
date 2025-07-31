@@ -11,6 +11,7 @@ interface ExpenseHistoryItem extends HistoryItem {
   amount: number;
   processedAt?: Date | string | null;
   rejectionReason?: string;
+  title?: string;
 }
 
 interface ExpenseHistoryViewProps {
@@ -65,8 +66,15 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
               <IconButton
                 size={isMobile ? "medium" : "small"}
                 onClick={() => router.push(`/expenses/${row.id}/edit`)}
-                title="編集"
-                aria-label="編集"
+                title={`${row.title || '経費申請'}を編集`}
+                aria-label={`${row.title || '経費申請'}を編集`}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    router.push(`/expenses/${row.id}/edit`);
+                  }
+                }}
                 sx={{
                   transition: 'all 0.2s',
                   // モバイルの場合はタッチターゲットを大きくする
@@ -77,6 +85,17 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
                   '&:hover': {
                     transform: 'scale(1.1)',
                     color: 'primary.main',
+                  },
+                  // キーボードフォーカス時の視覚的フィードバック
+                  '&:focus': {
+                    outline: '2px solid',
+                    outlineColor: 'primary.main',
+                    outlineOffset: 2,
+                  },
+                  '&:focus-visible': {
+                    outline: '2px solid',
+                    outlineColor: 'primary.main',
+                    outlineOffset: 2,
                   },
                   // タッチデバイスでのフィードバック
                   '@media (hover: none)': {
@@ -110,6 +129,14 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
 
   const getRowClassName = (row: ExpenseHistoryItem) => {
     return row.status === 'draft' ? 'editable-row' : '';
+  };
+
+  // アクセシビリティ用のaria-label生成
+  const getRowAriaLabel = (row: ExpenseHistoryItem) => {
+    if (row.status === 'draft') {
+      return `編集可能な経費申請: ${row.title || 'タイトルなし'}, 金額: ${row.amount}円, カテゴリ: ${categoryMap[row.category] || row.category}`;
+    }
+    return undefined;
   };
 
   return (
