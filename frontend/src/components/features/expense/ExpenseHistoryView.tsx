@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { HistoryTable, createExpenseHistoryColumns, type HistoryItem } from '@/components/common';
 import { useCategories } from '@/hooks/expense/useCategories';
-import { IconButton } from '@mui/material';
+import { IconButton, useTheme, useMediaQuery } from '@mui/material';
 import { Edit as EditIcon } from '@mui/icons-material';
 
 // 経費申請履歴項目の型定義 (HistoryItemを拡張)
@@ -25,6 +25,8 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
   historyData,
 }) => {
   const router = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   // カテゴリ情報を取得
   const { categories } = useCategories();
@@ -53,26 +55,39 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
       ...baseColumns,
       {
         id: 'actions' as keyof ExpenseHistoryItem,
-        label: 'アクション',
+        label: isMobile ? '編集' : 'アクション',
         align: 'center' as const,
+        minWidth: isMobile ? 60 : undefined,
         format: (_: unknown, row: ExpenseHistoryItem) => {
           // 下書き状態の場合のみ編集ボタンを表示
           if (row.status === 'draft') {
             return (
               <IconButton
-                size="small"
+                size={isMobile ? "medium" : "small"}
                 onClick={() => router.push(`/expenses/${row.id}/edit`)}
                 title="編集"
                 aria-label="編集"
                 sx={{
                   transition: 'all 0.2s',
+                  // モバイルの場合はタッチターゲットを大きくする
+                  ...(isMobile && {
+                    minWidth: 48,
+                    minHeight: 48,
+                  }),
                   '&:hover': {
                     transform: 'scale(1.1)',
                     color: 'primary.main',
                   },
+                  // タッチデバイスでのフィードバック
+                  '@media (hover: none)': {
+                    '&:active': {
+                      transform: 'scale(0.95)',
+                      backgroundColor: 'action.selected',
+                    },
+                  },
                 }}
               >
-                <EditIcon fontSize="small" />
+                <EditIcon fontSize={isMobile ? "medium" : "small"} />
               </IconButton>
             );
           }
@@ -80,7 +95,7 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
         },
       },
     ];
-  }, [router]);
+  }, [router, isMobile]);
 
   // 編集可能行の視覚的フィードバック
   const getRowStyles = (row: ExpenseHistoryItem) => ({
