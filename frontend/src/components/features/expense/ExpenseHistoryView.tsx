@@ -49,6 +49,64 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = React.memo(
     }));
   }, [historyData, categoryMap]);
   
+  // アクション列のフォーマット関数を事前に定義
+  const formatActionColumn = useCallback((_: unknown, row: ExpenseHistoryItem) => {
+    // 下書き状態の場合のみ編集ボタンを表示
+    if (row && row.status === 'draft') {
+      const handleClick = () => router.push(`/expenses/${row.id}/edit`);
+      const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+      };
+      
+      return (
+        <IconButton
+          size={isMobile ? "medium" : "small"}
+          onClick={handleClick}
+          title={`${row.title || '経費申請'}を編集`}
+          aria-label={`${row.title || '経費申請'}を編集`}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+          sx={{
+            transition: 'all 0.2s',
+            // モバイルの場合はタッチターゲットを大きくする
+            ...(isMobile && {
+              minWidth: 48,
+              minHeight: 48,
+            }),
+            '&:hover': {
+              transform: 'scale(1.1)',
+              color: 'primary.main',
+            },
+            // キーボードフォーカス時の視覚的フィードバック
+            '&:focus': {
+              outline: '2px solid',
+              outlineColor: 'primary.main',
+              outlineOffset: 2,
+            },
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'primary.main',
+              outlineOffset: 2,
+            },
+            // タッチデバイスでのフィードバック
+            '@media (hover: none)': {
+              '&:active': {
+                transform: 'scale(0.95)',
+                backgroundColor: 'action.selected',
+              },
+            },
+          }}
+        >
+          <EditIcon fontSize={isMobile ? "medium" : "small"} />
+        </IconButton>
+      );
+    }
+    return null;
+  }, [router, isMobile]);
+
   // 履歴テーブルのカラム設定（アクション列を追加）
   const historyColumns = useMemo(() => {
     const baseColumns = createExpenseHistoryColumns<ExpenseHistoryItem>();
@@ -59,83 +117,33 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = React.memo(
         label: isMobile ? '編集' : 'アクション',
         align: 'center' as const,
         minWidth: isMobile ? 60 : undefined,
-        format: useCallback((_: unknown, row: ExpenseHistoryItem) => {
-          // 下書き状態の場合のみ編集ボタンを表示
-          if (row.status === 'draft') {
-            const handleClick = () => router.push(`/expenses/${row.id}/edit`);
-            const handleKeyDown = (e: React.KeyboardEvent) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleClick();
-              }
-            };
-            
-            return (
-              <IconButton
-                size={isMobile ? "medium" : "small"}
-                onClick={handleClick}
-                title={`${row.title || '経費申請'}を編集`}
-                aria-label={`${row.title || '経費申請'}を編集`}
-                tabIndex={0}
-                onKeyDown={handleKeyDown}
-                sx={{
-                  transition: 'all 0.2s',
-                  // モバイルの場合はタッチターゲットを大きくする
-                  ...(isMobile && {
-                    minWidth: 48,
-                    minHeight: 48,
-                  }),
-                  '&:hover': {
-                    transform: 'scale(1.1)',
-                    color: 'primary.main',
-                  },
-                  // キーボードフォーカス時の視覚的フィードバック
-                  '&:focus': {
-                    outline: '2px solid',
-                    outlineColor: 'primary.main',
-                    outlineOffset: 2,
-                  },
-                  '&:focus-visible': {
-                    outline: '2px solid',
-                    outlineColor: 'primary.main',
-                    outlineOffset: 2,
-                  },
-                  // タッチデバイスでのフィードバック
-                  '@media (hover: none)': {
-                    '&:active': {
-                      transform: 'scale(0.95)',
-                      backgroundColor: 'action.selected',
-                    },
-                  },
-                }}
-              >
-                <EditIcon fontSize={isMobile ? "medium" : "small"} />
-              </IconButton>
-            );
-          }
-          return null;
-        }, [router, isMobile]),
+        format: formatActionColumn,
       },
     ];
-  }, [router, isMobile]);
+  }, [formatActionColumn, isMobile]);
 
   // 編集可能行の視覚的フィードバック
-  const getRowStyles = useCallback((row: ExpenseHistoryItem) => ({
-    // 下書き状態の行を視覚的に区別
-    ...(row.status === 'draft' && {
-      backgroundColor: 'primary.50',
-      '&:hover': {
-        backgroundColor: 'primary.100',
-      },
-    }),
-  }), []);
+  const getRowStyles = useCallback((row: ExpenseHistoryItem) => {
+    if (!row) return {};
+    return {
+      // 下書き状態の行を視覚的に区別
+      ...(row.status === 'draft' && {
+        backgroundColor: 'primary.50',
+        '&:hover': {
+          backgroundColor: 'primary.100',
+        },
+      }),
+    };
+  }, []);
 
   const getRowClassName = useCallback((row: ExpenseHistoryItem) => {
+    if (!row) return '';
     return row.status === 'draft' ? 'editable-row' : '';
   }, []);
 
   // アクセシビリティ用のaria-label生成
   const getRowAriaLabel = useCallback((row: ExpenseHistoryItem) => {
+    if (!row) return undefined;
     if (row.status === 'draft') {
       return `編集可能な経費申請: ${row.title || 'タイトルなし'}, 金額: ${row.amount}円, カテゴリ: ${categoryMap[row.category] || row.category}`;
     }
