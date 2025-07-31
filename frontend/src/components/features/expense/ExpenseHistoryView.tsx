@@ -1,6 +1,9 @@
 import React, { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { HistoryTable, createExpenseHistoryColumns, type HistoryItem } from '@/components/common';
 import { useCategories } from '@/hooks/expense/useCategories';
+import { IconButton } from '@mui/material';
+import { Edit as EditIcon } from '@mui/icons-material';
 
 // 経費申請履歴項目の型定義 (HistoryItemを拡張)
 interface ExpenseHistoryItem extends HistoryItem {
@@ -21,6 +24,8 @@ interface ExpenseHistoryViewProps {
 export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
   historyData,
 }) => {
+  const router = useRouter();
+  
   // カテゴリ情報を取得
   const { categories } = useCategories();
   
@@ -41,8 +46,34 @@ export const ExpenseHistoryView: React.FC<ExpenseHistoryViewProps> = ({
     }));
   }, [historyData, categoryMap]);
   
-  // 履歴テーブルのカラム設定
-  const historyColumns = createExpenseHistoryColumns();
+  // 履歴テーブルのカラム設定（アクション列を追加）
+  const historyColumns = useMemo(() => {
+    const baseColumns = createExpenseHistoryColumns<ExpenseHistoryItem>();
+    return [
+      ...baseColumns,
+      {
+        id: 'actions' as keyof ExpenseHistoryItem,
+        label: 'アクション',
+        align: 'center' as const,
+        format: (_: unknown, row: ExpenseHistoryItem) => {
+          // 下書き状態の場合のみ編集ボタンを表示
+          if (row.status === 'draft') {
+            return (
+              <IconButton
+                size="small"
+                onClick={() => router.push(`/expenses/${row.id}/edit`)}
+                title="編集"
+                aria-label="編集"
+              >
+                <EditIcon fontSize="small" />
+              </IconButton>
+            );
+          }
+          return null;
+        },
+      },
+    ];
+  }, [router]);
 
   return (
     <HistoryTable
