@@ -32,7 +32,8 @@ type CreateExpenseReceiptRequest struct {
 // CreateExpenseWithReceiptsRequest 複数領収書を含む経費申請作成リクエスト
 type CreateExpenseWithReceiptsRequest struct {
 	Title         string                        `json:"title" binding:"required,min=1,max=255"`
-	CategoryID    uuid.UUID                     `json:"category_id" binding:"required"`
+	Category      string                        `json:"category" binding:"required,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
+	CategoryID    *uuid.UUID                    `json:"category_id" binding:"omitempty"`                                                        // オプショナルに変更（後方互換性）
 	Amount        int                           `json:"amount" binding:"required,min=1,max=10000000"`
 	ExpenseDate   time.Time                     `json:"expense_date" binding:"required"`
 	Description   string                        `json:"description" binding:"required,min=10,max=1000"`
@@ -43,6 +44,7 @@ type CreateExpenseWithReceiptsRequest struct {
 // UpdateExpenseWithReceiptsRequest 複数領収書を含む経費申請更新リクエスト
 type UpdateExpenseWithReceiptsRequest struct {
 	Title         *string                       `json:"title,omitempty" binding:"omitempty,min=1,max=255"`
+	Category      *string                       `json:"category,omitempty" binding:"omitempty,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
 	CategoryID    *uuid.UUID                    `json:"category_id,omitempty" binding:"omitempty"`
 	Amount        *int                          `json:"amount,omitempty" binding:"omitempty,min=1,max=10000000"`
 	ExpenseDate   *time.Time                    `json:"expense_date,omitempty" binding:"omitempty"`
