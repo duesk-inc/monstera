@@ -11,21 +11,21 @@ import (
 
 // CreateExpenseRequest 経費申請作成リクエスト
 type CreateExpenseRequest struct {
-	Title         string    `json:"title" binding:"required,min=1,max=255"`                                                 // 件名
-	Category      string    `json:"category" binding:"required,oneof=transport entertainment supplies books seminar other"` // カテゴリ
-	CategoryID    uuid.UUID `json:"category_id" binding:"required"`                                                         // カテゴリID
-	Amount        int       `json:"amount" binding:"required,min=1,max=10000000"`                                           // 金額（1円〜1000万円）
-	ExpenseDate   time.Time `json:"expense_date" binding:"required"`                                                        // 使用日
-	Description   string    `json:"description" binding:"required,min=10,max=1000"`                                         // 使用理由（10文字以上）
-	ReceiptURL    string    `json:"receipt_url" binding:"omitempty,url"`                                                    // 領収書URL
-	ReceiptURLs   []string  `json:"receipt_urls" binding:"omitempty,dive,url"`                                              // 領収書URL（複数）
-	OtherCategory string    `json:"other_category,omitempty" binding:"omitempty,max=100"`                                   // その他カテゴリの詳細
+	Title         string     `json:"title" binding:"required,min=1,max=255"`                                                 // 件名
+	Category      string     `json:"category" binding:"required,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
+	CategoryID    *uuid.UUID `json:"category_id" binding:"omitempty"`                                                        // カテゴリID (後方互換性のためオプショナルに)
+	Amount        int        `json:"amount" binding:"required,min=1,max=10000000"`                                           // 金額（1円〜1000万円）
+	ExpenseDate   time.Time  `json:"expense_date" binding:"required"`                                                        // 使用日
+	Description   string     `json:"description" binding:"required,min=10,max=1000"`                                         // 使用理由（10文字以上）
+	ReceiptURL    string     `json:"receipt_url" binding:"omitempty,url"`                                                    // 領収書URL
+	ReceiptURLs   []string   `json:"receipt_urls" binding:"omitempty,dive,url"`                                              // 領収書URL（複数）
+	OtherCategory string     `json:"other_category,omitempty" binding:"omitempty,max=100"`                                   // その他カテゴリの詳細
 }
 
 // UpdateExpenseRequest 経費申請更新リクエスト
 type UpdateExpenseRequest struct {
 	Title         *string    `json:"title,omitempty" binding:"omitempty,min=1,max=255"`
-	Category      *string    `json:"category,omitempty" binding:"omitempty,oneof=transport entertainment supplies books seminar other"`
+	Category      *string    `json:"category,omitempty" binding:"omitempty,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
 	CategoryID    *uuid.UUID `json:"category_id,omitempty" binding:"omitempty"`
 	Amount        *int       `json:"amount,omitempty" binding:"omitempty,min=1,max=10000000"`
 	ExpenseDate   *time.Time `json:"expense_date,omitempty" binding:"omitempty"`
@@ -1026,10 +1026,10 @@ const (
 	ErrCodeLimitUpdateFailed = "EXPENSE_LIMIT_UPDATE_FAILED"
 	ErrCodeInvalidOperation  = "EXPENSE_INVALID_OPERATION"
 	ErrCodeInvalidRequest    = "EXPENSE_INVALID_REQUEST"
-	
+
 	// 承認者設定関連エラーコード
 	ErrCodeNoApproversConfigured = "EXPENSE_NO_APPROVERS_CONFIGURED"
-	
+
 	// 期限関連エラーコード
 	ErrCodeDeadlineExceeded = "EXPENSE_DEADLINE_EXCEEDED"
 )
