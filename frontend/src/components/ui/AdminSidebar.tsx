@@ -51,6 +51,10 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       title: "エンジニア管理",
       children: [
         {
+          title: "社員情報",
+          path: "/admin/engineers",
+        },
+        {
           title: "週報管理",
           path: "/admin/engineers/weekly-reports",
           badge: 5,
@@ -144,10 +148,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
         },
       ],
     },
-    {
-      title: "分析・レポート",
-      path: "/admin/analytics",
-    },
+    // TODO: 将来的な実装のためアーカイブ (2025-02-01)
+    // 実装時は以下のコメントを解除してください
+    // {
+    //   title: "分析・レポート",
+    //   path: "/admin/analytics",
+    // },
     {
       title: "設定",
       children: [
