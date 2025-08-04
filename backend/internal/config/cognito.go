@@ -9,14 +9,12 @@ import (
 // CognitoConfig Cognito認証の設定
 type CognitoConfig struct {
 	Enabled      bool   `mapstructure:"COGNITO_ENABLED"`
+	AuthSkipMode bool   `mapstructure:"AUTH_SKIP_MODE"` // 開発用: 認証をスキップ
 	Region       string `mapstructure:"COGNITO_REGION"`
 	UserPoolID   string `mapstructure:"COGNITO_USER_POOL_ID"`
 	ClientID     string `mapstructure:"COGNITO_CLIENT_ID"`
 	ClientSecret string `mapstructure:"COGNITO_CLIENT_SECRET"`
-	Endpoint     string `mapstructure:"COGNITO_ENDPOINT"` // ローカル開発用
-
-	// JWT関連設定
-	TokenExpiration time.Duration // アクセストークンの有効期限（デフォルト: 1時間）
+	Endpoint     string `mapstructure:"COGNITO_ENDPOINT"` // ローカル開発用TokenExpiration time.Duration // アクセストークンの有効期限（デフォルト: 1時間）
 
 	// キャッシュ設定
 	JWKCacheDuration time.Duration // JWKキャッシュの有効期限（デフォルト: 1時間）
@@ -44,7 +42,7 @@ func (c *CognitoConfig) GetJWKURL() string {
 	return "https://cognito-idp." + c.Region + ".amazonaws.com/" + c.UserPoolID + "/.well-known/jwks.json"
 }
 
-// GetIssuer JWT Issuerを取得
+// GetIssuer Issuerを取得
 func (c *CognitoConfig) GetIssuer() string {
 	if c.Endpoint != "" {
 		// ローカル開発環境

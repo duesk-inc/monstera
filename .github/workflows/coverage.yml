@@ -72,7 +72,6 @@ jobs:
         DB_NAME: monstera_test
         DB_DRIVER: postgres
         DB_SSLMODE: disable
-        JWT_SECRET: test-secret-key
         ENV: test
       run: |
         cd backend

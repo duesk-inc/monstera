@@ -39,7 +39,7 @@ func (nr *NotificationRoutes) SetupRoutes(router *gin.Engine) {
 
 	// 認証が必要なエンドポイント
 	auth := v1.Group("")
-	auth.Use(nr.authMiddleware.JWTAuth())
+	auth.Use(nr.authMiddleware.AuthRequired())
 
 	// 管理者権限が必要なエンドポイント
 	admin := auth.Group("")
@@ -149,7 +149,7 @@ func (nr *NotificationRoutes) setupNotificationStatsRoutes(group *gin.RouterGrou
 func (nr *NotificationRoutes) SetupWebSocketRoutes(router *gin.Engine) {
 	// WebSocketエンドポイント（リアルタイム通知用）
 	ws := router.Group("/ws")
-	ws.Use(nr.authMiddleware.JWTAuth())
+	ws.Use(nr.authMiddleware.AuthRequired())
 	{
 		// リアルタイム通知WebSocket
 		ws.GET("/notifications", func(c *gin.Context) {

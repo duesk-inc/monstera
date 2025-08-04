@@ -71,8 +71,8 @@ db.Raw("SELECT * FROM users WHERE email = ?", email).Scan(&users)
 
 ## 認証トークン管理
 
-### JWT設定
-- トークン有効期限: アクセストークン15分、リフレッシュトークン7日
+### トークン設定
+- トークン有効期限: アクセストークン1時間、リフレッシュトークン30日（Cognitoデフォルト）
 - HTTPOnly Cookieで管理
 - Secure属性は本番環境で必須
 - SameSite属性でCSRF対策

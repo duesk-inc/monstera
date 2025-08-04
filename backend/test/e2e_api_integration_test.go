@@ -135,7 +135,7 @@ func setupTestAPIServer(db any, logger *zap.Logger) *gin.Engine {
 			// 認証関連（簡単な実装）
 			v1.POST("/auth/login", func(c *gin.Context) {
 				c.JSON(http.StatusOK, gin.H{
-					"token": "test-jwt-token",
+					"token": "test-token",
 					"user": gin.H{
 						"id":    uuid.New().String(),
 						"email": "test@duesk.co.jp",

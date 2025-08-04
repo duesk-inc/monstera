@@ -557,8 +557,8 @@ func (suite *ExpenseAPIE2ETestSuite) makeAuthenticatedRequest(t *testing.T, meth
 	req := httptest.NewRequest(method, path, bytes.NewBuffer(jsonBody))
 	req.Header.Set("Content-Type", "application/json")
 
-	// JWTトークンの設定（実際の認証機能と統合する場合）
-	token := suite.generateTestJWT(user)
+	// トークンの設定（実際の認証機能と統合する場合）
+	token := suite.generateTestToken(user)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
 
 	recorder := httptest.NewRecorder()
@@ -567,8 +567,8 @@ func (suite *ExpenseAPIE2ETestSuite) makeAuthenticatedRequest(t *testing.T, meth
 	return recorder
 }
 
-// generateTestJWT テスト用JWTトークンを生成
-func (suite *ExpenseAPIE2ETestSuite) generateTestJWT(user *model.User) string {
-	// 実際のJWT生成ロジックまたはモック実装
-	return fmt.Sprintf("test.jwt.token.for.%s", user.ID.String())
+// generateTestToken テスト用トークンを生成
+func (suite *ExpenseAPIE2ETestSuite) generateTestToken(user *model.User) string {
+	// 実際のトークン生成ロジックまたはモック実装
+	return fmt.Sprintf("test.token.for.%s", user.ID.String())
 }

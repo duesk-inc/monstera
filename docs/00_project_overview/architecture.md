@@ -11,7 +11,7 @@
        │                    ├─────────────────────┤
        │                    ▼                     ▼
        │            ┌──────────────┐     ┌──────────────┐
-       │            │    Redis 7   │     │ Cognito Local│
+       │            │    Redis 7   │     │ AWS Cognito  │
        │            │   (Cache)    │     │   (Auth)     │
        │            └──────────────┘     └──────────────┘
        │                    │                     │
@@ -22,7 +22,7 @@
        │            └──────────────┘             │
        │                                          │
        └──────────────────────────────────────────┘
-                    HTTPOnly Cookie (JWT)
+                    HTTPOnly Cookie
 ```
 
 ## アーキテクチャ概要
@@ -32,7 +32,7 @@
 - **言語**: TypeScript 5.5.4
 - **UI**: Material-UI (MUI) v7.1.0
 - **状態管理**: React Context + React Query v5.80.7
-- **認証**: JWT (HTTPOnly Cookie)
+- **認証**: AWS Cognito (HTTPOnly Cookie)
 - **フォーム管理**: React Hook Form v7.56.3
 - **日付処理**: dayjs v1.11.13
 - **PDF生成**: jsPDF v3.0.1
@@ -42,7 +42,7 @@
 - **フレームワーク**: Gin v1.8.1
 - **言語**: Go 1.23.0 / 1.24.0
 - **ORM**: GORM v1.30.0
-- **認証**: JWT v5.2.2 + AWS Cognito
+- **認証**: AWS Cognito
 - **API**: RESTful API
 - **ロギング**: zap v1.27.0
 - **Redis**: go-redis v9.11.0
@@ -62,9 +62,9 @@
 
 ### 4. 認証・認可
 - **認証プロバイダ**: AWS Cognito
-  - ローカル: Cognito Local (port 9230)
+  - 開発: 認証スキップモード（デフォルトユーザー）
   - 本番: AWS Cognito (ap-northeast-1)
-- **認証方式**: JWT (Access Token + Refresh Token)
+- **認証方式**: Cognito トークン (Access Token + Refresh Token)
   - アクセストークン: 15分
   - リフレッシュトークン: 7日
 - **認可**: RBAC (Role-Based Access Control)
@@ -132,7 +132,7 @@ e2e/                   # E2Eテスト (Playwright)
 ### 2. APIリクエストフロー
 ```
 1. Frontend → Backend: APIリクエスト (Cookie付き)
-2. Backend Middleware: JWT検証
+2. Backend Middleware: トークン検証
 3. Backend Handler → Service → Repository
 4. Repository → Database: クエリ実行
 5. Database → Repository → Service → Handler
@@ -142,7 +142,7 @@ e2e/                   # E2Eテスト (Playwright)
 ## セキュリティアーキテクチャ
 
 ### 1. 認証・認可
-- JWT検証ミドルウェア
+- トークン検証ミドルウェア
 - ロールベースアクセス制御
 - リフレッシュトークンローテーション
 
@@ -162,7 +162,7 @@ e2e/                   # E2Eテスト (Playwright)
 
 ### 認証・権限管理
 - AWS Cognito連携によるユーザー認証
-- JWT トークンベース認証（HTTPOnly Cookie）
+- Cognito トークンベース認証（HTTPOnly Cookie）
 - RBAC（Role-Based Access Control）
 - セッション管理
 
@@ -226,7 +226,6 @@ services:
   postgres:      # PostgreSQL 15 (Alpine) - メインDB
   pgadmin:       # pgAdmin - DB管理UI
   redis:         # Redis 7 (Alpine) - キャッシュ
-  cognito-local: # Cognito Local - 認証エミュレータ
   backend:       # Go APIサーバー (ARM64対応)
   frontend:      # Next.js開発サーバー (ARM64対応)
   # batch:       # バッチ処理 (開発中)
@@ -238,7 +237,6 @@ services:
 - PostgreSQL: 5432
 - pgAdmin: 5050
 - Redis: 6379
-- Cognito Local: 9230
 
 ### 環境分離
 - **開発環境**: Docker Compose (ローカル)

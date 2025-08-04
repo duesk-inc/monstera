@@ -28,7 +28,7 @@ MonsteraはSES企業向けの統合的な社内業務管理システムです。
 - **フレームワーク**: Gin v1.8.1
 - **言語**: Go 1.23.0 / 1.24.0
 - **ORM**: GORM v1.30.0
-- **認証**: JWT + AWS Cognito
+- **認証**: AWS Cognito
 
 ### インフラ
 - **データベース**: PostgreSQL 15

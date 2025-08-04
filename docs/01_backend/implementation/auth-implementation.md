@@ -3,7 +3,7 @@
 ## 概要
 
 認証・認可システムはユーザーの身元確認とアクセス権限の管理を担当します。
-Monsteraプロジェクトでは、AWS Cognitoを活用した認証システムと内部JWT認証のハイブリッド実装を採用しています。
+Monsteraプロジェクトでは、AWS Cognitoを活用した認証システムを採用しています。
 
 ## 実装規約
 
@@ -11,16 +11,15 @@ Monsteraプロジェクトでは、AWS Cognitoを活用した認証システム�
 
 - **セキュアな認証**: 強固な認証メカニズムの実装
 - **統一されたアクセス制御**: 一貫した認可ポリシー
-- **トークン管理**: JWTトークンの適切な生成・検証
+- **トークン管理**: Cognitoトークンの適切な検証
 - **セッション管理**: セキュアなセッション制御
 - **ロールベースアクセス制御**: RBAC実装（数値ベース）
 - **監査ログ**: セキュリティイベントの記録
 - **Cookie認証**: HTTPOnly Cookieによるセキュアなトークン管理
-- **ハイブリッド認証**: Cognito認証と内部JWT認証の併用
 
 ### 認証フロー
 
-#### Cognito認証フロー（メイン）
+#### Cognito認証フロー
 ```
 1. ユーザーがメールアドレス/パスワードでログイン
 2. バックエンドがCognitoで認証
@@ -30,17 +29,6 @@ Monsteraプロジェクトでは、AWS Cognitoを活用した認証システム�
 6. APIリクエスト時にCookieからトークンを自動送信
 7. ミドルウェアでJWK検証
 8. 401エラー時は自動的にトークンをリフレッシュ
-```
-
-#### 内部JWT認証フロー（フォールバック）
-```
-1. ユーザー登録/ログイン
-2. 資格情報の検証
-3. 内部JWTトークン生成・発行
-4. HTTPOnly Cookieに設定
-5. ミドルウェアでの認証確認
-6. 認可チェック
-7. リソースアクセス許可
 ```
 
 ## 実装パターン
@@ -59,16 +47,6 @@ type CognitoConfig struct {
     ClientSecret     string        // クライアントシークレット
     Endpoint         string        // ローカル開発用エンドポイント
     JWKCacheDuration time.Duration // JWKキャッシュ期間（デフォルト: 1時間）
-}
-
-// JWT設定
-type JWTConfig struct {
-    AccessSecret        string        // アクセストークン秘密鍵
-    RefreshSecret       string        // リフレッシュトークン秘密鍵
-    AccessExpiration    time.Duration // アクセストークン有効期限（15分）
-    RefreshExpiration   time.Duration // リフレッシュトークン有効期限（7日）
-    AccessCookieName    string        // アクセストークンCookie名
-    RefreshCookieName   string        // リフレッシュトークンCookie名
 }
 ```
 
@@ -120,9 +98,9 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 func (h *AuthHandler) setCookies(c *gin.Context, response *service.AuthResponse) {
     // HTTPOnly Cookieにアクセストークンを設定
     c.SetCookie(
-        h.cfg.JWT.AccessCookieName,
+        "access_token",
         response.AccessToken,
-        int(h.cfg.JWT.AccessExpiration.Seconds()),
+        3600, // 1時間
         "/",
         h.cfg.Server.CookieDomain,
         h.cfg.Server.SecureCookies, // HTTPSのみ
@@ -131,9 +109,9 @@ func (h *AuthHandler) setCookies(c *gin.Context, response *service.AuthResponse)
     
     // リフレッシュトークンもHTTPOnly Cookieに設定
     c.SetCookie(
-        h.cfg.JWT.RefreshCookieName,
+        "refresh_token",
         response.RefreshToken,
-        int(h.cfg.JWT.RefreshExpiration.Seconds()),
+        604800, // 7日間
         "/api/v1/auth/refresh", // リフレッシュエンドポイントのみ
         h.cfg.Server.CookieDomain,
         h.cfg.Server.SecureCookies,
@@ -157,7 +135,7 @@ type AuthService interface {
 type authService struct {
     userRepo    repository.UserRepository
     sessionRepo repository.SessionRepository
-    jwtService  JWTService
+    authService AuthService
     hashService HashService
     logger      *zap.Logger
 }
@@ -245,7 +223,7 @@ func (s *authService) LoginUser(ctx context.Context, req dto.LoginRequest) (dto.
     }
     
     // トークン生成
-    accessToken, refreshToken, err := s.jwtService.GenerateTokenPair(user.ID, user.Email, user.Role)
+    accessToken, refreshToken, err := s.authService.GenerateTokenPair(user.ID, user.Email, user.Role)
     if err != nil {
         return dto.LoginResponse{}, fmt.Errorf("トークンの生成に失敗しました: %w", err)
     }
@@ -298,7 +276,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
     logger.LogInfo(s.logger, "トークン更新開始")
     
     // リフレッシュトークンの検証
-    userID, err := s.jwtService.ValidateRefreshToken(refreshToken)
+    userID, err := s.authService.ValidateRefreshToken(refreshToken)
     if err != nil {
         return dto.TokenResponse{}, fmt.Errorf("無効なリフレッシュトークンです: %w", err)
     }
@@ -328,7 +306,7 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
     }
     
     // 新しいトークンペア生成
-    newAccessToken, newRefreshToken, err := s.jwtService.GenerateTokenPair(user.ID, user.Email, user.Role)
+    newAccessToken, newRefreshToken, err := s.authService.GenerateTokenPair(user.ID, user.Email, user.Role)
     if err != nil {
         return dto.TokenResponse{}, fmt.Errorf("新しいトークンの生成に失敗しました: %w", err)
     }
@@ -354,200 +332,10 @@ func (s *authService) RefreshToken(ctx context.Context, refreshToken string) (dt
 }
 ```
 
-### 2. JWTサービス
+### 2. Cognito認証の実装
 
-#### トークン生成・検証
-
-```go
-type JWTService interface {
-    GenerateTokenPair(userID uuid.UUID, email, role string) (accessToken, refreshToken string, err error)
-    ValidateAccessToken(tokenString string) (*Claims, error)
-    ValidateRefreshToken(tokenString string) (uuid.UUID, error)
-}
-
-type Claims struct {
-    UserID uuid.UUID `json:"user_id"`
-    Email  string    `json:"email"`
-    Role   string    `json:"role"`
-    Type   string    `json:"type"` // "access" or "refresh"
-    jwt.RegisteredClaims
-}
-
-type jwtService struct {
-    accessSecret  string
-    refreshSecret string
-    logger        *zap.Logger
-}
-
-func NewJWTService(accessSecret, refreshSecret string, logger *zap.Logger) JWTService {
-    return &jwtService{
-        accessSecret:  accessSecret,
-        refreshSecret: refreshSecret,
-        logger:        logger,
-    }
-}
-
-func (j *jwtService) GenerateTokenPair(userID uuid.UUID, email, role string) (string, string, error) {
-    now := time.Now()
-    
-    // アクセストークン生成（1時間有効）
-    accessClaims := &Claims{
-        UserID: userID,
-        Email:  email,
-        Role:   role,
-        Type:   "access",
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(now.Add(time.Hour)),
-            IssuedAt:  jwt.NewNumericDate(now),
-            NotBefore: jwt.NewNumericDate(now),
-            Issuer:    "monstera-backend",
-        },
-    }
-    
-    accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, accessClaims)
-    accessTokenString, err := accessToken.SignedString([]byte(j.accessSecret))
-    if err != nil {
-        return "", "", fmt.Errorf("アクセストークンの生成に失敗しました: %w", err)
-    }
-    
-    // リフレッシュトークン生成（7日間有効）
-    refreshClaims := &Claims{
-        UserID: userID,
-        Email:  email,
-        Role:   role,
-        Type:   "refresh",
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(now.Add(7 * 24 * time.Hour)),
-            IssuedAt:  jwt.NewNumericDate(now),
-            NotBefore: jwt.NewNumericDate(now),
-            Issuer:    "monstera-backend",
-        },
-    }
-    
-    refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims)
-    refreshTokenString, err := refreshToken.SignedString([]byte(j.refreshSecret))
-    if err != nil {
-        return "", "", fmt.Errorf("リフレッシュトークンの生成に失敗しました: %w", err)
-    }
-    
-    return accessTokenString, refreshTokenString, nil
-}
-
-func (j *jwtService) ValidateAccessToken(tokenString string) (*Claims, error) {
-    token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-            return nil, fmt.Errorf("予期しない署名方法: %v", token.Header["alg"])
-        }
-        return []byte(j.accessSecret), nil
-    })
-    
-    if err != nil {
-        return nil, fmt.Errorf("トークンの解析に失敗しました: %w", err)
-    }
-    
-    claims, ok := token.Claims.(*Claims)
-    if !ok || !token.Valid {
-        return nil, errors.New("無効なトークンです")
-    }
-    
-    if claims.Type != "access" {
-        return nil, errors.New("アクセストークンではありません")
-    }
-    
-    return claims, nil
-}
-```
-
-### 3. 認証ミドルウェア
-
-#### Cognito認証ミドルウェア
-
-```go
-// CognitoAuthMiddleware Cognito認証ミドルウェア
-type CognitoAuthMiddleware struct {
-    config   *cfg.Config
-    userRepo repository.UserRepository
-    logger   *zap.Logger
-    jwkCache *JWKCache // JWK公開鍵キャッシュ
-    client   *http.Client
-}
-
-// JWKCache JWKキャッシュ構造体
-type JWKCache struct {
-    keys      map[string]*rsa.PublicKey
-    expiresAt time.Time
-    mutex     sync.RWMutex
-}
-
-// AuthRequired 認証必須エンドポイント用ミドルウェア
-func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        // Cognitoが無効な場合はスキップ
-        if !m.config.Cognito.Enabled {
-            c.Next()
-            return
-        }
-        
-        // トークンを取得（Cookie優先）
-        token := m.extractToken(c)
-        if token == "" {
-            c.JSON(http.StatusUnauthorized, gin.H{"error": "認証が必要です"})
-            c.Abort()
-            return
-        }
-        
-        // JWTトークンを検証（JWKを使用）
-        claims, err := m.validateToken(token)
-        if err != nil {
-            c.JSON(http.StatusUnauthorized, gin.H{"error": "無効なトークンです"})
-            c.Abort()
-            return
-        }
-        
-        // ユーザー情報を取得
-        user, err := m.getUserFromClaims(c.Request.Context(), claims)
-        if err != nil {
-            c.JSON(http.StatusUnauthorized, gin.H{"error": "ユーザー情報が取得できません"})
-            c.Abort()
-            return
-        }
-        
-        // コンテキストにユーザー情報を設定
-        c.Set("user", user)
-        c.Set("user_id", user.ID.String())
-        c.Set("email", user.Email)
-        c.Set("role", user.DefaultRole)
-        c.Set("cognito_sub", claims["sub"])
-        
-        c.Next()
-    }
-}
-
-// extractToken リクエストからトークンを抽出
-func (m *CognitoAuthMiddleware) extractToken(c *gin.Context) string {
-    // Cookieから取得（優先）
-    cookie, err := c.Cookie("access_token")
-    if err == nil && cookie != "" {
-        return cookie
-    }
-    
-    // Authorizationヘッダーから取得（フォールバック）
-    authHeader := c.GetHeader("Authorization")
-    if authHeader != "" {
-        parts := strings.SplitN(authHeader, " ", 2)
-        if len(parts) == 2 && parts[0] == "Bearer" {
-            return parts[1]
-        }
-    }
-    
-    return ""
-}
-```
-
-#### JWT認証ミドルウェア（内部認証）
-
-```go
-func AuthMiddleware(jwtService JWTService, logger *zap.Logger) gin.HandlerFunc {
+Cognito認証はCognitoAuthServiceとCognitoAuthMiddlewareで実装されています。go
+func AuthMiddleware(authService AuthService, logger *zap.Logger) gin.HandlerFunc {
     return func(c *gin.Context) {
         // Authorizationヘッダーの取得
         authHeader := c.GetHeader("Authorization")
@@ -568,7 +356,7 @@ func AuthMiddleware(jwtService JWTService, logger *zap.Logger) gin.HandlerFunc {
         tokenString := tokenParts[1]
         
         // トークンの検証
-        claims, err := jwtService.ValidateAccessToken(tokenString)
+        claims, err := authService.ValidateAccessToken(tokenString)
         if err != nil {
             logger.Warn("トークン検証失敗",
                 zap.String("token", tokenString[:min(len(tokenString), 20)]),

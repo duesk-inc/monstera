@@ -1,5 +1,5 @@
 /**
- * 認証APIエクスポート - JWT認証
+ * * 認証APIエクスポート
  */
 
 import axios from 'axios';
@@ -25,16 +25,16 @@ const AUTH_ERROR_PAGE_KEY = 'auth_error_from_page';
 
 
 /**
- * JWTログイン処理
+ * ログイン処理
  * @param credentials ログイン情報（メールアドレスとパスワード）
  * @returns ログイン結果
  */
 export const login = async (credentials: LoginRequest): Promise<LoginResponse> => {
   try {
     DebugLogger.info({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ログイン開始'
-    }, 'JWTログイン処理を開始', {
+    }, 'ログイン処理を開始', {
       email: credentials.email
     });
 
@@ -51,9 +51,9 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
     const response = await client.post<LoginResponse>('/api/v1/auth/login', credentials);
     
     DebugLogger.info({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ログイン成功'
-    }, 'JWTログインに成功', {
+    }, 'ログインに成功', {
       hasAccessToken: !!response.data.access_token,
       hasUser: !!response.data.user
     });
@@ -69,7 +69,7 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
         setLocalUser(localUser);
       } else {
         DebugLogger.apiError({
-          category: 'JWT認証',
+          category: '認証',
           operation: 'ログイン'
         }, {
           error: new Error('ユーザー情報がレスポンスに含まれていません')
@@ -89,7 +89,7 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
     return response.data;
   } catch (error) {
     DebugLogger.apiError({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ログインエラー'
     }, {
       error,
@@ -113,15 +113,15 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
 };
 
 /**
- * JWTトークンリフレッシュ処理
+ * トークンリフレッシュ処理
  * @returns 新しいトークン情報
  */
 export const refreshToken = async (): Promise<RefreshTokenResponse> => {
   try {
     DebugLogger.info({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'トークンリフレッシュ開始'
-    }, 'JWTトークンリフレッシュ処理を開始');
+    }, 'トークンリフレッシュ処理を開始');
 
     // APIクライアントを作成
     const client = axios.create({
@@ -136,9 +136,9 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
     const response = await client.post<RefreshTokenResponse>('/api/v1/auth/refresh');
     
     DebugLogger.info({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'トークンリフレッシュ成功'
-    }, 'JWTトークンリフレッシュに成功', {
+    }, 'トークンリフレッシュに成功', {
       hasAccessToken: !!response.data.access_token,
       hasUser: !!response.data.user
     });
@@ -158,7 +158,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
     return response.data;
   } catch (error) {
     DebugLogger.apiError({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'トークンリフレッシュエラー'
     }, {
       error
@@ -193,15 +193,15 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
 };
 
 /**
- * JWTログアウト処理
+ * ログアウト処理
  * @returns ログアウト結果
  */
 export const logout = async (): Promise<LogoutResponse> => {
   try {
     DebugLogger.info({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ログアウト開始'
-    }, 'JWTログアウト処理を開始');
+    }, 'ログアウト処理を開始');
 
     // セッションストレージのクリア
     if (typeof window !== 'undefined') {
@@ -221,9 +221,9 @@ export const logout = async (): Promise<LogoutResponse> => {
     const response = await client.post<LogoutResponse>('/api/v1/auth/logout');
     
     DebugLogger.info({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ログアウト成功'
-    }, 'JWTログアウトに成功');
+    }, 'ログアウトに成功');
 
     // ローカルストレージからユーザー情報を削除
     removeUser();
@@ -232,7 +232,7 @@ export const logout = async (): Promise<LogoutResponse> => {
     return response.data;
   } catch (error) {
     DebugLogger.apiError({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ログアウトエラー'
     }, {
       error
@@ -270,9 +270,9 @@ export const logout = async (): Promise<LogoutResponse> => {
 export const getCurrentUser = async () => {
   try {
     DebugLogger.info({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ユーザー情報取得開始'
-    }, 'JWT現在のユーザー情報取得を開始');
+    }, '現在のユーザー情報取得を開始');
 
     // APIクライアントを作成
     const client = axios.create({
@@ -287,16 +287,16 @@ export const getCurrentUser = async () => {
     const response = await client.get('/api/v1/auth/me');
     
     DebugLogger.info({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ユーザー情報取得成功'
-    }, 'JWT現在のユーザー情報取得に成功', {
+    }, '現在のユーザー情報取得に成功', {
       hasUser: !!response.data.user
     });
 
     return response.data;
   } catch (error) {
     DebugLogger.apiError({
-      category: 'JWT認証',
+      category: '認証',
       operation: 'ユーザー情報取得エラー'
     }, {
       error

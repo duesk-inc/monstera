@@ -20,10 +20,16 @@ type SalesHandlers struct {
 }
 
 // SetupSalesRoutes 営業関連ルートの設定
-func SetupSalesRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *SalesHandlers, logger *zap.Logger, rolePermissionRepo repository.RolePermissionRepository) {
+func SetupSalesRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *SalesHandlers, logger *zap.Logger, rolePermissionRepo repository.RolePermissionRepository, cognitoAuthMiddleware *middleware.CognitoAuthMiddleware) {
 	// 営業グループ（認証必須）
 	sales := r.Group("/sales")
-	sales.Use(middleware.AuthMiddleware(cfg, logger))
+	if cognitoAuthMiddleware != nil {
+		sales.Use(cognitoAuthMiddleware.AuthRequired())
+	} else {
+		// フォールバック（テスト用）
+		logger.Warn("CognitoAuthMiddleware is not initialized, falling back to deprecated auth")
+		sales.Use(middleware.AuthMiddleware(cfg, logger))
+	}
 
 	// 提案管理
 	proposals := sales.Group("/proposals")
@@ -200,11 +206,18 @@ func SetupSalesRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *SalesHan
 }
 
 // SetupAdminSalesRoutes 管理者用営業ルートの設定
-func SetupAdminSalesRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *SalesHandlers, logger *zap.Logger, rolePermissionRepo repository.RolePermissionRepository) {
+func SetupAdminSalesRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *SalesHandlers, logger *zap.Logger, rolePermissionRepo repository.RolePermissionRepository, cognitoAuthMiddleware *middleware.CognitoAuthMiddleware) {
 	// 管理者営業グループ
 	adminSales := r.Group("/admin/sales")
-	adminSales.Use(middleware.AuthMiddleware(cfg, logger))
-	adminSales.Use(middleware.AdminRequired(logger))
+	if cognitoAuthMiddleware != nil {
+		adminSales.Use(cognitoAuthMiddleware.AuthRequired())
+		adminSales.Use(cognitoAuthMiddleware.AdminRequired())
+	} else {
+		// フォールバック（テスト用）
+		logger.Warn("CognitoAuthMiddleware is not initialized, falling back to deprecated auth")
+		adminSales.Use(middleware.AuthMiddleware(cfg, logger))
+		adminSales.Use(middleware.AdminRequired(logger))
+	}
 
 	// 管理者専用エンドポイント
 	adminSales.GET("/dashboard", func(c *gin.Context) {

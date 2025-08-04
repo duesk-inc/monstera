@@ -67,39 +67,14 @@ services:
       - monstera-network
     command: redis-server --appendonly yes
 
-  # Cognito Local - ローカル開発用Cognitoエミュレータ
-  cognito-local:
-    image: jagregory/cognito-local:latest
-    container_name: monstera-cognito-local
-    restart: unless-stopped
-    ports:
-      - "9230:9229"
-    volumes:
-      - ./cognito:/app/.cognito
-    networks:
-      - monstera-network
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--quiet",
-          "--tries=1",
-          "--spider",
-          "http://localhost:9229/health",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # MinIO Object Storage
   minio:
     image: minio/minio:latest
     container_name: monstera-minio
     restart: unless-stopped
     ports:
-      - "${MINIO_PORT:-9000}:9000"      # API Port
-      - "${MINIO_CONSOLE_PORT:-9001}:9001"  # Console Port
+      - "${MINIO_PORT:-9000}:9000" # API Port
+      - "${MINIO_CONSOLE_PORT:-9001}:9001" # Console Port
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
@@ -138,7 +113,6 @@ services:
       DB_DRIVER: postgres
       DB_SSLMODE: disable
       DB_SSL_MODE: disable
-      JWT_SECRET: ${JWT_SECRET:-devjwtsecret}
       PORT: 8080
       CORS_ALLOW_ORIGINS: http://localhost:3000
       GIN_MODE: debug
@@ -159,17 +133,26 @@ services:
       REDIS_PASSWORD: ""
       REDIS_DB: 0
       REDIS_KEY_PREFIX: "monstera:"
+      # Authentication Configuration
+      COGNITO_ENABLED: ${COGNITO_ENABLED:-true} # Set to false for development
+      AUTH_SKIP_MODE: ${AUTH_SKIP_MODE:-false} # Skip authentication in development
       # Cognito Configuration
-      COGNITO_ENABLED: ${COGNITO_ENABLED:-true}
-      COGNITO_REGION: ${COGNITO_REGION:-us-east-1}
-      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-local_7221v1tw}
-      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID:-62h69i1tpbn9rmh83xmtjyj4b}
-      COGNITO_CLIENT_SECRET: ${COGNITO_CLIENT_SECRET:-47c44j2dkj2y4tkf777zqgpiw}
-      COGNITO_ENDPOINT: ${COGNITO_ENDPOINT:-http://cognito-local:9229}
+      COGNITO_REGION: ${COGNITO_REGION:-ap-northeast-1}
+      COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID}
+      COGNITO_CLIENT_ID: ${COGNITO_CLIENT_ID}
+      COGNITO_CLIENT_SECRET: ${COGNITO_CLIENT_SECRET}
+      COGNITO_ENDPOINT: ${COGNITO_ENDPOINT}
+      COGNITO_ISSUER: ${COGNITO_ISSUER}
+      COGNITO_JWKS_URI: ${COGNITO_JWKS_URI}
       # AWS Credentials for local development
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-minioadmin}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-minioadmin}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
       AWS_EC2_METADATA_DISABLED: "true"
+      # Cognito専用のAWS認証情報
+      COGNITO_AWS_ACCESS_KEY_ID: ${COGNITO_AWS_ACCESS_KEY_ID}
+      COGNITO_AWS_SECRET_ACCESS_KEY: ${COGNITO_AWS_SECRET_ACCESS_KEY}
+      COGNITO_AWS_SESSION_TOKEN: ${COGNITO_AWS_SESSION_TOKEN}
       CHROME_PATH: /usr/bin/chromium
       PDF_GENERATION_TIMEOUT: 30
       TEMPLATE_DIR: /app/templates
@@ -234,7 +217,6 @@ services:
   #       DB_USER: ${DB_USER:-postgres}
   #       DB_PASSWORD: ${DB_PASSWORD:-postgres}
   #       DB_DRIVER: postgres
-  #       JWT_SECRET: ${JWT_SECRET:-devjwtsecret}
   #       REDIS_ENABLED: "true"
   #       REDIS_HOST: redis
   #       REDIS_PORT: 6379

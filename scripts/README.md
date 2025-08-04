@@ -17,11 +17,10 @@ scripts/
 ## 各ディレクトリの説明
 
 ### auth/ - 認証関連
-Cognito認証やJWTトークンの処理に関するスクリプト
+Cognito認証の処理に関するスクリプト
 - `setup-local-cognito.sh` - ローカルCognito環境のセットアップ
 - `test-cognito-login.sh` - Cognitoログインテスト
 - `manual-login-test.sh` - 手動ログインテスト
-- `decode-jwt.sh` - JWTトークンのデコード
 
 ### build-deploy/ - ビルド・デプロイ関連
 プロジェクトのビルドとデプロイに関するスクリプト

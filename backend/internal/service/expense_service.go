@@ -2895,22 +2895,24 @@ func (s *expenseService) CreateWithReceipts(ctx context.Context, userID uuid.UUI
 
 		// Categoryフィールド（コード）が指定されている場合はコードで検索（優先）
 		if req.Category != "" {
-			category, err = s.categoryRepo.GetByCode(ctx, req.Category)
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
+			var catErr error
+			category, catErr = s.categoryRepo.GetByCode(ctx, req.Category)
+			if catErr != nil {
+				if errors.Is(catErr, gorm.ErrRecordNotFound) {
 					return dto.NewExpenseError(dto.ErrCodeCategoryNotFound, "指定されたカテゴリが見つかりません")
 				}
-				s.logger.Error("Failed to get category by code", zap.Error(err), zap.String("category_code", req.Category))
+				s.logger.Error("Failed to get category by code", zap.Error(catErr), zap.String("category_code", req.Category))
 				return dto.NewExpenseError(dto.ErrCodeInternalError, "カテゴリの取得に失敗しました")
 			}
 		} else if req.CategoryID != nil {
 			// CategoryIDが指定されている場合（後方互換性）
-			category, err = s.categoryRepo.GetByID(ctx, *req.CategoryID)
-			if err != nil {
-				if errors.Is(err, gorm.ErrRecordNotFound) {
+			var catErr error
+			category, catErr = s.categoryRepo.GetByID(ctx, *req.CategoryID)
+			if catErr != nil {
+				if errors.Is(catErr, gorm.ErrRecordNotFound) {
 					return dto.NewExpenseError(dto.ErrCodeCategoryNotFound, "指定されたカテゴリが見つかりません")
 				}
-				s.logger.Error("Failed to get category", zap.Error(err), zap.String("category_id", req.CategoryID.String()))
+				s.logger.Error("Failed to get category", zap.Error(catErr), zap.String("category_id", req.CategoryID.String()))
 				return dto.NewExpenseError(dto.ErrCodeInternalError, "カテゴリの取得に失敗しました")
 			}
 		} else {

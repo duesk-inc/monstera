@@ -12,7 +12,7 @@ SES企業のエンジニア社員が日々の勤怠記録と週間総括を管�
 - デフォルト設定管理
 
 ### 1.3 前提条件
-- JWT認証によるユーザー識別
+- Cognito認証によるユーザー識別
 - 役割ベースアクセス制御（一般/マネージャー/管理者）
 - 週単位の管理（月曜日開始、日曜日終了）
 
@@ -757,18 +757,9 @@ var (
 
 ### 10.1 認証・認可
 
-#### 10.1.1 JWT設計
+#### 10.1.1 Cognito認証設計
 
-```typescript
-interface JWTPayload {
-  user_id: string;
-  email: string;
-  role: 'general' | 'manager' | 'admin';
-  department_id: string;
-  exp: number;
-  iat: number;
-}
-```
+Cognito認証を使用してユーザー認証を行います。
 
 #### 10.1.2 権限マトリックス詳細
 
