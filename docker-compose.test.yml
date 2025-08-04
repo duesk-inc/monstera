@@ -92,7 +92,6 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-password}
       DB_DRIVER: postgres
       DB_SSL_MODE: disable
-      JWT_SECRET: ${JWT_SECRET:-test_jwt_secret}
       PORT: 8080
       CORS_ALLOW_ORIGINS: http://localhost:3001
       GIN_MODE: debug

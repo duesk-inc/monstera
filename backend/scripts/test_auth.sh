@@ -4,7 +4,7 @@
 
 echo "=== Testing Monstera Authentication and Expense API ==="
 
-# 1. Login and get JWT token
+# 1. Login and get access token
 echo -e "\n1. Logging in as engineer_test@duesk.co.jp..."
 LOGIN_RESPONSE=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
@@ -21,7 +21,7 @@ if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-echo "Successfully obtained JWT token"
+echo "Successfully obtained access token"
 
 # 2. Test expense list endpoint
 echo -e "\n2. Testing expense list endpoint..."

@@ -26,7 +26,7 @@
 ```mermaid
 graph TD
     A[フロントエンド<br/>Next.js 15 + TypeScript] --> B[API Gateway<br/>Gin Framework]
-    B --> C[認証ミドルウェア<br/>JWT + Cookie]
+    B --> C[認証ミドルウェア<br/>Cognito + Cookie]
     C --> D[ハンドラー層<br/>HTTP Request/Response]
     D --> E[サービス層<br/>ビジネスロジック]
     E --> F[リポジトリ層<br/>データアクセス]
@@ -51,7 +51,7 @@ graph TD
 #### バックエンド
 - **Framework**: Go 1.22 + Gin v1.8.1
 - **ORM**: GORM v1.25
-- **認証**: JWT + HTTPOnly Cookie
+- **認証**: Cognito + HTTPOnly Cookie
 - **ログ**: zap
 - **バリデーション**: go-playground/validator
 
@@ -236,41 +236,9 @@ CREATE TABLE `weekly_reports_archive` (
 
 ### 4.1 認証・認可
 
-#### 4.1.1 JWT実装詳細
+#### 4.1.1 Cognito認証実装
 
-**トークン構造**
-```go
-type JWTClaims struct {
-    UserID       string `json:"user_id"`
-    Email        string `json:"email"`
-    Role         int    `json:"role"`         // 1:super_admin, 2:admin, 3:manager, 4:employee
-    DepartmentID string `json:"department_id"`
-    jwt.RegisteredClaims
-}
-
-// トークン生成
-func GenerateTokens(user *model.User) (accessToken, refreshToken string, err error) {
-    // アクセストークン（15分）
-    accessClaims := JWTClaims{
-        UserID:       user.ID.String(),
-        Email:        user.Email,
-        Role:         user.Role,
-        DepartmentID: user.DepartmentID.String(),
-        RegisteredClaims: jwt.RegisteredClaims{
-            ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)),
-            IssuedAt:  jwt.NewNumericDate(time.Now()),
-        },
-    }
-    
-    // リフレッシュトークン（7日）
-    refreshClaims := jwt.RegisteredClaims{
-        ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
-        IssuedAt:  jwt.NewNumericDate(time.Now()),
-    }
-    
-    // トークン署名・生成処理
-}
-```
+Cognito認証を使用してユーザー認証を行います。
 
 #### 4.1.2 権限チェック実装
 
@@ -1724,7 +1692,7 @@ func TestWeeklyReportAPI_Integration(t *testing.T) {
             method:   "POST",
             endpoint: "/api/v1/weekly-reports",
             headers: map[string]string{
-                "Authorization": "Bearer " + testJWTToken,
+                "Authorization": "Bearer " + testToken,
                 "Content-Type":  "application/json",
             },
             body: CreateWeeklyReportRequest{

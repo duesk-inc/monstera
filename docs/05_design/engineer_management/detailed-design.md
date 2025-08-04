@@ -6,7 +6,7 @@
 - **フロントエンド**: Next.js (App Router) + TypeScript + MUI
 - **バックエンド**: Go + Gin + GORM
 - **データベース**: PostgreSQL
-- **認証**: JWT (HTTPOnly Cookie)
+- **認証**: Cognito (HTTPOnly Cookie)
 
 ### 1.2 ディレクトリ構造
 

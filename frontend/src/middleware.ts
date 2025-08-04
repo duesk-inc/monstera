@@ -27,7 +27,7 @@ const isValidCognitoTokenFormat = (token: string): boolean => {
   }
   
   try {
-    // CognitoトークンはJWT形式で通常3つのパートに分かれている（header.payload.signature）
+    // Cognitoトークンは通常3つのパートに分かれている（header.payload.signature）
     const parts = token.split('.');
     if (parts.length !== 3) {
       debugLog('Cognitoトークンのセグメント数が不正:', parts.length);

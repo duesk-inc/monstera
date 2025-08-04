@@ -113,7 +113,7 @@ start_e2e_env() {
     info "  Backend API: http://localhost:8081"
     info "  PostgreSQL: localhost:5433"
     info "  Redis: localhost:6380"
-    info "  Cognito Local: http://localhost:9230"
+    info "  認証: スキップモード（開発用ユーザー）"
 }
 
 # E2Eテストの実行

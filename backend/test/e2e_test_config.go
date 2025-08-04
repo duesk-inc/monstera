@@ -20,10 +20,6 @@ type E2ETestConfig struct {
 	ServerHost     string
 	RequestTimeout time.Duration
 
-	// 認証設定
-	JWTSecret         string
-	JWTExpirationTime time.Duration
-
 	// パフォーマンステスト設定
 	MaxConcurrentRequests int
 	PerformanceThreshold  time.Duration
@@ -48,9 +44,6 @@ func LoadE2ETestConfig() *E2ETestConfig {
 		ServerPort:     getIntEnv("E2E_SERVER_PORT", 8080),
 		ServerHost:     getEnv("E2E_SERVER_HOST", "localhost"),
 		RequestTimeout: getDurationEnv("E2E_REQUEST_TIMEOUT", 30*time.Second),
-
-		JWTSecret:         getEnv("E2E_JWT_SECRET", "test-jwt-secret-key-for-e2e-testing"),
-		JWTExpirationTime: getDurationEnv("E2E_JWT_EXPIRATION", 24*time.Hour),
 
 		MaxConcurrentRequests: getIntEnv("E2E_MAX_CONCURRENT_REQUESTS", 50),
 		PerformanceThreshold:  getDurationEnv("E2E_PERFORMANCE_THRESHOLD", 2*time.Second),

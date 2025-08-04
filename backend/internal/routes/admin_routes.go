@@ -22,6 +22,8 @@ type AdminHandlers struct {
 	ExpenseHandler                *handler.ExpenseHandler
 	ExpenseApproverSettingHandler *handler.ExpenseApproverSettingHandler
 	ApprovalReminderHandler       *handler.ApprovalReminderHandler
+	EngineerHandler               handler.AdminEngineerHandler
+	UserHandler                   *handler.UserHandler
 	// 経理機能ハンドラー
 	ProjectGroupHandler        *handler.ProjectGroupHandler
 	BillingHandler             *handler.BillingHandler
@@ -30,7 +32,7 @@ type AdminHandlers struct {
 }
 
 // SetupAdminRoutes 管理者用ルートの設定
-func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHandlers, logger *zap.Logger, rolePermissionRepo repository.RolePermissionRepository) {
+func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHandlers, logger *zap.Logger, rolePermissionRepo repository.RolePermissionRepository, cognitoAuthMiddleware *middleware.CognitoAuthMiddleware, userRepo repository.UserRepository) {
 	// デバッグログ
 	if handlers.LeaveAdminHandler == nil {
 		logger.Error("LeaveAdminHandler is nil in SetupAdminRoutes")
@@ -39,9 +41,16 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 	// 管理者グループ
 	admin := r.Group("/admin")
 
-	// 管理者認証ミドルウェアを適用
-	admin.Use(middleware.AuthMiddleware(cfg, logger))
-	admin.Use(middleware.AdminRequired(logger))
+	// 管理者認証ミドルウェアを適用 - Cognito認証を使用
+	if cognitoAuthMiddleware != nil {
+		admin.Use(cognitoAuthMiddleware.AuthRequired())
+		admin.Use(cognitoAuthMiddleware.AdminRequired())
+	} else {
+		// フォールバック（テスト用）
+		logger.Warn("CognitoAuthMiddleware is not initialized, falling back to deprecated auth")
+		admin.Use(middleware.AuthMiddleware(cfg, logger))
+		admin.Use(middleware.AdminRequired(logger))
+	}
 
 	// ダッシュボード
 	if handlers.DashboardHandler != nil {
@@ -56,6 +65,16 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 	// エンジニア管理
 	engineers := admin.Group("/engineers")
 	{
+		// エンジニア基本CRUD操作
+		if handlers.EngineerHandler != nil {
+			engineers.GET("", handlers.EngineerHandler.GetEngineers)
+			engineers.GET("/:id", handlers.EngineerHandler.GetEngineerDetail)
+			engineers.POST("", handlers.EngineerHandler.CreateEngineer)
+			engineers.PUT("/:id", handlers.EngineerHandler.UpdateEngineer)
+			engineers.DELETE("/:id", handlers.EngineerHandler.DeleteEngineer)
+			engineers.PUT("/:id/status", handlers.EngineerHandler.UpdateEngineerStatus)
+		}
+
 		// 週報管理
 		if handlers.WeeklyReportHandler != nil {
 			weeklyReports := engineers.Group("/weekly-reports")
@@ -328,6 +347,15 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 					freeeWrite.POST("/sync/invoices", handlers.FreeeHandler.SyncInvoices)
 				}
 			}
+		}
+	}
+
+	// ユーザー管理
+	users := admin.Group("/users")
+	{
+		if handlers.UserHandler != nil {
+			// ユーザー作成（管理者のみ）
+			users.POST("", handlers.UserHandler.CreateUser)
 		}
 	}
 

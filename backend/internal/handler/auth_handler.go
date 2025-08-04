@@ -116,7 +116,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// JWTトークンをクッキーとレスポンスに設定
+	// トークンをクッキーとレスポンスに設定
 	h.setAuthCookies(c, response.AccessToken, response.RefreshToken)
 
 	// 監査ログ用にユーザー情報をコンテキストに設定
@@ -141,7 +141,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		// JSONから取得できない場合はクッキーから取得
 		var err error
-		req.RefreshToken, err = c.Cookie(h.cfg.JWT.RefreshCookieName)
+		req.RefreshToken, err = c.Cookie("refresh_token")
 		if err != nil || req.RefreshToken == "" {
 			RespondErrorWithCode(c, message.ErrCodeInvalidRequest, message.MsgRefreshTokenRequired)
 			return
@@ -154,7 +154,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 		return
 	}
 
-	// JWTトークンをクッキーとレスポンスに設定
+	// トークンをクッキーとレスポンスに設定
 	h.setAuthCookies(c, response.AccessToken, response.RefreshToken)
 
 	RespondSuccess(c, http.StatusOK, "", gin.H{
@@ -168,7 +168,7 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 // Logout ログアウトハンドラー
 func (h *AuthHandler) Logout(c *gin.Context) {
 	// リフレッシュトークンを取得してサービスのログアウト処理を呼び出し
-	refreshToken, err := c.Cookie(h.cfg.JWT.RefreshCookieName)
+	refreshToken, err := c.Cookie("refresh_token")
 	if err == nil && refreshToken != "" {
 		// サービス側でのログアウト処理（セッション削除など）
 		if logoutErr := h.authService.Logout(c.Request.Context(), refreshToken); logoutErr != nil {
@@ -212,21 +212,21 @@ func (h *AuthHandler) Me(c *gin.Context) {
 
 // ヘルパーメソッド
 
-// setAuthCookies JWTトークンをクッキーに設定
+// setAuthCookies トークンをクッキーに設定
 func (h *AuthHandler) setAuthCookies(c *gin.Context, accessToken, refreshToken string) {
 	c.SetCookie(
-		h.cfg.JWT.AccessCookieName,
+		"access_token",
 		accessToken,
-		int(h.cfg.JWT.AccessTokenExp.Seconds()),
+		3600, // 1時間
 		"/",
 		"",
 		false, // HTTPSの場合はtrueに
 		true,  // JavaScriptからアクセス不可
 	)
 	c.SetCookie(
-		h.cfg.JWT.RefreshCookieName,
+		"refresh_token",
 		refreshToken,
-		int(h.cfg.JWT.RefreshTokenExp.Seconds()),
+		604800, // 7日間
 		"/",
 		"",
 		false, // HTTPSの場合はtrueに
@@ -237,7 +237,7 @@ func (h *AuthHandler) setAuthCookies(c *gin.Context, accessToken, refreshToken s
 // clearAuthCookies 認証クッキーをクリア
 func (h *AuthHandler) clearAuthCookies(c *gin.Context) {
 	c.SetCookie(
-		h.cfg.JWT.AccessCookieName,
+		"access_token",
 		"",
 		-1,
 		"/",
@@ -246,7 +246,7 @@ func (h *AuthHandler) clearAuthCookies(c *gin.Context) {
 		true,
 	)
 	c.SetCookie(
-		h.cfg.JWT.RefreshCookieName,
+		"refresh_token",
 		"",
 		-1,
 		"/",

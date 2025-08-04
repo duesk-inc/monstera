@@ -71,9 +71,6 @@ REDIS_PASSWORD=testpassword
 API_TEST_PORT=8081
 FRONTEND_TEST_PORT=3001
 
-# JWT設定
-JWT_SECRET=test_jwt_secret_key_change_in_production
-
 # その他
 TZ=Asia/Tokyo
 EOF

@@ -1,0 +1,93 @@
+{
+  "Name": "MonsteraDeveloperAccess",
+  "Description": "Monstera開発環境用アクセス権限",
+  "SessionDuration": "PT8H",
+  "ManagedPolicies": [
+    "arn:aws:iam::aws:policy/AmazonCognitoPowerUser",
+    "arn:aws:iam::aws:policy/CloudFormationFullAccess",
+    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
+    "arn:aws:iam::aws:policy/IAMReadOnlyAccess"
+  ],
+  "InlinePolicy": {
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Sid": "CognitoCDKDeployment",
+        "Effect": "Allow",
+        "Action": [
+          "iam:CreateRole",
+          "iam:AttachRolePolicy",
+          "iam:PutRolePolicy",
+          "iam:PassRole",
+          "iam:GetRole",
+          "iam:ListRolePolicies",
+          "iam:DeleteRole",
+          "iam:DeleteRolePolicy",
+          "iam:DetachRolePolicy",
+          "iam:TagRole",
+          "iam:UntagRole"
+        ],
+        "Resource": [
+          "arn:aws:iam::*:role/dev-monstera-*",
+          "arn:aws:iam::*:role/cdk-*"
+        ]
+      },
+      {
+        "Sid": "S3CDKAssets",
+        "Effect": "Allow",
+        "Action": [
+          "s3:CreateBucket",
+          "s3:PutBucketPolicy",
+          "s3:GetBucketPolicy",
+          "s3:GetBucketLocation",
+          "s3:ListBucket",
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:DeleteObject"
+        ],
+        "Resource": [
+          "arn:aws:s3:::cdk-*",
+          "arn:aws:s3:::cdk-*/*",
+          "arn:aws:s3:::dev-monstera-*",
+          "arn:aws:s3:::dev-monstera-*/*"
+        ]
+      },
+      {
+        "Sid": "CloudFormationStack",
+        "Effect": "Allow",
+        "Action": [
+          "cloudformation:*"
+        ],
+        "Resource": [
+          "arn:aws:cloudformation:*:*:stack/CDKToolkit/*",
+          "arn:aws:cloudformation:*:*:stack/dev-monstera-*/*",
+          "arn:aws:cloudformation:*:*:stack/MonsteraCognitoDev/*"
+        ]
+      },
+      {
+        "Sid": "SSMParameterAccess",
+        "Effect": "Allow",
+        "Action": [
+          "ssm:GetParameter",
+          "ssm:PutParameter"
+        ],
+        "Resource": [
+          "arn:aws:ssm:*:*:parameter/cdk-bootstrap/*"
+        ]
+      },
+      {
+        "Sid": "ECRAccess",
+        "Effect": "Allow",
+        "Action": [
+          "ecr:CreateRepository",
+          "ecr:DescribeRepositories",
+          "ecr:PutLifecyclePolicy",
+          "ecr:SetRepositoryPolicy"
+        ],
+        "Resource": [
+          "arn:aws:ecr:*:*:repository/cdk-*"
+        ]
+      }
+    ]
+  }
+}

@@ -351,26 +351,11 @@ func (h *leaveHandler) handleError(c *gin.Context, statusCode int, message strin
 
 ### 3.3 認証・認可
 
-#### 3.3.1 JWT検証ミドルウェア
+#### 3.3.1 認証ミドルウェア
 ```go
-// リクエストヘッダーからJWTトークンを取得し検証
+// Cognito認証ミドルウェア
 func AuthMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        token := c.GetHeader("Authorization")
-        if token == "" {
-            token, _ = c.Cookie("access_token")
-        }
-        
-        claims, err := validateToken(token)
-        if err != nil {
-            c.AbortWithStatusJSON(401, gin.H{"error": "認証エラー"})
-            return
-        }
-        
-        c.Set("user_id", claims.UserID)
-        c.Set("role", claims.Role)
-        c.Next()
-    }
+    // Cognito認証の実装
 }
 ```
 
@@ -816,13 +801,13 @@ services:
 DB_HOST=localhost
 DB_PORT=3306
 LOG_LEVEL=debug
-JWT_SECRET=dev-secret
+# Cognito認証設定
 
 # .env.production
 DB_HOST=prod-db-server
 DB_PORT=3306
 LOG_LEVEL=info
-JWT_SECRET=${SECRET_JWT_KEY}  # CI/CDで注入
+# Cognito認証設定（環境変数で管理）
 ```
 
 ## 9. 運用・保守設計

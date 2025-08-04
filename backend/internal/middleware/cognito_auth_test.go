@@ -109,7 +109,7 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		// JWTトークンの作成（実際の検証をスキップするためにモックを使用）
+		// トークンの作成（実際の検証をスキップするためにモックを使用）
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 			"sub":        "test-cognito-sub",
 			"email":      "test@example.com",

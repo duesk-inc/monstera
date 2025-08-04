@@ -43,15 +43,15 @@ func AuthRequired() gin.HandlerFunc {
 
 		token := strings.TrimPrefix(authHeader, "Bearer ")
 
-		// JWTトークンの検証（実際の実装では適切なJWT検証を行う）
-		if !isValidJWT(token) {
+		// トークンの検証（実際の実装では適切なトークン検証を行う）
+		if !isValidToken(token) {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "無効なトークンです"})
 			c.Abort()
 			return
 		}
 
 		// ユーザー情報をコンテキストに設定
-		userID, role := extractUserInfoFromJWT(token)
+		userID, role := extractUserInfoFromToken(token)
 		c.Set("user_id", userID)
 		c.Set("user_role", role)
 
@@ -267,14 +267,14 @@ func SecurityHeaders() gin.HandlerFunc {
 
 // Helper functions
 
-func isValidJWT(token string) bool {
-	// 実際の実装では適切なJWT検証を行う
+func isValidToken(token string) bool {
+	// 実際の実装では適切なトークン検証を行う
 	// ここではテスト用の簡単な実装
-	return token != "expired.jwt.token" && token != "invalid.jwt.token"
+	return token != "expired.token" && token != "invalid.token"
 }
 
-func extractUserInfoFromJWT(token string) (string, model.Role) {
-	// 実際の実装では JWTからユーザー情報を抽出
+func extractUserInfoFromToken(token string) (string, model.Role) {
+	// 実際の実装では トークンからユーザー情報を抽出
 	// ここではテスト用の簡単な実装
 	if strings.Contains(token, "admin") {
 		return "admin-user-id", model.RoleAdmin

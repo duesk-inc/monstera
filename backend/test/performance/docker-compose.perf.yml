@@ -45,7 +45,6 @@ services:
       DB_USER: monstera
       DB_PASSWORD: password
       DB_NAME: monstera_perf
-      JWT_SECRET: performance-test-secret
       GIN_MODE: release
       CORS_ALLOW_ORIGINS: "*"
       LOG_LEVEL: warn

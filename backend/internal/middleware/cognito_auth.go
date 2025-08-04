@@ -17,6 +17,7 @@ import (
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -73,8 +74,26 @@ func NewCognitoAuthMiddleware(
 // AuthRequired 認証が必要なエンドポイント用のミドルウェア
 func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Cognitoが無効な場合はスキップ
+		// デバッグログ追加
+		m.logger.Info("AuthRequired called", 
+			zap.Bool("Cognito.Enabled", m.config.Cognito.Enabled),
+			zap.Bool("Cognito.AuthSkipMode", m.config.Cognito.AuthSkipMode))
+		
+		// Cognitoが無効な場合
 		if !m.config.Cognito.Enabled {
+			m.logger.Info("Cognito is disabled")
+			// 認証スキップモードの場合は開発用ユーザーを設定
+			if m.config.Cognito.AuthSkipMode {
+				m.logger.Info("Setting development user")
+				m.setDevelopmentUser(c)
+			}
+			c.Next()
+			return
+		}
+
+		// 開発用: 認証スキップモード
+		if m.config.Cognito.AuthSkipMode {
+			m.setDevelopmentUser(c)
 			c.Next()
 			return
 		}
@@ -121,8 +140,12 @@ func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 // OptionalAuth 認証が任意のエンドポイント用のミドルウェア
 func (m *CognitoAuthMiddleware) OptionalAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Cognitoが無効な場合はスキップ
+		// Cognitoが無効な場合
 		if !m.config.Cognito.Enabled {
+			// 認証スキップモードの場合は開発用ユーザーを設定
+			if m.config.Cognito.AuthSkipMode {
+				m.setDevelopmentUser(c)
+			}
 			c.Next()
 			return
 		}
@@ -266,7 +289,7 @@ func (m *CognitoAuthMiddleware) validateToken(tokenString string) (jwt.MapClaims
 	return claims, nil
 }
 
-// validateClaims JWT Claimsを検証
+// validateClaims Claimsを検証
 func (m *CognitoAuthMiddleware) validateClaims(claims jwt.MapClaims) error {
 	// Issuerを検証
 	iss, ok := claims["iss"].(string)
@@ -465,4 +488,36 @@ func validateRSAPublicKey(key *rsa.PublicKey) error {
 	}
 
 	return nil
+}
+
+// setDevelopmentUser 開発環境用のダミーユーザーを設定
+func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
+	// 開発用のダミーユーザー情報
+	adminRole := model.RoleAdmin  // Role型の定数を使用
+	
+	// UUIDを生成
+	userID, _ := uuid.Parse("00000000-0000-0000-0000-000000000001")
+	
+	devUser := &model.User{
+		ID:          userID,
+		Email:       "dev@duesk.co.jp",
+		FirstName:   "開発",
+		LastName:    "ユーザー",
+		Role:        adminRole,  // Roleフィールドに直接設定
+		DefaultRole: &adminRole, // ポインタで設定
+		Roles:       []model.Role{adminRole},
+		Status:      "active",
+	}
+
+	// コンテキストにユーザー情報を設定
+	c.Set("user", devUser)
+	c.Set("user_id", devUser.ID)
+	c.Set("email", devUser.Email)
+	c.Set("role", devUser.DefaultRole) // 互換性のため
+	c.Set("roles", devUser.Roles)      // 複数ロール対応
+	c.Set("cognito_sub", "dev-user-sub")
+
+	m.logger.Debug("開発用ユーザーを設定しました",
+		zap.String("email", devUser.Email),
+		zap.String("role", adminRole.String()))
 }

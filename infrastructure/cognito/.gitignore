@@ -1,0 +1,28 @@
+# CDK関連
+*.js
+*.d.ts
+node_modules/
+.cdk.staging
+cdk.out/
+
+# 環境設定
+.env*
+!.env.example
+outputs.json
+access-key.json
+
+# AWS SSO関連
+.env.docker
+*.pem
+
+# ローカル設定
+*.local
+.DS_Store
+
+# ログ
+*.log
+
+# 一時ファイル
+*.tmp
+*.temp
+*~

@@ -118,12 +118,14 @@ func main() {
 	salesActivityRepo := internalRepo.NewSalesActivityRepository(internalBaseRepo)
 	// プロジェクトリポジトリを追加
 	projectRepo := internalRepo.NewProjectRepository(internalBaseRepo)
+	// エンジニアリポジトリを追加
+	engineerRepo := internalRepo.NewEngineerRepository(db, logger)
 	// スキルシートリポジトリを追加
 	skillSheetRepo := internalRepo.NewSkillSheetRepository(commonBaseRepo)
 	// セッションリポジトリを追加
 	sessionRepo := internalRepo.NewSessionRepository(db, logger)
 	// 休暇申請管理用リポジトリを追加
-	// leaveRequestRepo := internalRepo.NewLeaveRequestRepository(db, logger) // TODO: 使用予定
+	leaveRequestRepo := internalRepo.NewLeaveRequestRepository(db, logger)
 	// leaveAdminRepo := internalRepo.NewLeaveRequestAdminRepository(db, logger) // TODO: 実装予定
 	// userLeaveBalanceRepo := internalRepo.NewUserLeaveBalanceRepository(db, logger) // TODO: 使用予定
 
@@ -174,7 +176,7 @@ func main() {
 		authSvc = cognitoAuthSvc
 	} else {
 		logger.Info("通常認証サービスを使用します")
-		authSvc = service.NewAuthService(logger)
+		authSvc = service.NewAuthService(cfg, db, userRepo, logger)
 	}
 	// デバッグ: 認証サービス作成の確認
 	logger.Info("Auth service created")
@@ -236,6 +238,8 @@ func main() {
 	clientService := service.NewClientService(db, clientRepo, logger)
 	invoiceService := service.NewInvoiceService(db, invoiceRepo, clientRepo, projectRepo, userRepo, logger)
 	salesService := service.NewSalesService(db, salesActivityRepo, clientRepo, projectRepo, userRepo, logger)
+	// エンジニアサービスを追加
+	engineerService := service.NewEngineerService(db, engineerRepo, userRepo, *reportRepo, expenseRepo, leaveRequestRepo, logger)
 	// スキルシートPDFサービスを追加
 	skillSheetPDFService := service.NewSkillSheetPDFServiceV2(db, userRepo, profileRepo, skillSheetRepo, logger)
 	// 休暇申請管理サービスを追加
@@ -365,13 +369,14 @@ func main() {
 	clientHandler := handler.NewClientHandler(clientService, logger)
 	invoiceHandler := handler.NewInvoiceHandler(invoiceService, logger)
 	salesHandler := handler.NewSalesHandler(salesService, logger)
+	// エンジニアハンドラーを追加
+	engineerHandler := handler.NewAdminEngineerHandler(engineerService, logger)
 	// スキルシートPDFハンドラーを追加
 	skillSheetPDFHandler := handler.NewSkillSheetPDFHandler(skillSheetPDFService, logger)
 	// ユーザーロールハンドラーを追加
 	userRoleHandler := handler.NewUserRoleHandler(userRepo, logger)
 	// 休暇申請管理サービスとハンドラーを追加
 	// 必要なリポジトリを作成
-	leaveRequestRepo := internalRepo.NewLeaveRequestRepository(db, logger)
 	leaveAdminRepo := internalRepo.NewLeaveRequestAdminRepository(db, logger)
 	userLeaveBalanceRepo := internalRepo.NewUserLeaveBalanceRepository(db, logger)
 	leaveAdminService := service.NewLeaveAdminService(db, leaveRequestRepo, leaveAdminRepo, userLeaveBalanceRepo, logger)
@@ -427,7 +432,7 @@ func main() {
 		PocSyncHandler:           *pocSyncHandler,
 		SalesTeamHandler:         *salesTeamHandler,
 	}
-	router := setupRouter(cfg, logger, authHandler, profileHandler, skillSheetHandler, reportHandler, leaveHandler, notificationHandler, adminWeeklyReportHandler, adminDashboardHandler, clientHandler, invoiceHandler, salesHandler, skillSheetPDFHandler, userRoleHandler, leaveAdminHandler, *unsubmittedReportHandler, reminderHandler, alertSettingsHandler, *alertHandler, auditLogHandler, salesHandlers, expenseHandler, expensePDFHandler, expenseApproverSettingHandler, approvalReminderHandler, workHistoryHandler, rolePermissionRepo, userRepo, departmentRepo, reportRepo, weeklyReportRefactoredRepo, auditLogService)
+	router := setupRouter(cfg, logger, authHandler, profileHandler, skillSheetHandler, reportHandler, leaveHandler, notificationHandler, adminWeeklyReportHandler, adminDashboardHandler, clientHandler, invoiceHandler, salesHandler, skillSheetPDFHandler, userRoleHandler, leaveAdminHandler, *unsubmittedReportHandler, reminderHandler, alertSettingsHandler, *alertHandler, auditLogHandler, salesHandlers, expenseHandler, expensePDFHandler, expenseApproverSettingHandler, approvalReminderHandler, workHistoryHandler, engineerHandler, rolePermissionRepo, userRepo, departmentRepo, reportRepo, weeklyReportRefactoredRepo, auditLogService)
 
 	// HTTPサーバーの設定
 	srv := &http.Server{
@@ -510,7 +515,7 @@ func main() {
 }
 
 // setupRouter ルーターのセットアップ
-func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler, profileHandler *handler.ProfileHandler, skillSheetHandler *handler.SkillSheetHandler, reportHandler *handler.WeeklyReportHandler, leaveHandler handler.LeaveHandler, notificationHandler handler.NotificationHandler, adminWeeklyReportHandler handler.AdminWeeklyReportHandler, adminDashboardHandler handler.AdminDashboardHandler, clientHandler handler.ClientHandler, invoiceHandler handler.InvoiceHandler, salesHandler handler.SalesHandler, skillSheetPDFHandler handler.SkillSheetPDFHandler, userRoleHandler *handler.UserRoleHandler, leaveAdminHandler handler.LeaveAdminHandler, unsubmittedReportHandler handler.UnsubmittedReportHandler, reminderHandler handler.ReminderHandler, alertSettingsHandler *adminHandler.AlertSettingsHandler, alertHandler handler.AlertHandler, auditLogHandler *handler.AuditLogHandler, salesHandlers *routes.SalesHandlers, expenseHandler *handler.ExpenseHandler, expensePDFHandler handler.ExpensePDFHandler, expenseApproverSettingHandler *handler.ExpenseApproverSettingHandler, approvalReminderHandler *handler.ApprovalReminderHandler, workHistoryHandler *handler.WorkHistoryHandler, rolePermissionRepo internalRepo.RolePermissionRepository, userRepo internalRepo.UserRepository, departmentRepo internalRepo.DepartmentRepository, reportRepo *internalRepo.WeeklyReportRepository, weeklyReportRefactoredRepo internalRepo.WeeklyReportRefactoredRepository, auditLogService service.AuditLogService) *gin.Engine {
+func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler, profileHandler *handler.ProfileHandler, skillSheetHandler *handler.SkillSheetHandler, reportHandler *handler.WeeklyReportHandler, leaveHandler handler.LeaveHandler, notificationHandler handler.NotificationHandler, adminWeeklyReportHandler handler.AdminWeeklyReportHandler, adminDashboardHandler handler.AdminDashboardHandler, clientHandler handler.ClientHandler, invoiceHandler handler.InvoiceHandler, salesHandler handler.SalesHandler, skillSheetPDFHandler handler.SkillSheetPDFHandler, userRoleHandler *handler.UserRoleHandler, leaveAdminHandler handler.LeaveAdminHandler, unsubmittedReportHandler handler.UnsubmittedReportHandler, reminderHandler handler.ReminderHandler, alertSettingsHandler *adminHandler.AlertSettingsHandler, alertHandler handler.AlertHandler, auditLogHandler *handler.AuditLogHandler, salesHandlers *routes.SalesHandlers, expenseHandler *handler.ExpenseHandler, expensePDFHandler handler.ExpensePDFHandler, expenseApproverSettingHandler *handler.ExpenseApproverSettingHandler, approvalReminderHandler *handler.ApprovalReminderHandler, workHistoryHandler *handler.WorkHistoryHandler, engineerHandler handler.AdminEngineerHandler, rolePermissionRepo internalRepo.RolePermissionRepository, userRepo internalRepo.UserRepository, departmentRepo internalRepo.DepartmentRepository, reportRepo *internalRepo.WeeklyReportRepository, weeklyReportRefactoredRepo internalRepo.WeeklyReportRefactoredRepository, auditLogService service.AuditLogService) *gin.Engine {
 	router := gin.New()
 
 	// DatabaseUtilsの初期化（メトリクスハンドラー用）
@@ -564,15 +569,22 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 	// レートリミッターの作成
 	rateLimiter := middleware.NewInMemoryRateLimiter(logger)
 
-	// 認証ミドルウェアの選択
-	var authMiddlewareFunc gin.HandlerFunc
-	if cfg.Cognito.Enabled {
-		// Cognito認証ミドルウェアを作成
-		cognitoMiddleware := middleware.NewCognitoAuthMiddleware(cfg, userRepo, logger)
-		authMiddlewareFunc = cognitoMiddleware.AuthRequired()
-	} else {
-		// 通常の内部JWT認証ミドルウェア
-		authMiddlewareFunc = middleware.AuthMiddleware(cfg, logger)
+	// 認証ミドルウェアの初期化 - Cognito認証に統一
+	logger.Info("Initializing CognitoAuthMiddleware", 
+		zap.Bool("Cognito.Enabled", cfg.Cognito.Enabled),
+		zap.Bool("Cognito.AuthSkipMode", cfg.Cognito.AuthSkipMode))
+	cognitoMiddleware := middleware.NewCognitoAuthMiddleware(cfg, userRepo, logger)
+	if cognitoMiddleware == nil {
+		logger.Fatal("Failed to initialize CognitoAuthMiddleware")
+	}
+	authMiddlewareFunc := cognitoMiddleware.AuthRequired()
+	if authMiddlewareFunc == nil {
+		logger.Fatal("Failed to get AuthRequired function")
+	}
+	logger.Info("CognitoAuthMiddleware initialized successfully")
+	
+	if !cfg.Cognito.Enabled {
+		logger.Warn("Cognito is disabled. Please enable Cognito authentication.")
 	}
 
 	api := router.Group("/api/v1")
@@ -779,8 +791,9 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 			ExpenseHandler:                expenseHandler,
 			ExpenseApproverSettingHandler: expenseApproverSettingHandler,
 			ApprovalReminderHandler:       approvalReminderHandler,
+			EngineerHandler:               engineerHandler,
 		}
-		routes.SetupAdminRoutes(api, cfg, adminHandlers, logger, rolePermissionRepo)
+		routes.SetupAdminRoutes(api, cfg, adminHandlers, logger, rolePermissionRepo, cognitoMiddleware, userRepo)
 
 		// アラートルートの登録
 		// routes.RegisterAlertRoutes(api, alertHandler, authMiddleware) // TODO: 実装予定
@@ -799,8 +812,8 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 		routes.RegisterReminderRoutes(api, reminderHandler, authMiddlewareFunc, authFactory.NewWeeklyReportAuthorization([]model.Role{model.RoleAdmin}))
 
 		// 営業関連ルートの登録
-		routes.SetupSalesRoutes(api, cfg, salesHandlers, logger, rolePermissionRepo)
-		routes.SetupAdminSalesRoutes(api, cfg, salesHandlers, logger, rolePermissionRepo)
+		routes.SetupSalesRoutes(api, cfg, salesHandlers, logger, rolePermissionRepo, cognitoMiddleware)
+		routes.SetupAdminSalesRoutes(api, cfg, salesHandlers, logger, rolePermissionRepo, cognitoMiddleware)
 
 		// 監査ログルートの登録（管理者のみアクセス可能）
 		adminAudit := api.Group("/admin")

@@ -63,19 +63,7 @@ func (mr *MockAuthServiceMockRecorder) UseBackupCode(userID, backupCode interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseBackupCode", reflect.TypeOf((*MockAuthService)(nil).UseBackupCode), userID, backupCode)
 }
 
-// ValidateJWTClaims mocks base method.
-func (m *MockAuthService) ValidateJWTClaims(claims map[string]interface{}) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ValidateJWTClaims", claims)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
 
-// ValidateJWTClaims indicates an expected call of ValidateJWTClaims.
-func (mr *MockAuthServiceMockRecorder) ValidateJWTClaims(claims interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidateJWTClaims", reflect.TypeOf((*MockAuthService)(nil).ValidateJWTClaims), claims)
-}
 
 // ValidateTOTP mocks base method.
 func (m *MockAuthService) ValidateTOTP(userID, code string) (bool, error) {

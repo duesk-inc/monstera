@@ -163,10 +163,10 @@ func (suite *ExpenseHTTPE2ETestSuite) setupTestData(t *testing.T) {
 
 // setupAuthentication 認証のセットアップ
 func (suite *ExpenseHTTPE2ETestSuite) setupAuthentication(t *testing.T) {
-	// 実際のJWTトークンを生成
+	// 実際のトークンを生成
 	// 注意: 実際の環境では、認証エンドポイントを呼び出してトークンを取得する
-	suite.TestUserToken = suite.generateRealJWT(suite.TestUser)
-	suite.ManagerUserToken = suite.generateRealJWT(suite.ManagerUser)
+	suite.TestUserToken = suite.generateRealToken(suite.TestUser)
+	suite.ManagerUserToken = suite.generateRealToken(suite.ManagerUser)
 }
 
 // testHTTPCRUDOperations HTTP CRUD操作テスト
@@ -314,7 +314,7 @@ func (suite *ExpenseHTTPE2ETestSuite) testHTTPAuthenticationAndAuthorization(t *
 	})
 
 	t.Run("HTTP: 無効なトークンによるアクセス拒否", func(t *testing.T) {
-		invalidToken := "invalid.jwt.token"
+		invalidToken := "invalid.token"
 		response := suite.makeHTTPRequest(t, "GET", fmt.Sprintf("/api/v1/expenses/%s", expenseID), nil, invalidToken)
 		assert.Equal(t, http.StatusUnauthorized, response.Code)
 
@@ -330,7 +330,7 @@ func (suite *ExpenseHTTPE2ETestSuite) testHTTPAuthenticationAndAuthorization(t *
 
 	t.Run("HTTP: 期限切れトークン処理", func(t *testing.T) {
 		// 期限切れトークンのシミュレーション
-		expiredToken := suite.generateExpiredJWT(suite.TestUser)
+		expiredToken := suite.generateExpiredToken(suite.TestUser)
 		response := suite.makeHTTPRequest(t, "GET", fmt.Sprintf("/api/v1/expenses/%s", expenseID), nil, expiredToken)
 		assert.Equal(t, http.StatusUnauthorized, response.Code)
 
@@ -680,15 +680,15 @@ func (suite *ExpenseHTTPE2ETestSuite) createMultipleTestExpenses(t *testing.T, c
 	}
 }
 
-// generateRealJWT 実際のJWTトークンを生成
-func (suite *ExpenseHTTPE2ETestSuite) generateRealJWT(user *model.User) string {
-	// 実際のJWT生成ロジックを実装
-	// 注意: 実際の環境では、JWT生成サービスを使用する
-	return fmt.Sprintf("real.jwt.token.for.%s", user.ID.String())
+// generateRealToken 実際のトークンを生成
+func (suite *ExpenseHTTPE2ETestSuite) generateRealToken(user *model.User) string {
+	// 実際のトークン生成ロジックを実装
+	// 注意: 実際の環境では、認証サービスを使用する
+	return fmt.Sprintf("real.token.for.%s", user.ID.String())
 }
 
-// generateExpiredJWT 期限切れJWTトークンを生成
-func (suite *ExpenseHTTPE2ETestSuite) generateExpiredJWT(user *model.User) string {
+// generateExpiredToken 期限切れトークンを生成
+func (suite *ExpenseHTTPE2ETestSuite) generateExpiredToken(user *model.User) string {
 	// 期限切れトークンのシミュレーション
-	return fmt.Sprintf("expired.jwt.token.for.%s", user.ID.String())
+	return fmt.Sprintf("expired.token.for.%s", user.ID.String())
 }

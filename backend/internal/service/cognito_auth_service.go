@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -39,16 +40,42 @@ func NewCognitoAuthService(
 	logger *zap.Logger,
 ) (*CognitoAuthService, error) {
 	// AWS SDK設定
-	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithRegion(cfg.Cognito.Region),
-		config.WithClientLogMode(aws.LogRequestWithBody|aws.LogResponseWithBody),
-	)
+	// Cognito専用の認証情報を使用
+	var awsCfg aws.Config
+	var err error
+	
+	// COGNITO_AWS_* 環境変数が設定されている場合は、それを使用
+	cognitoAccessKey := os.Getenv("COGNITO_AWS_ACCESS_KEY_ID")
+	cognitoSecretKey := os.Getenv("COGNITO_AWS_SECRET_ACCESS_KEY")
+	cognitoSessionToken := os.Getenv("COGNITO_AWS_SESSION_TOKEN")
+	
+	if cognitoAccessKey != "" && cognitoSecretKey != "" {
+		// Cognito専用の認証情報を使用
+		awsCfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(cfg.Cognito.Region),
+			config.WithClientLogMode(aws.LogRequestWithBody|aws.LogResponseWithBody),
+			config.WithCredentialsProvider(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
+				return aws.Credentials{
+					AccessKeyID:     cognitoAccessKey,
+					SecretAccessKey: cognitoSecretKey,
+					SessionToken:    cognitoSessionToken,
+				}, nil
+			})),
+		)
+	} else {
+		// デフォルトの認証情報を使用
+		awsCfg, err = config.LoadDefaultConfig(context.TODO(),
+			config.WithRegion(cfg.Cognito.Region),
+			config.WithClientLogMode(aws.LogRequestWithBody|aws.LogResponseWithBody),
+		)
+	}
+	
 	if err != nil {
 		return nil, fmt.Errorf("AWS設定の読み込みに失敗しました: %w", err)
 	}
 
 	// ローカル環境の場合は静的な認証情報を設定
-	if cfg.Cognito.Endpoint != "" {
+	if cfg.Cognito.Endpoint != "" && cognitoAccessKey == "" {
 		awsCfg.Credentials = aws.NewCredentialsCache(aws.CredentialsProviderFunc(func(ctx context.Context) (aws.Credentials, error) {
 			return aws.Credentials{
 				AccessKeyID:     "local",
@@ -93,8 +120,8 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 		zap.String("ip_address", ipAddress),
 	)
 
-	// Cognito Localの場合はAdminInitiateAuthを使用
-	if s.cfg.Cognito.Endpoint != "" {
+	// Cognito Localの場合でも通常のInitiateAuthを使用
+	if false && s.cfg.Cognito.Endpoint != "" {
 		s.logger.Info("Using Cognito Local with AdminInitiateAuth",
 			zap.String("endpoint", s.cfg.Cognito.Endpoint),
 			zap.String("user_pool_id", s.cfg.Cognito.UserPoolID),
@@ -102,6 +129,9 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 			zap.String("email", email),
 		)
 
+		// SecretHashを計算
+		secretHash := s.calculateSecretHash(email)
+		
 		// AdminInitiateAuthを使用（emailでの認証をサポート）
 		authInput := &cognitoidentityprovider.AdminInitiateAuthInput{
 			UserPoolId: aws.String(s.cfg.Cognito.UserPoolID),
@@ -110,6 +140,7 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 			AuthParameters: map[string]string{
 				"USERNAME": email,
 				"PASSWORD": password,
+				"SECRET_HASH": secretHash,
 			},
 		}
 
@@ -504,8 +535,8 @@ func splitName(fullName string) []string {
 
 // 既存のAuthServiceインターフェースを満たすためのメソッド
 
-// ValidateJWTClaims JWT claimsの検証（Cognito版）
-func (s *CognitoAuthService) ValidateJWTClaims(claims map[string]interface{}) error {
+// ValidateClaims claimsの検証（Cognito版）
+func (s *CognitoAuthService) ValidateClaims(claims map[string]interface{}) error {
 	// token_useの確認
 	tokenUse, ok := claims["token_use"].(string)
 	if !ok || (tokenUse != "id" && tokenUse != "access") {

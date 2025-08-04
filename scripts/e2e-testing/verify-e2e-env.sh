@@ -61,7 +61,6 @@ if [ -f ".env.e2e" ]; then
     echo ""
     echo "Security Settings:"
     check_env_var "RATE_LIMIT_ENABLED" "$RATE_LIMIT_ENABLED" "false"
-    check_env_var "JWT_SECRET" "$JWT_SECRET" "e2e_test_secret_key_only_for_testing"
 fi
 echo ""
 

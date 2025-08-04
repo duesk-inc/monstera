@@ -155,6 +155,5 @@ func SetupTestEnvironment() {
 	os.Setenv("DB_USER", "root")
 	os.Setenv("DB_PASSWORD", "password")
 	os.Setenv("DB_NAME", "monstera_test")
-	os.Setenv("JWT_SECRET", "test-secret-key")
 	os.Setenv("GIN_MODE", "test")
 }

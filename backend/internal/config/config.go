@@ -13,7 +13,6 @@ type Config struct {
 	Server     ServerConfig
 	Database   DatabaseConfig
 	Batch      BatchConfig // バッチ処理設定を追加
-	JWT        JWTConfig
 	Cors       CorsConfig
 	Email      EmailConfig
 	Slack      SlackConfig
@@ -49,15 +48,6 @@ type DatabaseConfig struct {
 	ConnectTimeout  int    // 接続タイムアウト（秒）
 	RequireSSL      bool   // SSL必須フラグ
 	MinTLSVersion   string // 最小TLSバージョン（1.2, 1.3）
-}
-
-// JWTConfig JWT認証関連の設定
-type JWTConfig struct {
-	Secret            string
-	AccessTokenExp    time.Duration
-	RefreshTokenExp   time.Duration
-	AccessCookieName  string
-	RefreshCookieName string
 }
 
 // CorsConfig CORS設定
@@ -302,8 +292,6 @@ func Load(envFile ...string) (*Config, error) {
 
 	readTimeout, _ := strconv.Atoi(getEnv("SERVER_READ_TIMEOUT", "30"))
 	writeTimeout, _ := strconv.Atoi(getEnv("SERVER_WRITE_TIMEOUT", "30"))
-	accessTokenExp, _ := strconv.Atoi(getEnv("JWT_ACCESS_TOKEN_EXP", "15"))
-	refreshTokenExp, _ := strconv.Atoi(getEnv("JWT_REFRESH_TOKEN_EXP", "10080")) // 7 days in minutes
 	corsMaxAge, _ := strconv.Atoi(getEnv("CORS_MAX_AGE", "300"))
 
 	// Email設定の読み込み
@@ -353,13 +341,6 @@ func Load(envFile ...string) (*Config, error) {
 			MinTLSVersion:   getEnv("DB_MIN_TLS_VERSION", "1.2"),
 		},
 		Batch: LoadBatchConfig(),
-		JWT: JWTConfig{
-			Secret:            getEnv("JWT_SECRET", "monstera_secret_key"),
-			AccessTokenExp:    time.Duration(accessTokenExp) * time.Minute,
-			RefreshTokenExp:   time.Duration(refreshTokenExp) * time.Minute,
-			AccessCookieName:  getEnv("JWT_ACCESS_COOKIE_NAME", "access_token"),
-			RefreshCookieName: getEnv("JWT_REFRESH_COOKIE_NAME", "refresh_token"),
-		},
 		Cors: CorsConfig{
 			AllowOrigins:     []string{getEnv("CORS_ALLOW_ORIGINS", "http://localhost:3000")},
 			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
@@ -422,6 +403,7 @@ func Load(envFile ...string) (*Config, error) {
 		},
 		Cognito: CognitoConfig{
 			Enabled:      getEnv("COGNITO_ENABLED", "false") == "true",
+			AuthSkipMode: getEnv("AUTH_SKIP_MODE", "false") == "true",
 			Region:       getEnv("COGNITO_REGION", "us-east-1"),
 			UserPoolID:   getEnv("COGNITO_USER_POOL_ID", ""),
 			ClientID:     getEnv("COGNITO_CLIENT_ID", ""),

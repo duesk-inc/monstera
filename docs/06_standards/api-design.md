@@ -251,7 +251,7 @@ Authorization: Bearer <token>
 
 ### Cookie認証（内部API）
 ```
-Cookie: access_token=<jwt-token>
+Cookie: access_token=<cognito-token>
 ```
 
 ### 公開エンドポイント
