@@ -11,10 +11,10 @@ func CalculateExpenseDeadline(expenseDate time.Time) time.Time {
 	nextMonth := expenseDate.AddDate(0, 1, 0)
 	year := nextMonth.Year()
 	month := nextMonth.Month()
-	
+
 	// 翌月10日の23:59:59を設定
 	deadline := time.Date(year, month, 10, 23, 59, 59, 999999999, time.Local)
-	
+
 	return deadline
 }
 
@@ -30,7 +30,7 @@ func IsAllowableForSubmission(expenseDate time.Time, currentTime time.Time) bool
 	expenseYear := expenseDate.Year()
 	currentMonth := currentTime.Month()
 	expenseMonth := expenseDate.Month()
-	
+
 	// 基本的に現在年度のみ許可
 	if expenseYear != currentYear {
 		// 1月の特例: 前年12月分は許可
@@ -39,7 +39,7 @@ func IsAllowableForSubmission(expenseDate time.Time, currentTime time.Time) bool
 		}
 		return false
 	}
-	
+
 	// 現在年度内でも期限チェック
 	return IsWithinDeadline(expenseDate, currentTime)
 }

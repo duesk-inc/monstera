@@ -43,47 +43,47 @@ func (m *mockAlertSettingsRepoSimple) Delete(ctx context.Context, id uuid.UUID) 
 
 func TestAlertService_GetSettings_Simple(t *testing.T) {
 	logger := zap.NewNop()
-	
+
 	t.Run("正常にアラート設定を取得", func(t *testing.T) {
 		expectedSettings := &model.AlertSettings{
-			ID:                           uuid.New(),
+			ID:                          uuid.New(),
 			WeeklyHoursLimit:            60,
 			WeeklyHoursChangeLimit:      20,
 			ConsecutiveHolidayWorkLimit: 3,
 			MonthlyOvertimeLimit:        80,
 		}
-		
+
 		mockRepo := &mockAlertSettingsRepoSimple{
 			settings: expectedSettings,
 			err:      nil,
 		}
-		
+
 		service := &alertService{
 			alertSettingsRepo: mockRepo,
-			logger:           logger,
+			logger:            logger,
 		}
-		
+
 		settings, err := service.GetAlertSettings(context.Background())
-		
+
 		assert.NoError(t, err)
 		assert.NotNil(t, settings)
 		assert.Equal(t, expectedSettings.ID, settings.ID)
 		assert.Equal(t, expectedSettings.WeeklyHoursLimit, settings.WeeklyHoursLimit)
 	})
-	
+
 	t.Run("アラート設定が存在しない場合", func(t *testing.T) {
 		mockRepo := &mockAlertSettingsRepoSimple{
 			settings: nil,
 			err:      gorm.ErrRecordNotFound,
 		}
-		
+
 		service := &alertService{
 			alertSettingsRepo: mockRepo,
-			logger:           logger,
+			logger:            logger,
 		}
-		
+
 		settings, err := service.GetAlertSettings(context.Background())
-		
+
 		assert.Error(t, err)
 		assert.Nil(t, settings)
 		assert.Contains(t, err.Error(), "アラート設定の取得に失敗しました")

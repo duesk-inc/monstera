@@ -586,7 +586,6 @@ func (s *adminWeeklyReportService) calculateWorkHourStats(reports []model.Weekly
 	}
 }
 
-
 // calculateUserSummaries ユーザー別サマリーを計算
 func (s *adminWeeklyReportService) calculateUserSummaries(reports []model.WeeklyReport) []dto.UserWeeklyReportSummaryDTO {
 	userMap := make(map[uuid.UUID]*dto.UserWeeklyReportSummaryDTO)

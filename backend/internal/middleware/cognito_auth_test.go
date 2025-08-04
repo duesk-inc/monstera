@@ -111,12 +111,12 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 
 		// トークンの作成（実際の検証をスキップするためにモックを使用）
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"sub":        "test-cognito-sub",
-			"email":      "test@example.com",
-			"exp":        time.Now().Add(time.Hour).Unix(),
-			"token_use":  "id",
-			"client_id":  cfg.Cognito.ClientID,
-			"aud":        cfg.Cognito.ClientID,
+			"sub":       "test-cognito-sub",
+			"email":     "test@example.com",
+			"exp":       time.Now().Add(time.Hour).Unix(),
+			"token_use": "id",
+			"client_id": cfg.Cognito.ClientID,
+			"aud":       cfg.Cognito.ClientID,
 		})
 
 		// トークンをCookieに設定

@@ -74,14 +74,14 @@ func TestNotificationAPIWithAuthentication(t *testing.T) {
 		c.JSON(http.StatusOK, gin.H{
 			"notifications": []gin.H{
 				{
-					"id":           uuid.New().String(),
-					"user_id":      userID.(uuid.UUID).String(),
+					"id":      uuid.New().String(),
+					"user_id": userID.(uuid.UUID).String(),
 					"notification": gin.H{
 						"id":                uuid.New().String(),
 						"notification_type": "system",
-						"title":            "Test Notification",
-						"message":          "This is a test notification",
-						"created_at":       "2025-07-12T09:00:00Z",
+						"title":             "Test Notification",
+						"message":           "This is a test notification",
+						"created_at":        "2025-07-12T09:00:00Z",
 					},
 					"is_read":    false,
 					"created_at": "2025-07-12T09:00:00Z",

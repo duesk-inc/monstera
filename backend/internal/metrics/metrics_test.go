@@ -65,7 +65,6 @@ func TestRecordCacheMetrics(t *testing.T) {
 	assert.Equal(t, float64(1), testutil.ToFloat64(CacheMisses.WithLabelValues("summary", "monthly")))
 }
 
-
 func TestRecordError(t *testing.T) {
 	// カウンターをリセット
 	ApplicationErrors.Reset()

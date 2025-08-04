@@ -32,12 +32,12 @@ type S3Service interface {
 
 // s3Service S3サービスの実装
 type s3Service struct {
-	s3Client       *s3.Client
+	s3Client         *s3.Client
 	s3ClientExternal *s3.Client // 外部アクセス用のクライアント（Pre-signed URL生成用）
-	bucketName     string
-	baseURL        string
+	bucketName       string
+	baseURL          string
 	externalEndpoint string
-	logger         *zap.Logger
+	logger           *zap.Logger
 }
 
 // NewS3Service S3サービスのインスタンスを生成（MinIO対応版）
@@ -50,12 +50,12 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 	}
 	pathStyle := os.Getenv("AWS_S3_PATH_STYLE") == "true"
 	disableSSL := os.Getenv("AWS_S3_DISABLE_SSL") == "true"
-	
+
 	// AWS設定のオプションを構築
 	configOptions := []func(*config.LoadOptions) error{
 		config.WithRegion(region),
 	}
-	
+
 	// カスタムエンドポイントが設定されている場合（MinIOなど）
 	if endpoint != "" {
 		configOptions = append(configOptions, config.WithEndpointResolverWithOptions(
@@ -72,10 +72,10 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 				})),
 		)
 	}
-	
+
 	cfg, err := config.LoadDefaultConfig(context.TODO(), configOptions...)
 	if err != nil {
-		logger.Error("Failed to load AWS config", 
+		logger.Error("Failed to load AWS config",
 			zap.Error(err),
 			zap.String("endpoint", endpoint),
 			zap.String("region", region),
@@ -96,11 +96,11 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 			o.UseARNRegion = false
 		}
 	})
-	
+
 	// 接続テスト（バケットの存在確認）
 	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
-	
+
 	_, err = s3Client.HeadBucket(ctx, &s3.HeadBucketInput{
 		Bucket: aws.String(bucketName),
 	})
@@ -111,7 +111,7 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 			zap.String("endpoint", endpoint))
 		return nil, fmt.Errorf("S3 bucket connection test failed: %w", err)
 	}
-	
+
 	logger.Info("S3 service initialized successfully",
 		zap.String("bucket", bucketName),
 		zap.String("region", region),
@@ -120,11 +120,11 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 		zap.Bool("disable_ssl", disableSSL))
 
 	return &s3Service{
-		s3Client:   s3Client,
-		bucketName: bucketName,
-		baseURL:    baseURL,
+		s3Client:         s3Client,
+		bucketName:       bucketName,
+		baseURL:          baseURL,
 		externalEndpoint: externalEndpoint,
-		logger:     logger,
+		logger:           logger,
 	}, nil
 }
 

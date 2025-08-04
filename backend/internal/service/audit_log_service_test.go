@@ -71,7 +71,7 @@ func TestLogHTTPRequest_Success(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	
+
 	// Setup request
 	c.Request = httptest.NewRequest("GET", "/api/v1/notifications", nil)
 	c.Request.Header.Set("User-Agent", "TestAgent")
@@ -123,7 +123,7 @@ func TestLogHTTPRequest_WithCanceledContext(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	
+
 	// Setup request
 	c.Request = httptest.NewRequest("GET", "/api/v1/notifications", nil)
 	c.Request.Header.Set("User-Agent", "TestAgent")
@@ -161,7 +161,7 @@ func TestLogHTTPRequest_SkipNonAuditableAction(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	
+
 	// Setup request
 	c.Request = httptest.NewRequest("GET", "/api/v1/health", nil)
 
@@ -193,12 +193,12 @@ func TestLogHTTPRequest_WithRequestBody(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	
+
 	// Setup POST request
 	c.Request = httptest.NewRequest("POST", "/api/v1/users", nil)
 	c.Request.Header.Set("User-Agent", "TestAgent")
 	c.Writer.WriteHeader(http.StatusCreated)
-	
+
 	// Set request body in context
 	requestBody := map[string]interface{}{"name": "Test User", "email": "test@example.com"}
 	c.Set("request_body", requestBody)
@@ -234,11 +234,11 @@ func TestLogHTTPRequest_WithError(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	
+
 	// Setup request
 	c.Request = httptest.NewRequest("POST", "/api/v1/login", nil)
 	c.Writer.WriteHeader(http.StatusUnauthorized)
-	
+
 	// Add error to context
 	c.Errors = append(c.Errors, &gin.Error{
 		Err:  assert.AnError,

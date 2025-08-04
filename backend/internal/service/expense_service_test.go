@@ -40,7 +40,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 func TestUpdateMonthlySummary_Submit(t *testing.T) {
 	db := setupTestDB(t)
 	logger := zap.NewNop()
-	
+
 	service := &expenseService{
 		db:     db,
 		logger: logger,
@@ -91,7 +91,7 @@ func TestUpdateMonthlySummary_Submit(t *testing.T) {
 func TestUpdateMonthlySummary_Cancel(t *testing.T) {
 	db := setupTestDB(t)
 	logger := zap.NewNop()
-	
+
 	service := &expenseService{
 		db:     db,
 		logger: logger,
@@ -128,7 +128,7 @@ func TestUpdateMonthlySummary_Cancel(t *testing.T) {
 func TestUpdateMonthlySummary_Approve(t *testing.T) {
 	db := setupTestDB(t)
 	logger := zap.NewNop()
-	
+
 	service := &expenseService{
 		db:     db,
 		logger: logger,
@@ -167,7 +167,7 @@ func TestUpdateMonthlySummary_Approve(t *testing.T) {
 func TestUpdateMonthlySummary_Reject(t *testing.T) {
 	db := setupTestDB(t)
 	logger := zap.NewNop()
-	
+
 	service := &expenseService{
 		db:     db,
 		logger: logger,
@@ -206,7 +206,7 @@ func TestUpdateMonthlySummary_Reject(t *testing.T) {
 func TestUpdateMonthlySummary_MultipleMonths(t *testing.T) {
 	db := setupTestDB(t)
 	logger := zap.NewNop()
-	
+
 	service := &expenseService{
 		db:     db,
 		logger: logger,

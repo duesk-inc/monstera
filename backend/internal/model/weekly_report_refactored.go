@@ -187,7 +187,6 @@ func (w *WeeklyReportRefactored) GetWeekRange() string {
 		w.EndDate.Format("2006/01/02"))
 }
 
-
 // HasComments 管理者コメントがあるかどうか
 func (w *WeeklyReportRefactored) HasComments() bool {
 	return w.ManagerComment != nil && *w.ManagerComment != ""

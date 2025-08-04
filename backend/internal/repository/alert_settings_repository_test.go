@@ -44,7 +44,7 @@ func TestAlertSettingsRepository_Create(t *testing.T) {
 	require.NoError(t, err)
 
 	settings := &model.AlertSettings{
-		ID:                           uuid.New(),
+		ID:                          uuid.New(),
 		WeeklyHoursLimit:            60,
 		WeeklyHoursChangeLimit:      20,
 		ConsecutiveHolidayWorkLimit: 3,
@@ -73,7 +73,7 @@ func TestAlertSettingsRepository_GetSettings(t *testing.T) {
 
 	// テストデータを作成
 	settings := &model.AlertSettings{
-		ID:                           uuid.New(),
+		ID:                          uuid.New(),
 		WeeklyHoursLimit:            60,
 		WeeklyHoursChangeLimit:      20,
 		ConsecutiveHolidayWorkLimit: 3,
@@ -122,7 +122,7 @@ func TestAlertSettingsRepository_GetByID(t *testing.T) {
 
 	// テストデータを作成
 	settings := &model.AlertSettings{
-		ID:                           uuid.New(),
+		ID:                          uuid.New(),
 		WeeklyHoursLimit:            60,
 		WeeklyHoursChangeLimit:      20,
 		ConsecutiveHolidayWorkLimit: 3,
@@ -155,7 +155,7 @@ func TestAlertSettingsRepository_Update(t *testing.T) {
 
 	// テストデータを作成
 	settings := &model.AlertSettings{
-		ID:                           uuid.New(),
+		ID:                          uuid.New(),
 		WeeklyHoursLimit:            60,
 		WeeklyHoursChangeLimit:      20,
 		ConsecutiveHolidayWorkLimit: 3,
@@ -168,7 +168,7 @@ func TestAlertSettingsRepository_Update(t *testing.T) {
 	// 更新
 	updates := map[string]interface{}{
 		"weekly_hours_limit": 70,
-		"updated_by":        user.ID,
+		"updated_by":         user.ID,
 	}
 	err = repo.Update(context.Background(), settings.ID, updates)
 	assert.NoError(t, err)
@@ -196,7 +196,7 @@ func TestAlertSettingsRepository_Delete(t *testing.T) {
 
 	// テストデータを作成
 	settings := &model.AlertSettings{
-		ID:                           uuid.New(),
+		ID:                          uuid.New(),
 		WeeklyHoursLimit:            60,
 		WeeklyHoursChangeLimit:      20,
 		ConsecutiveHolidayWorkLimit: 3,

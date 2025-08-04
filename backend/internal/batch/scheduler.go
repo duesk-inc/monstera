@@ -17,18 +17,18 @@ import (
 
 // Scheduler はバッチ処理のスケジューリングを管理
 type Scheduler struct {
-	cron                       *cron.Cron
-	db                         *gorm.DB
-	logger                     *zap.Logger
-	alertService               service.AlertService
-	alertDetectionBatchService service.AlertDetectionBatchService
-	notificationService        service.NotificationService
-	unsubmittedReportService   service.UnsubmittedReportService
-	reminderBatchService       service.ReminderBatchService
-	archiveService             service.ArchiveService
+	cron                         *cron.Cron
+	db                           *gorm.DB
+	logger                       *zap.Logger
+	alertService                 service.AlertService
+	alertDetectionBatchService   service.AlertDetectionBatchService
+	notificationService          service.NotificationService
+	unsubmittedReportService     service.UnsubmittedReportService
+	reminderBatchService         service.ReminderBatchService
+	archiveService               service.ArchiveService
 	expenseMonthlyCloseProcessor *ExpenseMonthlyCloseProcessor
-	ctx                        context.Context
-	cancel                     context.CancelFunc
+	ctx                          context.Context
+	cancel                       context.CancelFunc
 }
 
 // cronLoggerAdapter wraps zap.Logger to implement the Printf interface
@@ -73,7 +73,7 @@ func NewScheduler(
 	departmentRepo := repository.NewDepartmentRepository(db)
 	notificationRepo := repository.NewNotificationRepository(db, logger)
 	reminderSettingsRepo := repository.NewReminderSettingsRepository(db)
-	
+
 	// Expense repositories
 	expenseRepo := repository.NewExpenseRepository(db, logger)
 
@@ -86,7 +86,7 @@ func NewScheduler(
 		db, weeklyReportRefactoredRepo, userRepo,
 		notificationRepo, reminderSettingsRepo, logger,
 	)
-	
+
 	// Expense monthly close service
 	expenseMonthlyCloseService := service.NewExpenseMonthlyCloseService(
 		db, expenseRepo, userRepo, notificationService, logger,
@@ -96,18 +96,18 @@ func NewScheduler(
 	)
 
 	return &Scheduler{
-		cron:                       cronScheduler,
-		db:                         db,
-		logger:                     logger,
-		alertService:               alertService,
-		alertDetectionBatchService: alertDetectionBatchService,
-		notificationService:        notificationService,
-		unsubmittedReportService:   unsubmittedReportService,
-		reminderBatchService:       reminderBatchService,
-		archiveService:             archiveService,
+		cron:                         cronScheduler,
+		db:                           db,
+		logger:                       logger,
+		alertService:                 alertService,
+		alertDetectionBatchService:   alertDetectionBatchService,
+		notificationService:          notificationService,
+		unsubmittedReportService:     unsubmittedReportService,
+		reminderBatchService:         reminderBatchService,
+		archiveService:               archiveService,
 		expenseMonthlyCloseProcessor: expenseMonthlyCloseProcessor,
-		ctx:                        ctx,
-		cancel:                     cancel,
+		ctx:                          ctx,
+		cancel:                       cancel,
 	}
 }
 
@@ -381,7 +381,7 @@ func (s *Scheduler) runExpenseMonthlyCloseBatch() {
 
 	// 月次締め処理を実行
 	if err := s.expenseMonthlyCloseProcessor.ProcessMonthlyClose(ctx); err != nil {
-		s.logger.Error("Expense monthly close batch failed", 
+		s.logger.Error("Expense monthly close batch failed",
 			zap.String("job_id", jobID),
 			zap.Error(err),
 			zap.Duration("duration", time.Since(start)))

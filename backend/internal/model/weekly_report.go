@@ -58,7 +58,6 @@ func ConvertLegacyReportStatus(intStatus int) WeeklyReportStatusEnum {
 	return WeeklyReportStatusDraft
 }
 
-
 // BeforeCreate UUIDを生成
 func (r *WeeklyReport) BeforeCreate(tx *gorm.DB) error {
 	if r.ID == uuid.Nil {

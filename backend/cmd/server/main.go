@@ -301,7 +301,7 @@ func main() {
 		zap.Bool("use_mock", os.Getenv("USE_MOCK_S3") == "true"),
 		zap.Bool("is_development", os.Getenv("GO_ENV") == "development"),
 		zap.String("endpoint", os.Getenv("AWS_S3_ENDPOINT")))
-	
+
 	if os.Getenv("USE_MOCK_S3") == "true" {
 		// モックS3サービスを使用
 		logger.Info("Using mock S3 service")
@@ -312,17 +312,17 @@ func main() {
 		if bucketName == "" {
 			bucketName = "monstera-files"
 		}
-		
+
 		region := os.Getenv("AWS_REGION")
 		if region == "" {
 			region = "us-east-1"
 		}
-		
+
 		baseURL := os.Getenv("AWS_S3_BASE_URL")
-		
+
 		s3Svc, err := service.NewS3Service(bucketName, region, baseURL, logger)
 		if err != nil {
-			logger.Error("Failed to initialize S3 service", 
+			logger.Error("Failed to initialize S3 service",
 				zap.Error(err),
 				zap.String("bucket", bucketName),
 				zap.String("region", region),
@@ -346,7 +346,7 @@ func main() {
 	// 経費申請サービスを追加（s3Service, notificationService, userRepo, cacheManager, auditLogServiceを含む）
 	// 経費領収書リポジトリを初期化
 	expenseReceiptRepo := internalRepo.NewExpenseReceiptRepository(db, logger)
-	
+
 	expenseService := service.NewExpenseService(db, expenseRepo, expenseCategoryRepo, expenseLimitRepo, expenseApprovalRepo, expenseReceiptRepo, expenseDeadlineSettingRepo, s3Service, notificationService, userRepo, cacheManager, auditLogService, logger)
 	// 経費承認者設定サービスを追加
 	expenseApproverSettingService := service.NewExpenseApproverSettingService(db, expenseApproverSettingRepo, userRepo, logger)
@@ -570,7 +570,7 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 	rateLimiter := middleware.NewInMemoryRateLimiter(logger)
 
 	// 認証ミドルウェアの初期化 - Cognito認証に統一
-	logger.Info("Initializing CognitoAuthMiddleware", 
+	logger.Info("Initializing CognitoAuthMiddleware",
 		zap.Bool("Cognito.Enabled", cfg.Cognito.Enabled),
 		zap.Bool("Cognito.AuthSkipMode", cfg.Cognito.AuthSkipMode))
 	cognitoMiddleware := middleware.NewCognitoAuthMiddleware(cfg, userRepo, logger)
@@ -582,7 +582,7 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 		logger.Fatal("Failed to get AuthRequired function")
 	}
 	logger.Info("CognitoAuthMiddleware initialized successfully")
-	
+
 	if !cfg.Cognito.Enabled {
 		logger.Warn("Cognito is disabled. Please enable Cognito authentication.")
 	}
@@ -852,7 +852,7 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 					logger.Info("Mock upload received",
 						zap.String("path", c.Param("filepath")),
 						zap.String("method", c.Request.Method))
-					
+
 					// 成功レスポンスを返す
 					c.Status(http.StatusOK)
 				})

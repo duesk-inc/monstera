@@ -22,11 +22,11 @@ type ExpensePDFService interface {
 
 // expensePDFService 経費申請PDFサービスの実装
 type expensePDFService struct {
-	db              *gorm.DB
-	expenseRepo     repository.ExpenseRepository
-	userRepo        repository.UserRepository
-	categoryRepo    repository.ExpenseCategoryRepository
-	logger          *zap.Logger
+	db           *gorm.DB
+	expenseRepo  repository.ExpenseRepository
+	userRepo     repository.UserRepository
+	categoryRepo repository.ExpenseCategoryRepository
+	logger       *zap.Logger
 }
 
 // NewExpensePDFService 経費申請PDFサービスのインスタンスを生成
@@ -113,14 +113,14 @@ func (s *expensePDFService) GenerateExpensePDF(ctx context.Context, expenseID uu
 	// 経費項目
 	pdf.SetFont("Arial", "", 10)
 	pdf.SetFillColor(255, 255, 255)
-	
+
 	// 単一の経費として表示
 	pdf.CellFormat(80, 8, expense.Title, "1", 0, "L", false, 0, "")
 	pdf.CellFormat(40, 8, string(expense.Category), "1", 0, "L", false, 0, "")
 	pdf.CellFormat(30, 8, expense.ExpenseDate.Format("2006-01-02"), "1", 0, "C", false, 0, "")
 	pdf.CellFormat(30, 8, fmt.Sprintf("%d", expense.Amount), "1", 0, "R", false, 0, "")
 	pdf.Ln(8)
-	
+
 	// 説明がある場合は追加
 	if expense.Description != "" {
 		pdf.Ln(5)
@@ -206,7 +206,7 @@ func (s *expensePDFService) GenerateExpenseListPDF(ctx context.Context, filter *
 	// データ行
 	pdf.SetFont("Arial", "", 9)
 	pdf.SetFillColor(255, 255, 255)
-	
+
 	var totalAmount float64
 	for _, expense := range expenses {
 		// ユーザー情報を取得
@@ -225,7 +225,7 @@ func (s *expensePDFService) GenerateExpenseListPDF(ctx context.Context, filter *
 		pdf.CellFormat(50, 7, userName, "1", 0, "L", false, 0, "")
 		pdf.CellFormat(25, 7, string(expense.Status), "1", 0, "C", false, 0, "")
 		pdf.CellFormat(25, 7, fmt.Sprintf("%.2f", amount), "1", 0, "R", false, 0, "")
-		
+
 		// 説明（タイトルを表示）
 		description := expense.Title
 		if len(description) > 20 {

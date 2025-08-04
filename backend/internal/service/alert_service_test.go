@@ -24,7 +24,7 @@ func setupAlertTestService(t *testing.T) (
 	*MockNotificationRepository,
 ) {
 	logger := zap.NewNop()
-	
+
 	mockAlertSettingsRepo := new(MockAlertSettingsRepository)
 	mockAlertHistoryRepo := new(MockAlertHistoryRepository)
 	mockWeeklyReportRepo := new(MockWeeklyReportRepository)
@@ -46,7 +46,7 @@ func TestAlertService_GetAlertSettings(t *testing.T) {
 		service, mockAlertSettingsRepo, _, _, _ := setupAlertTestService(t)
 
 		expectedSettings := &model.AlertSettings{
-			ID:                           uuid.New(),
+			ID:                          uuid.New(),
 			WeeklyHoursLimit:            60,
 			WeeklyHoursChangeLimit:      20,
 			ConsecutiveHolidayWorkLimit: 3,
@@ -104,7 +104,7 @@ func TestAlertService_UpdateAlertSettings(t *testing.T) {
 		settingsID := uuid.New()
 		updates := map[string]interface{}{
 			"weekly_hours_limit": 70,
-			"updated_by":        "user123",
+			"updated_by":         "user123",
 		}
 
 		mockAlertSettingsRepo.On("Update", mock.Anything, settingsID, updates).Return(nil)

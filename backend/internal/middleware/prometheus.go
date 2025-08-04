@@ -58,19 +58,19 @@ func normalizePath(path string) string {
 
 	// 一般的なパターンの置換
 	replacements := map[string]string{
-		"/api/v1/expenses/:id":                     "/api/v1/expenses/:id",
-		"/api/v1/expenses/:id/approve":             "/api/v1/expenses/:id/approve",
-		"/api/v1/expenses/:id/reject":              "/api/v1/expenses/:id/reject",
-		"/api/v1/expenses/:id/cancel":              "/api/v1/expenses/:id/cancel",
-		"/api/v1/expenses/:id/submit":              "/api/v1/expenses/:id/submit",
-		"/api/v1/expenses/:id/receipts":            "/api/v1/expenses/:id/receipts",
-		"/api/v1/expenses/:id/receipts/:id":        "/api/v1/expenses/:id/receipts/:receipt_id",
-		"/api/v1/users/:id":                        "/api/v1/users/:id",
-		"/api/v1/admin/expenses/:id/approve":       "/api/v1/admin/expenses/:id/approve",
-		"/api/v1/admin/expenses/:id/reject":        "/api/v1/admin/expenses/:id/reject",
-		"/api/v1/admin/expense-categories/:id":     "/api/v1/admin/expense-categories/:id",
-		"/api/v1/admin/expense-limits/:id":         "/api/v1/admin/expense-limits/:id",
-		"/api/v1/admin/users/:id":                  "/api/v1/admin/users/:id",	}
+		"/api/v1/expenses/:id":                 "/api/v1/expenses/:id",
+		"/api/v1/expenses/:id/approve":         "/api/v1/expenses/:id/approve",
+		"/api/v1/expenses/:id/reject":          "/api/v1/expenses/:id/reject",
+		"/api/v1/expenses/:id/cancel":          "/api/v1/expenses/:id/cancel",
+		"/api/v1/expenses/:id/submit":          "/api/v1/expenses/:id/submit",
+		"/api/v1/expenses/:id/receipts":        "/api/v1/expenses/:id/receipts",
+		"/api/v1/expenses/:id/receipts/:id":    "/api/v1/expenses/:id/receipts/:receipt_id",
+		"/api/v1/users/:id":                    "/api/v1/users/:id",
+		"/api/v1/admin/expenses/:id/approve":   "/api/v1/admin/expenses/:id/approve",
+		"/api/v1/admin/expenses/:id/reject":    "/api/v1/admin/expenses/:id/reject",
+		"/api/v1/admin/expense-categories/:id": "/api/v1/admin/expense-categories/:id",
+		"/api/v1/admin/expense-limits/:id":     "/api/v1/admin/expense-limits/:id",
+		"/api/v1/admin/users/:id":              "/api/v1/admin/users/:id"}
 
 	// 既知のパターンに一致するか確認
 	for pattern, replacement := range replacements {

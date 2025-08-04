@@ -43,12 +43,12 @@ func NewCognitoAuthService(
 	// Cognito専用の認証情報を使用
 	var awsCfg aws.Config
 	var err error
-	
+
 	// COGNITO_AWS_* 環境変数が設定されている場合は、それを使用
 	cognitoAccessKey := os.Getenv("COGNITO_AWS_ACCESS_KEY_ID")
 	cognitoSecretKey := os.Getenv("COGNITO_AWS_SECRET_ACCESS_KEY")
 	cognitoSessionToken := os.Getenv("COGNITO_AWS_SESSION_TOKEN")
-	
+
 	if cognitoAccessKey != "" && cognitoSecretKey != "" {
 		// Cognito専用の認証情報を使用
 		awsCfg, err = config.LoadDefaultConfig(context.TODO(),
@@ -69,7 +69,7 @@ func NewCognitoAuthService(
 			config.WithClientLogMode(aws.LogRequestWithBody|aws.LogResponseWithBody),
 		)
 	}
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("AWS設定の読み込みに失敗しました: %w", err)
 	}
@@ -131,15 +131,15 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 
 		// SecretHashを計算
 		secretHash := s.calculateSecretHash(email)
-		
+
 		// AdminInitiateAuthを使用（emailでの認証をサポート）
 		authInput := &cognitoidentityprovider.AdminInitiateAuthInput{
 			UserPoolId: aws.String(s.cfg.Cognito.UserPoolID),
 			ClientId:   aws.String(s.cfg.Cognito.ClientID),
 			AuthFlow:   types.AuthFlowTypeAdminUserPasswordAuth,
 			AuthParameters: map[string]string{
-				"USERNAME": email,
-				"PASSWORD": password,
+				"USERNAME":    email,
+				"PASSWORD":    password,
 				"SECRET_HASH": secretHash,
 			},
 		}
@@ -157,12 +157,12 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 				zap.String("client_id", s.cfg.Cognito.ClientID),
 				zap.String("endpoint", s.cfg.Cognito.Endpoint),
 			)
-			return nil, fmt.Errorf("認証に失敗しました")
+			return nil, fmt.Errorf("メールアドレスまたはパスワードが正しくありません")
 		}
 
 		// トークンを取得
 		if authOutput.AuthenticationResult == nil {
-			return nil, fmt.Errorf("認証結果が取得できませんでした")
+			return nil, fmt.Errorf("ログインに失敗しました。しばらく待ってから再度お試しください")
 		}
 
 		return s.processAuthResult(ctx, authOutput.AuthenticationResult, userAgent, ipAddress)
@@ -186,12 +186,12 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 	authOutput, err := s.client.InitiateAuth(ctx, authInput)
 	if err != nil {
 		s.logger.Error("Cognito認証エラー", zap.Error(err))
-		return nil, fmt.Errorf("認証に失敗しました")
+		return nil, fmt.Errorf("メールアドレスまたはパスワードが正しくありません")
 	}
 
 	// トークンを取得
 	if authOutput.AuthenticationResult == nil {
-		return nil, fmt.Errorf("認証結果が取得できませんでした")
+		return nil, fmt.Errorf("ログインに失敗しました。しばらく待ってから再度お試しください")
 	}
 
 	return s.processAuthResult(ctx, authOutput.AuthenticationResult, userAgent, ipAddress)
@@ -381,7 +381,7 @@ func (s *CognitoAuthService) RefreshToken(ctx context.Context, refreshToken stri
 
 	// 新しいトークンを取得
 	if authOutput.AuthenticationResult == nil {
-		return nil, fmt.Errorf("認証結果が取得できませんでした")
+		return nil, fmt.Errorf("ログインに失敗しました。しばらく待ってから再度お試しください")
 	}
 
 	newIdToken := *authOutput.AuthenticationResult.IdToken

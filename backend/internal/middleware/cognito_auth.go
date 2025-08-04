@@ -75,10 +75,10 @@ func NewCognitoAuthMiddleware(
 func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// デバッグログ追加
-		m.logger.Info("AuthRequired called", 
+		m.logger.Info("AuthRequired called",
 			zap.Bool("Cognito.Enabled", m.config.Cognito.Enabled),
 			zap.Bool("Cognito.AuthSkipMode", m.config.Cognito.AuthSkipMode))
-		
+
 		// Cognitoが無効な場合
 		if !m.config.Cognito.Enabled {
 			m.logger.Info("Cognito is disabled")
@@ -493,11 +493,11 @@ func validateRSAPublicKey(key *rsa.PublicKey) error {
 // setDevelopmentUser 開発環境用のダミーユーザーを設定
 func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 	// 開発用のダミーユーザー情報
-	adminRole := model.RoleAdmin  // Role型の定数を使用
-	
+	adminRole := model.RoleAdmin // Role型の定数を使用
+
 	// UUIDを生成
 	userID, _ := uuid.Parse("00000000-0000-0000-0000-000000000001")
-	
+
 	devUser := &model.User{
 		ID:          userID,
 		Email:       "dev@duesk.co.jp",

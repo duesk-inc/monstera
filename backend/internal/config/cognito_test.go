@@ -6,10 +6,10 @@ import (
 
 func TestCognitoConfig_GetIssuer(t *testing.T) {
 	tests := []struct {
-		name       string
-		config     *CognitoConfig
-		expected   string
-		desc       string
+		name     string
+		config   *CognitoConfig
+		expected string
+		desc     string
 	}{
 		{
 			name: "ローカル環境_cognito-local_port_9229",
@@ -121,7 +121,7 @@ func TestCognitoConfig_GetIssuer_EdgeCases(t *testing.T) {
 				t.Errorf("nil configでpanicが発生することを期待したが、発生しなかった")
 			}
 		}()
-		
+
 		var config *CognitoConfig
 		_ = config.GetIssuer()
 	})
@@ -161,14 +161,14 @@ func TestCognitoConfig_GetIssuer_Integration(t *testing.T) {
 			UserPoolID: "local_7221v1tw",
 			Region:     "us-east-1",
 		}
-		
+
 		result := config.GetIssuer()
 		expected := "http://0.0.0.0:9229/local_7221v1tw"
-		
+
 		if result != expected {
 			t.Errorf("実際の設定でのGetIssuer() = %v, expected %v", result, expected)
 		}
-		
+
 		t.Logf("実際の設定での結果: %s", result)
 	})
 }
@@ -180,7 +180,7 @@ func BenchmarkCognitoConfig_GetIssuer(b *testing.B) {
 		UserPoolID: "local_benchmark",
 		Region:     "us-east-1",
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = config.GetIssuer()
@@ -193,7 +193,7 @@ func BenchmarkCognitoConfig_GetIssuer_Production(b *testing.B) {
 		UserPoolID: "prod_benchmark",
 		Region:     "us-east-1",
 	}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = config.GetIssuer()

@@ -63,8 +63,8 @@ type Expense struct {
 	ExpenseDate            time.Time       `gorm:"not null" json:"expense_date"`
 	Status                 ExpenseStatus   `gorm:"type:enum('draft','submitted','approved','rejected','paid','cancelled','expired');default:'draft';not null" json:"status"`
 	Description            string          `gorm:"type:text" json:"description"`
-	ReceiptURL             string          `gorm:"size:255" json:"receipt_url"`   // 領収書画像のURL
-	ReceiptURLs            []string        `gorm:"-" json:"receipt_urls"` // 複数の領収書画像URL（expense_receiptsテーブルで管理）
+	ReceiptURL             string          `gorm:"size:255" json:"receipt_url"` // 領収書画像のURL
+	ReceiptURLs            []string        `gorm:"-" json:"receipt_urls"`       // 複数の領収書画像URL（expense_receiptsテーブルで管理）
 	ApproverID             *uuid.UUID      `gorm:"type:varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci" json:"approver_id"`
 	Approver               *User           `gorm:"foreignKey:ApproverID;references:ID" json:"approver"`
 	ApprovedAt             *time.Time      `json:"approved_at"`
@@ -296,17 +296,17 @@ func (e *Expense) MarkExpiryNotificationSent() {
 
 // MonthlyCloseStatus 月次締め状態
 type MonthlyCloseStatus struct {
-	ID                    uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
-	Year                  int       `gorm:"not null" json:"year"`
-	Month                 int       `gorm:"not null" json:"month"`
-	Status                MonthlyCloseStatusType `gorm:"type:varchar(20);not null" json:"status"`
-	ClosedAt              *time.Time            `json:"closed_at"`
-	ClosedBy              *uuid.UUID            `gorm:"type:uuid" json:"closed_by"`
-	TotalExpenseCount     int                   `json:"total_expense_count"`
-	TotalExpenseAmount    float64               `json:"total_expense_amount"`
-	PendingExpenseCount   int                   `json:"pending_expense_count"`
-	CreatedAt             time.Time             `json:"created_at"`
-	UpdatedAt             time.Time             `json:"updated_at"`
+	ID                  uuid.UUID              `gorm:"type:uuid;primary_key" json:"id"`
+	Year                int                    `gorm:"not null" json:"year"`
+	Month               int                    `gorm:"not null" json:"month"`
+	Status              MonthlyCloseStatusType `gorm:"type:varchar(20);not null" json:"status"`
+	ClosedAt            *time.Time             `json:"closed_at"`
+	ClosedBy            *uuid.UUID             `gorm:"type:uuid" json:"closed_by"`
+	TotalExpenseCount   int                    `json:"total_expense_count"`
+	TotalExpenseAmount  float64                `json:"total_expense_amount"`
+	PendingExpenseCount int                    `json:"pending_expense_count"`
+	CreatedAt           time.Time              `json:"created_at"`
+	UpdatedAt           time.Time              `json:"updated_at"`
 }
 
 // MonthlyCloseStatusType 月次締め状態タイプ

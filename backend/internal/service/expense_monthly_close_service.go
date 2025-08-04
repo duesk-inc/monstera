@@ -21,11 +21,11 @@ type ExpenseMonthlyCloseService interface {
 
 // expenseMonthlyCloseService 経費月次締めサービスの実装
 type expenseMonthlyCloseService struct {
-	db              *gorm.DB
-	expenseRepo     repository.ExpenseRepository
-	userRepo        repository.UserRepository
+	db                  *gorm.DB
+	expenseRepo         repository.ExpenseRepository
+	userRepo            repository.UserRepository
 	notificationService NotificationService
-	logger          *zap.Logger
+	logger              *zap.Logger
 }
 
 // NewExpenseMonthlyCloseService 経費月次締めサービスのインスタンスを生成
@@ -72,8 +72,8 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 
 	// 1. 未提出の経費申請を確認
 	var pendingExpenses []model.Expense
-	if err := tx.Where("status = ? AND created_at >= ? AND created_at <= ?", 
-			model.ExpenseStatusDraft, startDate, endDate).
+	if err := tx.Where("status = ? AND created_at >= ? AND created_at <= ?",
+		model.ExpenseStatusDraft, startDate, endDate).
 		Find(&pendingExpenses).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("未提出経費の取得に失敗しました: %w", err)
@@ -84,7 +84,7 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 		s.logger.Warn("未提出の経費申請があります",
 			zap.Int("count", len(pendingExpenses)),
 		)
-		
+
 		// 未提出者に通知
 		for _, expense := range pendingExpenses {
 			notification := &model.Notification{
@@ -97,9 +97,9 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 				Status:           model.NotificationStatusUnread,
 				CreatedAt:        time.Now(),
 			}
-			
+
 			if err := s.notificationService.CreateNotification(ctx, notification); err != nil {
-				s.logger.Error("通知の作成に失敗しました", 
+				s.logger.Error("通知の作成に失敗しました",
 					zap.Error(err),
 					zap.String("user_id", expense.UserID.String()),
 				)
@@ -109,8 +109,8 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 
 	// 2. 承認済み経費の集計
 	var approvedExpenses []model.Expense
-	if err := tx.Where("status = ? AND approved_at >= ? AND approved_at <= ?", 
-			model.ExpenseStatusApproved, startDate, endDate).
+	if err := tx.Where("status = ? AND approved_at >= ? AND approved_at <= ?",
+		model.ExpenseStatusApproved, startDate, endDate).
 		Find(&approvedExpenses).Error; err != nil {
 		tx.Rollback()
 		return fmt.Errorf("承認済み経費の取得に失敗しました: %w", err)
@@ -118,17 +118,17 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 
 	// 3. 月次締め状態を記録
 	closeStatus := &model.MonthlyCloseStatus{
-		ID:                    uuid.New(),
-		Year:                  year,
-		Month:                 month,
-		Status:                model.MonthlyCloseStatusClosed,
-		ClosedAt:              timePtr(time.Now()),
-		ClosedBy:              nil, // システム処理のためnull
-		TotalExpenseCount:     len(approvedExpenses),
-		TotalExpenseAmount:    calculateTotalAmount(approvedExpenses),
-		PendingExpenseCount:   len(pendingExpenses),
-		CreatedAt:             time.Now(),
-		UpdatedAt:             time.Now(),
+		ID:                  uuid.New(),
+		Year:                year,
+		Month:               month,
+		Status:              model.MonthlyCloseStatusClosed,
+		ClosedAt:            timePtr(time.Now()),
+		ClosedBy:            nil, // システム処理のためnull
+		TotalExpenseCount:   len(approvedExpenses),
+		TotalExpenseAmount:  calculateTotalAmount(approvedExpenses),
+		PendingExpenseCount: len(pendingExpenses),
+		CreatedAt:           time.Now(),
+		UpdatedAt:           time.Now(),
 	}
 
 	if err := tx.Create(closeStatus).Error; err != nil {
@@ -138,7 +138,7 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 
 	// 4. 承認済み経費を確定状態に更新
 	if err := tx.Model(&model.Expense{}).
-		Where("status = ? AND approved_at >= ? AND approved_at <= ?", 
+		Where("status = ? AND approved_at >= ? AND approved_at <= ?",
 			model.ExpenseStatusApproved, startDate, endDate).
 		Update("status", model.ExpenseStatusClosed).Error; err != nil {
 		tx.Rollback()
@@ -176,7 +176,7 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 		Status:           model.NotificationStatusUnread,
 		CreatedAt:        time.Now(),
 	}
-	
+
 	if err := s.notificationService.CreateNotification(ctx, adminNotification); err != nil {
 		s.logger.Error("管理者通知の作成に失敗しました", zap.Error(err))
 		// 通知失敗は処理を中断しない
@@ -188,11 +188,11 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 // GetMonthlyCloseStatus 月次締め状態を取得
 func (s *expenseMonthlyCloseService) GetMonthlyCloseStatus(ctx context.Context, year int, month int) (*model.MonthlyCloseStatus, error) {
 	var status model.MonthlyCloseStatus
-	
+
 	err := s.db.WithContext(ctx).
 		Where("year = ? AND month = ?", year, month).
 		First(&status).Error
-	
+
 	if err == gorm.ErrRecordNotFound {
 		// レコードがない場合は未締め状態として返す
 		return &model.MonthlyCloseStatus{
@@ -201,11 +201,11 @@ func (s *expenseMonthlyCloseService) GetMonthlyCloseStatus(ctx context.Context, 
 			Status: model.MonthlyCloseStatusOpen,
 		}, nil
 	}
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("月次締め状態の取得に失敗しました: %w", err)
 	}
-	
+
 	return &status, nil
 }
 
@@ -218,7 +218,7 @@ func (s *expenseMonthlyCloseService) CreateMonthlyCloseSummary(ctx context.Conte
 	// 承認済み経費を取得
 	var expenses []model.Expense
 	if err := s.db.WithContext(ctx).
-		Where("status = ? AND approved_at >= ? AND approved_at <= ?", 
+		Where("status = ? AND approved_at >= ? AND approved_at <= ?",
 			model.ExpenseStatusApproved, startDate, endDate).
 		Find(&expenses).Error; err != nil {
 		return nil, fmt.Errorf("承認済み経費の取得に失敗しました: %w", err)
@@ -240,7 +240,7 @@ func (s *expenseMonthlyCloseService) createMonthlySummaryInTx(tx *gorm.DB, year 
 	// ユーザー別集計
 	userSummaries := make(map[uuid.UUID]*model.UserExpenseSummary)
 	categoryTotals := make(map[uint]float64)
-	
+
 	for _, expense := range expenses {
 		// ユーザー別集計
 		if _, exists := userSummaries[expense.UserID]; !exists {
@@ -249,20 +249,20 @@ func (s *expenseMonthlyCloseService) createMonthlySummaryInTx(tx *gorm.DB, year 
 			if user != nil {
 				userName = fmt.Sprintf("%s %s", user.LastName, user.FirstName)
 			}
-			
+
 			userSummaries[expense.UserID] = &model.UserExpenseSummary{
-				ID:              uuid.New(),
+				ID:               uuid.New(),
 				MonthlySummaryID: summary.ID,
-				UserID:          expense.UserID,
-				UserName:        userName,
-				ExpenseCount:    0,
-				TotalAmount:     0,
+				UserID:           expense.UserID,
+				UserName:         userName,
+				ExpenseCount:     0,
+				TotalAmount:      0,
 			}
 		}
-		
+
 		userSummary := userSummaries[expense.UserID]
 		userSummary.ExpenseCount++
-		
+
 		// 金額を集計
 		userSummary.TotalAmount += float64(expense.Amount)
 		// カテゴリーはstring型のため、一時的にハッシュ値を使用
@@ -290,7 +290,7 @@ func (s *expenseMonthlyCloseService) createMonthlySummaryInTx(tx *gorm.DB, year 
 			MonthlySummaryID: summary.ID,
 			CategoryID:       categoryID,
 			CategoryName:     fmt.Sprintf("Category_%d", categoryID), // TODO: カテゴリー名を取得
-			ExpenseCount:     0, // TODO: カテゴリー別件数を計算
+			ExpenseCount:     0,                                      // TODO: カテゴリー別件数を計算
 			TotalAmount:      amount,
 		})
 	}

@@ -148,7 +148,7 @@ func TestWeeklyReportHandlerTypeConversion(t *testing.T) {
 
 			// ロール取得ロジックのテスト
 			userRole, _ := c.Get("role")
-			
+
 			// 実際のハンドラーと同じロジックで変換
 			var userRoleStr string
 			if userRole != nil {

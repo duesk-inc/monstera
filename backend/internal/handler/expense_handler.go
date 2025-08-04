@@ -340,11 +340,11 @@ func (h *ExpenseHandler) GetCategories(c *gin.Context) {
 	// アクティブなカテゴリのみを取得
 	categories, err := h.expenseService.GetActiveCategories(c.Request.Context())
 	if err != nil {
-		h.logger.Error("Failed to get expense categories", 
-			zap.Error(err), 
+		h.logger.Error("Failed to get expense categories",
+			zap.Error(err),
 			zap.String("user_id", userID.String()))
-		HandleStandardError(c, http.StatusInternalServerError, 
-			constants.ErrExpenseSaveFailed, 
+		HandleStandardError(c, http.StatusInternalServerError,
+			constants.ErrExpenseSaveFailed,
 			"カテゴリの取得に失敗しました", h.logger, err)
 		return
 	}

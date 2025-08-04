@@ -21,43 +21,43 @@ type EngineerRepository interface {
 	FindAll(ctx context.Context, params EngineerListParams) ([]*model.User, int64, error)
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
 	ExistsByEmployeeNumber(ctx context.Context, employeeNumber string) (bool, error)
-	
+
 	// ステータス履歴
 	CreateStatusHistory(ctx context.Context, history *model.EngineerStatusHistory) error
 	FindStatusHistoryByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]*model.EngineerStatusHistory, error)
-	
+
 	// スキル管理
 	CreateSkill(ctx context.Context, skill *model.EngineerSkill) error
 	UpdateSkill(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error
 	DeleteSkill(ctx context.Context, id uuid.UUID) error
 	FindSkillsByUserID(ctx context.Context, userID uuid.UUID) ([]*model.EngineerSkill, error)
 	FindAllSkillCategories(ctx context.Context) ([]*model.EngineerSkillCategory, error)
-	
+
 	// プロジェクト履歴
 	CreateProjectHistory(ctx context.Context, history *model.EngineerProjectHistory) error
 	UpdateProjectHistory(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error
 	FindProjectHistoryByUserID(ctx context.Context, userID uuid.UUID) ([]*model.EngineerProjectHistory, error)
 	UpdateCurrentProjectStatus(ctx context.Context, userID uuid.UUID, projectID uuid.UUID) error
-	
+
 	// 社員番号採番
 	GenerateEmployeeNumber(ctx context.Context) (string, error)
-	
+
 	// バッチ処理用
 	FindEngineersWithEndedProjects(ctx context.Context) ([]*model.User, error)
 }
 
 // EngineerListParams エンジニア一覧取得パラメータ
 type EngineerListParams struct {
-	Page             int
-	Limit            int
-	Search           string
-	Department       string
-	Position         string
-	Status           string
-	Skills           []string
-	SkillSearchType  string // "and" or "or"
-	Sort             string
-	Order            string
+	Page            int
+	Limit           int
+	Search          string
+	Department      string
+	Position        string
+	Status          string
+	Skills          []string
+	SkillSearchType string // "and" or "or"
+	Sort            string
+	Order           string
 }
 
 type engineerRepository struct {
@@ -208,11 +208,11 @@ func (r *engineerRepository) FindStatusHistoryByUserID(ctx context.Context, user
 	query := r.db.WithContext(ctx).
 		Where("user_id = ?", userID).
 		Order("changed_at DESC")
-	
+
 	if limit > 0 {
 		query = query.Limit(limit)
 	}
-	
+
 	err := query.Find(&histories).Error
 	return histories, err
 }
@@ -284,7 +284,7 @@ func (r *engineerRepository) UpdateCurrentProjectStatus(ctx context.Context, use
 			Update("is_current", false).Error; err != nil {
 			return err
 		}
-		
+
 		// 指定されたプロジェクトを現在参画中に
 		if projectID != uuid.Nil {
 			if err := tx.Model(&model.EngineerProjectHistory{}).
@@ -293,7 +293,7 @@ func (r *engineerRepository) UpdateCurrentProjectStatus(ctx context.Context, use
 				return err
 			}
 		}
-		
+
 		return nil
 	})
 }
@@ -306,34 +306,34 @@ func (r *engineerRepository) GenerateEmployeeNumber(ctx context.Context) (string
 		Order("employee_number DESC").
 		Limit(1).
 		Pluck("employee_number", &maxNumber).Error
-	
+
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return "", err
 	}
-	
+
 	// 次の番号を生成
 	nextNumber := 1
 	if maxNumber != "" {
 		fmt.Sscanf(maxNumber, "%d", &nextNumber)
 		nextNumber++
 	}
-	
+
 	return fmt.Sprintf("%06d", nextNumber), nil
 }
 
 // FindEngineersWithEndedProjects 終了したプロジェクトのエンジニアを取得
 func (r *engineerRepository) FindEngineersWithEndedProjects(ctx context.Context) ([]*model.User, error) {
 	var users []*model.User
-	
+
 	// 現在参画中プロジェクトが終了したエンジニアを取得
 	subQuery := r.db.Table("engineer_project_history").
 		Select("user_id").
 		Where("is_current = true AND end_date IS NOT NULL AND end_date <= ?", time.Now()).
 		Group("user_id")
-	
+
 	err := r.db.WithContext(ctx).
 		Where("id IN (?) AND engineer_status = ?", subQuery, model.EngineerStatusActive).
 		Find(&users).Error
-	
+
 	return users, err
 }

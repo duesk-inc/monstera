@@ -69,9 +69,9 @@ func (h *adminEngineerHandler) GetEngineers(c *gin.Context) {
 
 	// フィルタパラメータの取得
 	filters := repository.EngineerFilters{
-		Page:      page,
-		Limit:     limit,
-		Search:    c.Query("keyword"),
+		Page:       page,
+		Limit:      limit,
+		Search:     c.Query("keyword"),
 		Department: c.Query("department"),
 		Position:   c.Query("position"),
 		Status:     c.Query("engineerStatus"),

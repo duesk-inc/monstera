@@ -63,8 +63,6 @@ func (mr *MockAuthServiceMockRecorder) UseBackupCode(userID, backupCode interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseBackupCode", reflect.TypeOf((*MockAuthService)(nil).UseBackupCode), userID, backupCode)
 }
 
-
-
 // ValidateTOTP mocks base method.
 func (m *MockAuthService) ValidateTOTP(userID, code string) (bool, error) {
 	m.ctrl.T.Helper()

@@ -115,7 +115,7 @@ func AuditLogMiddleware(auditService service.AuditLogService, logger *zap.Logger
 		go func() {
 			// バックグラウンドコンテキストを作成
 			ctx := context.Background()
-			
+
 			if err := auditService.LogHTTPRequest(
 				ctx,
 				c,

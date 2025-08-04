@@ -57,7 +57,7 @@ func (s *mockS3Service) GetFileURL(ctx context.Context, s3Key string) (string, e
 	if s3Key == "" {
 		return "", fmt.Errorf("S3キーが指定されていません")
 	}
-	
+
 	// モックのURLを返す
 	return fmt.Sprintf("http://localhost:9000/mock-bucket/%s", s3Key), nil
 }
@@ -107,7 +107,7 @@ func (s *mockS3Service) GetFileInfo(ctx context.Context, s3Key string) (*dto.Fil
 func (s *mockS3Service) GeneratePresignedUploadURL(ctx context.Context, key string, contentType string, expiresIn time.Duration) (string, map[string]string, error) {
 	// モックのURLを生成
 	presignedURL := fmt.Sprintf("http://localhost:9000/mock-bucket/%s?mock=true&expires=%d", key, time.Now().Add(expiresIn).Unix())
-	
+
 	headers := map[string]string{
 		"Content-Type": contentType,
 	}

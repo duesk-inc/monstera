@@ -169,7 +169,6 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 		report.Status = model.WeeklyReportStatusDraft
 	}
 
-
 	// 日次勤怠記録を変換
 	dailyRecords, err := h.convertDailyRecordRequests(req.DailyRecords)
 	if err != nil {
@@ -224,8 +223,8 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 			StatusCode:   http.StatusCreated,
 			ResponseBody: response,
 			Metadata: map[string]interface{}{
-				"report_id":     report.ID.String(),
-				"status":        report.Status,
+				"report_id": report.ID.String(),
+				"status":    report.Status,
 			},
 		},
 	)
@@ -458,7 +457,6 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 		report.EndDate = endDate
 	}
 
-
 	// WeeklyRemarksは空文字列を許可（クリアする場合があるため）
 	report.WeeklyRemarks = req.WeeklyRemarks
 
@@ -523,8 +521,8 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			StatusCode:   http.StatusOK,
 			ResponseBody: response,
 			Metadata: map[string]interface{}{
-				"report_id":     report.ID.String(),
-				"status":        report.Status.String(),
+				"report_id": report.ID.String(),
+				"status":    report.Status.String(),
 			},
 		},
 	)
@@ -1159,7 +1157,6 @@ func (h *WeeklyReportHandler) validateDateRange(startDateStr string, endDateStr 
 }
 
 // 追加の共通ヘルパーメソッド
-
 
 // parseUUID UUIDをパースする
 func (h *WeeklyReportHandler) parseUUID(c *gin.Context, paramName string) (uuid.UUID, error) {

@@ -37,7 +37,7 @@ func (suite *ExpenseCategoryRepositoryTestSuite) SetupSuite() {
 func (suite *ExpenseCategoryRepositoryTestSuite) SetupTest() {
 	// 各テストの前にデータをクリア
 	suite.db.Exec("DELETE FROM expense_categories")
-	
+
 	// SQLiteのtableが正しく作成されていることを確認
 	// TableNameメソッドが正しく動作することを確認
 	suite.db.Table("expense_categories").AutoMigrate(&model.ExpenseCategoryMaster{})
@@ -120,12 +120,12 @@ func (suite *ExpenseCategoryRepositoryTestSuite) TestGetActive() {
 	result, err := suite.repo.GetActive(ctx)
 	assert.NoError(suite.T(), err)
 	assert.GreaterOrEqual(suite.T(), len(result), 2) // 少なくとも2つのアクティブなカテゴリ
-	
+
 	// 表示順序でソートされていることを確認
 	for i := 1; i < len(result); i++ {
 		assert.GreaterOrEqual(suite.T(), result[i].DisplayOrder, result[i-1].DisplayOrder)
 	}
-	
+
 	// アクティブなカテゴリのみが含まれていることを確認
 	for _, cat := range result {
 		assert.True(suite.T(), cat.IsActive)
@@ -173,7 +173,7 @@ func (suite *ExpenseCategoryRepositoryTestSuite) TestGetActiveOrderByDisplayOrde
 	result, err := suite.repo.GetActiveOrderByDisplayOrder(ctx)
 	assert.NoError(suite.T(), err)
 	assert.Len(suite.T(), result, 3)
-	
+
 	// 表示順序でソートされていることを確認
 	assert.Equal(suite.T(), "category1", result[0].Code)
 	assert.Equal(suite.T(), "category2", result[1].Code)

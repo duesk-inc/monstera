@@ -357,7 +357,6 @@ func (r *weeklyReportRefactoredRepository) applyFilters(query *gorm.DB, params Q
 		)
 	}
 
-
 	// ソート適用
 	query = r.applySort(query, params)
 

@@ -21,10 +21,10 @@ const (
 
 	// システムエラー
 	ErrExpenseSaveFailed = "E001S001" // 経費申請の保存に失敗しました
-	
+
 	// 承認者設定エラー
 	ErrExpenseApproverNotConfigured = "E001C001" // 承認者が設定されていません
-	
+
 	// ステータスエラー
 	ErrExpenseInvalidStatus = "E001S002" // 無効なステータスです
 )
@@ -113,14 +113,14 @@ const (
 // エラーメッセージマップ
 var ErrorMessages = map[string]string{
 	// 経費申請基本操作
-	ErrExpenseTitleRequired:      "件名は必須です",
-	ErrExpenseAmountInvalid:      "金額は1円以上1000万円以下で入力してください",
-	ErrExpenseDateRequired:       "使用日は必須です",
-	ErrExpenseDescriptionInvalid: "使用理由は10文字以上1000文字以内で入力してください",
-	ErrExpenseReceiptRequired:    "領収書URLは必須です",
-	ErrExpenseAlreadySubmitted:   "既に提出済みの申請は編集できません",
-	ErrExpenseAlreadyApproved:    "承認済みの申請は取り消しできません",
-	ErrExpenseExpired:            "申請期限を過ぎた経費は申請できません",
+	ErrExpenseTitleRequired:         "件名は必須です",
+	ErrExpenseAmountInvalid:         "金額は1円以上1000万円以下で入力してください",
+	ErrExpenseDateRequired:          "使用日は必須です",
+	ErrExpenseDescriptionInvalid:    "使用理由は10文字以上1000文字以内で入力してください",
+	ErrExpenseReceiptRequired:       "領収書URLは必須です",
+	ErrExpenseAlreadySubmitted:      "既に提出済みの申請は編集できません",
+	ErrExpenseAlreadyApproved:       "承認済みの申請は取り消しできません",
+	ErrExpenseExpired:               "申請期限を過ぎた経費は申請できません",
 	ErrExpenseNotFound:              "指定された経費申請が見つかりません",
 	ErrExpenseSaveFailed:            "経費申請の保存に失敗しました",
 	ErrExpenseApproverNotConfigured: "承認者が設定されていません。システム管理者に承認者の設定を依頼してください",

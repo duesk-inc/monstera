@@ -203,7 +203,6 @@ type UserWeeklyReportSummaryDTO struct {
 	DaysOverdue      int        `json:"days_overdue"` // 提出遅延日数
 }
 
-
 // WeeklyReportTrendAnalysisDTO トレンド分析DTO
 type WeeklyReportTrendAnalysisDTO struct {
 	SubmissionTrend  TrendDataDTO        `json:"submission_trend"`  // 提出率のトレンド
@@ -261,12 +260,12 @@ type WeeklySummaryDTO struct {
 
 // MonthlyStatsDTO 月次統計DTO
 type MonthlyStatsDTO struct {
-	TotalReports          int            `json:"total_reports"`
-	SubmittedReports      int            `json:"submitted_reports"`
-	OverallSubmissionRate float64        `json:"overall_submission_rate"`
-	TotalWorkHours        float64        `json:"total_work_hours"`
-	AverageWorkHours      float64        `json:"average_work_hours"`
-	OvertimeReports       int            `json:"overtime_reports"`
+	TotalReports          int     `json:"total_reports"`
+	SubmittedReports      int     `json:"submitted_reports"`
+	OverallSubmissionRate float64 `json:"overall_submission_rate"`
+	TotalWorkHours        float64 `json:"total_work_hours"`
+	AverageWorkHours      float64 `json:"average_work_hours"`
+	OvertimeReports       int     `json:"overtime_reports"`
 }
 
 // UserPerformanceDTO ユーザーパフォーマンスDTO
@@ -352,4 +351,3 @@ type UnsubmittedReportResponse struct {
 	Items []FollowUpUserDTO `json:"items"`
 	Total int64             `json:"total"`
 }
-

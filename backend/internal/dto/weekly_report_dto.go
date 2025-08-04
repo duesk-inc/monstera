@@ -128,7 +128,6 @@ func ConvertLegacyIntStatusToString(intStatus int) string {
 	}
 }
 
-
 // WeeklyReportDTO ユーザー向け週報DTO
 type WeeklyReportDTO struct {
 	ID                       uuid.UUID  `json:"id"`
@@ -217,4 +216,3 @@ func ConvertToWeeklyReportDetailDTO(report *model.WeeklyReport) *WeeklyReportDet
 
 	return dto
 }
-
