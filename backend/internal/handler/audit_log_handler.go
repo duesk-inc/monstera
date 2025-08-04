@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/duesk/monstera/internal/auth"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/duesk/monstera/internal/service"
@@ -146,7 +145,7 @@ func (h *AuditLogHandler) GetUserAuditLogs(c *gin.Context) {
 
 // GetMyAuditLogs 自分の監査ログ取得
 func (h *AuditLogHandler) GetMyAuditLogs(c *gin.Context) {
-	userID, exists := c.Get(auth.UserIDKey)
+	userID, exists := c.Get("user_id")
 	if !exists {
 		utils.RespondError(c, http.StatusUnauthorized, "認証が必要です")
 		return

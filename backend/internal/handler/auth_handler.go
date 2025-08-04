@@ -11,6 +11,7 @@ import (
 	"github.com/duesk/monstera/internal/service"
 	"github.com/duesk/monstera/internal/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -66,14 +67,15 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	// 	return
 	// }
 
-	user, err := h.authService.RegisterUser(
-		req.Email,
-		req.Password,
-		req.FirstName,
-		req.LastName,
-		req.PhoneNumber,
-		req.Role,
-	)
+	registerReq := &service.RegisterUserRequest{
+		Email:       req.Email,
+		Password:    req.Password,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		PhoneNumber: req.PhoneNumber,
+		Role:        req.Role,
+	}
+	user, err := h.authService.RegisterUser(c.Request.Context(), registerReq)
 	if err != nil {
 		HandleError(c, http.StatusBadRequest, err.Error(), h.logger, err)
 		return
@@ -167,11 +169,24 @@ func (h *AuthHandler) RefreshToken(c *gin.Context) {
 
 // Logout ログアウトハンドラー
 func (h *AuthHandler) Logout(c *gin.Context) {
+	// ユーザーIDを取得
+	userIDValue, exists := c.Get("user_id")
+	if !exists {
+		RespondError(c, http.StatusUnauthorized, "ユーザー情報が見つかりません")
+		return
+	}
+	
+	userID, ok := userIDValue.(uuid.UUID)
+	if !ok {
+		RespondError(c, http.StatusInternalServerError, "ユーザーID形式が不正です")
+		return
+	}
+
 	// リフレッシュトークンを取得してサービスのログアウト処理を呼び出し
 	refreshToken, err := c.Cookie("refresh_token")
 	if err == nil && refreshToken != "" {
 		// サービス側でのログアウト処理（セッション削除など）
-		if logoutErr := h.authService.Logout(c.Request.Context(), refreshToken); logoutErr != nil {
+		if logoutErr := h.authService.Logout(c.Request.Context(), userID, refreshToken); logoutErr != nil {
 			h.logger.Warn("サービス側ログアウト処理エラー", zap.Error(logoutErr))
 			// エラーが発生してもクッキーはクリアする
 		}

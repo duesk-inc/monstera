@@ -21,6 +21,24 @@ import (
 	"gorm.io/gorm"
 )
 
+// AuthResponse 認証レスポンス
+type AuthResponse struct {
+	AccessToken  string       `json:"access_token"`
+	RefreshToken string       `json:"refresh_token"`
+	ExpiresAt    time.Time    `json:"expires_at"`
+	User         *model.User  `json:"user"`
+}
+
+// RegisterUserRequest ユーザー登録リクエスト
+type RegisterUserRequest struct {
+	Email       string     `json:"email" binding:"required,email"`
+	Password    string     `json:"password" binding:"required,min=8"`
+	FirstName   string     `json:"first_name" binding:"required"`
+	LastName    string     `json:"last_name" binding:"required"`
+	PhoneNumber string     `json:"phone_number"`
+	Role        model.Role `json:"role"`
+}
+
 // CognitoAuthService Cognito認証サービス
 type CognitoAuthService struct {
 	client      *cognitoidentityprovider.Client
@@ -243,11 +261,14 @@ func (s *CognitoAuthService) processAuthResult(ctx context.Context, authResult *
 }
 
 // RegisterUser ユーザー登録
-func (s *CognitoAuthService) RegisterUser(
-	email, password, firstName, lastName, phoneNumber string,
-	role model.Role,
-) (*model.User, error) {
-	ctx := context.Background()
+func (s *CognitoAuthService) RegisterUser(ctx context.Context, req *RegisterUserRequest) (*model.User, error) {
+	// リクエストから値を取り出す
+	email := req.Email
+	password := req.Password
+	firstName := req.FirstName
+	lastName := req.LastName
+	phoneNumber := req.PhoneNumber
+	role := req.Role
 
 	// ユーザー属性を設定
 	userAttributes := []types.AttributeType{
@@ -401,7 +422,7 @@ func (s *CognitoAuthService) RefreshToken(ctx context.Context, refreshToken stri
 }
 
 // Logout ログアウト
-func (s *CognitoAuthService) Logout(ctx context.Context, refreshToken string) error {
+func (s *CognitoAuthService) Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error {
 	// セッションを削除
 	if err := s.sessionRepo.DeleteByRefreshToken(ctx, refreshToken); err != nil {
 		s.logger.Error("セッション削除エラー", zap.Error(err))
@@ -575,7 +596,7 @@ func (s *CognitoAuthService) VerifySMSCode(verificationID, code string) (bool, e
 	return false, fmt.Errorf("SMS verification is not implemented yet")
 }
 
-func (s *CognitoAuthService) UseBackupCode(userID, backupCode string) (bool, error) {
+func (s *CognitoAuthService) UseBackupCode(ctx context.Context, userID uuid.UUID, code string) error {
 	// バックアップコードを使用する場合は実装
-	return false, fmt.Errorf("backup codes are not implemented yet")
+	return fmt.Errorf("backup codes are not implemented yet")
 }

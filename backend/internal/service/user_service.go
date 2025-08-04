@@ -113,14 +113,15 @@ func (s *userService) CreateUser(ctx context.Context, req *CreateUserRequest) (*
 	}
 
 	// CognitoAuthServiceのRegisterUserメソッドを使用
-	user, err := s.cognitoAuth.RegisterUser(
-		req.Email,
-		req.Password,
-		req.FirstName,
-		req.LastName,
-		req.PhoneNumber,
-		role,
-	)
+	registerReq := &RegisterUserRequest{
+		Email:       req.Email,
+		Password:    req.Password,
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		PhoneNumber: req.PhoneNumber,
+		Role:        role,
+	}
+	user, err := s.cognitoAuth.RegisterUser(ctx, registerReq)
 	if err != nil {
 		s.logger.Error("Failed to create user in Cognito", zap.Error(err))
 		return nil, err
