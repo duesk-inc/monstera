@@ -28,8 +28,6 @@ type UserService interface {
 	// ユーザー情報取得
 	GetUserByID(ctx context.Context, userID string) (*model.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*model.User, error)
-	// パスワード変更
-	ChangePassword(ctx context.Context, userID string, oldPassword, newPassword string) error
 	// ユーザー情報更新
 	UpdateUser(ctx context.Context, userID string, req *UpdateUserRequest) (*model.User, error)
 }
@@ -238,54 +236,7 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (*model.
 	return user, nil
 }
 
-// ChangePassword パスワード変更
-func (s *userService) ChangePassword(ctx context.Context, userID string, oldPassword, newPassword string) error {
-	s.logger.Info("Changing password", zap.String("user_id", userID))
 
-	uid, err := uuid.Parse(userID)
-	if err != nil {
-		return fmt.Errorf("無効なユーザーID: %w", err)
-	}
-
-	user, err := s.userRepo.GetByID(ctx, uid)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return errors.New("ユーザーが見つかりません")
-		}
-		return fmt.Errorf("ユーザー情報の取得に失敗しました: %w", err)
-	}
-
-	// Cognitoでパスワードを変更
-	// まずログインして認証を確認
-	authResponse, err := s.cognitoAuth.Login(ctx, user.Email, oldPassword, "password-change", "unknown")
-	if err != nil {
-		return errors.New("現在のパスワードが正しくありません")
-	}
-
-	// AdminSetUserPasswordを使用してパスワードを変更
-	setPasswordInput := &cognitoidentityprovider.AdminSetUserPasswordInput{
-		UserPoolId: aws.String(s.config.Cognito.UserPoolID),
-		Username:   aws.String(user.Email),
-		Password:   aws.String(newPassword),
-		Permanent:  true,
-	}
-
-	if _, err := s.cognitoClient.AdminSetUserPassword(ctx, setPasswordInput); err != nil {
-		s.logger.Error("Failed to change password in Cognito", zap.Error(err))
-		return fmt.Errorf("パスワードの変更に失敗しました: %w", err)
-	}
-
-	// 既存のセッションを無効化（オプション）
-	if authResponse.RefreshToken != "" {
-		if err := s.sessionRepo.DeleteByRefreshToken(ctx, authResponse.RefreshToken); err != nil {
-			s.logger.Error("Failed to delete session after password change", zap.Error(err))
-		}
-	}
-
-	s.logger.Info("Password changed successfully", zap.String("user_id", userID))
-
-	return nil
-}
 
 // UpdateUser ユーザー情報更新
 func (s *userService) UpdateUser(ctx context.Context, userID string, req *UpdateUserRequest) (*model.User, error) {

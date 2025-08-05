@@ -529,7 +529,6 @@ func TestDatabaseConstraints(t *testing.T) {
 		user2 := &model.User{
 			ID:            uuid.New(),
 			Email:         "duplicate@test.com", // 重複メールアドレス
-			Password:      "$2a$10$test.hashed.password",
 			FirstName:     "重複",
 			LastName:      "テスト",
 			FirstNameKana: "チョウフク",

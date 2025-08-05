@@ -206,7 +206,6 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetByID() {
 	user := &model.User{
 		ID:        uuid.New(),
 		Email:     "test@duesk.co.jp",
-		Password:  "hashedpassword",
 		FirstName: "Test",
 		LastName:  "User",
 		Name:      "Test User",
@@ -264,7 +263,6 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Update() {
 	user := &model.User{
 		ID:        uuid.New(),
 		Email:     "test@duesk.co.jp",
-		Password:  "hashedpassword",
 		FirstName: "Test",
 		LastName:  "User",
 		Name:      "Test User",
@@ -328,7 +326,6 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Delete() {
 	user := &model.User{
 		ID:        uuid.New(),
 		Email:     "test@duesk.co.jp",
-		Password:  "hashedpassword",
 		FirstName: "Test",
 		LastName:  "User",
 		Name:      "Test User",
@@ -374,7 +371,6 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetMonthlyTotal()
 	user := &model.User{
 		ID:        uuid.New(),
 		Email:     "test@duesk.co.jp",
-		Password:  "hashedpassword",
 		FirstName: "Test",
 		LastName:  "User",
 		Name:      "Test User",
@@ -446,7 +442,6 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_CountPendingByUse
 	user := &model.User{
 		ID:        uuid.New(),
 		Email:     "test@duesk.co.jp",
-		Password:  "hashedpassword",
 		FirstName: "Test",
 		LastName:  "User",
 		Name:      "Test User",
@@ -529,7 +524,6 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ExistsByID() {
 	user := &model.User{
 		ID:        uuid.New(),
 		Email:     "test@duesk.co.jp",
-		Password:  "hashedpassword",
 		FirstName: "Test",
 		LastName:  "User",
 		Name:      "Test User",
@@ -574,7 +568,6 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ListByUserID() {
 	user1 := &model.User{
 		ID:        uuid.New(),
 		Email:     "test1@duesk.co.jp",
-		Password:  "hashedpassword",
 		FirstName: "Test",
 		LastName:  "User 1",
 		Name:      "Test User 1",
@@ -584,7 +577,6 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ListByUserID() {
 	user2 := &model.User{
 		ID:        uuid.New(),
 		Email:     "test2@duesk.co.jp",
-		Password:  "hashedpassword",
 		FirstName: "Test",
 		LastName:  "User 2",
 		Name:      "Test User 2",

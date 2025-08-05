@@ -12,7 +12,6 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/handler"
-	"github.com/duesk/monstera/internal/middleware"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/duesk/monstera/internal/service"
@@ -118,14 +117,20 @@ func (suite *ExpenseIntegrationTestSuite) initializeServices(t *testing.T) {
 	suite.Router = gin.New()
 	suite.Router.Use(gin.Recovery())
 
-	// ミドルウェアの設定
-	authMiddleware := middleware.AuthMiddleware(suite.Logger)
+	// テスト用の認証ミドルウェア（認証をスキップ）
+	testAuthMiddleware := func(c *gin.Context) {
+		// テスト用に固定のユーザー情報を設定
+		c.Set("user_id", suite.TestUser.ID.String())
+		c.Set("user", suite.TestUser)
+		c.Set("role", string(suite.TestUser.Role))
+		c.Next()
+	}
 
 	// ルーティングの設定
 	v1 := suite.Router.Group("/api/v1")
 	{
 		expenses := v1.Group("/expenses")
-		expenses.Use(authMiddleware)
+		expenses.Use(testAuthMiddleware)
 		{
 			expenses.POST("", suite.ExpenseHandler.CreateExpense)
 			expenses.GET("/:id", suite.ExpenseHandler.GetExpense)
@@ -137,7 +142,7 @@ func (suite *ExpenseIntegrationTestSuite) initializeServices(t *testing.T) {
 		}
 
 		admin := v1.Group("/admin/expenses")
-		admin.Use(authMiddleware)
+		admin.Use(testAuthMiddleware)
 		{
 			admin.PUT("/:id/approve", suite.ExpenseHandler.ApproveExpense)
 			admin.PUT("/:id/reject", suite.ExpenseHandler.RejectExpense)
@@ -582,7 +587,6 @@ func (suite *ExpenseIntegrationTestSuite) createTestUser(t *testing.T, role mode
 	user := &model.User{
 		ID:        uuid.New(),
 		Email:     email,
-		Password:  "$2a$10$test.hashed.password",
 		FirstName: "統合テスト",
 		LastName:  "ユーザー",
 		Role:      role,

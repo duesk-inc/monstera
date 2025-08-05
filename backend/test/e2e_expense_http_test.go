@@ -125,7 +125,6 @@ func (suite *ExpenseHTTPE2ETestSuite) setupTestData(t *testing.T) {
 	suite.TestUser = &model.User{
 		ID:        uuid.New(),
 		Email:     "http.test@duesk.co.jp",
-		Password:  "$2a$10$test.hashed.password",
 		FirstName: "HTTP",
 		LastName:  "テスト",
 		Role:      model.RoleUser,
@@ -138,7 +137,6 @@ func (suite *ExpenseHTTPE2ETestSuite) setupTestData(t *testing.T) {
 	suite.ManagerUser = &model.User{
 		ID:        uuid.New(),
 		Email:     "http.manager@duesk.co.jp",
-		Password:  "$2a$10$test.hashed.password",
 		FirstName: "HTTPマネージャー",
 		LastName:  "テスト",
 		Role:      model.RoleManager,

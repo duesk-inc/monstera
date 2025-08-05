@@ -40,7 +40,6 @@ func (h *E2ETestHelper) CreateTestUser(role int, email string) *model.User {
 	user := &model.User{
 		ID:            uuid.New(),
 		Email:         email,
-		Password:      "$2a$10$test.hashed.password",
 		FirstName:     "テスト",
 		LastName:      "ユーザー",
 		FirstNameKana: "テスト",

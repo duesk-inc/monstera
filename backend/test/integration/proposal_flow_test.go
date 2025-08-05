@@ -73,7 +73,6 @@ func (suite *ProposalFlowIntegrationTest) SetupTestData() {
 		Base:     model.Base{ID: uuid.New()},
 		Username: "engineer_test",
 		Email:    "engineer@test.com",
-		Password: "hashed_password",
 		Name:     "テストエンジニア",
 	}
 
@@ -81,7 +80,6 @@ func (suite *ProposalFlowIntegrationTest) SetupTestData() {
 		Base:     model.Base{ID: uuid.New()},
 		Username: "sales_test",
 		Email:    "sales@test.com",
-		Password: "hashed_password",
 		Name:     "テスト営業",
 	}
 
@@ -89,7 +87,6 @@ func (suite *ProposalFlowIntegrationTest) SetupTestData() {
 		Base:     model.Base{ID: uuid.New()},
 		Username: "admin_test",
 		Email:    "admin@test.com",
-		Password: "hashed_password",
 		Name:     "テスト管理者",
 	}
 

@@ -58,7 +58,7 @@ type EngineerDetailDTO struct {
 // EngineerStatusHistoryDTO ステータス履歴DTO
 type EngineerStatusHistoryDTO struct {
 	ID             uuid.UUID `json:"id"`
-	UserID         uuid.UUID `json:"userId"`
+	UserID string `json:"userId"`
 	PreviousStatus *string   `json:"previousStatus"`
 	NewStatus      string    `json:"newStatus"`
 	Reason         string    `json:"reason"`
@@ -70,7 +70,7 @@ type EngineerStatusHistoryDTO struct {
 // EngineerSkillDTO スキル情報DTO
 type EngineerSkillDTO struct {
 	ID              uuid.UUID                 `json:"id"`
-	UserID          uuid.UUID                 `json:"userId"`
+	UserID string                 `json:"userId"`
 	SkillCategoryID uuid.UUID                 `json:"skillCategoryId"`
 	SkillName       string                    `json:"skillName"`
 	SkillLevel      int                       `json:"skillLevel"`
@@ -95,7 +95,7 @@ type EngineerSkillCategoryDTO struct {
 // EngineerProjectHistoryDTO プロジェクト履歴DTO
 type EngineerProjectHistoryDTO struct {
 	ID          uuid.UUID  `json:"id"`
-	UserID      uuid.UUID  `json:"userId"`
+	UserID string  `json:"userId"`
 	ProjectID   uuid.UUID  `json:"projectId"`
 	Role        string     `json:"role"`
 	StartDate   time.Time  `json:"startDate"`
@@ -117,7 +117,6 @@ type GetEngineersResponseDTO struct {
 // CreateEngineerRequestDTO エンジニア作成リクエストDTO
 type CreateEngineerRequestDTO struct {
 	Email         string     `json:"email" binding:"required,email"`
-	Password      string     `json:"password" binding:"required,min=8"`
 	FirstName     string     `json:"firstName" binding:"required"`
 	LastName      string     `json:"lastName" binding:"required"`
 	FirstNameKana *string    `json:"firstNameKana"`

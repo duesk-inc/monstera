@@ -503,7 +503,6 @@ func (suite *ExpenseAPIE2ETestSuite) createTestUser(t *testing.T, role model.Rol
 	user := &model.User{
 		ID:        uuid.New(),
 		Email:     email,
-		Password:  "$2a$10$test.hashed.password",
 		FirstName: "テスト",
 		LastName:  "ユーザー",
 		Role:      role,
