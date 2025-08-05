@@ -15,9 +15,9 @@ type LeaveAdminService interface {
 	GetLeaveRequests(ctx context.Context, filters repository.LeaveRequestFilters, pagination repository.Pagination) ([]*model.LeaveRequest, int64, error)
 	ApproveLeaveRequest(ctx context.Context, requestID, approverID uuid.UUID) error
 	RejectLeaveRequest(ctx context.Context, requestID, approverID uuid.UUID, reason string) error
-	BulkApproveLeaveRequests(ctx context.Context, requestIDs []uuid.UUID, approverID uuid.UUID) ([]ApprovalResult, error)
+	BulkApproveLeaveRequests(ctx context.Context, requestIDs []string, approverID uuid.UUID) ([]ApprovalResult, error)
 	GetLeaveStatistics(ctx context.Context, filters repository.StatisticsFilters) (*repository.LeaveStatistics, error)
-	GetUserLeaveStatistics(ctx context.Context, userID uuid.UUID, filters repository.StatisticsFilters) (*repository.UserLeaveStatistics, error)
+	GetUserLeaveStatistics(ctx context.Context, userID string, filters repository.StatisticsFilters) (*repository.UserLeaveStatistics, error)
 }
 
 type leaveAdminService struct {
@@ -149,7 +149,7 @@ func (s *leaveAdminService) RejectLeaveRequest(ctx context.Context, requestID, a
 	})
 }
 
-func (s *leaveAdminService) BulkApproveLeaveRequests(ctx context.Context, requestIDs []uuid.UUID, approverID uuid.UUID) ([]ApprovalResult, error) {
+func (s *leaveAdminService) BulkApproveLeaveRequests(ctx context.Context, requestIDs []string, approverID uuid.UUID) ([]ApprovalResult, error) {
 	results := make([]ApprovalResult, 0, len(requestIDs))
 
 	for _, requestID := range requestIDs {
@@ -174,6 +174,6 @@ func (s *leaveAdminService) GetLeaveStatistics(ctx context.Context, filters repo
 	return s.leaveAdminRepo.GetStatistics(ctx, filters)
 }
 
-func (s *leaveAdminService) GetUserLeaveStatistics(ctx context.Context, userID uuid.UUID, filters repository.StatisticsFilters) (*repository.UserLeaveStatistics, error) {
+func (s *leaveAdminService) GetUserLeaveStatistics(ctx context.Context, userID string, filters repository.StatisticsFilters) (*repository.UserLeaveStatistics, error) {
 	return s.leaveAdminRepo.GetUserStatistics(ctx, userID, filters)
 }

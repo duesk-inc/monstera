@@ -9,7 +9,7 @@ import (
 // SubstituteLeaveGrant は振替特別休暇の付与履歴を表すモデルです
 type SubstituteLeaveGrant struct {
 	ID            uuid.UUID `gorm:"primaryKey;type:varchar(36)" json:"id"`
-	UserID        uuid.UUID `gorm:"type:varchar(36)" json:"user_id"`
+	UserID string `gorm:"type:varchar(255)" json:"user_id"`
 	GrantDate     time.Time `json:"grant_date"`
 	GrantedDays   float64   `gorm:"type:decimal(5,1)" json:"granted_days"`
 	UsedDays      float64   `gorm:"type:decimal(5,1);default:0" json:"used_days"`

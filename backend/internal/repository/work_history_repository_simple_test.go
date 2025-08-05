@@ -172,7 +172,7 @@ func TestWorkHistoryRepositoryCore(t *testing.T) {
 		assert.NoError(t, err)
 
 		// 検索実行
-		userIDStr := userID.String()
+		userIDStr := userID
 		projectName := "検索テスト"
 		req := dto.WorkHistoryQueryRequest{
 			UserID:      &userIDStr,

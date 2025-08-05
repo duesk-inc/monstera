@@ -74,7 +74,7 @@ func (r *leavePeriodUsageRepository) Create(ctx context.Context, usage *model.Le
 	if err != nil {
 		r.Logger.Error("Failed to create leave period usage",
 			zap.Error(err),
-			zap.String("user_id", usage.UserID.String()),
+			zap.String("user_id", usage.UserID),
 			zap.String("period_id", usage.RecommendedLeavePeriodID.String()))
 		return err
 	}
@@ -103,7 +103,7 @@ func (r *leavePeriodUsageRepository) UpdateUsedDays(ctx context.Context, userID,
 		// レコードが存在しない場合は新規作成
 		usage = &model.LeavePeriodUsage{
 			ID:                       uuid.New(),
-			UserID:                   userID,
+			UserID:                   userID.String(),
 			RecommendedLeavePeriodID: periodID,
 			UsedDays:                 int(usedDays),
 		}

@@ -22,11 +22,11 @@ type UserRepository interface {
 	List(offset, limit int) ([]model.User, int64, error)
 	FindByRole(role model.Role) ([]model.User, error)
 	// ロール管理メソッド
-	AddRole(userID uuid.UUID, role model.Role) error
-	RemoveRole(userID uuid.UUID, role model.Role) error
-	SetRoles(userID uuid.UUID, roles []model.Role) error
-	GetRoles(userID uuid.UUID) ([]model.Role, error)
-	UpdateDefaultRole(userID uuid.UUID, defaultRole *model.Role) error
+	AddRole(userID string, role model.Role) error
+	RemoveRole(userID string, role model.Role) error
+	SetRoles(userID string, roles []model.Role) error
+	GetRoles(userID string) ([]model.Role, error)
+	UpdateDefaultRole(userID string, defaultRole *model.Role) error
 	SetLogger(logger *zap.Logger)
 	// 統計メソッド
 	CountByDepartment(ctx context.Context, departmentID uuid.UUID) (int64, error)
@@ -71,8 +71,6 @@ func (r *UserRepositoryImpl) FindByID(id uuid.UUID) (*model.User, error) {
 		}
 		return nil, err
 	}
-	// UserRolesからRoles配列を構築
-	user.LoadRolesFromUserRoles()
 	return &user, nil
 }
 
@@ -89,7 +87,6 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*model.
 		}
 		return nil, err
 	}
-	user.LoadRolesFromUserRoles()
 	return &user, nil
 }
 
@@ -106,7 +103,6 @@ func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*mod
 		}
 		return nil, err
 	}
-	user.LoadRolesFromUserRoles()
 	return &user, nil
 }
 
@@ -123,18 +119,17 @@ func (r *UserRepositoryImpl) GetByCognitoSub(ctx context.Context, cognitoSub str
 		}
 		return nil, err
 	}
-	user.LoadRolesFromUserRoles()
 	return &user, nil
 }
 
 // Update ユーザー情報を更新（Context付き）
 func (r *UserRepositoryImpl) Update(ctx context.Context, user *model.User) error {
 	if r.Logger != nil {
-		r.Logger.Info("Updating user", zap.String("id", user.ID.String()))
+		r.Logger.Info("Updating user", zap.String("id", user.ID))
 	}
 	err := r.DB.WithContext(ctx).Save(user).Error
 	if err != nil && r.Logger != nil {
-		r.Logger.Error("Failed to update user", zap.String("id", user.ID.String()), zap.Error(err))
+		r.Logger.Error("Failed to update user", zap.String("id", user.ID), zap.Error(err))
 	}
 	return err
 }
@@ -152,10 +147,8 @@ func (r *UserRepositoryImpl) FindByEmail(email string) (*model.User, error) {
 		}
 		return nil, err
 	}
-	// UserRolesからRoles配列を構築
-	user.LoadRolesFromUserRoles()
 	if r.Logger != nil {
-		r.Logger.Info("User found", zap.String("email", email), zap.String("id", user.ID.String()))
+		r.Logger.Info("User found", zap.String("email", email), zap.String("id", user.ID))
 	}
 	return &user, nil
 }
@@ -181,10 +174,6 @@ func (r *UserRepositoryImpl) List(offset, limit int) ([]model.User, int64, error
 		return nil, 0, err
 	}
 
-	// 各ユーザーのRoles配列を構築
-	for i := range users {
-		users[i].LoadRolesFromUserRoles()
-	}
 
 	return users, count, nil
 }
@@ -203,16 +192,12 @@ func (r *UserRepositoryImpl) FindByRole(role model.Role) ([]model.User, error) {
 		return nil, err
 	}
 
-	// 各ユーザーのRoles配列を構築
-	for i := range users {
-		users[i].LoadRolesFromUserRoles()
-	}
 
 	return users, nil
 }
 
 // AddRole ユーザーにロールを追加
-func (r *UserRepositoryImpl) AddRole(userID uuid.UUID, role model.Role) error {
+func (r *UserRepositoryImpl) AddRole(userID string, role model.Role) error {
 	userRole := model.UserRole{
 		UserID: userID,
 		Role:   role,
@@ -223,12 +208,12 @@ func (r *UserRepositoryImpl) AddRole(userID uuid.UUID, role model.Role) error {
 }
 
 // RemoveRole ユーザーからロールを削除
-func (r *UserRepositoryImpl) RemoveRole(userID uuid.UUID, role model.Role) error {
+func (r *UserRepositoryImpl) RemoveRole(userID string, role model.Role) error {
 	return r.DB.Where("user_id = ? AND role = ?", userID, role).Delete(&model.UserRole{}).Error
 }
 
 // SetRoles ユーザーのロールを一括設定（既存のロールを全て削除して新しいロールを設定）
-func (r *UserRepositoryImpl) SetRoles(userID uuid.UUID, roles []model.Role) error {
+func (r *UserRepositoryImpl) SetRoles(userID string, roles []model.Role) error {
 	// トランザクション内で処理
 	return r.DB.Transaction(func(tx *gorm.DB) error {
 		// 既存のロールを全て削除
@@ -252,7 +237,7 @@ func (r *UserRepositoryImpl) SetRoles(userID uuid.UUID, roles []model.Role) erro
 }
 
 // GetRoles ユーザーのロール一覧を取得
-func (r *UserRepositoryImpl) GetRoles(userID uuid.UUID) ([]model.Role, error) {
+func (r *UserRepositoryImpl) GetRoles(userID string) ([]model.Role, error) {
 	var userRoles []model.UserRole
 	err := r.DB.Where("user_id = ?", userID).Find(&userRoles).Error
 	if err != nil {
@@ -268,7 +253,7 @@ func (r *UserRepositoryImpl) GetRoles(userID uuid.UUID) ([]model.Role, error) {
 }
 
 // UpdateDefaultRole ユーザーのデフォルトロールを更新
-func (r *UserRepositoryImpl) UpdateDefaultRole(userID uuid.UUID, defaultRole *model.Role) error {
+func (r *UserRepositoryImpl) UpdateDefaultRole(userID string, defaultRole *model.Role) error {
 	updates := make(map[string]interface{})
 	if defaultRole == nil {
 		updates["default_role"] = nil
@@ -280,7 +265,7 @@ func (r *UserRepositoryImpl) UpdateDefaultRole(userID uuid.UUID, defaultRole *mo
 	if result.Error != nil {
 		if r.Logger != nil {
 			r.Logger.Error("Failed to update default role",
-				zap.String("user_id", userID.String()),
+				zap.String("user_id", userID),
 				zap.Error(result.Error))
 		}
 		return result.Error
@@ -289,7 +274,7 @@ func (r *UserRepositoryImpl) UpdateDefaultRole(userID uuid.UUID, defaultRole *mo
 	if result.RowsAffected == 0 {
 		if r.Logger != nil {
 			r.Logger.Warn("No user found to update default role",
-				zap.String("user_id", userID.String()))
+				zap.String("user_id", userID))
 		}
 	}
 

@@ -220,7 +220,7 @@ type ProposalSummaryResponse struct {
 
 // AssignQuestionRequest 質問割り当てリクエスト
 type AssignQuestionRequest struct {
-	SalesUserID uuid.UUID `json:"sales_user_id" binding:"required"`
+	SalesUserID string `json:"sales_user_id" binding:"required"`
 }
 
 // NotificationPayloadDTO 通知ペイロード（営業担当者向け）

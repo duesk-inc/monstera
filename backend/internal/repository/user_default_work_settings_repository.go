@@ -21,7 +21,7 @@ func NewUserDefaultWorkSettingsRepository(db *gorm.DB) *UserDefaultWorkSettingsR
 }
 
 // FindByUserID はユーザーIDに基づいてデフォルト勤務時間設定を検索します
-func (r *UserDefaultWorkSettingsRepository) FindByUserID(userID uuid.UUID) (*model.UserDefaultWorkSettings, error) {
+func (r *UserDefaultWorkSettingsRepository) FindByUserID(userID string) (*model.UserDefaultWorkSettings, error) {
 	var settings model.UserDefaultWorkSettings
 	err := r.db.Where("user_id = ?", userID).First(&settings).Error
 	if err != nil {
@@ -54,7 +54,7 @@ func (r *UserDefaultWorkSettingsRepository) Delete(id uuid.UUID) error {
 }
 
 // DeleteByUserID はユーザーIDに基づいてデフォルト勤務時間設定を削除します
-func (r *UserDefaultWorkSettingsRepository) DeleteByUserID(userID uuid.UUID) error {
+func (r *UserDefaultWorkSettingsRepository) DeleteByUserID(userID string) error {
 	return r.db.Where("user_id = ?", userID).Delete(&model.UserDefaultWorkSettings{}).Error
 }
 

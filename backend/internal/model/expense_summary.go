@@ -9,8 +9,8 @@ import (
 
 // ExpenseSummary 経費集計モデル
 type ExpenseSummary struct {
-	ID             uuid.UUID `gorm:"type:varchar(36);primary_key" json:"id"`
-	UserID         uuid.UUID `gorm:"type:varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"user_id"`
+	ID             uuid.UUID `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID string `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"user_id"`
 	User           User      `gorm:"foreignKey:UserID" json:"user"`
 	Year           int       `gorm:"not null" json:"year"`                      // 集計年
 	Month          int       `gorm:"not null" json:"month"`                     // 集計月
@@ -84,7 +84,7 @@ func (es *ExpenseSummary) GetRemainingMonthlyLimit(monthlyLimit int) int {
 
 // ExpenseSummaryQuery 集計クエリ用の構造体
 type ExpenseSummaryQuery struct {
-	UserID    uuid.UUID
+	UserID string
 	Year      int
 	Month     int
 	StartDate *time.Time
@@ -92,7 +92,7 @@ type ExpenseSummaryQuery struct {
 }
 
 // FindOrCreateSummary 集計レコードを取得または作成
-func FindOrCreateSummary(db *gorm.DB, userID uuid.UUID, year, month int) (*ExpenseSummary, error) {
+func FindOrCreateSummary(db *gorm.DB, userID string, year, month int) (*ExpenseSummary, error) {
 	var summary ExpenseSummary
 
 	// 既存レコードを検索
@@ -121,7 +121,7 @@ func FindOrCreateSummary(db *gorm.DB, userID uuid.UUID, year, month int) (*Expen
 }
 
 // RecalculateSummary 指定ユーザー・期間の集計を再計算
-func RecalculateSummary(db *gorm.DB, userID uuid.UUID, year, month int) error {
+func RecalculateSummary(db *gorm.DB, userID string, year, month int) error {
 	// 集計レコードを取得または作成
 	summary, err := FindOrCreateSummary(db, userID, year, month)
 	if err != nil {

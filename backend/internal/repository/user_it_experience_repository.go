@@ -5,14 +5,13 @@ import (
 	"fmt"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"go.uber.org/zap"
 )
 
 // UserITExperienceRepository ユーザーIT経験リポジトリのインターフェース
 type UserITExperienceRepository interface {
-	GetByUserID(ctx context.Context, userID uuid.UUID) (*model.UserITExperience, error)
+	GetByUserID(ctx context.Context, userID string) (*model.UserITExperience, error)
 	GetAll(ctx context.Context) ([]*model.UserITExperience, error)
 	GetByExperienceLevel(ctx context.Context, minMonths, maxMonths int) ([]*model.UserITExperience, error)
 	GetActiveUsers(ctx context.Context) ([]*model.UserITExperience, error)
@@ -36,7 +35,7 @@ func NewUserITExperienceRepository(db *gorm.DB, logger *zap.Logger) UserITExperi
 }
 
 // GetByUserID ユーザーIDでIT経験を取得
-func (r *userITExperienceRepository) GetByUserID(ctx context.Context, userID uuid.UUID) (*model.UserITExperience, error) {
+func (r *userITExperienceRepository) GetByUserID(ctx context.Context, userID string) (*model.UserITExperience, error) {
 	var experience model.UserITExperience
 
 	if err := r.db.WithContext(ctx).
@@ -45,7 +44,7 @@ func (r *userITExperienceRepository) GetByUserID(ctx context.Context, userID uui
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
-		r.logger.Error("Failed to get user IT experience", zap.Error(err), zap.String("user_id", userID.String()))
+		r.logger.Error("Failed to get user IT experience", zap.Error(err), zap.String("user_id", userID))
 		return nil, fmt.Errorf("ユーザーIT経験の取得に失敗しました: %w", err)
 	}
 

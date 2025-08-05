@@ -9,12 +9,12 @@ import (
 
 // LeavePeriodUsage 推奨休暇期間の利用記録
 type LeavePeriodUsage struct {
-	ID                       uuid.UUID               `gorm:"type:char(36);primary_key" json:"id"`
-	RecommendedLeavePeriodID uuid.UUID               `gorm:"type:char(36);not null;index" json:"recommended_leave_period_id"`
+	ID                       uuid.UUID               `gorm:"type:varchar(255);primary_key" json:"id"`
+	RecommendedLeavePeriodID uuid.UUID               `gorm:"type:varchar(255);not null;index" json:"recommended_leave_period_id"`
 	RecommendedLeavePeriod   *RecommendedLeavePeriod `gorm:"foreignKey:RecommendedLeavePeriodID" json:"recommended_leave_period,omitempty"`
-	LeaveRequestID           uuid.UUID               `gorm:"type:char(36);not null;index" json:"leave_request_id"`
+	LeaveRequestID           uuid.UUID               `gorm:"type:varchar(255);not null;index" json:"leave_request_id"`
 	LeaveRequest             *LeaveRequest           `gorm:"foreignKey:LeaveRequestID" json:"leave_request,omitempty"`
-	UserID                   uuid.UUID               `gorm:"type:char(36);not null;index" json:"user_id"`
+	UserID string               `gorm:"type:varchar(255);not null;index" json:"user_id"`
 	User                     *User                   `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	UsedDays                 int                     `gorm:"not null" json:"used_days"`
 	CreatedAt                time.Time               `json:"created_at"`

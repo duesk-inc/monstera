@@ -13,7 +13,7 @@ import (
 // ExportService エクスポートサービスのインターフェース
 type ExportService interface {
 	// エクスポートジョブ管理
-	CreateExportJob(ctx context.Context, userID uuid.UUID, jobType model.ExportJobType, format model.ExportJobFormat, parameters json.RawMessage) (*model.ExportJob, error)
+	CreateExportJob(ctx context.Context, userID string, jobType model.ExportJobType, format model.ExportJobFormat, parameters json.RawMessage) (*model.ExportJob, error)
 	ProcessExportJob(ctx context.Context, jobID uuid.UUID) error
 	GetExportJob(ctx context.Context, jobID uuid.UUID) (*model.ExportJob, error)
 
@@ -36,7 +36,7 @@ func NewExportService(db *gorm.DB, logger *zap.Logger) ExportService {
 }
 
 // CreateExportJob エクスポートジョブを作成
-func (s *exportService) CreateExportJob(ctx context.Context, userID uuid.UUID, jobType model.ExportJobType, format model.ExportJobFormat, parameters json.RawMessage) (*model.ExportJob, error) {
+func (s *exportService) CreateExportJob(ctx context.Context, userID string, jobType model.ExportJobType, format model.ExportJobFormat, parameters json.RawMessage) (*model.ExportJob, error) {
 	job := &model.ExportJob{
 		UserID:     userID,
 		JobType:    jobType,

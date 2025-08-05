@@ -9,14 +9,14 @@ import (
 // LeaveRequest は休暇申請を表すモデルです
 type LeaveRequest struct {
 	ID              uuid.UUID  `gorm:"primaryKey;type:varchar(36)" json:"id"`
-	UserID          uuid.UUID  `gorm:"type:varchar(36)" json:"user_id"`
-	LeaveTypeID     uuid.UUID  `gorm:"type:varchar(36)" json:"leave_type_id"`
+	UserID string  `gorm:"type:varchar(255)" json:"user_id"`
+	LeaveTypeID     uuid.UUID  `gorm:"type:varchar(255)" json:"leave_type_id"`
 	RequestDate     time.Time  `json:"request_date"`
 	IsHourlyBased   bool       `json:"is_hourly_based"`
 	Reason          string     `gorm:"type:text" json:"reason"`
 	TotalDays       float64    `gorm:"type:decimal(5,1)" json:"total_days"`
 	Status          string     `gorm:"type:enum('pending','approved','rejected','cancelled');default:'pending';not null" json:"status"`
-	ApproverID      *uuid.UUID `gorm:"type:varchar(36)" json:"approver_id"`
+	ApproverID      *uuid.UUID `gorm:"type:varchar(255)" json:"approver_id"`
 	ProcessedAt     *time.Time `json:"processed_at"`
 	RejectionReason string     `gorm:"type:text" json:"rejection_reason"`
 	CreatedAt       time.Time  `json:"created_at"`

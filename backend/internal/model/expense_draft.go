@@ -10,8 +10,8 @@ import (
 
 // ExpenseDraft 経費申請下書きモデル
 type ExpenseDraft struct {
-	ID        uuid.UUID      `gorm:"type:varchar(36);primaryKey" json:"id"`
-	UserID    uuid.UUID      `gorm:"type:varchar(36);not null;index" json:"user_id"`
+	ID        uuid.UUID      `gorm:"type:varchar(255);primaryKey" json:"id"`
+	UserID string      `gorm:"type:varchar(255);not null;index" json:"user_id"`
 	Data      datatypes.JSON `gorm:"type:json;not null" json:"data"`   // 下書きデータをJSON形式で保存
 	SavedAt   time.Time      `gorm:"not null" json:"saved_at"`         // 保存日時
 	ExpiresAt time.Time      `gorm:"not null;index" json:"expires_at"` // 有効期限

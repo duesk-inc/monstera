@@ -3,13 +3,11 @@ package model
 import (
 	"strconv"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // UserSkillSummary ユーザースキルサマリービュー
 type UserSkillSummary struct {
-	UserID                uuid.UUID `gorm:"type:varchar(36);primaryKey" json:"user_id"`
+	UserID string `gorm:"type:varchar(255);primaryKey" json:"user_id"`
 	TechnologyName        string    `gorm:"type:varchar(255);primaryKey" json:"technology_name"`
 	CategoryName          string    `gorm:"type:varchar(100)" json:"category_name"`
 	CategoryDisplayName   string    `gorm:"type:varchar(100)" json:"category_display_name"`

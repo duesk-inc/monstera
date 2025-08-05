@@ -20,25 +20,25 @@ type EngineerProposalRepository interface {
 
 	// ステータス管理
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string, respondedAt *time.Time) error
-	GetByUserAndStatus(ctx context.Context, userID uuid.UUID, statuses []string) ([]*model.EngineerProposal, error)
+	GetByUserAndStatus(ctx context.Context, userID string, statuses []string) ([]*model.EngineerProposal, error)
 
 	// エンジニア向けクエリ
-	GetByUserID(ctx context.Context, userID uuid.UUID, filter EngineerProposalFilter) ([]*model.EngineerProposal, int64, error)
+	GetByUserID(ctx context.Context, userID string, filter EngineerProposalFilter) ([]*model.EngineerProposal, int64, error)
 	GetByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.EngineerProposal, error)
-	CheckDuplicateProposal(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (bool, error)
+	CheckDuplicateProposal(ctx context.Context, projectID uuid.UUID, userID string) (bool, error)
 
 	// 統計・分析クエリ
-	GetProposalSummary(ctx context.Context, userID uuid.UUID) (*ProposalSummaryResult, error)
-	GetProposalsByDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) ([]*model.EngineerProposal, error)
-	GetRecentProposals(ctx context.Context, userID uuid.UUID, limit int) ([]*model.EngineerProposal, error)
+	GetProposalSummary(ctx context.Context, userID string) (*ProposalSummaryResult, error)
+	GetProposalsByDateRange(ctx context.Context, userID string, startDate, endDate time.Time) ([]*model.EngineerProposal, error)
+	GetRecentProposals(ctx context.Context, userID string, limit int) ([]*model.EngineerProposal, error)
 
 	// 高度な統計・分析クエリ
-	GetProposalTrends(ctx context.Context, userID uuid.UUID, months int) (*ProposalTrendResult, error)
-	GetProposalsByMonthlyStats(ctx context.Context, userID uuid.UUID, year int) ([]*MonthlyProposalStats, error)
-	GetProposalResponseTimeStats(ctx context.Context, userID uuid.UUID) (*ResponseTimeStats, error)
+	GetProposalTrends(ctx context.Context, userID string, months int) (*ProposalTrendResult, error)
+	GetProposalsByMonthlyStats(ctx context.Context, userID string, year int) ([]*MonthlyProposalStats, error)
+	GetProposalResponseTimeStats(ctx context.Context, userID string) (*ResponseTimeStats, error)
 	GetTopProjectsByProposals(ctx context.Context, limit int) ([]*ProjectProposalStats, error)
 	GetEngineerProposalRanking(ctx context.Context, startDate, endDate time.Time, limit int) ([]*EngineerProposalRank, error)
-	GetProposalConversionRates(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) (*ConversionRateStats, error)
+	GetProposalConversionRates(ctx context.Context, userID string, startDate, endDate time.Time) (*ConversionRateStats, error)
 
 	// 管理者向けクエリ
 	GetExpiredProposals(ctx context.Context, expireDays int) ([]*model.EngineerProposal, error)
@@ -48,7 +48,7 @@ type EngineerProposalRepository interface {
 	// 管理者向け統計・レポート
 	GetSystemProposalSummary(ctx context.Context) (*SystemProposalSummary, error)
 	GetDailyProposalStats(ctx context.Context, startDate, endDate time.Time) ([]*DailyProposalStats, error)
-	GetProposalActivityHeatmap(ctx context.Context, userID uuid.UUID, year int) ([]*ActivityHeatmapData, error)
+	GetProposalActivityHeatmap(ctx context.Context, userID string, year int) ([]*ActivityHeatmapData, error)
 
 	// バルク操作
 	UpdateMultipleStatuses(ctx context.Context, ids []uuid.UUID, status string) error
@@ -210,14 +210,14 @@ func (r *engineerProposalRepository) Create(ctx context.Context, proposal *model
 		r.logger.Error("Failed to create engineer proposal",
 			zap.Error(err),
 			zap.String("project_id", proposal.ProjectID.String()),
-			zap.String("user_id", proposal.UserID.String()))
+			zap.String("user_id", proposal.UserID))
 		return err
 	}
 
 	r.logger.Info("Engineer proposal created successfully",
 		zap.String("proposal_id", proposal.ID.String()),
 		zap.String("project_id", proposal.ProjectID.String()),
-		zap.String("user_id", proposal.UserID.String()))
+		zap.String("user_id", proposal.UserID))
 
 	return nil
 }
@@ -319,7 +319,7 @@ func (r *engineerProposalRepository) UpdateStatus(ctx context.Context, id uuid.U
 }
 
 // GetByUserAndStatus ユーザーIDとステータスでエンジニア提案を取得
-func (r *engineerProposalRepository) GetByUserAndStatus(ctx context.Context, userID uuid.UUID, statuses []string) ([]*model.EngineerProposal, error) {
+func (r *engineerProposalRepository) GetByUserAndStatus(ctx context.Context, userID string, statuses []string) ([]*model.EngineerProposal, error) {
 	var proposals []*model.EngineerProposal
 
 	query := r.db.WithContext(ctx).
@@ -333,7 +333,7 @@ func (r *engineerProposalRepository) GetByUserAndStatus(ctx context.Context, use
 	if err := query.Order("created_at DESC").Find(&proposals).Error; err != nil {
 		r.logger.Error("Failed to get engineer proposals by user and status",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Strings("statuses", statuses))
 		return nil, err
 	}
@@ -342,7 +342,7 @@ func (r *engineerProposalRepository) GetByUserAndStatus(ctx context.Context, use
 }
 
 // GetByUserID ユーザーIDでエンジニア提案一覧を取得
-func (r *engineerProposalRepository) GetByUserID(ctx context.Context, userID uuid.UUID, filter EngineerProposalFilter) ([]*model.EngineerProposal, int64, error) {
+func (r *engineerProposalRepository) GetByUserID(ctx context.Context, userID string, filter EngineerProposalFilter) ([]*model.EngineerProposal, int64, error) {
 	query := r.db.WithContext(ctx).
 		Model(&model.EngineerProposal{}).
 		Preload("User").
@@ -366,7 +366,7 @@ func (r *engineerProposalRepository) GetByUserID(ctx context.Context, userID uui
 	if err := query.Count(&total).Error; err != nil {
 		r.logger.Error("Failed to count engineer proposals",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, 0, err
 	}
 
@@ -390,7 +390,7 @@ func (r *engineerProposalRepository) GetByUserID(ctx context.Context, userID uui
 	if err := query.Order(orderBy).Find(&proposals).Error; err != nil {
 		r.logger.Error("Failed to get engineer proposals by user ID",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, 0, err
 	}
 
@@ -416,7 +416,7 @@ func (r *engineerProposalRepository) GetByProjectID(ctx context.Context, project
 }
 
 // CheckDuplicateProposal 重複提案をチェック
-func (r *engineerProposalRepository) CheckDuplicateProposal(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (bool, error) {
+func (r *engineerProposalRepository) CheckDuplicateProposal(ctx context.Context, projectID uuid.UUID, userID string) (bool, error) {
 	var count int64
 
 	if err := r.db.WithContext(ctx).
@@ -426,7 +426,7 @@ func (r *engineerProposalRepository) CheckDuplicateProposal(ctx context.Context,
 		r.logger.Error("Failed to check duplicate proposal",
 			zap.Error(err),
 			zap.String("project_id", projectID.String()),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return false, err
 	}
 
@@ -434,7 +434,7 @@ func (r *engineerProposalRepository) CheckDuplicateProposal(ctx context.Context,
 }
 
 // GetProposalSummary 提案サマリーを取得
-func (r *engineerProposalRepository) GetProposalSummary(ctx context.Context, userID uuid.UUID) (*ProposalSummaryResult, error) {
+func (r *engineerProposalRepository) GetProposalSummary(ctx context.Context, userID string) (*ProposalSummaryResult, error) {
 	var result ProposalSummaryResult
 
 	// 基本統計を取得
@@ -452,7 +452,7 @@ func (r *engineerProposalRepository) GetProposalSummary(ctx context.Context, use
 		Scan(&statusCounts).Error; err != nil {
 		r.logger.Error("Failed to get proposal summary",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -478,7 +478,7 @@ func (r *engineerProposalRepository) GetProposalSummary(ctx context.Context, use
 }
 
 // GetProposalsByDateRange 日付範囲でエンジニア提案を取得
-func (r *engineerProposalRepository) GetProposalsByDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) ([]*model.EngineerProposal, error) {
+func (r *engineerProposalRepository) GetProposalsByDateRange(ctx context.Context, userID string, startDate, endDate time.Time) ([]*model.EngineerProposal, error) {
 	var proposals []*model.EngineerProposal
 
 	if err := r.db.WithContext(ctx).
@@ -488,7 +488,7 @@ func (r *engineerProposalRepository) GetProposalsByDateRange(ctx context.Context
 		Find(&proposals).Error; err != nil {
 		r.logger.Error("Failed to get engineer proposals by date range",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Time("start_date", startDate),
 			zap.Time("end_date", endDate))
 		return nil, err
@@ -498,7 +498,7 @@ func (r *engineerProposalRepository) GetProposalsByDateRange(ctx context.Context
 }
 
 // GetRecentProposals 最近のエンジニア提案を取得
-func (r *engineerProposalRepository) GetRecentProposals(ctx context.Context, userID uuid.UUID, limit int) ([]*model.EngineerProposal, error) {
+func (r *engineerProposalRepository) GetRecentProposals(ctx context.Context, userID string, limit int) ([]*model.EngineerProposal, error) {
 	var proposals []*model.EngineerProposal
 
 	if err := r.db.WithContext(ctx).
@@ -509,7 +509,7 @@ func (r *engineerProposalRepository) GetRecentProposals(ctx context.Context, use
 		Find(&proposals).Error; err != nil {
 		r.logger.Error("Failed to get recent engineer proposals",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("limit", limit))
 		return nil, err
 	}
@@ -608,7 +608,7 @@ func (r *engineerProposalRepository) UpdateMultipleStatuses(ctx context.Context,
 }
 
 // GetProposalTrends 提案トレンドを取得
-func (r *engineerProposalRepository) GetProposalTrends(ctx context.Context, userID uuid.UUID, months int) (*ProposalTrendResult, error) {
+func (r *engineerProposalRepository) GetProposalTrends(ctx context.Context, userID string, months int) (*ProposalTrendResult, error) {
 	var trendData []MonthlyTrendData
 
 	// 過去N月分のデータを取得
@@ -634,7 +634,7 @@ func (r *engineerProposalRepository) GetProposalTrends(ctx context.Context, user
 	if err := r.sqlAdapter.ExecuteRawSQL(ctx, query, &trendData, userID, startDate); err != nil {
 		r.logger.Error("Failed to get proposal trends",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("months", months))
 		return nil, err
 	}
@@ -671,7 +671,7 @@ func (r *engineerProposalRepository) GetProposalTrends(ctx context.Context, user
 }
 
 // GetProposalsByMonthlyStats 月別統計を取得
-func (r *engineerProposalRepository) GetProposalsByMonthlyStats(ctx context.Context, userID uuid.UUID, year int) ([]*MonthlyProposalStats, error) {
+func (r *engineerProposalRepository) GetProposalsByMonthlyStats(ctx context.Context, userID string, year int) ([]*MonthlyProposalStats, error) {
 	var stats []*MonthlyProposalStats
 
 	query := `
@@ -694,7 +694,7 @@ func (r *engineerProposalRepository) GetProposalsByMonthlyStats(ctx context.Cont
 	if err := r.sqlAdapter.ExecuteRawSQL(ctx, query, &stats, userID, year); err != nil {
 		r.logger.Error("Failed to get monthly proposal stats",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("year", year))
 		return nil, err
 	}
@@ -703,7 +703,7 @@ func (r *engineerProposalRepository) GetProposalsByMonthlyStats(ctx context.Cont
 }
 
 // GetProposalResponseTimeStats 回答時間統計を取得
-func (r *engineerProposalRepository) GetProposalResponseTimeStats(ctx context.Context, userID uuid.UUID) (*ResponseTimeStats, error) {
+func (r *engineerProposalRepository) GetProposalResponseTimeStats(ctx context.Context, userID string) (*ResponseTimeStats, error) {
 	var stats ResponseTimeStats
 
 	// 基本統計を取得
@@ -721,7 +721,7 @@ func (r *engineerProposalRepository) GetProposalResponseTimeStats(ctx context.Co
 	if err := r.sqlAdapter.ExecuteRawSQL(ctx, query, &stats, userID); err != nil {
 		r.logger.Error("Failed to get proposal response time stats",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -825,7 +825,7 @@ func (r *engineerProposalRepository) GetEngineerProposalRanking(ctx context.Cont
 }
 
 // GetProposalConversionRates 変換率統計を取得
-func (r *engineerProposalRepository) GetProposalConversionRates(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) (*ConversionRateStats, error) {
+func (r *engineerProposalRepository) GetProposalConversionRates(ctx context.Context, userID string, startDate, endDate time.Time) (*ConversionRateStats, error) {
 	var stats ConversionRateStats
 
 	// 全体の変換率を取得
@@ -842,7 +842,7 @@ func (r *engineerProposalRepository) GetProposalConversionRates(ctx context.Cont
 	if err := r.sqlAdapter.ExecuteRawSQL(ctx, overallQuery, &stats, userID, startDate, endDate); err != nil {
 		r.logger.Error("Failed to get overall conversion rates",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -863,7 +863,7 @@ func (r *engineerProposalRepository) GetProposalConversionRates(ctx context.Cont
 	if err := r.sqlAdapter.ExecuteRawSQL(ctx, weeklyQuery, &stats.WeeklyRates, userID, startDate, endDate); err != nil {
 		r.logger.Error("Failed to get weekly conversion rates",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -997,7 +997,7 @@ func (r *engineerProposalRepository) GetDailyProposalStats(ctx context.Context, 
 }
 
 // GetProposalActivityHeatmap 活動ヒートマップデータを取得
-func (r *engineerProposalRepository) GetProposalActivityHeatmap(ctx context.Context, userID uuid.UUID, year int) ([]*ActivityHeatmapData, error) {
+func (r *engineerProposalRepository) GetProposalActivityHeatmap(ctx context.Context, userID string, year int) ([]*ActivityHeatmapData, error) {
 	var heatmapData []*ActivityHeatmapData
 
 	query := `
@@ -1021,7 +1021,7 @@ func (r *engineerProposalRepository) GetProposalActivityHeatmap(ctx context.Cont
 	if err := r.sqlAdapter.ExecuteRawSQL(ctx, query, &heatmapData, userID, year); err != nil {
 		r.logger.Error("Failed to get proposal activity heatmap",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("year", year))
 		return nil, err
 	}

@@ -45,8 +45,8 @@ const (
 
 // ExportJob エクスポートジョブモデル
 type ExportJob struct {
-	ID            uuid.UUID       `gorm:"type:char(36);primary_key" json:"id"`
-	UserID        uuid.UUID       `gorm:"type:char(36);not null;index" json:"user_id"`
+	ID            uuid.UUID       `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID string       `gorm:"type:varchar(255);not null;index" json:"user_id"`
 	JobType       ExportJobType   `gorm:"type:varchar(50);not null" json:"job_type"`
 	Format        ExportJobFormat `gorm:"type:varchar(20);not null" json:"format"`
 	Status        ExportJobStatus `gorm:"type:varchar(20);not null;default:'pending'" json:"status"`

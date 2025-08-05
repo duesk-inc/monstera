@@ -9,7 +9,7 @@ import (
 
 // EngineerSummaryDTO エンジニア一覧表示用DTO
 type EngineerSummaryDTO struct {
-	ID             uuid.UUID `json:"id"`
+	ID             string `json:"id"`
 	EmployeeNumber string    `json:"employeeNumber"`
 	Email          string    `json:"email"`
 	FullName       string    `json:"fullName"`
@@ -57,12 +57,12 @@ type EngineerDetailDTO struct {
 
 // EngineerStatusHistoryDTO ステータス履歴DTO
 type EngineerStatusHistoryDTO struct {
-	ID             uuid.UUID `json:"id"`
+	ID             string `json:"id"`
 	UserID string `json:"userId"`
 	PreviousStatus *string   `json:"previousStatus"`
 	NewStatus      string    `json:"newStatus"`
 	Reason         string    `json:"reason"`
-	ChangedBy      uuid.UUID `json:"changedBy"`
+	ChangedBy      string `json:"changedBy"`
 	ChangedAt      time.Time `json:"changedAt"`
 	CreatedAt      time.Time `json:"createdAt"`
 }
@@ -194,7 +194,7 @@ func UserToEngineerSummaryDTO(user *model.User) EngineerSummaryDTO {
 // UserToEngineerDTO UserモデルからEngineerDTOへ変換
 func UserToEngineerDTO(user *model.User) EngineerDTO {
 	return EngineerDTO{
-		ID:             user.ID,
+		ID:             parseStringToUUIDS(user.ID),
 		EmployeeNumber: user.EmployeeNumber,
 		Email:          user.Email,
 		FirstName:      user.FirstName,
@@ -211,8 +211,8 @@ func UserToEngineerDTO(user *model.User) EngineerDTO {
 		Education:      &user.Education,
 		PhoneNumber:    &user.PhoneNumber,
 		EngineerStatus: user.EngineerStatus,
-		DepartmentID:   user.DepartmentID,
-		ManagerID:      user.ManagerID,
+		DepartmentID:   parseStringToUUID(user.DepartmentID),
+		ManagerID:      parseStringToUUID(user.ManagerID),
 		CreatedAt:      user.CreatedAt,
 		UpdatedAt:      user.UpdatedAt,
 	}
@@ -221,7 +221,7 @@ func UserToEngineerDTO(user *model.User) EngineerDTO {
 // StatusHistoryToDTO EngineerStatusHistoryモデルからDTOへ変換
 func StatusHistoryToDTO(history *model.EngineerStatusHistory) EngineerStatusHistoryDTO {
 	return EngineerStatusHistoryDTO{
-		ID:             history.ID,
+		ID:             history.ID.String(),
 		UserID:         history.UserID,
 		PreviousStatus: history.PreviousStatus,
 		NewStatus:      history.NewStatus,
@@ -280,4 +280,25 @@ func ProjectHistoryToDTO(history *model.EngineerProjectHistory) EngineerProjectH
 		CreatedAt:   history.CreatedAt,
 		UpdatedAt:   history.UpdatedAt,
 	}
+}
+
+// parseStringToUUID string型のIDをuuid.UUIDポインタに変換するヘルパー関数
+func parseStringToUUID(id *string) *uuid.UUID {
+	if id == nil || *id == "" {
+		return nil
+	}
+	parsed, err := uuid.Parse(*id)
+	if err != nil {
+		return nil
+	}
+	return &parsed
+}
+
+// parseStringToUUIDS string型のIDをuuid.UUIDに変換するヘルパー関数
+func parseStringToUUIDS(id string) uuid.UUID {
+	parsed, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.Nil
+	}
+	return parsed
 }

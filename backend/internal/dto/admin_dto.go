@@ -10,7 +10,7 @@ import (
 // AdminWeeklyReportDTO 管理者用週報DTO
 type AdminWeeklyReportDTO struct {
 	ID             uuid.UUID  `json:"id"`
-	UserID         uuid.UUID  `json:"user_id"`
+	UserID string  `json:"user_id"`
 	UserName       string     `json:"user_name"`
 	UserEmail      string     `json:"user_email"`
 	StartDate      time.Time  `json:"start_date"`
@@ -55,7 +55,7 @@ type WorkHourDTO struct {
 
 // MonthlyAttendanceDTO 月次勤怠DTO
 type MonthlyAttendanceDTO struct {
-	UserID           uuid.UUID                `json:"user_id"`
+	UserID string                `json:"user_id"`
 	UserName         string                   `json:"user_name"`
 	Month            string                   `json:"month"`
 	TotalWorkDays    int                      `json:"total_work_days"`
@@ -76,7 +76,7 @@ type WeeklyReportSummaryDTO struct {
 
 // FollowUpUserDTO フォローアップ対象ユーザーDTO
 type FollowUpUserDTO struct {
-	UserID                 uuid.UUID  `json:"user_id"`
+	UserID string  `json:"user_id"`
 	UserName               string     `json:"user_name"`
 	UserEmail              string     `json:"user_email"`
 	FollowUpReason         *string    `json:"follow_up_reason"`
@@ -191,7 +191,7 @@ type DepartmentStatsDTO struct {
 
 // UserWeeklyReportSummaryDTO ユーザー別週報サマリーDTO
 type UserWeeklyReportSummaryDTO struct {
-	UserID           uuid.UUID  `json:"user_id"`
+	UserID string  `json:"user_id"`
 	UserName         string     `json:"user_name"`
 	UserEmail        string     `json:"user_email"`
 	DepartmentName   string     `json:"department_name"`
@@ -270,7 +270,7 @@ type MonthlyStatsDTO struct {
 
 // UserPerformanceDTO ユーザーパフォーマンスDTO
 type UserPerformanceDTO struct {
-	UserID           uuid.UUID `json:"user_id"`
+	UserID string `json:"user_id"`
 	UserName         string    `json:"user_name"`
 	DepartmentName   string    `json:"department_name"`
 	SubmissionRate   float64   `json:"submission_rate"`

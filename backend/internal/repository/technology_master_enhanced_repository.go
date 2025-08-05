@@ -29,7 +29,7 @@ type TechnologyMasterEnhancedRepository interface {
 	SearchByPrefix(ctx context.Context, category model.TechCategory, prefix string, limit int) ([]*model.TechnologyMaster, error)
 	SearchByKeyword(ctx context.Context, keyword string, categoryFilter *model.TechCategory, limit int) ([]*model.TechnologyMaster, error)
 	GetPopularTechnologies(ctx context.Context, category *model.TechCategory, limit int) ([]*model.TechnologyMaster, error)
-	GetRecentlyUsedTechnologies(ctx context.Context, userID uuid.UUID, limit int) ([]*model.TechnologyMaster, error)
+	GetRecentlyUsedTechnologies(ctx context.Context, userID string, limit int) ([]*model.TechnologyMaster, error)
 
 	// 使用回数更新機能（拡張）
 	IncrementUsageCount(ctx context.Context, id uuid.UUID) error
@@ -294,7 +294,7 @@ func (r *technologyMasterEnhancedRepository) GetPopularTechnologies(ctx context.
 }
 
 // GetRecentlyUsedTechnologies ユーザーが最近使用した技術を取得
-func (r *technologyMasterEnhancedRepository) GetRecentlyUsedTechnologies(ctx context.Context, userID uuid.UUID, limit int) ([]*model.TechnologyMaster, error) {
+func (r *technologyMasterEnhancedRepository) GetRecentlyUsedTechnologies(ctx context.Context, userID string, limit int) ([]*model.TechnologyMaster, error) {
 	// 最近のプロジェクトから使用技術を取得
 	subQuery := r.db.WithContext(ctx).
 		Select("DISTINCT wht.technology_name").

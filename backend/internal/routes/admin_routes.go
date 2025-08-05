@@ -46,10 +46,9 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 		admin.Use(cognitoAuthMiddleware.AuthRequired())
 		admin.Use(cognitoAuthMiddleware.AdminRequired())
 	} else {
-		// フォールバック（テスト用）
-		logger.Warn("CognitoAuthMiddleware is not initialized, falling back to deprecated auth")
-		admin.Use(middleware.AuthMiddleware(cfg, logger))
-		admin.Use(middleware.AdminRequired(logger))
+		// CognitoAuthMiddlewareが初期化されていない場合はエラー
+		logger.Error("CognitoAuthMiddleware is not initialized")
+		panic("CognitoAuthMiddleware is required for admin routes")
 	}
 
 	// ダッシュボード

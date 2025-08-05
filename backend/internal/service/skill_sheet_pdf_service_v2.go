@@ -1,23 +1,16 @@
 package service
 
 import (
-	"bytes"
 	"context"
-	"fmt"
-	"strings"
-	"time"
 
-	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
-	"github.com/jung-kurt/gofpdf"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"go.uber.org/zap"
 )
 
 // SkillSheetPDFServiceV2 スキルシートPDFサービスのインターフェース（改良版）
 type SkillSheetPDFServiceV2 interface {
-	GenerateSkillSheetPDF(ctx context.Context, userID uuid.UUID) ([]byte, error)
+	GenerateSkillSheetPDF(ctx context.Context, userID string) ([]byte, error)
 }
 
 // skillSheetPDFServiceV2 スキルシートPDFサービスの実装（改良版）
@@ -47,7 +40,7 @@ func NewSkillSheetPDFServiceV2(
 }
 
 // GenerateSkillSheetPDF スキルシートPDFを生成
-func (s *skillSheetPDFServiceV2) GenerateSkillSheetPDF(ctx context.Context, userID uuid.UUID) ([]byte, error) {
+func (s *skillSheetPDFServiceV2) GenerateSkillSheetPDF(ctx context.Context, userID string) ([]byte, error) {
 	// ユーザー情報を取得
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {

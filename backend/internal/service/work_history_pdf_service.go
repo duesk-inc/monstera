@@ -1,23 +1,9 @@
 package service
 
-import (
-	"bytes"
-	"context"
-	"fmt"
-	"html/template"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"time"
-
-	"github.com/google/uuid"
-	"go.uber.org/zap"
-	"gorm.io/gorm"
-)
 
 // WorkHistoryPDFService PDFサービスのインターフェース
 type WorkHistoryPDFService interface {
-	GeneratePDF(ctx context.Context, userID uuid.UUID, startDate *time.Time) ([]byte, string, error)
+	GeneratePDF(ctx context.Context, userID string, startDate *time.Time) ([]byte, string, error)
 }
 
 // workHistoryPDFService PDFサービスの実装
@@ -135,7 +121,7 @@ type PDFTechnicalSkillItem struct {
 }
 
 // GeneratePDF PDFを生成
-func (s *workHistoryPDFService) GeneratePDF(ctx context.Context, userID uuid.UUID, startDate *time.Time) ([]byte, string, error) {
+func (s *workHistoryPDFService) GeneratePDF(ctx context.Context, userID string, startDate *time.Time) ([]byte, string, error) {
 	// 職務経歴データを取得
 	workHistoryData, err := s.workHistoryService.GetWorkHistory(ctx, userID)
 	if err != nil {

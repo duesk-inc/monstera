@@ -48,17 +48,17 @@ type NotificationRepository interface {
 	GetNotificationStats(ctx context.Context, startDate, endDate time.Time) (*NotificationStats, error)
 
 	// 既存インターフェース（互換性維持）
-	CountByTypeAndDateRange(ctx context.Context, userID uuid.UUID, notificationType model.NotificationType, startDate, endDate time.Time) (int64, error)
-	GetUserNotifications(ctx context.Context, userID uuid.UUID, limit, offset int) ([]model.UserNotification, int64, error)
+	CountByTypeAndDateRange(ctx context.Context, userID string, notificationType model.NotificationType, startDate, endDate time.Time) (int64, error)
+	GetUserNotifications(ctx context.Context, userID string, limit, offset int) ([]model.UserNotification, int64, error)
 	GetUserNotificationByID(ctx context.Context, id uuid.UUID) (model.UserNotification, error)
 	CreateUserNotification(ctx context.Context, userNotification model.UserNotification) (model.UserNotification, error)
 	CreateUserNotificationBulk(ctx context.Context, userNotifications []model.UserNotification) error
-	MarkAsRead(ctx context.Context, userID uuid.UUID, notificationIDs []uuid.UUID) error
-	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error)
+	MarkAsRead(ctx context.Context, userID string, notificationIDs []uuid.UUID) error
+	GetUnreadCount(ctx context.Context, userID string) (int64, error)
 
 	// 通知設定関連
-	GetUserNotificationSettings(ctx context.Context, userID uuid.UUID) ([]model.NotificationSetting, error)
-	GetUserNotificationSettingByType(ctx context.Context, userID uuid.UUID, notificationType model.NotificationType) (model.NotificationSetting, error)
+	GetUserNotificationSettings(ctx context.Context, userID string) ([]model.NotificationSetting, error)
+	GetUserNotificationSettingByType(ctx context.Context, userID string, notificationType model.NotificationType) (model.NotificationSetting, error)
 	UpsertUserNotificationSetting(ctx context.Context, setting model.NotificationSetting) (model.NotificationSetting, error)
 }
 
@@ -127,7 +127,7 @@ func (r *notificationRepository) CreateNotification(ctx context.Context, notific
 }
 
 // GetUserNotifications はユーザーの通知一覧を取得します
-func (r *notificationRepository) GetUserNotifications(ctx context.Context, userID uuid.UUID, limit, offset int) ([]model.UserNotification, int64, error) {
+func (r *notificationRepository) GetUserNotifications(ctx context.Context, userID string, limit, offset int) ([]model.UserNotification, int64, error) {
 	var userNotifications []model.UserNotification
 	var total int64
 
@@ -204,7 +204,7 @@ func (r *notificationRepository) CreateUserNotificationBulk(ctx context.Context,
 }
 
 // MarkAsRead は指定された通知を既読に更新します
-func (r *notificationRepository) MarkAsRead(ctx context.Context, userID uuid.UUID, notificationIDs []uuid.UUID) error {
+func (r *notificationRepository) MarkAsRead(ctx context.Context, userID string, notificationIDs []uuid.UUID) error {
 	now := time.Now()
 
 	result := r.WithContext(ctx).
@@ -223,7 +223,7 @@ func (r *notificationRepository) MarkAsRead(ctx context.Context, userID uuid.UUI
 }
 
 // GetUnreadCount はユーザーの未読通知数を取得します
-func (r *notificationRepository) GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error) {
+func (r *notificationRepository) GetUnreadCount(ctx context.Context, userID string) (int64, error) {
 	var count int64
 	result := r.WithContext(ctx).
 		Model(&model.UserNotification{}).
@@ -238,7 +238,7 @@ func (r *notificationRepository) GetUnreadCount(ctx context.Context, userID uuid
 }
 
 // GetUserNotificationSettings はユーザーの通知設定一覧を取得します
-func (r *notificationRepository) GetUserNotificationSettings(ctx context.Context, userID uuid.UUID) ([]model.NotificationSetting, error) {
+func (r *notificationRepository) GetUserNotificationSettings(ctx context.Context, userID string) ([]model.NotificationSetting, error) {
 	var settings []model.NotificationSetting
 	result := r.WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -252,7 +252,7 @@ func (r *notificationRepository) GetUserNotificationSettings(ctx context.Context
 }
 
 // GetUserNotificationSettingByType は指定タイプのユーザー通知設定を取得します
-func (r *notificationRepository) GetUserNotificationSettingByType(ctx context.Context, userID uuid.UUID, notificationType model.NotificationType) (model.NotificationSetting, error) {
+func (r *notificationRepository) GetUserNotificationSettingByType(ctx context.Context, userID string, notificationType model.NotificationType) (model.NotificationSetting, error) {
 	var setting model.NotificationSetting
 	result := r.WithContext(ctx).
 		Where("user_id = ? AND notification_type = ?", userID, notificationType).
@@ -767,7 +767,7 @@ func (r *notificationRepository) applySorting(query *gorm.DB, params *Notificati
 }
 
 // CountByTypeAndDateRange は指定されたユーザー、通知タイプ、日付範囲の通知数を取得します
-func (r *notificationRepository) CountByTypeAndDateRange(ctx context.Context, userID uuid.UUID, notificationType model.NotificationType, startDate, endDate time.Time) (int64, error) {
+func (r *notificationRepository) CountByTypeAndDateRange(ctx context.Context, userID string, notificationType model.NotificationType, startDate, endDate time.Time) (int64, error) {
 	var count int64
 
 	err := r.WithContext(ctx).

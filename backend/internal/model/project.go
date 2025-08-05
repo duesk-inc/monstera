@@ -49,8 +49,8 @@ const (
 
 // Project 案件管理モデル
 type Project struct {
-	ID              uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
-	ClientID        uuid.UUID      `gorm:"type:varchar(36);not null" json:"client_id"`
+	ID              uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
+	ClientID        uuid.UUID      `gorm:"type:varchar(255);not null" json:"client_id"`
 	ProjectName     string         `gorm:"size:200;not null" json:"project_name"`
 	ProjectCode     string         `gorm:"size:50" json:"project_code"`
 	Status          ProjectStatus  `gorm:"size:50;default:'proposal'" json:"status"`
@@ -74,7 +74,7 @@ type Project struct {
 
 // Client 取引先管理モデル
 type Client struct {
-	ID              uuid.UUID   `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID              uuid.UUID   `gorm:"type:varchar(255);primary_key" json:"id"`
 	CompanyName     string      `gorm:"size:200;not null" json:"company_name"`
 	CompanyNameKana string      `gorm:"size:200;not null" json:"company_name_kana"`
 	BillingType     BillingType `gorm:"size:50;default:'monthly'" json:"billing_type"`
@@ -120,9 +120,9 @@ const (
 
 // ProjectAssignment エンジニア案件アサインモデル
 type ProjectAssignment struct {
-	ID              uuid.UUID  `gorm:"type:varchar(36);primary_key" json:"id"`
-	ProjectID       uuid.UUID  `gorm:"type:varchar(36);not null" json:"project_id"`
-	UserID          uuid.UUID  `gorm:"type:varchar(36);not null" json:"user_id"`
+	ID              uuid.UUID  `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProjectID       uuid.UUID  `gorm:"type:varchar(255);not null" json:"project_id"`
+	UserID string  `gorm:"type:varchar(255);not null" json:"user_id"`
 	Role            string     `gorm:"size:100" json:"role"`
 	StartDate       time.Time  `gorm:"not null" json:"start_date"`
 	EndDate         *time.Time `json:"end_date"`

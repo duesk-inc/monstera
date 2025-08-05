@@ -1,14 +1,5 @@
 package service
 
-import (
-	"context"
-	"fmt"
-	"time"
-
-	"github.com/duesk/monstera/internal/dto"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
-)
 
 // mockS3Service 開発環境用のモックS3サービス
 type mockS3Service struct {
@@ -23,7 +14,7 @@ func NewMockS3Service(logger *zap.Logger) S3Service {
 }
 
 // GenerateUploadURL モックのPre-signed URLを生成
-func (s *mockS3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
+func (s *mockS3Service) GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
 	// バリデーション
 	if validationErrors := req.ValidateFileUpload(); len(validationErrors) > 0 {
 		s.logger.Warn("Upload URL request validation failed",
@@ -46,7 +37,7 @@ func (s *mockS3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID,
 
 	s.logger.Info("Mock pre-signed URL generated",
 		zap.String("s3_key", s3Key),
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Time("expires_at", expiresAt))
 
 	return response, nil

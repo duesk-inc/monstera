@@ -26,9 +26,9 @@ func SetupSalesRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *SalesHan
 	if cognitoAuthMiddleware != nil {
 		sales.Use(cognitoAuthMiddleware.AuthRequired())
 	} else {
-		// フォールバック（テスト用）
-		logger.Warn("CognitoAuthMiddleware is not initialized, falling back to deprecated auth")
-		sales.Use(middleware.AuthMiddleware(cfg, logger))
+		// CognitoAuthMiddlewareが初期化されていない場合はエラー
+		logger.Error("CognitoAuthMiddleware is not initialized")
+		panic("CognitoAuthMiddleware is required for sales routes")
 	}
 
 	// 提案管理
@@ -213,10 +213,9 @@ func SetupAdminSalesRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *Sal
 		adminSales.Use(cognitoAuthMiddleware.AuthRequired())
 		adminSales.Use(cognitoAuthMiddleware.AdminRequired())
 	} else {
-		// フォールバック（テスト用）
-		logger.Warn("CognitoAuthMiddleware is not initialized, falling back to deprecated auth")
-		adminSales.Use(middleware.AuthMiddleware(cfg, logger))
-		adminSales.Use(middleware.AdminRequired(logger))
+		// CognitoAuthMiddlewareが初期化されていない場合はエラー
+		logger.Error("CognitoAuthMiddleware is not initialized")
+		panic("CognitoAuthMiddleware is required for admin sales routes")
 	}
 
 	// 管理者専用エンドポイント

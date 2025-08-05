@@ -47,13 +47,13 @@ func NewSkillSheetService(
 }
 
 // GetUserSkillSheet ユーザーIDからスキルシート情報を取得
-func (s *SkillSheetService) GetUserSkillSheet(userID uuid.UUID) (*dto.SkillSheetResponse, error) {
-	s.logger.Info("スキルシート取得開始", zap.String("user_id", userID.String()))
+func (s *SkillSheetService) GetUserSkillSheet(userID string) (*dto.SkillSheetResponse, error) {
+	s.logger.Info("スキルシート取得開始", zap.String("user_id", userID))
 
 	// ユーザー情報を取得
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
-		s.logger.Error("ユーザー取得エラー", zap.Error(err), zap.String("user_id", userID.String()))
+		s.logger.Error("ユーザー取得エラー", zap.Error(err), zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -66,15 +66,15 @@ func (s *SkillSheetService) GetUserSkillSheet(userID uuid.UUID) (*dto.SkillSheet
 				UserID: userID,
 				User:   *user,
 			}
-			s.logger.Info("プロフィールが存在しないため空のスキルシートを返却", zap.String("user_id", userID.String()))
+			s.logger.Info("プロフィールが存在しないため空のスキルシートを返却", zap.String("user_id", userID))
 			return s.createSkillSheetResponse(profile, user), nil
 		}
-		s.logger.Error("プロフィール取得エラー", zap.Error(err), zap.String("user_id", userID.String()))
+		s.logger.Error("プロフィール取得エラー", zap.Error(err), zap.String("user_id", userID))
 		return nil, err
 	}
 
 	s.logger.Info("スキルシート取得完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("work_histories_count", len(profile.WorkHistories)),
 	)
 
@@ -206,9 +206,9 @@ func (s *SkillSheetService) createSkillSheetResponse(profile *model.Profile, use
 }
 
 // UpdateUserSkillSheetWithDTO DTOを使用してスキルシート情報を更新
-func (s *SkillSheetService) UpdateUserSkillSheetWithDTO(userID uuid.UUID, request dto.SkillSheetSaveRequest, isTempSave bool) error {
+func (s *SkillSheetService) UpdateUserSkillSheetWithDTO(userID string, request dto.SkillSheetSaveRequest, isTempSave bool) error {
 	s.logger.Info("スキルシート更新処理開始",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Bool("is_temp_save", isTempSave),
 		zap.Int("work_histories_count", len(request.WorkHistory)),
 	)
@@ -230,18 +230,18 @@ func (s *SkillSheetService) UpdateUserSkillSheetWithDTO(userID uuid.UUID, reques
 	var user model.User
 	if err := tx.First(&user, "id = ?", userID).Error; err != nil {
 		tx.Rollback()
-		s.logger.Error("ユーザーが見つかりません", zap.Error(err), zap.String("user_id", userID.String()))
+		s.logger.Error("ユーザーが見つかりません", zap.Error(err), zap.String("user_id", userID))
 		return err
 	}
 
-	s.logger.Info("ユーザー確認完了", zap.String("user_id", userID.String()), zap.String("email", user.Email))
+	s.logger.Info("ユーザー確認完了", zap.String("user_id", userID), zap.String("email", user.Email))
 
 	// プロフィール取得または作成
 	var profile model.Profile
 	err := tx.Where("user_id = ?", userID).First(&profile).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			s.logger.Info("プロフィールが存在しないため新規作成", zap.String("user_id", userID.String()))
+			s.logger.Info("プロフィールが存在しないため新規作成", zap.String("user_id", userID))
 			// 新規プロフィール作成
 			profile = model.Profile{
 				ID:             uuid.New(),
@@ -497,7 +497,7 @@ func (s *SkillSheetService) UpdateUserSkillSheetWithDTO(userID uuid.UUID, reques
 	}
 
 	s.logger.Info("スキルシート更新処理完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("profile_id", profile.ID.String()),
 		zap.Bool("is_temp_save", isTempSave),
 	)

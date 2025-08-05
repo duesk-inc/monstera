@@ -5,15 +5,14 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"go.uber.org/zap"
 )
 
 type SubstituteLeaveGrantRepository interface {
 	Create(ctx context.Context, grant *model.SubstituteLeaveGrant) error
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]*model.SubstituteLeaveGrant, error)
-	GetActiveGrants(ctx context.Context, userID uuid.UUID, currentDate time.Time) ([]*model.SubstituteLeaveGrant, error)
+	GetByUserID(ctx context.Context, userID string) ([]*model.SubstituteLeaveGrant, error)
+	GetActiveGrants(ctx context.Context, userID string, currentDate time.Time) ([]*model.SubstituteLeaveGrant, error)
 }
 
 type substituteLeaveGrantRepository struct {
@@ -33,13 +32,13 @@ func (r *substituteLeaveGrantRepository) Create(ctx context.Context, grant *mode
 	if err != nil {
 		r.Logger.Error("Failed to create substitute leave grant",
 			zap.Error(err),
-			zap.String("user_id", grant.UserID.String()))
+			zap.String("user_id", grant.UserID))
 		return err
 	}
 	return nil
 }
 
-func (r *substituteLeaveGrantRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]*model.SubstituteLeaveGrant, error) {
+func (r *substituteLeaveGrantRepository) GetByUserID(ctx context.Context, userID string) ([]*model.SubstituteLeaveGrant, error) {
 	var grants []*model.SubstituteLeaveGrant
 	err := r.DB.WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -49,14 +48,14 @@ func (r *substituteLeaveGrantRepository) GetByUserID(ctx context.Context, userID
 	if err != nil {
 		r.Logger.Error("Failed to get substitute leave grants",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
 	return grants, nil
 }
 
-func (r *substituteLeaveGrantRepository) GetActiveGrants(ctx context.Context, userID uuid.UUID, currentDate time.Time) ([]*model.SubstituteLeaveGrant, error) {
+func (r *substituteLeaveGrantRepository) GetActiveGrants(ctx context.Context, userID string, currentDate time.Time) ([]*model.SubstituteLeaveGrant, error) {
 	var grants []*model.SubstituteLeaveGrant
 	err := r.DB.WithContext(ctx).
 		Where("user_id = ? AND expire_date >= ?", userID, currentDate).
@@ -66,7 +65,7 @@ func (r *substituteLeaveGrantRepository) GetActiveGrants(ctx context.Context, us
 	if err != nil {
 		r.Logger.Error("Failed to get active substitute leave grants",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 

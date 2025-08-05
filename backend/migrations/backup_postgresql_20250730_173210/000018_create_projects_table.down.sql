@@ -1,2 +1,0 @@
--- 案件管理テーブルの削除
-DROP TABLE IF EXISTS projects;

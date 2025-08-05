@@ -1,4 +1,0 @@
-email,firstName,lastName,firstNameKana,lastNameKana,sei,mei,seiKana,meiKana,department,position,phoneNumber,hireDate,education
-csv.test1@duesk.co.jp,CSV,Test1,シーエスブイ,テストワン,CSV,太郎,しーえすぶい,たろう,開発部,エンジニア,090-1111-1111,2024-01-01,東京大学 工学部
-csv.test2@duesk.co.jp,CSV,Test2,シーエスブイ,テストツー,CSV,花子,しーえすぶい,はなこ,営業部,営業,090-2222-2222,2024-02-01,早稲田大学 商学部
-csv.test3@duesk.co.jp,CSV,Test3,シーエスブイ,テストスリー,CSV,次郎,しーえすぶい,じろう,人事部,マネージャー,090-3333-3333,2024-03-01,慶應大学 経済学部

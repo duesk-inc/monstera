@@ -7,14 +7,13 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"go.uber.org/zap"
 )
 
 // AdminDashboardService 管理者ダッシュボードサービスのインターフェース
 type AdminDashboardService interface {
-	GetDashboardData(ctx context.Context, userID uuid.UUID) (*dto.AdminDashboardDTO, error)
+	GetDashboardData(ctx context.Context, userID string) (*dto.AdminDashboardDTO, error)
 }
 
 // adminDashboardService 管理者ダッシュボードサービスの実装
@@ -32,7 +31,7 @@ func NewAdminDashboardService(db *gorm.DB, logger *zap.Logger) AdminDashboardSer
 }
 
 // GetDashboardData ダッシュボードデータを取得
-func (s *adminDashboardService) GetDashboardData(ctx context.Context, userID uuid.UUID) (*dto.AdminDashboardDTO, error) {
+func (s *adminDashboardService) GetDashboardData(ctx context.Context, userID string) (*dto.AdminDashboardDTO, error) {
 	dashboard := &dto.AdminDashboardDTO{
 		PendingApprovals: dto.PendingApprovalsDTO{},
 		Statistics:       dto.DashboardStatisticsDTO{},
@@ -140,7 +139,7 @@ func (s *adminDashboardService) getAlerts(ctx context.Context, alerts *[]dto.Das
 
 	for _, user := range followUpUsers {
 		alert := dto.DashboardAlertDTO{
-			ID:       user.ID.String(),
+			ID:       user.ID,
 			Type:     "follow_up",
 			Title:    user.LastName + " " + user.FirstName + "さん",
 			Message:  *user.FollowUpReason,

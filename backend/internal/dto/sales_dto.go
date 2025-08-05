@@ -13,7 +13,7 @@ type SalesActivityDTO struct {
 	ClientName      string     `json:"client_name"`
 	ProjectID       *uuid.UUID `json:"project_id"`
 	ProjectName     string     `json:"project_name,omitempty"`
-	UserID          uuid.UUID  `json:"user_id"`
+	UserID string  `json:"user_id"`
 	UserName        string     `json:"user_name"`
 	ActivityType    string     `json:"activity_type"`
 	ActivityDate    time.Time  `json:"activity_date"`
@@ -112,7 +112,7 @@ type ExtensionTargetDTO struct {
 // SalesTargetDTO 営業目標DTO
 type SalesTargetDTO struct {
 	ID               uuid.UUID `json:"id"`
-	UserID           uuid.UUID `json:"user_id"`
+	UserID string `json:"user_id"`
 	UserName         string    `json:"user_name"`
 	TargetMonth      string    `json:"target_month"`
 	TargetAmount     float64   `json:"target_amount"`

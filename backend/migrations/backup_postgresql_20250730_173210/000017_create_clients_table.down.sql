@@ -1,2 +1,0 @@
--- 取引先管理テーブルの削除
-DROP TABLE IF EXISTS clients;

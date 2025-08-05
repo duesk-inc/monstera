@@ -17,7 +17,7 @@ type LeaveRequestAdminRepository interface {
 	RejectRequest(ctx context.Context, requestID, approverID uuid.UUID, reason string) error
 	BulkApprove(ctx context.Context, requestIDs []uuid.UUID, approverID uuid.UUID) error
 	GetStatistics(ctx context.Context, filters StatisticsFilters) (*LeaveStatistics, error)
-	GetUserStatistics(ctx context.Context, userID uuid.UUID, filters StatisticsFilters) (*UserLeaveStatistics, error)
+	GetUserStatistics(ctx context.Context, userID string, filters StatisticsFilters) (*UserLeaveStatistics, error)
 }
 
 type leaveRequestAdminRepository struct {
@@ -263,9 +263,14 @@ func (r *leaveRequestAdminRepository) GetStatistics(ctx context.Context, filters
 	return stats, nil
 }
 
-func (r *leaveRequestAdminRepository) GetUserStatistics(ctx context.Context, userID uuid.UUID, filters StatisticsFilters) (*UserLeaveStatistics, error) {
+func (r *leaveRequestAdminRepository) GetUserStatistics(ctx context.Context, userID string, filters StatisticsFilters) (*UserLeaveStatistics, error) {
+	parsedUserID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, err
+	}
+	
 	userStats := &UserLeaveStatistics{
-		UserID:        userID,
+		UserID:        parsedUserID,
 		TotalUsedDays: make(map[string]float64),
 		RemainingDays: make(map[string]float64),
 	}

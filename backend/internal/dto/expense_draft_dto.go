@@ -19,7 +19,7 @@ type ExpenseDraftRequest struct {
 // ExpenseDraftResponse 経費申請下書きレスポンス
 type ExpenseDraftResponse struct {
 	ID           uuid.UUID  `json:"id"`
-	UserID       uuid.UUID  `json:"user_id"`
+	UserID string  `json:"user_id"`
 	CategoryID   *uuid.UUID `json:"category_id,omitempty"`
 	Amount       *int       `json:"amount,omitempty"`
 	ExpenseDate  *time.Time `json:"expense_date,omitempty"`

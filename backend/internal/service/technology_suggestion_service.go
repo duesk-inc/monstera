@@ -24,7 +24,7 @@ type TechnologySuggestionService interface {
 	GetPopularByCategory(ctx context.Context, category string, limit int) ([]dto.TechnologySuggestionResponse, error)
 
 	// ユーザー使用技術の候補取得
-	GetUserRecentTechnologies(ctx context.Context, userID uuid.UUID, limit int) ([]dto.TechnologySuggestionResponse, error)
+	GetUserRecentTechnologies(ctx context.Context, userID string, limit int) ([]dto.TechnologySuggestionResponse, error)
 
 	// 技術の正規化と候補提示
 	NormalizeAndSuggest(ctx context.Context, input string) (*dto.TechnologySuggestionResponse, []dto.TechnologySuggestionResponse, error)
@@ -179,7 +179,7 @@ func (s *technologySuggestionService) GetPopularByCategory(ctx context.Context, 
 }
 
 // GetUserRecentTechnologies ユーザーの最近使用した技術を取得
-func (s *technologySuggestionService) GetUserRecentTechnologies(ctx context.Context, userID uuid.UUID, limit int) ([]dto.TechnologySuggestionResponse, error) {
+func (s *technologySuggestionService) GetUserRecentTechnologies(ctx context.Context, userID string, limit int) ([]dto.TechnologySuggestionResponse, error) {
 	if limit == 0 {
 		limit = 10
 	}
@@ -191,7 +191,7 @@ func (s *technologySuggestionService) GetUserRecentTechnologies(ctx context.Cont
 	technologies, err := s.technologyRepo.GetRecentlyUsedTechnologies(ctx, userID, limit)
 	if err != nil {
 		s.logger.Error("Failed to get user recent technologies",
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Error(err))
 		return nil, fmt.Errorf("ユーザーの使用技術取得に失敗しました: %w", err)
 	}

@@ -11,9 +11,9 @@ import (
 
 // WorkHistoryService 職務経歴サービスのインターフェース
 type WorkHistoryService interface {
-	GetWorkHistory(ctx context.Context, userID uuid.UUID) (*WorkHistoryData, error)
-	UpdateWorkHistory(ctx context.Context, userID uuid.UUID, data *WorkHistoryUpdateData) error
-	SaveTemporary(ctx context.Context, userID uuid.UUID, data *WorkHistoryUpdateData) error
+	GetWorkHistory(ctx context.Context, userID string) (*WorkHistoryData, error)
+	UpdateWorkHistory(ctx context.Context, userID string, data *WorkHistoryUpdateData) error
+	SaveTemporary(ctx context.Context, userID string, data *WorkHistoryUpdateData) error
 }
 
 // workHistoryService 職務経歴サービスの実装
@@ -120,7 +120,7 @@ type WorkHistoryUpdateItem struct {
 }
 
 // GetWorkHistory 職務経歴を取得（スタブ実装）
-func (s *workHistoryService) GetWorkHistory(ctx context.Context, userID uuid.UUID) (*WorkHistoryData, error) {
+func (s *workHistoryService) GetWorkHistory(ctx context.Context, userID string) (*WorkHistoryData, error) {
 	// TODO: 実装予定
 	return &WorkHistoryData{
 		UserID: userID,
@@ -128,13 +128,13 @@ func (s *workHistoryService) GetWorkHistory(ctx context.Context, userID uuid.UUI
 }
 
 // UpdateWorkHistory 職務経歴を更新（スタブ実装）
-func (s *workHistoryService) UpdateWorkHistory(ctx context.Context, userID uuid.UUID, data *WorkHistoryUpdateData) error {
+func (s *workHistoryService) UpdateWorkHistory(ctx context.Context, userID string, data *WorkHistoryUpdateData) error {
 	// TODO: 実装予定
 	return nil
 }
 
 // SaveTemporary 一時保存（スタブ実装）
-func (s *workHistoryService) SaveTemporary(ctx context.Context, userID uuid.UUID, data *WorkHistoryUpdateData) error {
+func (s *workHistoryService) SaveTemporary(ctx context.Context, userID string, data *WorkHistoryUpdateData) error {
 	// TODO: 実装予定
 	return nil
 }

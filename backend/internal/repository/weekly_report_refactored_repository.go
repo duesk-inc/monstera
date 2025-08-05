@@ -23,7 +23,7 @@ type WeeklyReportRefactoredRepository interface {
 
 	// 検索操作（最適化済み）
 	FindWithPreload(ctx context.Context, params QueryParams) ([]*model.WeeklyReport, *utils.PaginationResult, error)
-	FindByUserIDWithPreload(ctx context.Context, userID uuid.UUID, params QueryParams) ([]*model.WeeklyReport, *utils.PaginationResult, error)
+	FindByUserIDWithPreload(ctx context.Context, userID string, params QueryParams) ([]*model.WeeklyReport, *utils.PaginationResult, error)
 	FindUnsubmittedWithPreload(ctx context.Context, params QueryParams) ([]*model.WeeklyReport, *utils.PaginationResult, error)
 
 	// 統計操作
@@ -152,7 +152,7 @@ func (r *weeklyReportRefactoredRepository) FindWithPreload(ctx context.Context, 
 }
 
 // FindByUserIDWithPreload ユーザーIDで週報を検索（最適化済み）
-func (r *weeklyReportRefactoredRepository) FindByUserIDWithPreload(ctx context.Context, userID uuid.UUID, params QueryParams) ([]*model.WeeklyReport, *utils.PaginationResult, error) {
+func (r *weeklyReportRefactoredRepository) FindByUserIDWithPreload(ctx context.Context, userID string, params QueryParams) ([]*model.WeeklyReport, *utils.PaginationResult, error) {
 	var reports []*model.WeeklyReport
 
 	query := r.WithContext(ctx).Model(&model.WeeklyReport{}).

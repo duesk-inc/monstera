@@ -17,7 +17,7 @@ type AlertHistoryRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (*model.AlertHistory, error)
 	GetList(ctx context.Context, filters dto.AlertFilters, page, limit int) ([]*model.AlertHistory, int64, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status string, handledBy uuid.UUID, comment string) error
-	GetUnresolvedByUser(ctx context.Context, userID uuid.UUID) ([]*model.AlertHistory, error)
+	GetUnresolvedByUser(ctx context.Context, userID string) ([]*model.AlertHistory, error)
 	GetSummary(ctx context.Context) (*dto.AlertSummaryDTO, error)
 	GetRecentAlerts(ctx context.Context, limit int) ([]*model.AlertHistory, error)
 }
@@ -40,14 +40,14 @@ func (r *alertHistoryRepository) Create(ctx context.Context, alertHistory *model
 	if err := r.db.WithContext(ctx).Create(alertHistory).Error; err != nil {
 		r.logger.Error("Failed to create alert history",
 			zap.Error(err),
-			zap.String("user_id", alertHistory.UserID.String()),
+			zap.String("user_id", alertHistory.UserID),
 			zap.String("alert_type", string(alertHistory.AlertType)))
 		return err
 	}
 
 	r.logger.Info("Alert history created successfully",
 		zap.String("id", alertHistory.ID.String()),
-		zap.String("user_id", alertHistory.UserID.String()),
+		zap.String("user_id", alertHistory.UserID),
 		zap.String("alert_type", string(alertHistory.AlertType)))
 
 	return nil
@@ -185,7 +185,7 @@ func (r *alertHistoryRepository) UpdateStatus(ctx context.Context, id uuid.UUID,
 }
 
 // GetUnresolvedByUser ユーザーの未解決アラートを取得
-func (r *alertHistoryRepository) GetUnresolvedByUser(ctx context.Context, userID uuid.UUID) ([]*model.AlertHistory, error) {
+func (r *alertHistoryRepository) GetUnresolvedByUser(ctx context.Context, userID string) ([]*model.AlertHistory, error) {
 	var alertHistories []*model.AlertHistory
 
 	err := r.db.WithContext(ctx).
@@ -197,7 +197,7 @@ func (r *alertHistoryRepository) GetUnresolvedByUser(ctx context.Context, userID
 	if err != nil {
 		r.logger.Error("Failed to get unresolved alerts by user",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 

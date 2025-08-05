@@ -1,2 +1,0 @@
--- 承認者設定履歴テーブルを削除 DROP TABLE IF EXISTS expense_approver_setting_histories;
--- 承認者設定テーブルを削除 DROP TABLE IF EXISTS expense_approver_settings;

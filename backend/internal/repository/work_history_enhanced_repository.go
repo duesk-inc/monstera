@@ -17,21 +17,21 @@ type WorkHistoryEnhancedRepository interface {
 	Update(ctx context.Context, workHistory *model.WorkHistory) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	FindByID(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error)
-	FindByUserID(ctx context.Context, userID uuid.UUID) ([]model.WorkHistory, error)
+	FindByUserID(ctx context.Context, userID string) ([]model.WorkHistory, error)
 
 	// 拡張操作
 	FindWithTechnologies(ctx context.Context, id uuid.UUID) (*model.WorkHistory, []model.WorkHistoryTechnology, error)
-	FindAllWithTechnologies(ctx context.Context, userID uuid.UUID) ([]model.WorkHistory, map[uuid.UUID][]model.WorkHistoryTechnology, error)
+	FindAllWithTechnologies(ctx context.Context, userID string) ([]model.WorkHistory, map[uuid.UUID][]model.WorkHistoryTechnology, error)
 	Search(ctx context.Context, criteria WorkHistorySearchCriteria) ([]model.WorkHistory, int64, error)
 
 	// 統計・集計
-	GetUserSummary(ctx context.Context, userID uuid.UUID) (*UserWorkHistorySummary, error)
-	GetTechnologySkills(ctx context.Context, userID uuid.UUID) ([]TechnologySkillSummary, error)
-	CalculateITExperience(ctx context.Context, userID uuid.UUID) (*ITExperienceCalculation, error)
+	GetUserSummary(ctx context.Context, userID string) (*UserWorkHistorySummary, error)
+	GetTechnologySkills(ctx context.Context, userID string) ([]TechnologySkillSummary, error)
+	CalculateITExperience(ctx context.Context, userID string) (*ITExperienceCalculation, error)
 
 	// 一時保存
-	SaveTemporary(ctx context.Context, userID uuid.UUID, data interface{}) error
-	GetTemporary(ctx context.Context, userID uuid.UUID) (interface{}, error)
+	SaveTemporary(ctx context.Context, userID string, data interface{}) error
+	GetTemporary(ctx context.Context, userID string) (interface{}, error)
 
 	// バルク操作
 	BulkCreate(ctx context.Context, workHistories []model.WorkHistory) error
@@ -120,7 +120,7 @@ func (r *workHistoryEnhancedRepository) FindByID(ctx context.Context, id uuid.UU
 }
 
 // FindByUserID ユーザーIDで職務経歴一覧を取得
-func (r *workHistoryEnhancedRepository) FindByUserID(ctx context.Context, userID uuid.UUID) ([]model.WorkHistory, error) {
+func (r *workHistoryEnhancedRepository) FindByUserID(ctx context.Context, userID string) ([]model.WorkHistory, error) {
 	var workHistories []model.WorkHistory
 	err := r.GetDB().WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -146,7 +146,7 @@ func (r *workHistoryEnhancedRepository) FindWithTechnologies(ctx context.Context
 }
 
 // FindAllWithTechnologies 全職務経歴を技術情報付きで取得
-func (r *workHistoryEnhancedRepository) FindAllWithTechnologies(ctx context.Context, userID uuid.UUID) ([]model.WorkHistory, map[uuid.UUID][]model.WorkHistoryTechnology, error) {
+func (r *workHistoryEnhancedRepository) FindAllWithTechnologies(ctx context.Context, userID string) ([]model.WorkHistory, map[uuid.UUID][]model.WorkHistoryTechnology, error) {
 	var workHistories []model.WorkHistory
 	if err := r.GetDB().WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -251,9 +251,14 @@ func (r *workHistoryEnhancedRepository) Search(ctx context.Context, criteria Wor
 }
 
 // GetUserSummary ユーザーの職務経歴サマリーを取得
-func (r *workHistoryEnhancedRepository) GetUserSummary(ctx context.Context, userID uuid.UUID) (*UserWorkHistorySummary, error) {
+func (r *workHistoryEnhancedRepository) GetUserSummary(ctx context.Context, userID string) (*UserWorkHistorySummary, error) {
+	parsedUserID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, err
+	}
+	
 	var summary UserWorkHistorySummary
-	summary.UserID = userID
+	summary.UserID = parsedUserID
 
 	// プロジェクト数を取得
 	var projectCount int64
@@ -267,12 +272,11 @@ func (r *workHistoryEnhancedRepository) GetUserSummary(ctx context.Context, user
 
 	// 合計期間を計算（duration_monthsカラムがある場合）
 	var totalDuration int64
-	err := r.GetDB().WithContext(ctx).
+	if err := r.GetDB().WithContext(ctx).
 		Model(&model.WorkHistory{}).
 		Where("user_id = ?", userID).
 		Select("COALESCE(SUM(duration_months), 0)").
-		Scan(&totalDuration).Error
-	if err != nil {
+		Scan(&totalDuration).Error; err != nil {
 		// duration_monthsカラムがない場合は手動計算
 		var workHistories []model.WorkHistory
 		if err := r.GetDB().WithContext(ctx).
@@ -327,7 +331,7 @@ func (r *workHistoryEnhancedRepository) GetUserSummary(ctx context.Context, user
 }
 
 // GetTechnologySkills ユーザーの技術スキル一覧を取得
-func (r *workHistoryEnhancedRepository) GetTechnologySkills(ctx context.Context, userID uuid.UUID) ([]TechnologySkillSummary, error) {
+func (r *workHistoryEnhancedRepository) GetTechnologySkills(ctx context.Context, userID string) ([]TechnologySkillSummary, error) {
 	var skills []TechnologySkillSummary
 
 	// user_skill_summaryビューがある場合
@@ -381,7 +385,7 @@ func (r *workHistoryEnhancedRepository) GetTechnologySkills(ctx context.Context,
 }
 
 // CalculateITExperience IT経験年数を計算
-func (r *workHistoryEnhancedRepository) CalculateITExperience(ctx context.Context, userID uuid.UUID) (*ITExperienceCalculation, error) {
+func (r *workHistoryEnhancedRepository) CalculateITExperience(ctx context.Context, userID string) (*ITExperienceCalculation, error) {
 	// user_it_experienceビューがある場合
 	var result ITExperienceCalculation
 	err := r.GetDB().WithContext(ctx).
@@ -457,14 +461,14 @@ func (r *workHistoryEnhancedRepository) CalculateITExperience(ctx context.Contex
 }
 
 // SaveTemporary 一時保存
-func (r *workHistoryEnhancedRepository) SaveTemporary(ctx context.Context, userID uuid.UUID, data interface{}) error {
+func (r *workHistoryEnhancedRepository) SaveTemporary(ctx context.Context, userID string, data interface{}) error {
 	// 一時保存の実装（例：JSONとしてDBに保存）
 	// TODO: 実際の実装
 	return nil
 }
 
 // GetTemporary 一時保存データを取得
-func (r *workHistoryEnhancedRepository) GetTemporary(ctx context.Context, userID uuid.UUID) (interface{}, error) {
+func (r *workHistoryEnhancedRepository) GetTemporary(ctx context.Context, userID string) (interface{}, error) {
 	// TODO: 実際の実装
 	return nil, nil
 }

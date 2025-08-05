@@ -9,9 +9,9 @@ import (
 
 // EngineerSkillCategory エンジニアスキルカテゴリ
 type EngineerSkillCategory struct {
-	ID        uuid.UUID  `gorm:"type:char(36);primaryKey" json:"id"`
+	ID        uuid.UUID  `gorm:"type:varchar(255);primaryKey" json:"id"`
 	Name      string     `gorm:"type:varchar(100);not null" json:"name"`
-	ParentID  *uuid.UUID `gorm:"type:char(36)" json:"parent_id"`
+	ParentID  *uuid.UUID `gorm:"type:varchar(255)" json:"parent_id"`
 	SortOrder int        `gorm:"type:int;default:0" json:"sort_order"`
 	CreatedAt time.Time  `gorm:"type:datetime(3);not null;default:CURRENT_TIMESTAMP(3)" json:"created_at"`
 	UpdatedAt time.Time  `gorm:"type:datetime(3);default:CURRENT_TIMESTAMP(3)" json:"updated_at"`
@@ -37,9 +37,9 @@ func (e *EngineerSkillCategory) BeforeCreate(tx *gorm.DB) error {
 
 // EngineerSkill エンジニアスキル
 type EngineerSkill struct {
-	ID              uuid.UUID `gorm:"type:char(36);primaryKey" json:"id"`
-	UserID          uuid.UUID `gorm:"type:char(36);not null" json:"user_id"`
-	SkillCategoryID uuid.UUID `gorm:"type:char(36);not null" json:"skill_category_id"`
+	ID              uuid.UUID `gorm:"type:varchar(255);primaryKey" json:"id"`
+	UserID string `gorm:"type:varchar(255);not null" json:"user_id"`
+	SkillCategoryID uuid.UUID `gorm:"type:varchar(255);not null" json:"skill_category_id"`
 	SkillName       string    `gorm:"type:varchar(100);not null" json:"skill_name"`
 	SkillLevel      int       `gorm:"type:int;check:(skill_level >= 1 AND skill_level <= 5)" json:"skill_level"`
 	CreatedAt       time.Time `gorm:"type:datetime(3);not null;default:CURRENT_TIMESTAMP(3)" json:"created_at"`

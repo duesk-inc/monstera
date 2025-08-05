@@ -82,7 +82,7 @@ type GenerateReceiptUploadURLResponse struct {
 // ExpenseWithReceiptsResponse 複数領収書を含む経費申請レスポンス
 type ExpenseWithReceiptsResponse struct {
 	ID              uuid.UUID           `json:"id"`
-	UserID          uuid.UUID           `json:"user_id"`
+	UserID string           `json:"user_id"`
 	UserName        string              `json:"user_name"`
 	DepartmentID    *uuid.UUID          `json:"department_id,omitempty"`
 	DepartmentName  string              `json:"department_name,omitempty"`

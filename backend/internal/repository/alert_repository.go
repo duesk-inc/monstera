@@ -152,7 +152,7 @@ func (r *alertRepository) Create(ctx context.Context, alert *model.AlertHistory)
 
 	if err := r.db.WithContext(ctx).Create(alert).Error; err != nil {
 		r.logger.Error("Failed to create alert history",
-			zap.String("user_id", alert.UserID.String()),
+			zap.String("user_id", alert.UserID),
 			zap.String("type", string(alert.AlertType)),
 			zap.Error(err))
 		return err

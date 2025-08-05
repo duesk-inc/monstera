@@ -34,7 +34,7 @@ type BulkReminderCompleteRequest struct {
 // NotificationService 通知サービスのインターフェース
 type NotificationService interface {
 	// 基本メソッド
-	GetUnreadCount(ctx context.Context, userID uuid.UUID) (int, error)
+	GetUnreadCount(ctx context.Context, userID string) (int, error)
 	CleanupOldNotifications(ctx context.Context, cutoffDate time.Time) error
 
 	// 通知作成メソッド
@@ -42,26 +42,26 @@ type NotificationService interface {
 	CreateBulkNotifications(ctx context.Context, notifications []*model.Notification) error
 
 	// 提案関連通知メソッド
-	NotifyProposalStatusChange(ctx context.Context, proposalID, projectID, userID uuid.UUID, projectName, previousStatus, newStatus string) error
+	NotifyProposalStatusChange(ctx context.Context, proposalID, projectID, userID string, projectName, previousStatus, newStatus string) error
 	NotifyNewQuestion(ctx context.Context, questionID, proposalID, projectID uuid.UUID, projectName, questionText string, engineerID uuid.UUID, engineerName string) error
 	NotifyQuestionAnswered(ctx context.Context, questionID, proposalID, engineerID uuid.UUID, questionText, responseText string, salesUserName string) error
 
 	// 経費申請関連通知メソッド
-	NotifyExpenseSubmitted(ctx context.Context, expense *model.Expense, approverIDs []uuid.UUID) error
+	NotifyExpenseSubmitted(ctx context.Context, expense *model.Expense, approverIDs []string) error
 	NotifyExpenseApproved(ctx context.Context, expense *model.Expense, approverName string, isFullyApproved bool) error
 	NotifyExpenseRejected(ctx context.Context, expense *model.Expense, rejectorName string, reason string) error
-	NotifyExpenseLimitExceeded(ctx context.Context, userID uuid.UUID, expense *model.Expense, limitType string, exceededAmount int) error
-	NotifyExpenseLimitWarning(ctx context.Context, userID uuid.UUID, limitType string, usageRate float64) error
+	NotifyExpenseLimitExceeded(ctx context.Context, userID string, expense *model.Expense, limitType string, exceededAmount int) error
+	NotifyExpenseLimitWarning(ctx context.Context, userID string, limitType string, usageRate float64) error
 	NotifyExpenseApprovalReminder(ctx context.Context, approverID uuid.UUID, pendingExpenses []model.Expense) error
 
 	// ハンドラー用メソッド
-	GetUserNotifications(ctx context.Context, userID uuid.UUID, limit, offset int) (interface{}, error)
-	GetNotificationsByRecipient(ctx context.Context, userID uuid.UUID) (interface{}, error)
-	GetUnreadNotificationCount(ctx context.Context, userID uuid.UUID) (int, error)
+	GetUserNotifications(ctx context.Context, userID string, limit, offset int) (interface{}, error)
+	GetNotificationsByRecipient(ctx context.Context, userID string) (interface{}, error)
+	GetUnreadNotificationCount(ctx context.Context, userID string) (int, error)
 	MarkAsRead(ctx context.Context, userID, notificationID uuid.UUID) error
-	MarkAllAsRead(ctx context.Context, userID uuid.UUID) error
-	GetUserNotificationSettings(ctx context.Context, userID uuid.UUID) (interface{}, error)
-	UpdateNotificationSetting(ctx context.Context, userID uuid.UUID, request interface{}) error
+	MarkAllAsRead(ctx context.Context, userID string) error
+	GetUserNotificationSettings(ctx context.Context, userID string) (interface{}, error)
+	UpdateNotificationSetting(ctx context.Context, userID string, request interface{}) error
 	GetAllNotifications(ctx context.Context, params interface{}) (interface{}, interface{}, error)
 	GetAdvancedNotificationByID(ctx context.Context, id uuid.UUID) (interface{}, error)
 	UpdateAdvancedNotification(ctx context.Context, id uuid.UUID, request interface{}) error
@@ -87,7 +87,7 @@ func NewNotificationService(db *gorm.DB, logger *zap.Logger) NotificationService
 }
 
 // GetUnreadCount 未読通知数を取得（暫定実装）
-func (s *notificationService) GetUnreadCount(ctx context.Context, userID uuid.UUID) (int, error) {
+func (s *notificationService) GetUnreadCount(ctx context.Context, userID string) (int, error) {
 	// TODO: 実際の実装
 	return 0, nil
 }
@@ -137,7 +137,7 @@ func (s *notificationService) CreateBulkNotifications(ctx context.Context, notif
 }
 
 // NotifyProposalStatusChange 提案ステータス変更通知
-func (s *notificationService) NotifyProposalStatusChange(ctx context.Context, proposalID, projectID, userID uuid.UUID, projectName, previousStatus, newStatus string) error {
+func (s *notificationService) NotifyProposalStatusChange(ctx context.Context, proposalID, projectID, userID string, projectName, previousStatus, newStatus string) error {
 	title := "提案情報のステータスが更新されました"
 	message := fmt.Sprintf("案件「%s」の提案ステータスが「%s」から「%s」に変更されました。", projectName, previousStatus, newStatus)
 
@@ -229,7 +229,7 @@ func stringPtr(s string) *string {
 }
 
 // NotifyExpenseSubmitted 経費申請提出通知
-func (s *notificationService) NotifyExpenseSubmitted(ctx context.Context, expense *model.Expense, approverIDs []uuid.UUID) error {
+func (s *notificationService) NotifyExpenseSubmitted(ctx context.Context, expense *model.Expense, approverIDs []string) error {
 	title := "新しい経費申請が提出されました"
 	message := fmt.Sprintf("%sさんから経費申請「%s」（%d円）が提出されました。承認をお願いします。",
 		expense.User.Name, expense.Title, expense.Amount)
@@ -327,7 +327,7 @@ func (s *notificationService) NotifyExpenseRejected(ctx context.Context, expense
 }
 
 // NotifyExpenseLimitExceeded 経費申請上限超過通知
-func (s *notificationService) NotifyExpenseLimitExceeded(ctx context.Context, userID uuid.UUID, expense *model.Expense, limitType string, exceededAmount int) error {
+func (s *notificationService) NotifyExpenseLimitExceeded(ctx context.Context, userID string, expense *model.Expense, limitType string, exceededAmount int) error {
 	title := fmt.Sprintf("%s経費申請上限を超過しました", getLimitTypeDisplay(limitType))
 	message := fmt.Sprintf("経費申請「%s」により、%s上限を%d円超過しました。これ以上の申請はできません。",
 		expense.Title, getLimitTypeDisplay(limitType), exceededAmount)
@@ -356,7 +356,7 @@ func (s *notificationService) NotifyExpenseLimitExceeded(ctx context.Context, us
 }
 
 // NotifyExpenseLimitWarning 経費申請上限警告通知
-func (s *notificationService) NotifyExpenseLimitWarning(ctx context.Context, userID uuid.UUID, limitType string, usageRate float64) error {
+func (s *notificationService) NotifyExpenseLimitWarning(ctx context.Context, userID string, limitType string, usageRate float64) error {
 	title := fmt.Sprintf("%s経費申請上限に近づいています", getLimitTypeDisplay(limitType))
 	message := fmt.Sprintf("%s経費申請上限の%.0f%%を使用しています。計画的な申請をお願いします。",
 		getLimitTypeDisplay(limitType), usageRate)
@@ -430,10 +430,10 @@ func getLimitTypeDisplay(limitType string) string {
 }
 
 // GetUserNotifications ユーザー通知一覧を取得
-func (s *notificationService) GetUserNotifications(ctx context.Context, userID uuid.UUID, limit, offset int) (interface{}, error) {
+func (s *notificationService) GetUserNotifications(ctx context.Context, userID string, limit, offset int) (interface{}, error) {
 	// TODO: 実装が必要
 	s.logger.Info("Getting user notifications",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("limit", limit),
 		zap.Int("offset", offset))
 
@@ -444,14 +444,14 @@ func (s *notificationService) GetUserNotifications(ctx context.Context, userID u
 }
 
 // GetNotificationsByRecipient 受信者別通知一覧を取得
-func (s *notificationService) GetNotificationsByRecipient(ctx context.Context, userID uuid.UUID) (interface{}, error) {
+func (s *notificationService) GetNotificationsByRecipient(ctx context.Context, userID string) (interface{}, error) {
 	// TODO: 実装が必要
-	s.logger.Info("Getting notifications by recipient", zap.String("user_id", userID.String()))
+	s.logger.Info("Getting notifications by recipient", zap.String("user_id", userID))
 	return []interface{}{}, nil
 }
 
 // GetUnreadNotificationCount 未読通知数を取得（既存メソッドと統合）
-func (s *notificationService) GetUnreadNotificationCount(ctx context.Context, userID uuid.UUID) (int, error) {
+func (s *notificationService) GetUnreadNotificationCount(ctx context.Context, userID string) (int, error) {
 	return s.GetUnreadCount(ctx, userID)
 }
 
@@ -459,22 +459,22 @@ func (s *notificationService) GetUnreadNotificationCount(ctx context.Context, us
 func (s *notificationService) MarkAsRead(ctx context.Context, userID, notificationID uuid.UUID) error {
 	// TODO: 実装が必要
 	s.logger.Info("Marking notification as read",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("notification_id", notificationID.String()))
 	return nil
 }
 
 // MarkAllAsRead 全通知を既読にする
-func (s *notificationService) MarkAllAsRead(ctx context.Context, userID uuid.UUID) error {
+func (s *notificationService) MarkAllAsRead(ctx context.Context, userID string) error {
 	// TODO: 実装が必要
-	s.logger.Info("Marking all notifications as read", zap.String("user_id", userID.String()))
+	s.logger.Info("Marking all notifications as read", zap.String("user_id", userID))
 	return nil
 }
 
 // GetUserNotificationSettings ユーザー通知設定を取得
-func (s *notificationService) GetUserNotificationSettings(ctx context.Context, userID uuid.UUID) (interface{}, error) {
+func (s *notificationService) GetUserNotificationSettings(ctx context.Context, userID string) (interface{}, error) {
 	// TODO: 実装が必要
-	s.logger.Info("Getting user notification settings", zap.String("user_id", userID.String()))
+	s.logger.Info("Getting user notification settings", zap.String("user_id", userID))
 	return map[string]interface{}{
 		"email_enabled": true,
 		"slack_enabled": false,
@@ -482,10 +482,10 @@ func (s *notificationService) GetUserNotificationSettings(ctx context.Context, u
 }
 
 // UpdateNotificationSetting 通知設定を更新
-func (s *notificationService) UpdateNotificationSetting(ctx context.Context, userID uuid.UUID, request interface{}) error {
+func (s *notificationService) UpdateNotificationSetting(ctx context.Context, userID string, request interface{}) error {
 	// TODO: 実装が必要
 	s.logger.Info("Updating notification setting",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Any("request", request))
 	return nil
 }
@@ -518,7 +518,7 @@ func (s *notificationService) DeleteAdvancedNotification(ctx context.Context, id
 // HideNotification 通知を非表示にする
 func (s *notificationService) HideNotification(ctx context.Context, userID, notificationID uuid.UUID) error {
 	s.logger.Info("Hiding notification",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("notification_id", notificationID.String()))
 	return nil
 }

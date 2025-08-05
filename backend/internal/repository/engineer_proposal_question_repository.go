@@ -22,7 +22,7 @@ type EngineerProposalQuestionRepository interface {
 	GetByProposalID(ctx context.Context, proposalID uuid.UUID, filter QuestionFilter) ([]*model.EngineerProposalQuestion, int64, error)
 	GetByProposalIDSimple(ctx context.Context, proposalID uuid.UUID) ([]*model.EngineerProposalQuestion, error)
 	GetPendingQuestions(ctx context.Context, filter PendingQuestionFilter) ([]*model.EngineerProposalQuestion, int64, error)
-	GetQuestionsByUserID(ctx context.Context, userID uuid.UUID, filter QuestionFilter) ([]*model.EngineerProposalQuestion, int64, error)
+	GetQuestionsByUserID(ctx context.Context, userID string, filter QuestionFilter) ([]*model.EngineerProposalQuestion, int64, error)
 
 	// 回答管理
 	UpdateResponse(ctx context.Context, id uuid.UUID, responseText string, salesUserID uuid.UUID) error
@@ -33,8 +33,8 @@ type EngineerProposalQuestionRepository interface {
 	// 統計・分析クエリ
 	CountQuestionsByProposal(ctx context.Context, proposalID uuid.UUID) (int64, error)
 	CountPendingQuestionsByProposal(ctx context.Context, proposalID uuid.UUID) (int64, error)
-	GetQuestionResponseStats(ctx context.Context, userID uuid.UUID) (*QuestionResponseStats, error)
-	GetQuestionTrendStats(ctx context.Context, userID uuid.UUID, months int) ([]*QuestionTrendData, error)
+	GetQuestionResponseStats(ctx context.Context, userID string) (*QuestionResponseStats, error)
+	GetQuestionTrendStats(ctx context.Context, userID string, months int) ([]*QuestionTrendData, error)
 	GetSalesResponseStats(ctx context.Context, salesUserID uuid.UUID, startDate, endDate time.Time) (*SalesQuestionStats, error)
 
 	// 営業担当者向けクエリ
@@ -43,7 +43,7 @@ type EngineerProposalQuestionRepository interface {
 	GetQuestionsByPriority(ctx context.Context, priority string, limit int) ([]*model.EngineerProposalQuestion, error)
 
 	// 高度な分析クエリ
-	GetQuestionActivityByDate(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) ([]*QuestionDailyActivity, error)
+	GetQuestionActivityByDate(ctx context.Context, userID string, startDate, endDate time.Time) ([]*QuestionDailyActivity, error)
 	GetPopularQuestionPatterns(ctx context.Context, limit int) ([]*QuestionPattern, error)
 	GetResponseTimeDistribution(ctx context.Context, salesUserID uuid.UUID) (*ResponseTimeDistribution, error)
 
@@ -354,7 +354,7 @@ func (r *engineerProposalQuestionRepository) GetPendingQuestions(ctx context.Con
 }
 
 // GetQuestionsByUserID ユーザーIDで質問一覧を取得（エンジニア投稿質問）
-func (r *engineerProposalQuestionRepository) GetQuestionsByUserID(ctx context.Context, userID uuid.UUID, filter QuestionFilter) ([]*model.EngineerProposalQuestion, int64, error) {
+func (r *engineerProposalQuestionRepository) GetQuestionsByUserID(ctx context.Context, userID string, filter QuestionFilter) ([]*model.EngineerProposalQuestion, int64, error) {
 	query := r.db.WithContext(ctx).
 		Model(&model.EngineerProposalQuestion{}).
 		Preload("Proposal").
@@ -380,7 +380,7 @@ func (r *engineerProposalQuestionRepository) GetQuestionsByUserID(ctx context.Co
 	if err := query.Count(&total).Error; err != nil {
 		r.logger.Error("Failed to count engineer proposal questions by user ID",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, 0, err
 	}
 
@@ -406,7 +406,7 @@ func (r *engineerProposalQuestionRepository) GetQuestionsByUserID(ctx context.Co
 	if err := query.Order(orderBy).Find(&questions).Error; err != nil {
 		r.logger.Error("Failed to get engineer proposal questions by user ID",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, 0, err
 	}
 
@@ -585,7 +585,7 @@ func (r *engineerProposalQuestionRepository) CountPendingQuestionsByProposal(ctx
 }
 
 // GetQuestionResponseStats 質問回答統計を取得
-func (r *engineerProposalQuestionRepository) GetQuestionResponseStats(ctx context.Context, userID uuid.UUID) (*QuestionResponseStats, error) {
+func (r *engineerProposalQuestionRepository) GetQuestionResponseStats(ctx context.Context, userID string) (*QuestionResponseStats, error) {
 	var stats QuestionResponseStats
 
 	query := `
@@ -611,7 +611,7 @@ func (r *engineerProposalQuestionRepository) GetQuestionResponseStats(ctx contex
 	if err := r.db.WithContext(ctx).Raw(query, userID).Scan(&stats).Error; err != nil {
 		r.logger.Error("Failed to get question response stats",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -619,7 +619,7 @@ func (r *engineerProposalQuestionRepository) GetQuestionResponseStats(ctx contex
 }
 
 // GetQuestionTrendStats 質問トレンド統計を取得
-func (r *engineerProposalQuestionRepository) GetQuestionTrendStats(ctx context.Context, userID uuid.UUID, months int) ([]*QuestionTrendData, error) {
+func (r *engineerProposalQuestionRepository) GetQuestionTrendStats(ctx context.Context, userID string, months int) ([]*QuestionTrendData, error) {
 	var trends []*QuestionTrendData
 
 	startDate := time.Now().AddDate(0, -months, 0)
@@ -644,7 +644,7 @@ func (r *engineerProposalQuestionRepository) GetQuestionTrendStats(ctx context.C
 	if err := r.db.WithContext(ctx).Raw(query, userID, startDate).Scan(&trends).Error; err != nil {
 		r.logger.Error("Failed to get question trend stats",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("months", months))
 		return nil, err
 	}
@@ -774,7 +774,7 @@ func (r *engineerProposalQuestionRepository) GetQuestionsByPriority(ctx context.
 }
 
 // GetQuestionActivityByDate 日別質問活動を取得
-func (r *engineerProposalQuestionRepository) GetQuestionActivityByDate(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) ([]*QuestionDailyActivity, error) {
+func (r *engineerProposalQuestionRepository) GetQuestionActivityByDate(ctx context.Context, userID string, startDate, endDate time.Time) ([]*QuestionDailyActivity, error) {
 	var activities []*QuestionDailyActivity
 
 	query := `
@@ -797,7 +797,7 @@ func (r *engineerProposalQuestionRepository) GetQuestionActivityByDate(ctx conte
 	if err := r.db.WithContext(ctx).Raw(query, userID, startDate, endDate).Scan(&activities).Error; err != nil {
 		r.logger.Error("Failed to get question activity by date",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Time("start_date", startDate),
 			zap.Time("end_date", endDate))
 		return nil, err

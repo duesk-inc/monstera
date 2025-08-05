@@ -1,1 +1,0 @@
--- 請求明細テーブルの削除 DROP TABLE IF EXISTS invoice_details;

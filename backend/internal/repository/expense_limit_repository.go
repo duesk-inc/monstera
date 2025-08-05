@@ -29,10 +29,10 @@ type ExpenseLimitRepository interface {
 	GetLimitsByType(ctx context.Context, limitType model.LimitType) ([]model.ExpenseLimit, error)
 
 	// 上限チェック
-	CheckMonthlyLimit(ctx context.Context, userID uuid.UUID, amount int, targetMonth time.Time) (bool, int, error)
-	CheckYearlyLimit(ctx context.Context, userID uuid.UUID, amount int, targetYear int) (bool, int, error)
-	GetRemainingMonthlyLimit(ctx context.Context, userID uuid.UUID, targetMonth time.Time) (int, error)
-	GetRemainingYearlyLimit(ctx context.Context, userID uuid.UUID, targetYear int) (int, error)
+	CheckMonthlyLimit(ctx context.Context, userID string, amount int, targetMonth time.Time) (bool, int, error)
+	CheckYearlyLimit(ctx context.Context, userID string, amount int, targetYear int) (bool, int, error)
+	GetRemainingMonthlyLimit(ctx context.Context, userID string, targetMonth time.Time) (int, error)
+	GetRemainingYearlyLimit(ctx context.Context, userID string, targetYear int) (int, error)
 
 	// 履歴管理
 	GetLimitHistory(ctx context.Context, limitType model.LimitType, fromDate, toDate time.Time) ([]model.ExpenseLimit, error)
@@ -47,8 +47,8 @@ type ExpenseLimitRepository interface {
 
 	// スコープ対応の新機能
 	GetLimitsWithScope(ctx context.Context, filter *dto.ExpenseLimitListRequest) ([]model.ExpenseLimit, int64, error)
-	GetEffectiveLimitsForUser(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID, limitType model.LimitType, targetDate time.Time) (*model.ExpenseLimit, error)
-	CheckLimitsForUser(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID, amount int, targetDate time.Time) (*dto.LimitCheckResult, error)
+	GetEffectiveLimitsForUser(ctx context.Context, userID string, departmentID *uuid.UUID, limitType model.LimitType, targetDate time.Time) (*model.ExpenseLimit, error)
+	CheckLimitsForUser(ctx context.Context, userID string, departmentID *uuid.UUID, amount int, targetDate time.Time) (*dto.LimitCheckResult, error)
 	CreateWithScope(ctx context.Context, limit *model.ExpenseLimit) error
 	UpdateWithScope(ctx context.Context, limit *model.ExpenseLimit) error
 	DeleteWithScope(ctx context.Context, id uuid.UUID) error
@@ -228,7 +228,7 @@ func (r *ExpenseLimitRepositoryImpl) GetLimitsByType(ctx context.Context, limitT
 // ========================================
 
 // CheckMonthlyLimit 月次上限をチェック（true: 上限内、false: 上限超過）
-func (r *ExpenseLimitRepositoryImpl) CheckMonthlyLimit(ctx context.Context, userID uuid.UUID, amount int, targetMonth time.Time) (bool, int, error) {
+func (r *ExpenseLimitRepositoryImpl) CheckMonthlyLimit(ctx context.Context, userID string, amount int, targetMonth time.Time) (bool, int, error) {
 	// 現在の月次上限を取得
 	limit, err := r.GetEffectiveLimitByType(ctx, model.LimitTypeMonthly, targetMonth)
 	if err != nil {
@@ -254,7 +254,7 @@ func (r *ExpenseLimitRepositoryImpl) CheckMonthlyLimit(ctx context.Context, user
 	if err != nil {
 		r.logger.Error("Failed to calculate monthly expense total",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Time("target_month", targetMonth))
 		return false, 0, err
 	}
@@ -265,7 +265,7 @@ func (r *ExpenseLimitRepositoryImpl) CheckMonthlyLimit(ctx context.Context, user
 	remaining := limit.Amount - int(currentTotal)
 
 	r.logger.Debug("Monthly limit check",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("current_total", int(currentTotal)),
 		zap.Int("new_amount", amount),
 		zap.Int("limit", limit.Amount),
@@ -276,7 +276,7 @@ func (r *ExpenseLimitRepositoryImpl) CheckMonthlyLimit(ctx context.Context, user
 }
 
 // CheckYearlyLimit 年次上限をチェック（true: 上限内、false: 上限超過）
-func (r *ExpenseLimitRepositoryImpl) CheckYearlyLimit(ctx context.Context, userID uuid.UUID, amount int, targetYear int) (bool, int, error) {
+func (r *ExpenseLimitRepositoryImpl) CheckYearlyLimit(ctx context.Context, userID string, amount int, targetYear int) (bool, int, error) {
 	// 現在の年次上限を取得
 	targetDate := time.Date(targetYear, 1, 1, 0, 0, 0, 0, time.UTC)
 	limit, err := r.GetEffectiveLimitByType(ctx, model.LimitTypeYearly, targetDate)
@@ -303,7 +303,7 @@ func (r *ExpenseLimitRepositoryImpl) CheckYearlyLimit(ctx context.Context, userI
 	if err != nil {
 		r.logger.Error("Failed to calculate yearly expense total",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("target_year", targetYear))
 		return false, 0, err
 	}
@@ -314,7 +314,7 @@ func (r *ExpenseLimitRepositoryImpl) CheckYearlyLimit(ctx context.Context, userI
 	remaining := limit.Amount - int(currentTotal)
 
 	r.logger.Debug("Yearly limit check",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("current_total", int(currentTotal)),
 		zap.Int("new_amount", amount),
 		zap.Int("limit", limit.Amount),
@@ -325,13 +325,13 @@ func (r *ExpenseLimitRepositoryImpl) CheckYearlyLimit(ctx context.Context, userI
 }
 
 // GetRemainingMonthlyLimit 月次の残り利用可能額を取得
-func (r *ExpenseLimitRepositoryImpl) GetRemainingMonthlyLimit(ctx context.Context, userID uuid.UUID, targetMonth time.Time) (int, error) {
+func (r *ExpenseLimitRepositoryImpl) GetRemainingMonthlyLimit(ctx context.Context, userID string, targetMonth time.Time) (int, error) {
 	_, remaining, err := r.CheckMonthlyLimit(ctx, userID, 0, targetMonth)
 	return remaining, err
 }
 
 // GetRemainingYearlyLimit 年次の残り利用可能額を取得
-func (r *ExpenseLimitRepositoryImpl) GetRemainingYearlyLimit(ctx context.Context, userID uuid.UUID, targetYear int) (int, error) {
+func (r *ExpenseLimitRepositoryImpl) GetRemainingYearlyLimit(ctx context.Context, userID string, targetYear int) (int, error) {
 	_, remaining, err := r.CheckYearlyLimit(ctx, userID, 0, targetYear)
 	return remaining, err
 }
@@ -411,13 +411,13 @@ func (r *ExpenseLimitRepositoryImpl) InitializeDefaultLimits(ctx context.Context
 			LimitType:     model.LimitTypeMonthly,
 			Amount:        50000, // 月次5万円
 			EffectiveFrom: now,
-			CreatedBy:     createdBy,
+			CreatedBy:     createdBy.String(),
 		},
 		{
 			LimitType:     model.LimitTypeYearly,
 			Amount:        200000, // 年次20万円
 			EffectiveFrom: now,
-			CreatedBy:     createdBy,
+			CreatedBy:     createdBy.String(),
 		},
 	}
 
@@ -450,7 +450,7 @@ func (r *ExpenseLimitRepositoryImpl) UpdateLimitAmount(ctx context.Context, limi
 		LimitType:     limitType,
 		Amount:        newAmount,
 		EffectiveFrom: time.Now(),
-		CreatedBy:     createdBy,
+		CreatedBy:     createdBy.String(),
 	}
 
 	if err := r.Create(ctx, &newLimit); err != nil {
@@ -611,7 +611,7 @@ func (r *ExpenseLimitRepositoryImpl) GetLimitsWithScope(ctx context.Context, fil
 }
 
 // GetEffectiveLimitsForUser 指定されたユーザーに適用される有効な制限を取得
-func (r *ExpenseLimitRepositoryImpl) GetEffectiveLimitsForUser(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID, limitType model.LimitType, targetDate time.Time) (*model.ExpenseLimit, error) {
+func (r *ExpenseLimitRepositoryImpl) GetEffectiveLimitsForUser(ctx context.Context, userID string, departmentID *uuid.UUID, limitType model.LimitType, targetDate time.Time) (*model.ExpenseLimit, error) {
 	// 適用可能な制限を取得（個人 > 部門 > 全社の優先順）
 	var limits []model.ExpenseLimit
 	query := r.db.WithContext(ctx).
@@ -638,7 +638,7 @@ func (r *ExpenseLimitRepositoryImpl) GetEffectiveLimitsForUser(ctx context.Conte
 	if err != nil {
 		r.logger.Error("Failed to get effective limits for user",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.String("limit_type", string(limitType)))
 		return nil, err
 	}
@@ -661,7 +661,7 @@ func (r *ExpenseLimitRepositoryImpl) GetEffectiveLimitsForUser(ctx context.Conte
 }
 
 // CheckLimitsForUser 指定されたユーザーの上限チェック（スコープ対応）
-func (r *ExpenseLimitRepositoryImpl) CheckLimitsForUser(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID, amount int, targetDate time.Time) (*dto.LimitCheckResult, error) {
+func (r *ExpenseLimitRepositoryImpl) CheckLimitsForUser(ctx context.Context, userID string, departmentID *uuid.UUID, amount int, targetDate time.Time) (*dto.LimitCheckResult, error) {
 	result := &dto.LimitCheckResult{
 		WithinMonthlyLimit: true,
 		WithinYearlyLimit:  true,

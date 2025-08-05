@@ -43,7 +43,7 @@ type DailyRecordResponse struct {
 // WeeklyReportResponse 週報レスポンス
 type WeeklyReportResponse struct {
 	ID                       uuid.UUID             `json:"id"`
-	UserID                   uuid.UUID             `json:"user_id"`
+	UserID string             `json:"user_id"`
 	StartDate                time.Time             `json:"start_date"`
 	EndDate                  time.Time             `json:"end_date"`
 	Status                   string                `json:"status"`
@@ -131,7 +131,7 @@ func ConvertLegacyIntStatusToString(intStatus int) string {
 // WeeklyReportDTO ユーザー向け週報DTO
 type WeeklyReportDTO struct {
 	ID                       uuid.UUID  `json:"id"`
-	UserID                   uuid.UUID  `json:"user_id"`
+	UserID string  `json:"user_id"`
 	StartDate                time.Time  `json:"start_date"`
 	EndDate                  time.Time  `json:"end_date"`
 	Status                   string     `json:"status"`
@@ -157,7 +157,7 @@ type WeeklyReportDetailDTO struct {
 // UnsubmittedReportDTO 未提出週報DTO
 type UnsubmittedReportDTO struct {
 	ID                 uuid.UUID  `json:"id"`
-	UserID             uuid.UUID  `json:"user_id"`
+	UserID string  `json:"user_id"`
 	UserName           string     `json:"user_name"`
 	UserEmail          string     `json:"user_email"`
 	DepartmentID       *uuid.UUID `json:"department_id"`

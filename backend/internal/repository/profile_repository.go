@@ -16,15 +16,15 @@ import (
 type ProfileRepository interface {
 	Create(profile *model.Profile) error
 	FindByID(id uuid.UUID) (*model.Profile, error)
-	FindByUserID(userID uuid.UUID) (*model.Profile, error)
-	FindByUserIDWithWorkHistory(userID uuid.UUID) (*model.Profile, error)
+	FindByUserID(userID string) (*model.Profile, error)
+	FindByUserIDWithWorkHistory(userID string) (*model.Profile, error)
 	Update(profile *model.Profile) error
 	Delete(id uuid.UUID) error
 	CreateOrUpdate(profile *model.Profile) error
 	SaveLanguageSkills(profileID uuid.UUID, skills []model.LanguageSkill) error
 	SaveFrameworkSkills(profileID uuid.UUID, skills []model.FrameworkSkill) error
 	SaveBusinessExperiences(profileID uuid.UUID, experiences []model.BusinessExperience) error
-	SaveWorkHistories(profileID uuid.UUID, userID uuid.UUID, histories []model.WorkHistory) error
+	SaveWorkHistories(profileID uuid.UUID, userID string, histories []model.WorkHistory) error
 	SaveCertifications(profileID uuid.UUID, certifications []dto.CertificationRequest) error
 
 	// 履歴関連の追加メソッド
@@ -61,7 +61,7 @@ func (r *ProfileRepositoryImpl) FindByID(id uuid.UUID) (*model.Profile, error) {
 }
 
 // FindByUserID ユーザーIDでプロフィールを検索
-func (r *ProfileRepositoryImpl) FindByUserID(userID uuid.UUID) (*model.Profile, error) {
+func (r *ProfileRepositoryImpl) FindByUserID(userID string) (*model.Profile, error) {
 	var profile model.Profile
 	err := r.db.Preload("User").
 		Preload("Certifications").
@@ -76,7 +76,7 @@ func (r *ProfileRepositoryImpl) FindByUserID(userID uuid.UUID) (*model.Profile, 
 }
 
 // FindByUserIDWithWorkHistory ユーザーIDでプロフィールを検索（職務経歴含む）
-func (r *ProfileRepositoryImpl) FindByUserIDWithWorkHistory(userID uuid.UUID) (*model.Profile, error) {
+func (r *ProfileRepositoryImpl) FindByUserIDWithWorkHistory(userID string) (*model.Profile, error) {
 	var profile model.Profile
 	err := r.db.Preload("User").
 		Preload("Certifications").
@@ -211,7 +211,7 @@ func (r *ProfileRepositoryImpl) SaveBusinessExperiences(profileID uuid.UUID, exp
 }
 
 // SaveWorkHistories 職務経歴を保存
-func (r *ProfileRepositoryImpl) SaveWorkHistories(profileID uuid.UUID, userID uuid.UUID, histories []model.WorkHistory) error {
+func (r *ProfileRepositoryImpl) SaveWorkHistories(profileID uuid.UUID, userID string, histories []model.WorkHistory) error {
 	// 既存の経歴を削除
 	if err := r.db.Where("profile_id = ?", profileID).Delete(&model.WorkHistory{}).Error; err != nil {
 		return err

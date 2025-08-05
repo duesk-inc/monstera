@@ -47,7 +47,7 @@ type SalesActivity struct {
 	ClientID               uuid.UUID           `gorm:"type:varchar(36);not null" json:"client_id"`
 	ProjectID              *uuid.UUID          `gorm:"type:varchar(36)" json:"project_id"`
 	ActivityType           SalesActivityType   `gorm:"size:50;not null" json:"activity_type"`
-	TargetUserID           *uuid.UUID          `gorm:"type:varchar(36)" json:"target_user_id"`
+	TargetUserID           *string          `gorm:"type:varchar(255)" json:"target_user_id"`
 	SalesRepID             *uuid.UUID          `gorm:"type:varchar(36)" json:"sales_rep_id"`
 	Status                 SalesActivityStatus `gorm:"size:50;default:'planning'" json:"status"`
 	Probability            int                 `gorm:"default:0" json:"probability"`

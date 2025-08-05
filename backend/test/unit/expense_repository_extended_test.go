@@ -37,7 +37,7 @@ func (suite *ExpenseRepositoryExtendedTestSuite) SetupSuite() {
 		CREATE TABLE users (
 			id TEXT PRIMARY KEY,
 			email TEXT NOT NULL,
-			password TEXT NOT NULL,
+			cognito_sub TEXT,
 			first_name TEXT NOT NULL,
 			last_name TEXT NOT NULL,
 			name TEXT,
@@ -175,8 +175,8 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_CountPend
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_ListWithPagination() {
 	// テストユーザーの作成（手動挿入）
 	userID := uuid.New()
-	suite.db.Exec("INSERT INTO users (id, email, password, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-		userID.String(), "test@duesk.co.jp", "hashedpassword", "Test", "User", "Test User", time.Now(), time.Now())
+	suite.db.Exec("INSERT INTO users (id, email, cognito_sub, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		userID.String(), "test@duesk.co.jp", "test-cognito-sub", "Test", "User", "Test User", time.Now(), time.Now())
 
 	// 10件の経費申請を作成
 	for i := 0; i < 10; i++ {
@@ -229,8 +229,8 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_ListWithP
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_StatusFiltering() {
 	// テストユーザーの作成（手動挿入）
 	userID := uuid.New()
-	suite.db.Exec("INSERT INTO users (id, email, password, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-		userID.String(), "test@duesk.co.jp", "hashedpassword", "Test", "User", "Test User", time.Now(), time.Now())
+	suite.db.Exec("INSERT INTO users (id, email, cognito_sub, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		userID.String(), "test@duesk.co.jp", "test-cognito-sub", "Test", "User", "Test User", time.Now(), time.Now())
 
 	// 異なるステータスの経費申請を作成
 	statuses := []model.ExpenseStatus{
@@ -278,8 +278,8 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_StatusFil
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_ConcurrentUpdate() {
 	// テストユーザーの作成（手動挿入）
 	userID := uuid.New()
-	suite.db.Exec("INSERT INTO users (id, email, password, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-		userID.String(), "test@duesk.co.jp", "hashedpassword", "Test", "User", "Test User", time.Now(), time.Now())
+	suite.db.Exec("INSERT INTO users (id, email, cognito_sub, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+		userID.String(), "test@duesk.co.jp", "test-cognito-sub", "Test", "User", "Test User", time.Now(), time.Now())
 
 	// 経費申請を作成
 	expense := &model.Expense{

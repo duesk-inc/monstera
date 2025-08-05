@@ -1,6 +1,5 @@
 package dto
 
-import "github.com/google/uuid"
 
 // LeaveTypeResponse 休暇種別のレスポンスDTO
 type LeaveTypeResponse struct {
@@ -38,7 +37,7 @@ type LeaveRequestDetailRequest struct {
 
 // LeaveRequestRequest 休暇申請のリクエストDTO
 type LeaveRequestRequest struct {
-	UserID         uuid.UUID                   `json:"user_id"`
+	UserID string                   `json:"user_id"`
 	LeaveTypeID    string                      `json:"leave_type_id" binding:"required"`
 	IsHourlyBased  bool                        `json:"is_hourly_based"`
 	Reason         string                      `json:"reason"`
@@ -58,7 +57,7 @@ type LeaveRequestDetailResponse struct {
 // LeaveRequestResponse 休暇申請のレスポンスDTO
 type LeaveRequestResponse struct {
 	ID            string                       `json:"id"`
-	UserID        uuid.UUID                    `json:"user_id"`
+	UserID string                    `json:"user_id"`
 	LeaveTypeID   string                       `json:"leave_type_id"`
 	LeaveTypeName string                       `json:"leave_type_name"`
 	RequestDate   string                       `json:"request_date"`
@@ -80,7 +79,7 @@ type HolidayResponse struct {
 
 // SubstituteLeaveGrantRequest 振替特別休暇付与のリクエストDTO
 type SubstituteLeaveGrantRequest struct {
-	UserID      uuid.UUID `json:"user_id" binding:"required"`
+	UserID string `json:"user_id" binding:"required"`
 	GrantDate   string    `json:"grant_date" binding:"required"`
 	GrantedDays float64   `json:"granted_days" binding:"required"`
 	WorkDate    string    `json:"work_date" binding:"required"`
@@ -91,7 +90,7 @@ type SubstituteLeaveGrantRequest struct {
 // SubstituteLeaveGrantResponse 振替特別休暇付与のレスポンスDTO
 type SubstituteLeaveGrantResponse struct {
 	ID            string    `json:"id"`
-	UserID        uuid.UUID `json:"user_id"`
+	UserID string `json:"user_id"`
 	GrantDate     string    `json:"grant_date"`
 	GrantedDays   float64   `json:"granted_days"`
 	UsedDays      float64   `json:"used_days"`

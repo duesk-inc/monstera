@@ -10,13 +10,13 @@ import (
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/google/uuid"
 	"github.com/jung-kurt/gofpdf"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"go.uber.org/zap"
 )
 
 // SkillSheetPDFService スキルシートPDFサービスのインターフェース
 type SkillSheetPDFService interface {
-	GenerateSkillSheetPDF(ctx context.Context, userID uuid.UUID) ([]byte, error)
+	GenerateSkillSheetPDF(ctx context.Context, userID string) ([]byte, error)
 }
 
 // skillSheetPDFService スキルシートPDFサービスの実装
@@ -46,9 +46,16 @@ func NewSkillSheetPDFService(
 }
 
 // GenerateSkillSheetPDF スキルシートPDFを生成
-func (s *skillSheetPDFService) GenerateSkillSheetPDF(ctx context.Context, userID uuid.UUID) ([]byte, error) {
+func (s *skillSheetPDFService) GenerateSkillSheetPDF(ctx context.Context, userID string) ([]byte, error) {
+	// userIDをuuid.UUIDに変換
+	parsedUserID, err := uuid.Parse(userID)
+	if err != nil {
+		s.logger.Error("Invalid user ID", zap.Error(err))
+		return nil, fmt.Errorf("無効なユーザーID")
+	}
+	
 	// ユーザー情報を取得
-	user, err := s.userRepo.FindByID(userID)
+	user, err := s.userRepo.FindByID(parsedUserID)
 	if err != nil {
 		s.logger.Error("Failed to find user", zap.Error(err))
 		return nil, fmt.Errorf("ユーザーが見つかりません")

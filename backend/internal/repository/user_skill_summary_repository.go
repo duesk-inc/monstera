@@ -5,15 +5,14 @@ import (
 	"fmt"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"go.uber.org/zap"
 )
 
 // UserSkillSummaryRepository ユーザースキルサマリーリポジトリのインターフェース
 type UserSkillSummaryRepository interface {
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]*model.UserSkillSummary, error)
-	GetByUserIDAndCategory(ctx context.Context, userID uuid.UUID, category string) ([]*model.UserSkillSummary, error)
+	GetByUserID(ctx context.Context, userID string) ([]*model.UserSkillSummary, error)
+	GetByUserIDAndCategory(ctx context.Context, userID string, category string) ([]*model.UserSkillSummary, error)
 	GetByTechnology(ctx context.Context, technologyName string) ([]*model.UserSkillSummary, error)
 	GetTopSkillsByCategory(ctx context.Context, category string, limit int) ([]*model.UserSkillSummary, error)
 	SearchByTechnology(ctx context.Context, query string, limit int) ([]*model.UserSkillSummary, error)
@@ -35,14 +34,14 @@ func NewUserSkillSummaryRepository(db *gorm.DB, logger *zap.Logger) UserSkillSum
 }
 
 // GetByUserID ユーザーIDでスキルサマリーを取得
-func (r *userSkillSummaryRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]*model.UserSkillSummary, error) {
+func (r *userSkillSummaryRepository) GetByUserID(ctx context.Context, userID string) ([]*model.UserSkillSummary, error) {
 	var skills []*model.UserSkillSummary
 
 	if err := r.db.WithContext(ctx).
 		Where("user_id = ?", userID).
 		Order("category_name, total_experience_months DESC, technology_name").
 		Find(&skills).Error; err != nil {
-		r.logger.Error("Failed to get user skill summary", zap.Error(err), zap.String("user_id", userID.String()))
+		r.logger.Error("Failed to get user skill summary", zap.Error(err), zap.String("user_id", userID))
 		return nil, fmt.Errorf("ユーザースキルサマリーの取得に失敗しました: %w", err)
 	}
 
@@ -50,7 +49,7 @@ func (r *userSkillSummaryRepository) GetByUserID(ctx context.Context, userID uui
 }
 
 // GetByUserIDAndCategory ユーザーIDとカテゴリでスキルサマリーを取得
-func (r *userSkillSummaryRepository) GetByUserIDAndCategory(ctx context.Context, userID uuid.UUID, category string) ([]*model.UserSkillSummary, error) {
+func (r *userSkillSummaryRepository) GetByUserIDAndCategory(ctx context.Context, userID string, category string) ([]*model.UserSkillSummary, error) {
 	var skills []*model.UserSkillSummary
 
 	if err := r.db.WithContext(ctx).
@@ -59,7 +58,7 @@ func (r *userSkillSummaryRepository) GetByUserIDAndCategory(ctx context.Context,
 		Find(&skills).Error; err != nil {
 		r.logger.Error("Failed to get user skill summary by category",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.String("category", category))
 		return nil, fmt.Errorf("カテゴリ別スキルサマリーの取得に失敗しました: %w", err)
 	}

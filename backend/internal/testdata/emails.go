@@ -21,60 +21,41 @@ const (
 	MockFemaleEmail = "sato@duesk.co.jp"   // 女性名の代表（佐藤花子）
 )
 
-// TestPasswords テスト用パスワードの定数定義
-const (
-	// デフォルトパスワード
-	DefaultTestPassword = "Test1234!"
-
-	// ロール別パスワード
-	AdminPassword    = "admin123"
-	EngineerPassword = "engineer123"
-
-	// その他のパスワード
-	PasswordPlain = "password"
-	Password123   = "password123"
-)
 
 // TestUsers テスト用ユーザー情報の構造体
 type TestUser struct {
-	Email    string
-	Password string
-	Role     string
-	Name     string
+	Email string
+	Role  string
+	Name  string
 }
 
 // GetTestUsers 標準的なテストユーザーのリストを返す
 func GetTestUsers() []TestUser {
 	return []TestUser{
 		{
-			Email:    AdminEmail,
-			Password: AdminPassword,
-			Role:     "admin",
-			Name:     "テスト管理者",
+			Email: AdminEmail,
+			Role:  "admin",
+			Name:  "テスト管理者",
 		},
 		{
-			Email:    ManagerEmail,
-			Password: DefaultTestPassword,
-			Role:     "manager",
-			Name:     "テスト マネージャー",
+			Email: ManagerEmail,
+			Role:  "manager",
+			Name:  "テスト マネージャー",
 		},
 		{
-			Email:    EngineerEmail,
-			Password: DefaultTestPassword,
-			Role:     "engineer",
-			Name:     "テスト エンジニア",
+			Email: EngineerEmail,
+			Role:  "engineer",
+			Name:  "テスト エンジニア",
 		},
 		{
-			Email:    SalesEmail,
-			Password: DefaultTestPassword,
-			Role:     "sales",
-			Name:     "テスト 営業",
+			Email: SalesEmail,
+			Role:  "sales",
+			Name:  "テスト 営業",
 		},
 		{
-			Email:    DefaultTestEmail,
-			Password: DefaultTestPassword,
-			Role:     "user",
-			Name:     "テストユーザー",
+			Email: DefaultTestEmail,
+			Role:  "user",
+			Name:  "テストユーザー",
 		},
 	}
 }

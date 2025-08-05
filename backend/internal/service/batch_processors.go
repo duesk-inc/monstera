@@ -110,7 +110,7 @@ func NewFreeePartnerSyncProcessor(
 	freeeService FreeeServiceInterface,
 	clientRepo ClientRepositoryInterface,
 	logger *zap.Logger,
-	userID uuid.UUID,
+	userID string,
 ) BatchProcessor {
 	return &FreeePartnerSyncProcessor{
 		freeeService: freeeService,
@@ -195,7 +195,7 @@ func NewInvoiceFreeeUploadProcessor(
 	freeeService FreeeServiceInterface,
 	invoiceRepo InvoiceRepositoryInterface,
 	logger *zap.Logger,
-	userID uuid.UUID,
+	userID string,
 ) BatchProcessor {
 	return &InvoiceFreeeUploadProcessor{
 		freeeService: freeeService,

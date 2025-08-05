@@ -288,7 +288,7 @@ func (s *WeeklyReportService) GetTotalWorkHours(reportID uuid.UUID) (float64, er
 }
 
 // FindWeeklyReportsByDateRange 指定された期間内に開始または終了する週報を取得
-func (s *WeeklyReportService) FindWeeklyReportsByDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) ([]*model.WeeklyReport, error) {
+func (s *WeeklyReportService) FindWeeklyReportsByDateRange(ctx context.Context, userID string, startDate, endDate time.Time) ([]*model.WeeklyReport, error) {
 	reports, err := s.reportRepo.FindByDateRange(ctx, userID, startDate, endDate)
 	if err != nil {
 		return nil, fmt.Errorf(message.MsgDateRangeReportGetFailed+": %w", err)
@@ -325,7 +325,7 @@ func (s *WeeklyReportService) FindWeeklyReportsByStatus(ctx context.Context, sta
 }
 
 // GetUserWeeklyReportStats ユーザーの週報統計情報を取得
-func (s *WeeklyReportService) GetUserWeeklyReportStats(ctx context.Context, userID uuid.UUID) (map[string]int, error) {
+func (s *WeeklyReportService) GetUserWeeklyReportStats(ctx context.Context, userID string) (map[string]int, error) {
 	counts, err := s.reportRepo.CountByStatusForUser(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf(message.MsgUserReportStatsGetFailed+": %w", err)
@@ -334,7 +334,7 @@ func (s *WeeklyReportService) GetUserWeeklyReportStats(ctx context.Context, user
 }
 
 // GetByDateRange 指定されたユーザーと日付範囲に一致する週報を1件取得
-func (s *WeeklyReportService) GetByDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) (*model.WeeklyReport, error) {
+func (s *WeeklyReportService) GetByDateRange(ctx context.Context, userID string, startDate, endDate time.Time) (*model.WeeklyReport, error) {
 	// リポジトリから週報を検索
 	report, err := s.reportRepo.FindOneByDateRange(ctx, userID, startDate, endDate)
 	if err != nil {
@@ -390,7 +390,7 @@ func (s *WeeklyReportService) updateWorkHours(reportID uuid.UUID, workHours map[
 }
 
 // FindByUserIDAndDateRange ユーザーIDと日付範囲で週報を検索
-func (s *WeeklyReportService) FindByUserIDAndDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) (*model.WeeklyReport, error) {
+func (s *WeeklyReportService) FindByUserIDAndDateRange(ctx context.Context, userID string, startDate, endDate time.Time) (*model.WeeklyReport, error) {
 	// リポジトリを使用して週報を検索
 	report, err := s.reportRepo.FindOneByDateRange(ctx, userID, startDate, endDate)
 	if err != nil {
@@ -490,7 +490,7 @@ func (s *WeeklyReportService) updateTotalWorkHours(ctx context.Context, reportID
 }
 
 // GetUserDefaultWorkSettings ユーザーのデフォルト勤務時間設定を取得
-func (s *WeeklyReportService) GetUserDefaultWorkSettings(userID uuid.UUID) (*model.UserDefaultWorkSettings, error) {
+func (s *WeeklyReportService) GetUserDefaultWorkSettings(userID string) (*model.UserDefaultWorkSettings, error) {
 	settings, err := s.defaultSettingsRepo.FindByUserID(userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

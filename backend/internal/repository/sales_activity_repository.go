@@ -16,10 +16,10 @@ type SalesActivityRepository interface {
 	CrudRepository[model.SalesActivity]
 	FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.SalesActivity, error)
 	FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.SalesActivity, error)
-	FindByUserID(ctx context.Context, userID uuid.UUID) ([]*model.SalesActivity, error)
-	FindUpcoming(ctx context.Context, userID *uuid.UUID, days int) ([]*model.SalesActivity, error)
-	FindOverdue(ctx context.Context, userID *uuid.UUID) ([]*model.SalesActivity, error)
-	GetActivitySummary(ctx context.Context, userID *uuid.UUID, dateFrom, dateTo *time.Time) (*ActivitySummary, error)
+	FindByUserID(ctx context.Context, userID string) ([]*model.SalesActivity, error)
+	FindUpcoming(ctx context.Context, userID *string, days int) ([]*model.SalesActivity, error)
+	FindOverdue(ctx context.Context, userID *string) ([]*model.SalesActivity, error)
+	GetActivitySummary(ctx context.Context, userID *string, dateFrom, dateTo *time.Time) (*ActivitySummary, error)
 }
 
 // ActivitySummary 活動サマリ
@@ -83,7 +83,7 @@ func (r *salesActivityRepository) FindByProjectID(ctx context.Context, projectID
 }
 
 // FindByUserID ユーザーIDで検索
-func (r *salesActivityRepository) FindByUserID(ctx context.Context, userID uuid.UUID) ([]*model.SalesActivity, error) {
+func (r *salesActivityRepository) FindByUserID(ctx context.Context, userID string) ([]*model.SalesActivity, error) {
 	var activities []*model.SalesActivity
 	err := r.db.WithContext(ctx).
 		Where("user_id = ? AND deleted_at IS NULL", userID).
@@ -92,7 +92,7 @@ func (r *salesActivityRepository) FindByUserID(ctx context.Context, userID uuid.
 
 	if err != nil {
 		r.logger.Error("Failed to find activities by user ID",
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Error(err))
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (r *salesActivityRepository) FindByUserID(ctx context.Context, userID uuid.
 }
 
 // FindUpcoming 今後の予定を検索
-func (r *salesActivityRepository) FindUpcoming(ctx context.Context, userID *uuid.UUID, days int) ([]*model.SalesActivity, error) {
+func (r *salesActivityRepository) FindUpcoming(ctx context.Context, userID *string, days int) ([]*model.SalesActivity, error) {
 	var activities []*model.SalesActivity
 	now := time.Now()
 	endDate := now.AddDate(0, 0, days)
@@ -125,7 +125,7 @@ func (r *salesActivityRepository) FindUpcoming(ctx context.Context, userID *uuid
 }
 
 // FindOverdue 期限超過の活動を検索
-func (r *salesActivityRepository) FindOverdue(ctx context.Context, userID *uuid.UUID) ([]*model.SalesActivity, error) {
+func (r *salesActivityRepository) FindOverdue(ctx context.Context, userID *string) ([]*model.SalesActivity, error) {
 	var activities []*model.SalesActivity
 	now := time.Now()
 
@@ -148,7 +148,7 @@ func (r *salesActivityRepository) FindOverdue(ctx context.Context, userID *uuid.
 }
 
 // GetActivitySummary 活動サマリを取得
-func (r *salesActivityRepository) GetActivitySummary(ctx context.Context, userID *uuid.UUID, dateFrom, dateTo *time.Time) (*ActivitySummary, error) {
+func (r *salesActivityRepository) GetActivitySummary(ctx context.Context, userID *string, dateFrom, dateTo *time.Time) (*ActivitySummary, error) {
 	summary := &ActivitySummary{
 		ActivityByType: make(map[string]int),
 		ActivityByUser: make(map[string]int),

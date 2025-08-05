@@ -35,10 +35,10 @@ type ExpenseLimit struct {
 	LimitType     LimitType  `gorm:"type:enum('monthly','yearly');not null" json:"limit_type"`             // 制限種別
 	LimitScope    LimitScope `gorm:"type:enum('company','department','user');not null" json:"limit_scope"` // 制限適用範囲
 	Amount        int        `gorm:"not null" json:"amount"`                                               // 上限金額（円）
-	UserID        *uuid.UUID `gorm:"type:varchar(36);index" json:"user_id"`                                // 個人制限の場合のユーザーID
+	UserID        *string `gorm:"type:varchar(255);index" json:"user_id"`                                // 個人制限の場合のユーザーID
 	DepartmentID  *uuid.UUID `gorm:"type:varchar(36);index" json:"department_id"`                          // 部門制限の場合の部門ID
 	EffectiveFrom time.Time  `gorm:"not null;default:CURRENT_TIMESTAMP(3)" json:"effective_from"`          // 適用開始日時
-	CreatedBy     uuid.UUID  `gorm:"type:varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"created_by"`
+	CreatedBy     string  `gorm:"type:varchar(255);not null" json:"created_by"`
 	Creator       User       `gorm:"foreignKey:CreatedBy" json:"creator"`     // 設定者
 	User          *User      `gorm:"foreignKey:UserID" json:"user,omitempty"` // 対象ユーザー（個人制限の場合）
 	CreatedAt     time.Time  `json:"created_at"`
@@ -84,7 +84,7 @@ func (el *ExpenseLimit) IsUserScope() bool {
 }
 
 // IsApplicableTo 指定されたユーザーに適用可能かチェック
-func (el *ExpenseLimit) IsApplicableTo(userID uuid.UUID, departmentID *uuid.UUID) bool {
+func (el *ExpenseLimit) IsApplicableTo(userID string, departmentID *uuid.UUID) bool {
 	switch el.LimitScope {
 	case LimitScopeCompany:
 		return true // 全社制限はすべてのユーザーに適用
@@ -135,7 +135,7 @@ func GetCurrentEffectiveLimits(db *gorm.DB) (monthlyLimit *ExpenseLimit, yearlyL
 }
 
 // GetEffectiveLimitsForUser 指定されたユーザーに適用される最も制限の厳しい制限を取得
-func GetEffectiveLimitsForUser(db *gorm.DB, userID uuid.UUID, departmentID *uuid.UUID) (*ExpenseLimit, *ExpenseLimit, error) {
+func GetEffectiveLimitsForUser(db *gorm.DB, userID string, departmentID *uuid.UUID) (*ExpenseLimit, *ExpenseLimit, error) {
 	now := time.Now()
 
 	// 月次制限の候補を取得
@@ -192,7 +192,7 @@ const (
 )
 
 // CreateDefaultLimits デフォルト制限を作成（全社レベル）
-func CreateDefaultLimits(createdBy uuid.UUID) []ExpenseLimit {
+func CreateDefaultLimits(createdBy string) []ExpenseLimit {
 	return []ExpenseLimit{
 		{
 			LimitType:     LimitTypeMonthly,
@@ -212,7 +212,7 @@ func CreateDefaultLimits(createdBy uuid.UUID) []ExpenseLimit {
 }
 
 // CreateUserLimit 個人制限を作成
-func CreateUserLimit(limitType LimitType, amount int, userID uuid.UUID, createdBy uuid.UUID) ExpenseLimit {
+func CreateUserLimit(limitType LimitType, amount int, userID string, createdBy string) ExpenseLimit {
 	return ExpenseLimit{
 		LimitType:     limitType,
 		LimitScope:    LimitScopeUser,
@@ -224,7 +224,7 @@ func CreateUserLimit(limitType LimitType, amount int, userID uuid.UUID, createdB
 }
 
 // CreateDepartmentLimit 部門制限を作成
-func CreateDepartmentLimit(limitType LimitType, amount int, departmentID uuid.UUID, createdBy uuid.UUID) ExpenseLimit {
+func CreateDepartmentLimit(limitType LimitType, amount int, departmentID uuid.UUID, createdBy string) ExpenseLimit {
 	return ExpenseLimit{
 		LimitType:     limitType,
 		LimitScope:    LimitScopeDepartment,
@@ -236,7 +236,7 @@ func CreateDepartmentLimit(limitType LimitType, amount int, departmentID uuid.UU
 }
 
 // CreateCompanyLimit 全社制限を作成
-func CreateCompanyLimit(limitType LimitType, amount int, createdBy uuid.UUID) ExpenseLimit {
+func CreateCompanyLimit(limitType LimitType, amount int, createdBy string) ExpenseLimit {
 	return ExpenseLimit{
 		LimitType:     limitType,
 		LimitScope:    LimitScopeCompany,

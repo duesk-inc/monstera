@@ -27,24 +27,24 @@ type LeaveService interface {
 	GetLeaveTypes(ctx context.Context) ([]dto.LeaveTypeResponse, error)
 
 	// ユーザーの休暇残日数
-	GetUserLeaveBalances(ctx context.Context, userID uuid.UUID) ([]dto.UserLeaveBalanceResponse, error)
+	GetUserLeaveBalances(ctx context.Context, userID string) ([]dto.UserLeaveBalanceResponse, error)
 
 	// 休暇申請
 	CreateLeaveRequest(ctx context.Context, req dto.LeaveRequestRequest) (dto.LeaveRequestResponse, error)
-	GetLeaveRequestsByUserID(ctx context.Context, userID uuid.UUID) ([]dto.LeaveRequestResponse, error)
+	GetLeaveRequestsByUserID(ctx context.Context, userID string) ([]dto.LeaveRequestResponse, error)
 
 	// 休日情報
 	GetHolidaysByYear(ctx context.Context, year int) ([]dto.HolidayResponse, error)
 
 	// 振替特別休暇
-	GetSubstituteLeaveGrants(ctx context.Context, userID uuid.UUID) ([]dto.SubstituteLeaveGrantResponse, error)
-	GetSubstituteLeaveGrantSummary(ctx context.Context, userID uuid.UUID) (dto.SubstituteLeaveGrantSummaryResponse, error)
+	GetSubstituteLeaveGrants(ctx context.Context, userID string) ([]dto.SubstituteLeaveGrantResponse, error)
+	GetSubstituteLeaveGrantSummary(ctx context.Context, userID string) (dto.SubstituteLeaveGrantSummaryResponse, error)
 	CreateSubstituteLeaveGrant(ctx context.Context, req dto.SubstituteLeaveGrantRequest) (dto.SubstituteLeaveGrantResponse, error)
 	UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.UUID, req dto.SubstituteLeaveGrantRequest) (dto.SubstituteLeaveGrantResponse, error)
 	DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.UUID) error
 
 	// 振替特別休暇残日数の更新
-	UpdateSubstituteLeaveUsage(ctx context.Context, userID uuid.UUID, usedDays float64) error
+	UpdateSubstituteLeaveUsage(ctx context.Context, userID string, usedDays float64) error
 }
 
 // leaveService は休暇関連のサービス実装です
@@ -103,13 +103,13 @@ func (s *leaveService) GetLeaveTypes(ctx context.Context) ([]dto.LeaveTypeRespon
 }
 
 // GetUserLeaveBalances はユーザーの休暇残日数一覧を取得します
-func (s *leaveService) GetUserLeaveBalances(ctx context.Context, userID uuid.UUID) ([]dto.UserLeaveBalanceResponse, error) {
-	logger.LogInfo(s.logger, "休暇残日数一覧取得開始", zap.String("user_id", userID.String()))
+func (s *leaveService) GetUserLeaveBalances(ctx context.Context, userID string) ([]dto.UserLeaveBalanceResponse, error) {
+	logger.LogInfo(s.logger, "休暇残日数一覧取得開始", zap.String("user_id", userID))
 
 	balances, err := s.leaveRepo.GetUserLeaveBalances(ctx, userID)
 	if err != nil {
 		return nil, logger.LogAndWrapError(s.logger, err, "休暇残日数の取得に失敗しました",
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 	}
 
 	// モデルからDTOへの変換
@@ -128,7 +128,7 @@ func (s *leaveService) GetUserLeaveBalances(ctx context.Context, userID uuid.UUI
 	}
 
 	logger.LogInfo(s.logger, "休暇残日数一覧取得完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("count", len(results)))
 	return results, nil
 }
@@ -363,7 +363,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 }
 
 // トランザクション内でUpdateSubstituteLeaveUsageを実行するためのヘルパーメソッド
-func (s *leaveService) updateSubstituteLeaveUsageWithTx(ctx context.Context, tx *gorm.DB, userID uuid.UUID, usedDays float64) error {
+func (s *leaveService) updateSubstituteLeaveUsageWithTx(ctx context.Context, tx *gorm.DB, userID string, usedDays float64) error {
 	// トランザクション用のリポジトリを作成
 	txLeaveRepo := repository.NewLeaveRepository(tx, s.logger)
 
@@ -467,13 +467,13 @@ func (s *leaveService) updateSubstituteLeaveUsageWithTx(ctx context.Context, tx 
 }
 
 // GetLeaveRequestsByUserID はユーザーIDによる休暇申請一覧を取得します
-func (s *leaveService) GetLeaveRequestsByUserID(ctx context.Context, userID uuid.UUID) ([]dto.LeaveRequestResponse, error) {
-	logger.LogInfo(s.logger, "ユーザーの休暇申請一覧取得開始", zap.String("user_id", userID.String()))
+func (s *leaveService) GetLeaveRequestsByUserID(ctx context.Context, userID string) ([]dto.LeaveRequestResponse, error) {
+	logger.LogInfo(s.logger, "ユーザーの休暇申請一覧取得開始", zap.String("user_id", userID))
 
 	requests, err := s.leaveRepo.GetLeaveRequestsByUserID(ctx, userID)
 	if err != nil {
 		return nil, logger.LogAndWrapError(s.logger, err, "休暇申請の取得に失敗しました",
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 	}
 
 	// レスポンスの作成
@@ -513,7 +513,7 @@ func (s *leaveService) GetLeaveRequestsByUserID(ctx context.Context, userID uuid
 	}
 
 	logger.LogInfo(s.logger, "ユーザーの休暇申請一覧取得完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("count", len(results)))
 	return results, nil
 }
@@ -542,14 +542,14 @@ func (s *leaveService) GetHolidaysByYear(ctx context.Context, year int) ([]dto.H
 }
 
 // GetSubstituteLeaveGrants はユーザーの振替特別休暇付与履歴一覧を取得します
-func (s *leaveService) GetSubstituteLeaveGrants(ctx context.Context, userID uuid.UUID) ([]dto.SubstituteLeaveGrantResponse, error) {
-	logger.LogInfo(s.logger, "振替特別休暇付与履歴一覧取得開始", zap.String("user_id", userID.String()))
+func (s *leaveService) GetSubstituteLeaveGrants(ctx context.Context, userID string) ([]dto.SubstituteLeaveGrantResponse, error) {
+	logger.LogInfo(s.logger, "振替特別休暇付与履歴一覧取得開始", zap.String("user_id", userID))
 
 	grants, err := s.leaveRepo.GetSubstituteLeaveGrants(ctx, userID)
 	if err != nil {
 		logger.LogError(s.logger, "振替特別休暇付与履歴一覧取得失敗",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, fmt.Errorf("振替特別休暇付与履歴の取得に失敗しました: %w", err)
 	}
 
@@ -563,7 +563,7 @@ func (s *leaveService) GetSubstituteLeaveGrants(ctx context.Context, userID uuid
 		if !g.IsExpired && g.ExpireDate.Before(now) {
 			logger.LogInfo(s.logger, "振替特別休暇期限切れを検出",
 				zap.String("grant_id", g.ID.String()),
-				zap.String("user_id", userID.String()),
+				zap.String("user_id", userID),
 				zap.Time("expire_date", g.ExpireDate))
 
 			g.IsExpired = true
@@ -591,21 +591,21 @@ func (s *leaveService) GetSubstituteLeaveGrants(ctx context.Context, userID uuid
 	}
 
 	logger.LogInfo(s.logger, "振替特別休暇付与履歴一覧取得完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("count", len(results)))
 	return results, nil
 }
 
 // GetSubstituteLeaveGrantSummary はユーザーの振替特別休暇の合計残日数と履歴を取得します
-func (s *leaveService) GetSubstituteLeaveGrantSummary(ctx context.Context, userID uuid.UUID) (dto.SubstituteLeaveGrantSummaryResponse, error) {
-	logger.LogInfo(s.logger, "振替特別休暇サマリー取得開始", zap.String("user_id", userID.String()))
+func (s *leaveService) GetSubstituteLeaveGrantSummary(ctx context.Context, userID string) (dto.SubstituteLeaveGrantSummaryResponse, error) {
+	logger.LogInfo(s.logger, "振替特別休暇サマリー取得開始", zap.String("user_id", userID))
 
 	// 付与履歴を取得
 	grantResponses, err := s.GetSubstituteLeaveGrants(ctx, userID)
 	if err != nil {
 		logger.LogError(s.logger, "振替特別休暇サマリー取得失敗",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return dto.SubstituteLeaveGrantSummaryResponse{}, err
 	}
 
@@ -620,7 +620,7 @@ func (s *leaveService) GetSubstituteLeaveGrantSummary(ctx context.Context, userI
 	}
 
 	logger.LogInfo(s.logger, "振替特別休暇サマリー取得完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Float64("total_granted", totalGranted),
 		zap.Float64("total_used", totalUsed),
 		zap.Float64("total_remaining", totalRemaining))
@@ -1041,9 +1041,9 @@ func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.U
 }
 
 // UpdateSubstituteLeaveUsage は振替特別休暇の使用日数を更新します
-func (s *leaveService) UpdateSubstituteLeaveUsage(ctx context.Context, userID uuid.UUID, usedDays float64) error {
+func (s *leaveService) UpdateSubstituteLeaveUsage(ctx context.Context, userID string, usedDays float64) error {
 	logger.LogInfo(s.logger, "振替特別休暇使用日数更新開始",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Float64("used_days", usedDays))
 
 	// トランザクション内で実行
@@ -1054,13 +1054,13 @@ func (s *leaveService) UpdateSubstituteLeaveUsage(ctx context.Context, userID uu
 	if err != nil {
 		logger.LogError(s.logger, "振替特別休暇使用日数更新失敗",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Float64("used_days", usedDays))
 		return err
 	}
 
 	logger.LogInfo(s.logger, "振替特別休暇使用日数更新完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Float64("used_days", usedDays))
 	return nil
 }

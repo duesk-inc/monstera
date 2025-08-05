@@ -66,7 +66,7 @@ func (r *ExpenseApproverSettingResponse) FromModel(setting *model.ExpenseApprove
 	r.UpdatedAt = setting.UpdatedAt
 
 	// 承認者情報
-	if setting.Approver.ID != uuid.Nil {
+	if setting.Approver.ID != "" {
 		r.Approver = &UserSummary{
 			ID:    setting.Approver.ID,
 			Name:  setting.Approver.FullName(),
@@ -75,7 +75,7 @@ func (r *ExpenseApproverSettingResponse) FromModel(setting *model.ExpenseApprove
 	}
 
 	// 作成者情報
-	if setting.Creator.ID != uuid.Nil {
+	if setting.Creator.ID != "" {
 		r.Creator = &UserSummary{
 			ID:    setting.Creator.ID,
 			Name:  setting.Creator.FullName(),
@@ -97,7 +97,7 @@ func (r *ExpenseApproverSettingHistoryResponse) FromHistoryModel(history *model.
 	r.NewValue = history.NewValue
 
 	// 変更者情報
-	if history.Changer.ID != uuid.Nil {
+	if history.Changer.ID != "" {
 		r.Changer = &UserSummary{
 			ID:    history.Changer.ID,
 			Name:  history.Changer.FullName(),

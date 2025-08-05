@@ -3,13 +3,11 @@ package model
 import (
 	"strconv"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // UserITExperience ユーザーIT経験ビュー
 type UserITExperience struct {
-	UserID                  uuid.UUID  `gorm:"type:varchar(36);primaryKey" json:"user_id"`
+	UserID string  `gorm:"type:varchar(255);primaryKey" json:"user_id"`
 	UserEmail               string     `gorm:"type:varchar(255)" json:"user_email"`
 	UserName                string     `gorm:"type:varchar(255)" json:"user_name"`
 	TotalITExperienceMonths int32      `gorm:"type:int" json:"total_it_experience_months"`

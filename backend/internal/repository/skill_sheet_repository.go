@@ -5,13 +5,12 @@ import (
 
 	"github.com/duesk/monstera/internal/common/repository"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 // SkillSheetRepository スキルシートリポジトリのインターフェース
 type SkillSheetRepository interface {
-	FindByUserID(ctx context.Context, userID uuid.UUID) (*model.SkillSheet, error)
+	FindByUserID(ctx context.Context, userID string) (*model.SkillSheet, error)
 	Create(ctx context.Context, skillSheet *model.SkillSheet) error
 	Update(ctx context.Context, skillSheet *model.SkillSheet) error
 }
@@ -27,7 +26,7 @@ func NewSkillSheetRepository(base repository.BaseRepository) SkillSheetRepositor
 }
 
 // FindByUserID ユーザーIDでスキルシートを検索
-func (r *skillSheetRepository) FindByUserID(ctx context.Context, userID uuid.UUID) (*model.SkillSheet, error) {
+func (r *skillSheetRepository) FindByUserID(ctx context.Context, userID string) (*model.SkillSheet, error) {
 	var skillSheet model.SkillSheet
 	if err := r.base.GetDB().WithContext(ctx).Where("user_id = ?", userID).First(&skillSheet).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {

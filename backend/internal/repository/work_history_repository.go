@@ -20,25 +20,25 @@ type WorkHistoryRepository interface {
 	Update(ctx context.Context, workHistory *model.WorkHistory) error
 	Delete(ctx context.Context, id uuid.UUID) error
 	GetByID(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error)
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]*model.WorkHistory, error)
+	GetByUserID(ctx context.Context, userID string) ([]*model.WorkHistory, error)
 
 	// 拡張機能
 	GetWithTechnologies(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error)
-	GetByUserIDWithTechnologies(ctx context.Context, userID uuid.UUID) ([]*model.WorkHistory, error)
-	GetUserSummary(ctx context.Context, userID uuid.UUID) (*dto.WorkHistorySummaryResponse, error)
-	GetUserTechnologySkills(ctx context.Context, userID uuid.UUID) ([]dto.TechnologySkillExperienceResponse, error)
+	GetByUserIDWithTechnologies(ctx context.Context, userID string) ([]*model.WorkHistory, error)
+	GetUserSummary(ctx context.Context, userID string) (*dto.WorkHistorySummaryResponse, error)
+	GetUserTechnologySkills(ctx context.Context, userID string) ([]dto.TechnologySkillExperienceResponse, error)
 
 	// 検索・フィルタ機能
 	Search(ctx context.Context, req dto.WorkHistoryQueryRequest) ([]*model.WorkHistory, int64, error)
 	GetByTechnologyName(ctx context.Context, technologyName string) ([]*model.WorkHistory, error)
 	GetByIndustry(ctx context.Context, industry string) ([]*model.WorkHistory, error)
-	GetByDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) ([]*model.WorkHistory, error)
+	GetByDateRange(ctx context.Context, userID string, startDate, endDate time.Time) ([]*model.WorkHistory, error)
 
 	// 統計機能
-	CalculateITExperience(ctx context.Context, userID uuid.UUID) (int32, error)
-	CalculateTechnologySkills(ctx context.Context, userID uuid.UUID) (map[string]int32, error)
-	GetProjectCount(ctx context.Context, userID uuid.UUID) (int32, error)
-	GetActiveProjectCount(ctx context.Context, userID uuid.UUID) (int32, error)
+	CalculateITExperience(ctx context.Context, userID string) (int32, error)
+	CalculateTechnologySkills(ctx context.Context, userID string) (map[string]int32, error)
+	GetProjectCount(ctx context.Context, userID string) (int32, error)
+	GetActiveProjectCount(ctx context.Context, userID string) (int32, error)
 
 	// 一括操作
 	BulkCreate(ctx context.Context, workHistories []*model.WorkHistory) error
@@ -105,7 +105,7 @@ func (r *workHistoryRepository) GetByID(ctx context.Context, id uuid.UUID) (*mod
 }
 
 // GetByUserID ユーザーIDで職務経歴一覧を取得
-func (r *workHistoryRepository) GetByUserID(ctx context.Context, userID uuid.UUID) ([]*model.WorkHistory, error) {
+func (r *workHistoryRepository) GetByUserID(ctx context.Context, userID string) ([]*model.WorkHistory, error) {
 	var workHistories []*model.WorkHistory
 	if err := r.db.WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -135,7 +135,7 @@ func (r *workHistoryRepository) GetWithTechnologies(ctx context.Context, id uuid
 }
 
 // GetByUserIDWithTechnologies 技術情報を含めてユーザーの職務経歴一覧を取得
-func (r *workHistoryRepository) GetByUserIDWithTechnologies(ctx context.Context, userID uuid.UUID) ([]*model.WorkHistory, error) {
+func (r *workHistoryRepository) GetByUserIDWithTechnologies(ctx context.Context, userID string) ([]*model.WorkHistory, error) {
 	var workHistories []*model.WorkHistory
 	if err := r.db.WithContext(ctx).
 		Preload("TechnologyItems").
@@ -150,10 +150,10 @@ func (r *workHistoryRepository) GetByUserIDWithTechnologies(ctx context.Context,
 }
 
 // GetUserSummary ユーザーの職務経歴サマリーを取得（ビューから）
-func (r *workHistoryRepository) GetUserSummary(ctx context.Context, userID uuid.UUID) (*dto.WorkHistorySummaryResponse, error) {
+func (r *workHistoryRepository) GetUserSummary(ctx context.Context, userID string) (*dto.WorkHistorySummaryResponse, error) {
 	// user_it_experienceビューからデータを取得
 	var itExperience struct {
-		UserID                  uuid.UUID  `gorm:"column:user_id"`
+		UserID                  string     `gorm:"column:user_id"`
 		TotalITExperienceMonths int32      `gorm:"column:total_it_experience_months"`
 		ITExperienceYears       int32      `gorm:"column:it_experience_years"`
 		ITExperienceMonths      int32      `gorm:"column:it_experience_months"`
@@ -174,7 +174,7 @@ func (r *workHistoryRepository) GetUserSummary(ctx context.Context, userID uuid.
 		if err == gorm.ErrRecordNotFound {
 			// ビューにデータがない場合は空のサマリーを返す
 			return &dto.WorkHistorySummaryResponse{
-				UserID:                  userID.String(),
+				UserID:                  userID,
 				TotalITExperienceMonths: 0,
 				ITExperienceYears:       0,
 				ITExperienceMonths:      0,
@@ -225,7 +225,7 @@ func (r *workHistoryRepository) GetUserSummary(ctx context.Context, userID uuid.
 	}
 
 	return &dto.WorkHistorySummaryResponse{
-		UserID:                  itExperience.UserID.String(),
+		UserID:                  itExperience.UserID,
 		UserName:                user.Name,
 		UserEmail:               user.Email,
 		TotalITExperienceMonths: itExperience.TotalITExperienceMonths,
@@ -247,7 +247,7 @@ func (r *workHistoryRepository) GetUserSummary(ctx context.Context, userID uuid.
 }
 
 // GetUserTechnologySkills ユーザーの技術スキル一覧を取得（ビューから）
-func (r *workHistoryRepository) GetUserTechnologySkills(ctx context.Context, userID uuid.UUID) ([]dto.TechnologySkillExperienceResponse, error) {
+func (r *workHistoryRepository) GetUserTechnologySkills(ctx context.Context, userID string) ([]dto.TechnologySkillExperienceResponse, error) {
 	var skills []struct {
 		TechnologyName        string    `gorm:"column:technology_name"`
 		TechnologyDisplayName *string   `gorm:"column:technology_display_name"`
@@ -449,7 +449,7 @@ func (r *workHistoryRepository) GetByIndustry(ctx context.Context, industry stri
 }
 
 // GetByDateRange 期間で職務経歴を検索
-func (r *workHistoryRepository) GetByDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) ([]*model.WorkHistory, error) {
+func (r *workHistoryRepository) GetByDateRange(ctx context.Context, userID string, startDate, endDate time.Time) ([]*model.WorkHistory, error) {
 	var workHistories []*model.WorkHistory
 	if err := r.db.WithContext(ctx).
 		Where("user_id = ? AND start_date >= ? AND (end_date IS NULL OR end_date <= ?)", userID, startDate, endDate).
@@ -463,7 +463,7 @@ func (r *workHistoryRepository) GetByDateRange(ctx context.Context, userID uuid.
 
 // CalculateITExperience IT経験年数を計算（簡略版）
 // TODO: 本格的な計算ロジックはサービス層で実装予定
-func (r *workHistoryRepository) CalculateITExperience(ctx context.Context, userID uuid.UUID) (int32, error) {
+func (r *workHistoryRepository) CalculateITExperience(ctx context.Context, userID string) (int32, error) {
 	workHistories, err := r.GetByUserID(ctx, userID)
 	if err != nil {
 		return 0, err
@@ -493,7 +493,7 @@ func (r *workHistoryRepository) CalculateITExperience(ctx context.Context, userI
 
 // CalculateTechnologySkills 技術スキル経験年数を計算（簡略版）
 // TODO: 本格的な計算ロジックはサービス層で実装予定
-func (r *workHistoryRepository) CalculateTechnologySkills(ctx context.Context, userID uuid.UUID) (map[string]int32, error) {
+func (r *workHistoryRepository) CalculateTechnologySkills(ctx context.Context, userID string) (map[string]int32, error) {
 	workHistories, err := r.GetByUserIDWithTechnologies(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -511,7 +511,7 @@ func (r *workHistoryRepository) CalculateTechnologySkills(ctx context.Context, u
 }
 
 // GetProjectCount プロジェクト数を取得
-func (r *workHistoryRepository) GetProjectCount(ctx context.Context, userID uuid.UUID) (int32, error) {
+func (r *workHistoryRepository) GetProjectCount(ctx context.Context, userID string) (int32, error) {
 	var count int64
 	if err := r.db.WithContext(ctx).
 		Model(&model.WorkHistory{}).
@@ -524,7 +524,7 @@ func (r *workHistoryRepository) GetProjectCount(ctx context.Context, userID uuid
 }
 
 // GetActiveProjectCount 進行中プロジェクト数を取得
-func (r *workHistoryRepository) GetActiveProjectCount(ctx context.Context, userID uuid.UUID) (int32, error) {
+func (r *workHistoryRepository) GetActiveProjectCount(ctx context.Context, userID string) (int32, error) {
 	var count int64
 	if err := r.db.WithContext(ctx).
 		Model(&model.WorkHistory{}).

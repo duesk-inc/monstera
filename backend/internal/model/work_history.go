@@ -11,10 +11,10 @@ import (
 
 // WorkHistory 職務経歴モデル
 type WorkHistory struct {
-	ID               uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
-	ProfileID        uuid.UUID      `gorm:"type:varchar(36);not null" json:"profile_id"`
+	ID               uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProfileID        uuid.UUID      `gorm:"type:varchar(255);not null" json:"profile_id"`
 	Profile          Profile        `gorm:"foreignKey:ProfileID" json:"-"`
-	UserID           uuid.UUID      `gorm:"type:varchar(36);not null" json:"user_id"`
+	UserID string      `gorm:"type:varchar(255);not null" json:"user_id"`
 	User             User           `gorm:"foreignKey:UserID" json:"-"`
 	ProjectName      string         `gorm:"size:255;not null" json:"project_name"`
 	StartDate        time.Time      `gorm:"not null" json:"start_date"`
@@ -45,7 +45,7 @@ func (wh *WorkHistory) BeforeCreate(tx *gorm.DB) error {
 	}
 
 	// ProfileIDからUserIDを取得して設定する
-	if wh.UserID == uuid.Nil && wh.ProfileID != uuid.Nil {
+	if wh.UserID == "" && wh.ProfileID != uuid.Nil {
 		var profile Profile
 		if err := tx.Where("id = ?", wh.ProfileID).First(&profile).Error; err == nil {
 			wh.UserID = profile.UserID

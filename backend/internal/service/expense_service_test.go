@@ -12,8 +12,8 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"monstera/internal/model"
-	"monstera/internal/repository"
+	"github.com/duesk/monstera/internal/model"
+	"github.com/duesk/monstera/internal/repository"
 )
 
 // テスト用のデータベースをセットアップ

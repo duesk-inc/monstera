@@ -52,7 +52,7 @@ func (r *WeeklyReportRepository) FindByID(ctx context.Context, id uuid.UUID) (*m
 }
 
 // FindByUserID ユーザーIDで週報を検索
-func (r *WeeklyReportRepository) FindByUserID(ctx context.Context, userID uuid.UUID, offset, limit int) ([]*model.WeeklyReport, int64, error) {
+func (r *WeeklyReportRepository) FindByUserID(ctx context.Context, userID string, offset, limit int) ([]*model.WeeklyReport, int64, error) {
 	var reports []*model.WeeklyReport
 	var total int64
 
@@ -96,7 +96,7 @@ func (r *WeeklyReportRepository) FindByUserID(ctx context.Context, userID uuid.U
 }
 
 // FindByDateRange 日付範囲で週報を検索
-func (r *WeeklyReportRepository) FindByDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) ([]*model.WeeklyReport, error) {
+func (r *WeeklyReportRepository) FindByDateRange(ctx context.Context, userID string, startDate, endDate time.Time) ([]*model.WeeklyReport, error) {
 	var reports []*model.WeeklyReport
 	err := r.WithContext(ctx).Where("user_id = ? AND ((start_date BETWEEN ? AND ?) OR (end_date BETWEEN ? AND ?))",
 		userID, startDate, endDate, startDate, endDate).
@@ -127,7 +127,7 @@ func (r *WeeklyReportRepository) FindByStatus(ctx context.Context, status string
 // FindWithFilters フィルター条件で週報を検索
 func (r *WeeklyReportRepository) FindWithFilters(
 	ctx context.Context,
-	userID uuid.UUID,
+	userID string,
 	status string,
 	startDate string,
 	endDate string,
@@ -141,7 +141,7 @@ func (r *WeeklyReportRepository) FindWithFilters(
 	query := r.WithContext(ctx).Model(&model.WeeklyReport{})
 
 	// ユーザーIDが指定されていれば条件に追加
-	if userID != uuid.Nil {
+	if userID != "" {
 		query = query.Where("user_id = ?", userID)
 	}
 
@@ -203,7 +203,7 @@ func (r *WeeklyReportRepository) Delete(ctx context.Context, id uuid.UUID) error
 }
 
 // CountByStatusForUser ユーザーの週報ステータス別件数を取得
-func (r *WeeklyReportRepository) CountByStatusForUser(ctx context.Context, userID uuid.UUID) (map[string]int, error) {
+func (r *WeeklyReportRepository) CountByStatusForUser(ctx context.Context, userID string) (map[string]int, error) {
 	type Result struct {
 		Status string
 		Count  int
@@ -228,7 +228,7 @@ func (r *WeeklyReportRepository) CountByStatusForUser(ctx context.Context, userI
 }
 
 // FindOneByDateRange 指定されたユーザーと日付範囲に一致する週報を1件取得
-func (r *WeeklyReportRepository) FindOneByDateRange(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) (*model.WeeklyReport, error) {
+func (r *WeeklyReportRepository) FindOneByDateRange(ctx context.Context, userID string, startDate, endDate time.Time) (*model.WeeklyReport, error) {
 	var report model.WeeklyReport
 
 	// 週報の期間（start_date, end_date）と指定された期間（startDate, endDate）が重なるか判定
@@ -320,13 +320,9 @@ func (r *WeeklyReportRepository) GetByWeek(ctx context.Context, weekStart, weekE
 }
 
 // GetByUserAndWeek 指定されたユーザーと週の週報を取得（アラート検知用）
-func (r *WeeklyReportRepository) GetByUserAndWeek(ctx context.Context, userID uuid.UUID, weekStart, weekEnd time.Time) ([]*model.WeeklyReport, error) {
+func (r *WeeklyReportRepository) GetByUserAndWeek(ctx context.Context, userID string, weekStart, weekEnd time.Time) ([]*model.WeeklyReport, error) {
 	var reports []*model.WeeklyReport
 
-	// IDの検証
-	if err := r.ValidateID(userID); err != nil {
-		return nil, err
-	}
 
 	err := r.WithContext(ctx).
 		Preload("DailyRecords").
@@ -336,7 +332,7 @@ func (r *WeeklyReportRepository) GetByUserAndWeek(ctx context.Context, userID uu
 	if err != nil {
 		r.Logger.Error("Failed to get weekly reports by user and week",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Time("week_start", weekStart),
 			zap.Time("week_end", weekEnd))
 		return nil, err
@@ -346,13 +342,9 @@ func (r *WeeklyReportRepository) GetByUserAndWeek(ctx context.Context, userID uu
 }
 
 // GetByUserAndMonth 指定されたユーザーと月の週報を取得（月間残業時間チェック用）
-func (r *WeeklyReportRepository) GetByUserAndMonth(ctx context.Context, userID uuid.UUID, monthStart, monthEnd time.Time) ([]*model.WeeklyReport, error) {
+func (r *WeeklyReportRepository) GetByUserAndMonth(ctx context.Context, userID string, monthStart, monthEnd time.Time) ([]*model.WeeklyReport, error) {
 	var reports []*model.WeeklyReport
 
-	// IDの検証
-	if err := r.ValidateID(userID); err != nil {
-		return nil, err
-	}
 
 	// 月の期間と重なる週報を取得
 	err := r.WithContext(ctx).
@@ -364,7 +356,7 @@ func (r *WeeklyReportRepository) GetByUserAndMonth(ctx context.Context, userID u
 	if err != nil {
 		r.Logger.Error("Failed to get weekly reports by user and month",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Time("month_start", monthStart),
 			zap.Time("month_end", monthEnd))
 		return nil, err
@@ -374,11 +366,7 @@ func (r *WeeklyReportRepository) GetByUserAndMonth(ctx context.Context, userID u
 }
 
 // GetConsecutiveHolidayWorkDays 指定されたユーザーの連続休日出勤日数を取得
-func (r *WeeklyReportRepository) GetConsecutiveHolidayWorkDays(ctx context.Context, userID uuid.UUID, fromDate time.Time) (int, error) {
-	// IDの検証
-	if err := r.ValidateID(userID); err != nil {
-		return 0, err
-	}
+func (r *WeeklyReportRepository) GetConsecutiveHolidayWorkDays(ctx context.Context, userID string, fromDate time.Time) (int, error) {
 
 	// fromDateから過去30日分のDailyRecordを取得して連続休日出勤をチェック
 	var records []model.DailyRecord
@@ -396,7 +384,7 @@ func (r *WeeklyReportRepository) GetConsecutiveHolidayWorkDays(ctx context.Conte
 	if err != nil {
 		r.Logger.Error("Failed to get consecutive holiday work days",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Time("from_date", fromDate))
 		return 0, err
 	}

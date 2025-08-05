@@ -21,15 +21,15 @@ type EngineerRepository interface {
 
 	// ステータス履歴
 	CreateStatusHistory(ctx context.Context, history *model.EngineerStatusHistory) error
-	FindStatusHistory(ctx context.Context, userID uuid.UUID) ([]*model.EngineerStatusHistory, error)
+	FindStatusHistory(ctx context.Context, userID string) ([]*model.EngineerStatusHistory, error)
 
 	// スキル情報
-	FindSkillsByUserID(ctx context.Context, userID uuid.UUID) ([]*model.EngineerSkill, error)
+	FindSkillsByUserID(ctx context.Context, userID string) ([]*model.EngineerSkill, error)
 	FindAllSkillCategories(ctx context.Context) ([]*model.EngineerSkillCategory, error)
 
 	// プロジェクト履歴
-	FindProjectHistoryByUserID(ctx context.Context, userID uuid.UUID) ([]*model.EngineerProjectHistory, error)
-	UpdateProjectHistoryCurrent(ctx context.Context, userID uuid.UUID, projectID uuid.UUID) error
+	FindProjectHistoryByUserID(ctx context.Context, userID string) ([]*model.EngineerProjectHistory, error)
+	UpdateProjectHistoryCurrent(ctx context.Context, userID string, projectID uuid.UUID) error
 
 	// ユーティリティ
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
@@ -214,7 +214,7 @@ func (r *engineerRepository) CreateStatusHistory(ctx context.Context, history *m
 }
 
 // FindStatusHistory ステータス履歴を取得
-func (r *engineerRepository) FindStatusHistory(ctx context.Context, userID uuid.UUID) ([]*model.EngineerStatusHistory, error) {
+func (r *engineerRepository) FindStatusHistory(ctx context.Context, userID string) ([]*model.EngineerStatusHistory, error) {
 	var histories []*model.EngineerStatusHistory
 
 	err := r.db.WithContext(ctx).
@@ -227,7 +227,7 @@ func (r *engineerRepository) FindStatusHistory(ctx context.Context, userID uuid.
 }
 
 // FindSkillsByUserID ユーザーのスキル情報を取得
-func (r *engineerRepository) FindSkillsByUserID(ctx context.Context, userID uuid.UUID) ([]*model.EngineerSkill, error) {
+func (r *engineerRepository) FindSkillsByUserID(ctx context.Context, userID string) ([]*model.EngineerSkill, error) {
 	var skills []*model.EngineerSkill
 
 	err := r.db.WithContext(ctx).
@@ -250,7 +250,7 @@ func (r *engineerRepository) FindAllSkillCategories(ctx context.Context) ([]*mod
 }
 
 // FindProjectHistoryByUserID ユーザーのプロジェクト履歴を取得
-func (r *engineerRepository) FindProjectHistoryByUserID(ctx context.Context, userID uuid.UUID) ([]*model.EngineerProjectHistory, error) {
+func (r *engineerRepository) FindProjectHistoryByUserID(ctx context.Context, userID string) ([]*model.EngineerProjectHistory, error) {
 	var histories []*model.EngineerProjectHistory
 
 	err := r.db.WithContext(ctx).
@@ -264,7 +264,7 @@ func (r *engineerRepository) FindProjectHistoryByUserID(ctx context.Context, use
 }
 
 // UpdateProjectHistoryCurrent 現在のプロジェクトを更新
-func (r *engineerRepository) UpdateProjectHistoryCurrent(ctx context.Context, userID uuid.UUID, projectID uuid.UUID) error {
+func (r *engineerRepository) UpdateProjectHistoryCurrent(ctx context.Context, userID string, projectID uuid.UUID) error {
 	// トランザクション内で実行
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 既存の現在プロジェクトをクリア

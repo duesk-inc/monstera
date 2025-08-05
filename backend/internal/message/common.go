@@ -6,7 +6,7 @@ import "fmt"
 const (
 	// 認証・認可関連
 	MsgUnauthorized       = "認証が必要です"
-	MsgInvalidCredentials = "メールアドレスまたはパスワードが正しくありません"
+	MsgInvalidCredentials = "認証情報が正しくありません"
 	MsgTokenExpired       = "認証トークンの有効期限が切れています"
 	MsgInvalidToken       = "無効な認証トークンです"
 	MsgForbidden          = "この操作を実行する権限がありません"
@@ -51,7 +51,6 @@ const (
 	MsgSent          = "正常に送信されました"
 	MsgCompleted     = "正常に完了しました"
 	MsgLoggedOut     = "ログアウトしました"
-	MsgPasswordReset = "パスワードがリセットされました"
 
 	// 一般的な操作メッセージ
 	MsgProcessing    = "処理中です"

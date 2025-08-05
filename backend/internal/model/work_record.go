@@ -9,12 +9,12 @@ import (
 
 // WorkRecord 勤務記録モデル
 type WorkRecord struct {
-	ID              uuid.UUID        `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID              uuid.UUID        `gorm:"type:varchar(255);primary_key" json:"id"`
 	CreatedAt       time.Time        `gorm:"not null;default:current_timestamp" json:"created_at"`
 	UpdatedAt       time.Time        `gorm:"not null;default:current_timestamp on update current_timestamp" json:"updated_at"`
 	DeletedAt       gorm.DeletedAt   `gorm:"index" json:"deleted_at,omitempty"`
-	UserID          uuid.UUID        `gorm:"type:varchar(36);not null;index:idx_work_record_user_project_date" json:"user_id"`
-	ProjectID       uuid.UUID        `gorm:"type:varchar(36);not null;index:idx_work_record_user_project_date" json:"project_id"`
+	UserID string        `gorm:"type:varchar(255);not null;index:idx_work_record_user_project_date" json:"user_id"`
+	ProjectID       uuid.UUID        `gorm:"type:varchar(255);not null;index:idx_work_record_user_project_date" json:"project_id"`
 	WorkDate        time.Time        `gorm:"type:date;not null;index:idx_work_record_user_project_date" json:"work_date"`
 	StartTime       *time.Time       `gorm:"type:time" json:"start_time"`
 	EndTime         *time.Time       `gorm:"type:time" json:"end_time"`
@@ -25,7 +25,7 @@ type WorkRecord struct {
 	Status          WorkRecordStatus `gorm:"type:enum('draft','submitted','approved','rejected');default:'draft'" json:"status"`
 	SubmittedAt     *time.Time       `json:"submitted_at"`
 	ApprovedAt      *time.Time       `json:"approved_at"`
-	ApprovedBy      *uuid.UUID       `gorm:"type:varchar(36)" json:"approved_by"`
+	ApprovedBy      *uuid.UUID       `gorm:"type:varchar(255)" json:"approved_by"`
 	RejectionReason string           `gorm:"type:text" json:"rejection_reason"`
 
 	// リレーション

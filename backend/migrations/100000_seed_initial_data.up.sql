@@ -64,10 +64,10 @@ DECLARE
     current_year INTEGER := EXTRACT(YEAR FROM CURRENT_DATE);
 BEGIN
     -- Users
-    INSERT INTO users (id, email, password, first_name, last_name, first_name_kana, last_name_kana, phone_number, role, active) VALUES 
-    (admin_id::text, 'daichiro.uesaka@duesk.co.jp', '$2a$10$adIxMrFe4jXQD7cFGfx4P.5vnd4iXuHBfrbNEQY0JrLE/2vHtHoUy', '大地郎', '上坂', 'ダイチロウ', 'ウエサカ', '080-4555-5678', 2, true),
-    (user1_id::text, 'test@duesk.co.jp', '$2a$10$adIxMrFe4jXQD7cFGfx4P.5vnd4iXuHBfrbNEQY0JrLE/2vHtHoUy', 'テスト', 'ユーザー', 'テスト', 'ユーザー', '090-1234-5678', 4, true),
-    (user2_id::text, 'test2@duesk.co.jp', '$2a$10$adIxMrFe4jXQD7cFGfx4P.5vnd4iXuHBfrbNEQY0JrLE/2vHtHoUy', 'テスト', 'ユーザー2', 'テスト', 'ユーザー', '080-8765-4321', 4, true)
+    INSERT INTO users (id, email, first_name, last_name, first_name_kana, last_name_kana, phone_number, role, active) VALUES 
+    (admin_id::text, 'daichiro.uesaka@duesk.co.jp', '大地郎', '上坂', 'ダイチロウ', 'ウエサカ', '080-4555-5678', 2, true),
+    (user1_id::text, 'test@duesk.co.jp', 'テスト', 'ユーザー', 'テスト', 'ユーザー', '090-1234-5678', 4, true),
+    (user2_id::text, 'test2@duesk.co.jp', 'テスト', 'ユーザー2', 'テスト', 'ユーザー', '080-8765-4321', 4, true)
     ON CONFLICT (id) DO NOTHING;
 
     -- Profiles

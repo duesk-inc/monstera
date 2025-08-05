@@ -11,14 +11,13 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/duesk/monstera/internal/dto"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 // S3Service S3に関するサービスのインターフェース
 type S3Service interface {
 	// Pre-signed URL生成
-	GenerateUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error)
+	GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error)
 	GetFileURL(ctx context.Context, s3Key string) (string, error)
 	DeleteFile(ctx context.Context, s3Key string) error
 
@@ -129,7 +128,7 @@ func NewS3Service(bucketName, region, baseURL string, logger *zap.Logger) (S3Ser
 }
 
 // GenerateUploadURL Pre-signed URLを生成
-func (s *s3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
+func (s *s3Service) GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
 	// バリデーション
 	if validationErrors := req.ValidateFileUpload(); len(validationErrors) > 0 {
 		s.logger.Warn("Upload URL request validation failed",
@@ -161,7 +160,7 @@ func (s *s3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req
 		s.logger.Error("Failed to generate pre-signed URL",
 			zap.Error(err),
 			zap.String("s3_key", s3Key),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, fmt.Errorf("Pre-signed URLの生成に失敗しました")
 	}
 
@@ -187,7 +186,7 @@ func (s *s3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req
 
 	s.logger.Info("Pre-signed URL generated successfully",
 		zap.String("s3_key", s3Key),
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Time("expires_at", expiresAt),
 		zap.String("upload_url", uploadURL))
 

@@ -26,9 +26,9 @@ var (
 type AlertService interface {
 	// アラート設定管理
 	GetAlertSettings(ctx context.Context) (*model.AlertSettings, error)
-	CreateAlertSettings(ctx context.Context, req *dto.CreateAlertSettingsRequest, userID uuid.UUID) (*model.AlertSettings, error)
+	CreateAlertSettings(ctx context.Context, req *dto.CreateAlertSettingsRequest, userID string) (*model.AlertSettings, error)
 	GetAlertSettingsList(ctx context.Context, page, limit int) ([]*model.AlertSettings, int64, error)
-	UpdateAlertSettings(ctx context.Context, id uuid.UUID, req *dto.UpdateAlertSettingsRequest, userID uuid.UUID) (*model.AlertSettings, error)
+	UpdateAlertSettings(ctx context.Context, id uuid.UUID, req *dto.UpdateAlertSettingsRequest, userID string) (*model.AlertSettings, error)
 	DeleteAlertSettings(ctx context.Context, id uuid.UUID) error
 
 	// アラート検出・作成
@@ -46,7 +46,7 @@ type AlertService interface {
 	GetAlertsByUser(ctx context.Context, userID string, status *model.AlertStatus) ([]*model.AlertHistory, error)
 
 	// アラートステータス管理
-	UpdateAlertStatus(ctx context.Context, id uuid.UUID, status string, comment string, userID uuid.UUID) error
+	UpdateAlertStatus(ctx context.Context, id uuid.UUID, status string, comment string, userID string) error
 	ResolveAlert(ctx context.Context, id string, resolvedBy uuid.UUID, comment string) error
 	StartHandlingAlert(ctx context.Context, id string, handlerID uuid.UUID) error
 
@@ -124,7 +124,7 @@ func (s *alertService) GetAlertSettings(ctx context.Context) (*model.AlertSettin
 }
 
 // UpdateAlertSettings アラート設定を更新
-func (s *alertService) UpdateAlertSettings(ctx context.Context, id uuid.UUID, req *dto.UpdateAlertSettingsRequest, userID uuid.UUID) (*model.AlertSettings, error) {
+func (s *alertService) UpdateAlertSettings(ctx context.Context, id uuid.UUID, req *dto.UpdateAlertSettingsRequest, userID string) (*model.AlertSettings, error) {
 	// 現在の設定を取得
 	currentSettings, err := s.GetAlertSettings(ctx)
 	if err != nil {
@@ -134,7 +134,7 @@ func (s *alertService) UpdateAlertSettings(ctx context.Context, id uuid.UUID, re
 	// 更新者の存在確認
 	if _, err := s.userRepo.FindByID(userID); err != nil {
 		s.logger.Error("Updater not found",
-			zap.String("updater_id", userID.String()),
+			zap.String("updater_id", userID),
 			zap.Error(err))
 		return nil, fmt.Errorf("更新者が見つかりません: %w", err)
 	}
@@ -159,7 +159,7 @@ func (s *alertService) UpdateAlertSettings(ctx context.Context, id uuid.UUID, re
 
 	if err := s.alertSettingsRepo.Update(ctx, currentSettings.ID, updates); err != nil {
 		s.logger.Error("Failed to update alert settings",
-			zap.String("updater_id", userID.String()),
+			zap.String("updater_id", userID),
 			zap.Error(err))
 		return nil, fmt.Errorf("アラート設定の更新に失敗しました: %w", err)
 	}
@@ -180,7 +180,7 @@ func (s *alertService) UpdateAlertSettings(ctx context.Context, id uuid.UUID, re
 	currentSettings.UpdatedBy = userID
 
 	s.logger.Info("Alert settings updated successfully",
-		zap.String("updater_id", userID.String()))
+		zap.String("updater_id", userID))
 
 	return currentSettings, nil
 }
@@ -446,7 +446,7 @@ func (s *alertService) updateAlertStatusInternal(ctx context.Context, id string,
 }
 
 // UpdateAlertStatus アラートのステータスを更新（ハンドラー用の新しいシグネチャ）
-func (s *alertService) UpdateAlertStatus(ctx context.Context, id uuid.UUID, status string, comment string, userID uuid.UUID) error {
+func (s *alertService) UpdateAlertStatus(ctx context.Context, id uuid.UUID, status string, comment string, userID string) error {
 	// ステータスをmodel.AlertStatusに変換
 	var alertStatus model.AlertStatus
 	switch status {
@@ -750,13 +750,13 @@ func (s *alertService) countConsecutiveHolidayWork(ctx context.Context, report *
 }
 
 // calculateMonthlyOvertime 月間残業時間を計算
-func (s *alertService) calculateMonthlyOvertime(ctx context.Context, userID uuid.UUID, monthStart, monthEnd time.Time) float64 {
+func (s *alertService) calculateMonthlyOvertime(ctx context.Context, userID string, monthStart, monthEnd time.Time) float64 {
 	// 指定された月の週報を取得
 	reports, err := s.weeklyReportRepo.GetByUserAndMonth(ctx, userID, monthStart, monthEnd)
 	if err != nil {
 		s.logger.Error("Failed to get monthly reports for overtime calculation",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Time("month_start", monthStart),
 			zap.Time("month_end", monthEnd))
 		return 0.0
@@ -1133,7 +1133,7 @@ type AlertDetectionSummary struct {
 }
 
 // CreateAlertSettings アラート設定を作成（暫定実装）
-func (s *alertService) CreateAlertSettings(ctx context.Context, req *dto.CreateAlertSettingsRequest, userID uuid.UUID) (*model.AlertSettings, error) {
+func (s *alertService) CreateAlertSettings(ctx context.Context, req *dto.CreateAlertSettingsRequest, userID string) (*model.AlertSettings, error) {
 	// TODO: 実際の実装
 	return &model.AlertSettings{}, nil
 }

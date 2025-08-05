@@ -21,10 +21,10 @@ type ExpenseDeadlineSettingRepository interface {
 	GetByScope(ctx context.Context, scope string, scopeID *uuid.UUID) (*model.ExpenseDeadlineSetting, error)
 	GetGlobalSetting(ctx context.Context) (*model.ExpenseDeadlineSetting, error)
 	GetDepartmentSetting(ctx context.Context, departmentID uuid.UUID) (*model.ExpenseDeadlineSetting, error)
-	GetUserSetting(ctx context.Context, userID uuid.UUID) (*model.ExpenseDeadlineSetting, error)
+	GetUserSetting(ctx context.Context, userID string) (*model.ExpenseDeadlineSetting, error)
 
 	// 有効な設定を取得（優先順位: ユーザー > 部門 > グローバル）
-	GetEffectiveSetting(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID) (*model.ExpenseDeadlineSetting, error)
+	GetEffectiveSetting(ctx context.Context, userID string, departmentID *uuid.UUID) (*model.ExpenseDeadlineSetting, error)
 
 	// 一覧取得
 	List(ctx context.Context) ([]*model.ExpenseDeadlineSetting, error)
@@ -130,12 +130,16 @@ func (r *expenseDeadlineSettingRepository) GetDepartmentSetting(ctx context.Cont
 }
 
 // GetUserSetting ユーザー設定を取得
-func (r *expenseDeadlineSettingRepository) GetUserSetting(ctx context.Context, userID uuid.UUID) (*model.ExpenseDeadlineSetting, error) {
-	return r.GetByScope(ctx, "user", &userID)
+func (r *expenseDeadlineSettingRepository) GetUserSetting(ctx context.Context, userID string) (*model.ExpenseDeadlineSetting, error) {
+	parsedID, err := uuid.Parse(userID)
+	if err != nil {
+		return nil, err
+	}
+	return r.GetByScope(ctx, "user", &parsedID)
 }
 
 // GetEffectiveSetting 有効な設定を取得（優先順位: ユーザー > 部門 > グローバル）
-func (r *expenseDeadlineSettingRepository) GetEffectiveSetting(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID) (*model.ExpenseDeadlineSetting, error) {
+func (r *expenseDeadlineSettingRepository) GetEffectiveSetting(ctx context.Context, userID string, departmentID *uuid.UUID) (*model.ExpenseDeadlineSetting, error) {
 	// ユーザー設定を確認
 	userSetting, err := r.GetUserSetting(ctx, userID)
 	if err != nil {

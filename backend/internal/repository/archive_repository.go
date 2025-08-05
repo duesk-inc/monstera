@@ -45,7 +45,7 @@ type ArchiveRepository interface {
 
 	// 検索・フィルタリング
 	SearchArchivedReports(ctx context.Context, query string, filter model.ArchiveFilter) ([]model.WeeklyReportArchive, int64, error)
-	GetArchivedReportsByDateRange(ctx context.Context, startDate, endDate time.Time, userID *uuid.UUID) ([]model.WeeklyReportArchive, error)
+	GetArchivedReportsByDateRange(ctx context.Context, startDate, endDate time.Time, userID *string) ([]model.WeeklyReportArchive, error)
 
 	// クリーンアップ
 	DeleteExpiredArchives(ctx context.Context, expirationDate time.Time) (int64, error)
@@ -738,7 +738,7 @@ func (r *archiveRepository) SearchArchivedReports(ctx context.Context, query str
 }
 
 // GetArchivedReportsByDateRange 日付範囲でアーカイブ週報を取得
-func (r *archiveRepository) GetArchivedReportsByDateRange(ctx context.Context, startDate, endDate time.Time, userID *uuid.UUID) ([]model.WeeklyReportArchive, error) {
+func (r *archiveRepository) GetArchivedReportsByDateRange(ctx context.Context, startDate, endDate time.Time, userID *string) ([]model.WeeklyReportArchive, error) {
 	var archives []model.WeeklyReportArchive
 
 	query := r.db.WithContext(ctx).
@@ -907,7 +907,7 @@ func (r *archiveRepository) ExecuteArchiveUserWeeklyReports(ctx context.Context,
 		CALL ArchiveUserWeeklyReports(?, ?, ?, ?, ?, @archived_count, @failed_count);
 		SELECT @archived_count, @failed_count;
 	`,
-		params.UserID.String(),
+		params.UserID,
 		params.StartDate,
 		params.EndDate,
 		params.ArchivedBy.String(),

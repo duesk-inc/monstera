@@ -9,8 +9,8 @@ import (
 
 // Session セッション情報
 type Session struct {
-	ID           uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
-	UserID       uuid.UUID      `gorm:"type:varchar(36);not null;index" json:"user_id"`
+	ID           uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID string      `gorm:"type:varchar(255);not null;index" json:"user_id"`
 	RefreshToken string         `gorm:"type:text;not null;unique" json:"refresh_token"`
 	UserAgent    string         `gorm:"type:varchar(255)" json:"user_agent"`
 	IPAddress    string         `gorm:"type:varchar(45)" json:"ip_address"`

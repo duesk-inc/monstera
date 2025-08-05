@@ -7,7 +7,7 @@ const (
 	// ログイン関連
 	MsgLoginSuccess         = "ログインに成功しました"
 	MsgLoginFailed          = "ログインに失敗しました"
-	MsgInvalidLoginInfo     = "メールアドレスまたはパスワードが正しくありません"
+	MsgInvalidLoginInfo     = "認証情報が正しくありません"
 	MsgAccountLocked        = "アカウントがロックされています"
 	MsgTooManyLoginAttempts = "ログイン試行回数が上限を超えました。しばらくしてから再度お試しください"
 
@@ -20,18 +20,6 @@ const (
 	MsgUserRegistrationFailed  = "ユーザー登録に失敗しました"
 	MsgEmailAlreadyExists      = "このメールアドレスは既に登録されています"
 	MsgInvalidRegistrationData = "登録情報に不備があります"
-
-	// パスワード関連
-	MsgPasswordChanged           = "パスワードが変更されました"
-	MsgPasswordChangeFailed      = "パスワードの変更に失敗しました"
-	MsgCurrentPasswordWrong      = "現在のパスワードが正しくありません"
-	MsgPasswordTooWeak           = "パスワードが弱すぎます。大文字、小文字、数字、特殊文字を含む8文字以上にしてください"
-	MsgPasswordResetRequested    = "パスワードリセットのメールを送信しました"
-	MsgPasswordResetTokenInvalid = "パスワードリセットトークンが無効です"
-	MsgPasswordResetTokenExpired = "パスワードリセットトークンの有効期限が切れています"
-	MsgPasswordResetSuccess      = "パスワードがリセットされました"
-	MsgPasswordSameAsOld         = "新しいパスワードは古いパスワードと異なる必要があります"
-	MsgPasswordsDoNotMatch       = "パスワードが一致しません"
 
 	// トークン関連
 	MsgTokenRefreshed        = "トークンが更新されました"

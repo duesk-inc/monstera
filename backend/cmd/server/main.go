@@ -175,8 +175,7 @@ func main() {
 		}
 		authSvc = cognitoAuthSvc
 	} else {
-		logger.Info("通常認証サービスを使用します")
-		authSvc = service.NewAuthService(cfg, db, userRepo, logger)
+		logger.Fatal("Cognito認証が無効になっています。Cognito認証を有効にしてください。")
 	}
 	// デバッグ: 認証サービス作成の確認
 	logger.Info("Auth service created")
@@ -776,8 +775,9 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 			adminNotifications.POST("", notificationHandler.CreateNotification)
 		}
 
-		// 認証ファクトリを作成
-		authFactory := middleware.NewAuthFactory(cfg, logger, userRepo, departmentRepo, *reportRepo, weeklyReportRefactoredRepo)
+		// 週報認証ミドルウェアを作成（現在未使用）
+		// TODO: 週報関連ルートで使用予定
+		// weeklyReportAuthMiddleware := middleware.NewWeeklyReportAuthMiddleware(logger, *reportRepo, weeklyReportRefactoredRepo, userRepo, departmentRepo, cognitoMiddleware)
 
 		// 管理者用ルートの設定
 		adminHandlers := &routes.AdminHandlers{
@@ -799,7 +799,37 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 		// routes.RegisterAlertRoutes(api, alertHandler, authMiddleware) // TODO: 実装予定
 
 		// アラート設定ルートの登録（設計書通りのパスで有効化）
-		routes.SetupAlertSettingsRoutes(api, alertSettingsHandler, authMiddlewareFunc, authFactory.NewWeeklyReportAuthorization([]model.Role{model.RoleAdmin, model.RoleManager}), logger)
+		// 管理者・マネージャー権限チェックミドルウェアを作成
+		adminManagerAuthMiddleware := func(c *gin.Context) {
+			// ユーザー情報を取得
+			userInterface, exists := c.Get("user")
+			if !exists {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "ユーザー情報が見つかりません"})
+				c.Abort()
+				return
+			}
+
+			user, ok := userInterface.(*model.User)
+			if !ok {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "ユーザー情報の形式が無効です"})
+				c.Abort()
+				return
+			}
+
+			// 管理者またはマネージャー権限をチェック
+			if user.Role != model.RoleSuperAdmin && user.Role != model.RoleAdmin && user.Role != model.RoleManager {
+				logger.Warn("権限なしでのアクセス試行",
+					zap.String("user_id", user.ID.String()),
+					zap.Int("role", int(user.Role)),
+				)
+				c.JSON(http.StatusForbidden, gin.H{"error": "管理者またはマネージャー権限が必要です"})
+				c.Abort()
+				return
+			}
+
+			c.Next()
+		}
+		routes.SetupAlertSettingsRoutes(api, alertSettingsHandler, authMiddlewareFunc, adminManagerAuthMiddleware, logger)
 
 		// 未提出者管理ルートの登録（既存）
 		// routes.SetupUnsubmittedReportRoutes(router, unsubmittedReportHandler, authMiddleware, authFactory)
@@ -809,7 +839,7 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 
 		// リマインドルートの登録
 		// TODO: RequireRolesミドルウェアもCognito対応が必要
-		routes.RegisterReminderRoutes(api, reminderHandler, authMiddlewareFunc, authFactory.NewWeeklyReportAuthorization([]model.Role{model.RoleAdmin}))
+		routes.RegisterReminderRoutes(api, reminderHandler, authMiddlewareFunc, cognitoMiddleware.AdminRequired())
 
 		// 営業関連ルートの登録
 		routes.SetupSalesRoutes(api, cfg, salesHandlers, logger, rolePermissionRepo, cognitoMiddleware)
@@ -818,13 +848,13 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 		// 監査ログルートの登録（管理者のみアクセス可能）
 		adminAudit := api.Group("/admin")
 		adminAudit.Use(authMiddlewareFunc)
-		adminAudit.Use(authFactory.NewWeeklyReportAuthorization([]model.Role{model.RoleAdmin})) // 管理者のみ
+		adminAudit.Use(cognitoMiddleware.AdminRequired()) // 管理者のみ
 		handler.SetupAuditLogRoutes(adminAudit, auditLogHandler)
 
 		// 管理者用経費エクスポート（管理者のみアクセス可能）
 		adminExpenses := api.Group("/admin/expenses")
 		adminExpenses.Use(authMiddlewareFunc)
-		adminExpenses.Use(authFactory.NewWeeklyReportAuthorization([]model.Role{model.RoleAdmin})) // 管理者のみ
+		adminExpenses.Use(cognitoMiddleware.AdminRequired()) // 管理者のみ
 		{
 			adminExpenses.GET("/export", expenseHandler.ExportExpensesCSVAdmin)
 		}
@@ -832,7 +862,7 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 		// 管理者用経費期限設定（管理者のみアクセス可能）
 		adminExpenseDeadline := api.Group("/admin/expense-deadline-settings")
 		adminExpenseDeadline.Use(authMiddlewareFunc)
-		adminExpenseDeadline.Use(authFactory.NewWeeklyReportAuthorization([]model.Role{model.RoleAdmin})) // 管理者のみ
+		adminExpenseDeadline.Use(cognitoMiddleware.AdminRequired()) // 管理者のみ
 		{
 			// 経費期限設定ハンドラーは一時的に無効化（ExpenseServiceへの参照が必要）
 			// TODO: ExpenseServiceをsetupRouterに渡すか、別の方法で実装

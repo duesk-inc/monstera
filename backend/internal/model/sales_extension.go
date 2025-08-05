@@ -61,12 +61,12 @@ const (
 
 // Proposal 提案
 type Proposal struct {
-	ID               uuid.UUID      `gorm:"type:varchar(36);primaryKey" json:"id"`
-	EngineerID       uuid.UUID      `gorm:"type:varchar(36);not null" json:"engineer_id"`
+	ID               uuid.UUID      `gorm:"type:varchar(255);primaryKey" json:"id"`
+	EngineerID       uuid.UUID      `gorm:"type:varchar(255);not null" json:"engineer_id"`
 	Engineer         *User          `gorm:"foreignKey:EngineerID" json:"engineer,omitempty"`
-	ClientID         uuid.UUID      `gorm:"type:varchar(36);not null" json:"client_id"`
+	ClientID         uuid.UUID      `gorm:"type:varchar(255);not null" json:"client_id"`
 	Client           *Client        `gorm:"foreignKey:ClientID" json:"client,omitempty"`
-	ProjectID        *uuid.UUID     `gorm:"type:varchar(36)" json:"project_id,omitempty"`
+	ProjectID        *uuid.UUID     `gorm:"type:varchar(255)" json:"project_id,omitempty"`
 	Project          *Project       `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
 	Status           ProposalStatus `gorm:"type:enum('draft','submitted','accepted','rejected','expired');default:'draft'" json:"status"`
 	ProposalAmount   int            `json:"proposal_amount"`
@@ -99,10 +99,10 @@ func (p *Proposal) BeforeCreate(tx *gorm.DB) error {
 
 // ContractExtension 契約延長確認
 type ContractExtension struct {
-	ID                     uuid.UUID               `gorm:"type:varchar(36);primaryKey" json:"id"`
-	EngineerID             uuid.UUID               `gorm:"type:varchar(36);not null" json:"engineer_id"`
+	ID                     uuid.UUID               `gorm:"type:varchar(255);primaryKey" json:"id"`
+	EngineerID             uuid.UUID               `gorm:"type:varchar(255);not null" json:"engineer_id"`
 	Engineer               *User                   `gorm:"foreignKey:EngineerID" json:"engineer,omitempty"`
-	ProjectID              uuid.UUID               `gorm:"type:varchar(36);not null" json:"project_id"`
+	ProjectID              uuid.UUID               `gorm:"type:varchar(255);not null" json:"project_id"`
 	Project                *Project                `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
 	Status                 ContractExtensionStatus `gorm:"type:enum('pending','extended','declined','completed');default:'pending'" json:"status"`
 	CurrentContractEndDate time.Time               `json:"current_contract_end_date"`
@@ -136,8 +136,8 @@ func (c *ContractExtension) BeforeCreate(tx *gorm.DB) error {
 
 // InterviewSchedule 面談スケジュール
 type InterviewSchedule struct {
-	ID                uuid.UUID       `gorm:"type:varchar(36);primaryKey" json:"id"`
-	ProposalID        uuid.UUID       `gorm:"type:varchar(36);not null" json:"proposal_id"`
+	ID                uuid.UUID       `gorm:"type:varchar(255);primaryKey" json:"id"`
+	ProposalID        uuid.UUID       `gorm:"type:varchar(255);not null" json:"proposal_id"`
 	Proposal          *Proposal       `gorm:"foreignKey:ProposalID" json:"proposal,omitempty"`
 	Status            InterviewStatus `gorm:"type:enum('scheduled','completed','cancelled','rescheduled');default:'scheduled'" json:"status"`
 	ScheduledDate     time.Time       `json:"scheduled_date"`
@@ -196,7 +196,7 @@ func (i *InterviewSchedule) GetEngineerAttendees() ([]map[string]string, error) 
 
 // PocProject POCプロジェクト
 type PocProject struct {
-	ID           uuid.UUID     `gorm:"type:varchar(36);primaryKey" json:"id"`
+	ID           uuid.UUID     `gorm:"type:varchar(255);primaryKey" json:"id"`
 	ExternalID   string        `gorm:"size:100;unique" json:"external_id"`
 	Name         string        `gorm:"size:200;not null" json:"name"`
 	ClientName   string        `gorm:"size:200" json:"client_name"`
@@ -226,8 +226,8 @@ func (p *PocProject) BeforeCreate(tx *gorm.DB) error {
 
 // SalesTeam 営業チーム
 type SalesTeam struct {
-	ID          uuid.UUID  `gorm:"type:varchar(36);primaryKey" json:"id"`
-	UserID      uuid.UUID  `gorm:"type:varchar(36);not null;unique" json:"user_id"`
+	ID          uuid.UUID  `gorm:"type:varchar(255);primaryKey" json:"id"`
+	UserID string  `gorm:"type:varchar(255);not null;unique" json:"user_id"`
 	User        *User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	TeamRole    string     `gorm:"size:50;not null" json:"team_role"` // leader, member
 	IsActive    bool       `gorm:"default:true" json:"is_active"`

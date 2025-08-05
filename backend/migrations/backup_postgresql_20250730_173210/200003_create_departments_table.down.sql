@@ -1,2 +1,0 @@
--- 部署管理テーブルの削除
-DROP TABLE IF EXISTS departments;

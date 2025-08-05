@@ -23,17 +23,17 @@ type EngineerService interface {
 
 	// ステータス管理
 	UpdateEngineerStatus(ctx context.Context, id uuid.UUID, status string, reason string, changedBy uuid.UUID) error
-	GetStatusHistory(ctx context.Context, userID uuid.UUID) ([]*model.EngineerStatusHistory, error)
+	GetStatusHistory(ctx context.Context, userID string) ([]*model.EngineerStatusHistory, error)
 
 	// スキル情報
-	GetEngineerSkills(ctx context.Context, userID uuid.UUID) ([]*model.EngineerSkill, error)
+	GetEngineerSkills(ctx context.Context, userID string) ([]*model.EngineerSkill, error)
 	GetAllSkillCategories(ctx context.Context) ([]*model.EngineerSkillCategory, error)
 
 	// プロジェクト履歴
-	GetProjectHistory(ctx context.Context, userID uuid.UUID) ([]*model.EngineerProjectHistory, error)
+	GetProjectHistory(ctx context.Context, userID string) ([]*model.EngineerProjectHistory, error)
 
 	// システム利用状況
-	GetSystemUsage(ctx context.Context, userID uuid.UUID) (*SystemUsage, error)
+	GetSystemUsage(ctx context.Context, userID string) (*SystemUsage, error)
 }
 
 // CreateEngineerInput エンジニア作成入力
@@ -300,12 +300,12 @@ func (s *engineerService) UpdateEngineerStatus(ctx context.Context, id uuid.UUID
 }
 
 // GetStatusHistory ステータス履歴を取得
-func (s *engineerService) GetStatusHistory(ctx context.Context, userID uuid.UUID) ([]*model.EngineerStatusHistory, error) {
+func (s *engineerService) GetStatusHistory(ctx context.Context, userID string) ([]*model.EngineerStatusHistory, error) {
 	return s.engineerRepo.FindStatusHistory(ctx, userID)
 }
 
 // GetEngineerSkills エンジニアのスキル情報を取得
-func (s *engineerService) GetEngineerSkills(ctx context.Context, userID uuid.UUID) ([]*model.EngineerSkill, error) {
+func (s *engineerService) GetEngineerSkills(ctx context.Context, userID string) ([]*model.EngineerSkill, error) {
 	return s.engineerRepo.FindSkillsByUserID(ctx, userID)
 }
 
@@ -315,12 +315,12 @@ func (s *engineerService) GetAllSkillCategories(ctx context.Context) ([]*model.E
 }
 
 // GetProjectHistory プロジェクト履歴を取得
-func (s *engineerService) GetProjectHistory(ctx context.Context, userID uuid.UUID) ([]*model.EngineerProjectHistory, error) {
+func (s *engineerService) GetProjectHistory(ctx context.Context, userID string) ([]*model.EngineerProjectHistory, error) {
 	return s.engineerRepo.FindProjectHistoryByUserID(ctx, userID)
 }
 
 // GetSystemUsage システム利用状況を取得
-func (s *engineerService) GetSystemUsage(ctx context.Context, userID uuid.UUID) (*SystemUsage, error) {
+func (s *engineerService) GetSystemUsage(ctx context.Context, userID string) (*SystemUsage, error) {
 	usage := &SystemUsage{}
 
 	// 週報提出率の計算（簡易版）

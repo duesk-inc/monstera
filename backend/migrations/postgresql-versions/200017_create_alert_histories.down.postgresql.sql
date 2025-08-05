@@ -1,2 +1,0 @@
--- alert_historiesテーブルの削除は200011_create_alert_tables.downで行います
--- このマイグレーションでは何も実行しません

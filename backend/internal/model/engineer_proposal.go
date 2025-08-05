@@ -47,9 +47,9 @@ func (s EngineerProposalStatus) ToJapanese() string {
 
 // EngineerProposal エンジニア向け提案情報モデル
 type EngineerProposal struct {
-	ID          uuid.UUID              `gorm:"type:varchar(36);primary_key" json:"id"`
-	ProjectID   uuid.UUID              `gorm:"type:varchar(36);not null" json:"project_id"`
-	UserID      uuid.UUID              `gorm:"type:varchar(36);not null" json:"user_id"`
+	ID          uuid.UUID              `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProjectID   uuid.UUID              `gorm:"type:varchar(255);not null" json:"project_id"`
+	UserID string              `gorm:"type:varchar(255);not null" json:"user_id"`
 	Status      EngineerProposalStatus `gorm:"type:enum('proposed','proceed','declined');not null;default:'proposed'" json:"status"`
 	RespondedAt *time.Time             `json:"responded_at"`
 	CreatedAt   time.Time              `json:"created_at"`
@@ -124,6 +124,6 @@ func (p *EngineerProposal) GetPendingQuestionsCount() int {
 }
 
 // IsOwnedBy 指定ユーザーの提案かチェック
-func (p *EngineerProposal) IsOwnedBy(userID uuid.UUID) bool {
+func (p *EngineerProposal) IsOwnedBy(userID string) bool {
 	return p.UserID == userID
 }

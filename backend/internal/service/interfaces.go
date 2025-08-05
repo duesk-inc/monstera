@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // AuthService 認証サービスのインターフェース
@@ -16,7 +15,7 @@ type AuthService interface {
 	RefreshToken(ctx context.Context, refreshToken string) (*AuthResponse, error)
 	
 	// Logout ログアウト処理
-	Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error
+	Logout(ctx context.Context, userID string, refreshToken string) error
 	
 	// RegisterUser ユーザー登録
 	RegisterUser(ctx context.Context, req *RegisterUserRequest) (*model.User, error)
@@ -25,8 +24,8 @@ type AuthService interface {
 	ValidateClaims(claims map[string]interface{}) error
 	
 	// MFA関連
-	ValidateTOTP(ctx context.Context, userID uuid.UUID, code string) error
-	SendSMSCode(ctx context.Context, userID uuid.UUID) error
-	VerifySMSCode(ctx context.Context, userID uuid.UUID, code string) error
-	UseBackupCode(ctx context.Context, userID uuid.UUID, code string) error
+	ValidateTOTP(ctx context.Context, userID string, code string) error
+	SendSMSCode(ctx context.Context, userID string) error
+	VerifySMSCode(ctx context.Context, userID string, code string) error
+	UseBackupCode(ctx context.Context, userID string, code string) error
 }

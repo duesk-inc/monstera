@@ -17,11 +17,11 @@ import (
 type SalesService interface {
 	GetSalesActivities(ctx context.Context, req *dto.SalesActivitySearchRequest) ([]dto.SalesActivityDTO, int64, error)
 	GetSalesActivityByID(ctx context.Context, activityID uuid.UUID) (*dto.SalesActivityDTO, error)
-	CreateSalesActivity(ctx context.Context, userID uuid.UUID, req *dto.CreateSalesActivityRequest) (*dto.SalesActivityDTO, error)
+	CreateSalesActivity(ctx context.Context, userID string, req *dto.CreateSalesActivityRequest) (*dto.SalesActivityDTO, error)
 	UpdateSalesActivity(ctx context.Context, activityID uuid.UUID, req *dto.UpdateSalesActivityRequest) (*dto.SalesActivityDTO, error)
 	DeleteSalesActivity(ctx context.Context, activityID uuid.UUID) error
-	GetSalesSummary(ctx context.Context, userID *uuid.UUID, dateFrom, dateTo *time.Time) (*dto.SalesSummaryDTO, error)
-	GetSalesPipeline(ctx context.Context, userID *uuid.UUID) ([]dto.SalesPipelineDTO, error)
+	GetSalesSummary(ctx context.Context, userID *string, dateFrom, dateTo *time.Time) (*dto.SalesSummaryDTO, error)
+	GetSalesPipeline(ctx context.Context, userID *string) ([]dto.SalesPipelineDTO, error)
 	GetExtensionTargets(ctx context.Context, days int) ([]dto.ExtensionTargetDTO, error)
 	GetSalesTargets(ctx context.Context, month string) ([]dto.SalesTargetDTO, error)
 }
@@ -151,7 +151,7 @@ func (s *salesService) GetSalesActivityByID(ctx context.Context, activityID uuid
 }
 
 // CreateSalesActivity 営業活動を作成
-func (s *salesService) CreateSalesActivity(ctx context.Context, userID uuid.UUID, req *dto.CreateSalesActivityRequest) (*dto.SalesActivityDTO, error) {
+func (s *salesService) CreateSalesActivity(ctx context.Context, userID string, req *dto.CreateSalesActivityRequest) (*dto.SalesActivityDTO, error) {
 	// 取引先の存在確認
 	exists, err := s.clientRepo.Exists(ctx, req.ClientID)
 	if err != nil {
@@ -286,7 +286,7 @@ func (s *salesService) DeleteSalesActivity(ctx context.Context, activityID uuid.
 }
 
 // GetSalesSummary 営業サマリを取得
-func (s *salesService) GetSalesSummary(ctx context.Context, userID *uuid.UUID, dateFrom, dateTo *time.Time) (*dto.SalesSummaryDTO, error) {
+func (s *salesService) GetSalesSummary(ctx context.Context, userID *string, dateFrom, dateTo *time.Time) (*dto.SalesSummaryDTO, error) {
 	summary, err := s.salesActivityRepo.GetActivitySummary(ctx, userID, dateFrom, dateTo)
 	if err != nil {
 		return nil, err
@@ -308,7 +308,7 @@ func (s *salesService) GetSalesSummary(ctx context.Context, userID *uuid.UUID, d
 }
 
 // GetSalesPipeline 営業パイプラインを取得
-func (s *salesService) GetSalesPipeline(ctx context.Context, userID *uuid.UUID) ([]dto.SalesPipelineDTO, error) {
+func (s *salesService) GetSalesPipeline(ctx context.Context, userID *string) ([]dto.SalesPipelineDTO, error) {
 	// アクティブな案件を取得
 	query := s.db.WithContext(ctx).Model(&model.Project{}).
 		Preload("Client").

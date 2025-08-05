@@ -87,7 +87,7 @@ type ProjectBillingDTO struct {
 // AssignmentBillingDTO アサイン請求DTO
 type AssignmentBillingDTO struct {
 	AssignmentID     uuid.UUID             `json:"assignment_id"`
-	UserID           uuid.UUID             `json:"user_id"`
+	UserID string             `json:"user_id"`
 	UserName         string                `json:"user_name"`
 	Role             string                `json:"role"`
 	BillingType      string                `json:"billing_type"` // "fixed", "variable_upper_lower", "variable_middle"
@@ -246,7 +246,7 @@ type ProjectBillingDetail struct {
 	ProjectID     uuid.UUID `json:"project_id"`
 	ProjectName   string    `json:"project_name"`
 	AssignmentID  uuid.UUID `json:"assignment_id"`
-	UserID        uuid.UUID `json:"user_id"`
+	UserID string `json:"user_id"`
 	UserName      string    `json:"user_name"`
 	BillingType   string    `json:"billing_type"`
 	MonthlyRate   float64   `json:"monthly_rate"`

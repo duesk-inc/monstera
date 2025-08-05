@@ -9,11 +9,11 @@ import (
 
 // FreeeSettings freee設定モデル
 type FreeeSettings struct {
-	ID                   uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID                   uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
 	CreatedAt            time.Time      `gorm:"not null;default:current_timestamp" json:"created_at"`
 	UpdatedAt            time.Time      `gorm:"not null;default:current_timestamp on update current_timestamp" json:"updated_at"`
 	DeletedAt            gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
-	UserID               uuid.UUID      `gorm:"type:varchar(36);not null;uniqueIndex:idx_freee_settings_user" json:"user_id"`
+	UserID string      `gorm:"type:varchar(255);not null;uniqueIndex:idx_freee_settings_user" json:"user_id"`
 	CompanyID            int            `gorm:"not null" json:"company_id"`
 	CompanyName          string         `gorm:"size:255;not null" json:"company_name"`
 	AccessToken          string         `gorm:"type:text;not null" json:"-"` // 暗号化されたトークン
@@ -178,7 +178,7 @@ func (fs *FreeeSettings) GetConnectionStatusDisplay() string {
 
 // Validate freee設定のバリデーション
 func (fs *FreeeSettings) Validate() error {
-	if fs.UserID == uuid.Nil {
+	if fs.UserID == "" {
 		return gorm.ErrInvalidData
 	}
 	if fs.CompanyID <= 0 {

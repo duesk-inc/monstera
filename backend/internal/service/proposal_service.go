@@ -20,15 +20,15 @@ import (
 // ProposalService 提案サービスのインターフェース
 type ProposalService interface {
 	// 提案情報管理
-	GetProposals(ctx context.Context, userID uuid.UUID, req *dto.GetProposalsRequest) (*dto.ProposalListResponse, error)
-	GetProposalDetail(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*dto.ProposalDetailResponse, error)
-	UpdateProposalStatus(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.UpdateProposalStatusRequest) error
+	GetProposals(ctx context.Context, userID string, req *dto.GetProposalsRequest) (*dto.ProposalListResponse, error)
+	GetProposalDetail(ctx context.Context, id uuid.UUID, userID string) (*dto.ProposalDetailResponse, error)
+	UpdateProposalStatus(ctx context.Context, id uuid.UUID, userID string, req *dto.UpdateProposalStatusRequest) error
 
 	// 質問機能
-	CreateQuestion(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error)
-	GetQuestions(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error)
-	UpdateQuestion(ctx context.Context, questionID uuid.UUID, userID uuid.UUID, req *dto.UpdateQuestionRequest) error
-	DeleteQuestion(ctx context.Context, questionID uuid.UUID, userID uuid.UUID) error
+	CreateQuestion(ctx context.Context, proposalID uuid.UUID, userID string, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error)
+	GetQuestions(ctx context.Context, proposalID uuid.UUID, userID string, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error)
+	UpdateQuestion(ctx context.Context, questionID uuid.UUID, userID string, req *dto.UpdateQuestionRequest) error
+	DeleteQuestion(ctx context.Context, questionID uuid.UUID, userID string) error
 
 	// 営業担当者向け機能
 	RespondToQuestion(ctx context.Context, questionID uuid.UUID, salesUserID uuid.UUID, req *dto.RespondQuestionRequest) error
@@ -36,9 +36,9 @@ type ProposalService interface {
 	AssignQuestionToSales(ctx context.Context, questionID uuid.UUID, assignerID uuid.UUID, salesUserID uuid.UUID) error
 
 	// 統計・分析機能
-	GetProposalStats(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error)
-	GetProposalDashboard(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error)
-	GetQuestionStatistics(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error)
+	GetProposalStats(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error)
+	GetProposalDashboard(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error)
+	GetQuestionStatistics(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error)
 
 	// 管理者向け機能
 	GetSystemProposalSummary(ctx context.Context) (*dto.ProposalSummaryResponse, error)
@@ -46,9 +46,9 @@ type ProposalService interface {
 	GetUserProposalRanking(ctx context.Context, limit int) (*dto.ProposalSummaryResponse, error)
 
 	// 内部処理
-	CreateProposal(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (*model.EngineerProposal, error)
-	CheckProposalPermission(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID) error
-	CheckQuestionPermission(ctx context.Context, questionID uuid.UUID, userID uuid.UUID) error
+	CreateProposal(ctx context.Context, projectID uuid.UUID, userID string) (*model.EngineerProposal, error)
+	CheckProposalPermission(ctx context.Context, proposalID uuid.UUID, userID string) error
+	CheckQuestionPermission(ctx context.Context, questionID uuid.UUID, userID string) error
 	GetSalesUserForProject(ctx context.Context, projectID uuid.UUID) (*model.User, error)
 
 	// バッチ処理・メンテナンス
@@ -107,8 +107,8 @@ func (s *proposalService) executeInTransaction(ctx context.Context, fn func(tx *
 // ==========================================
 
 // GetProposals 提案一覧を取得
-func (s *proposalService) GetProposals(ctx context.Context, userID uuid.UUID, req *dto.GetProposalsRequest) (*dto.ProposalListResponse, error) {
-	logger.LogInfo(s.logger, "提案一覧取得開始", zap.String("user_id", userID.String()))
+func (s *proposalService) GetProposals(ctx context.Context, userID string, req *dto.GetProposalsRequest) (*dto.ProposalListResponse, error) {
+	logger.LogInfo(s.logger, "提案一覧取得開始", zap.String("user_id", userID))
 
 	// デフォルト値設定
 	req.SetDefaults()
@@ -151,8 +151,8 @@ func (s *proposalService) GetProposals(ctx context.Context, userID uuid.UUID, re
 }
 
 // GetProposalDetail 提案詳細を取得
-func (s *proposalService) GetProposalDetail(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*dto.ProposalDetailResponse, error) {
-	logger.LogInfo(s.logger, "提案詳細取得開始", zap.String("proposal_id", id.String()), zap.String("user_id", userID.String()))
+func (s *proposalService) GetProposalDetail(ctx context.Context, id uuid.UUID, userID string) (*dto.ProposalDetailResponse, error) {
+	logger.LogInfo(s.logger, "提案詳細取得開始", zap.String("proposal_id", id.String()), zap.String("user_id", userID))
 
 	// 権限チェック
 	if err := s.CheckProposalPermission(ctx, id, userID); err != nil {
@@ -198,10 +198,10 @@ func (s *proposalService) GetProposalDetail(ctx context.Context, id uuid.UUID, u
 }
 
 // UpdateProposalStatus 提案ステータスを更新
-func (s *proposalService) UpdateProposalStatus(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.UpdateProposalStatusRequest) error {
+func (s *proposalService) UpdateProposalStatus(ctx context.Context, id uuid.UUID, userID string, req *dto.UpdateProposalStatusRequest) error {
 	logger.LogInfo(s.logger, "提案ステータス更新開始",
 		zap.String("proposal_id", id.String()),
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("new_status", req.Status))
 
 	// 権限チェック
@@ -259,7 +259,7 @@ func (s *proposalService) UpdateProposalStatus(ctx context.Context, id uuid.UUID
 // ==========================================
 
 // CheckProposalPermission 提案に対する権限をチェック
-func (s *proposalService) CheckProposalPermission(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID) error {
+func (s *proposalService) CheckProposalPermission(ctx context.Context, proposalID uuid.UUID, userID string) error {
 	// 提案がユーザーのものかチェック
 	proposal, err := s.proposalRepo.GetByID(ctx, proposalID)
 	if err != nil {
@@ -421,10 +421,10 @@ func (s *proposalService) convertToProposalUserSummaryDTO(user *model.User) *dto
 // ==========================================
 
 // CreateQuestion 質問を作成
-func (s *proposalService) CreateQuestion(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error) {
+func (s *proposalService) CreateQuestion(ctx context.Context, proposalID uuid.UUID, userID string, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error) {
 	logger.LogInfo(s.logger, "質問作成開始",
 		zap.String("proposal_id", proposalID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	// 権限チェック
 	if err := s.CheckProposalPermission(ctx, proposalID, userID); err != nil {
@@ -515,10 +515,10 @@ func (s *proposalService) CreateQuestion(ctx context.Context, proposalID uuid.UU
 }
 
 // GetQuestions 質問一覧を取得
-func (s *proposalService) GetQuestions(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error) {
+func (s *proposalService) GetQuestions(ctx context.Context, proposalID uuid.UUID, userID string, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error) {
 	logger.LogInfo(s.logger, "質問一覧取得開始",
 		zap.String("proposal_id", proposalID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	// 権限チェック
 	if err := s.CheckProposalPermission(ctx, proposalID, userID); err != nil {
@@ -557,10 +557,10 @@ func (s *proposalService) GetQuestions(ctx context.Context, proposalID uuid.UUID
 }
 
 // UpdateQuestion 質問を更新
-func (s *proposalService) UpdateQuestion(ctx context.Context, questionID uuid.UUID, userID uuid.UUID, req *dto.UpdateQuestionRequest) error {
+func (s *proposalService) UpdateQuestion(ctx context.Context, questionID uuid.UUID, userID string, req *dto.UpdateQuestionRequest) error {
 	logger.LogInfo(s.logger, "質問更新開始",
 		zap.String("question_id", questionID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	// 権限チェック
 	if err := s.CheckQuestionPermission(ctx, questionID, userID); err != nil {
@@ -603,10 +603,10 @@ func (s *proposalService) UpdateQuestion(ctx context.Context, questionID uuid.UU
 }
 
 // DeleteQuestion 質問を削除
-func (s *proposalService) DeleteQuestion(ctx context.Context, questionID uuid.UUID, userID uuid.UUID) error {
+func (s *proposalService) DeleteQuestion(ctx context.Context, questionID uuid.UUID, userID string) error {
 	logger.LogInfo(s.logger, "質問削除開始",
 		zap.String("question_id", questionID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	// 権限チェック
 	if err := s.CheckQuestionPermission(ctx, questionID, userID); err != nil {
@@ -833,8 +833,8 @@ func (s *proposalService) AssignQuestionToSales(ctx context.Context, questionID 
 }
 
 // GetProposalStats 提案統計を取得（service_002で基本実装）
-func (s *proposalService) GetProposalStats(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error) {
-	logger.LogInfo(s.logger, "提案統計取得開始", zap.String("user_id", userID.String()))
+func (s *proposalService) GetProposalStats(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error) {
+	logger.LogInfo(s.logger, "提案統計取得開始", zap.String("user_id", userID))
 
 	// 基本的な統計を取得
 	summary, err := s.proposalRepo.GetProposalSummary(ctx, userID)
@@ -851,18 +851,18 @@ func (s *proposalService) GetProposalStats(ctx context.Context, userID uuid.UUID
 		PendingQuestionsCount: summary.PendingQuestionsCount,
 	}
 
-	logger.LogInfo(s.logger, "提案統計取得完了", zap.String("user_id", userID.String()))
+	logger.LogInfo(s.logger, "提案統計取得完了", zap.String("user_id", userID))
 	return response, nil
 }
 
 // GetProposalDashboard ダッシュボード用データを取得（暫定実装）
-func (s *proposalService) GetProposalDashboard(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error) {
+func (s *proposalService) GetProposalDashboard(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error) {
 	// 暫定的にGetProposalStatsと同じ実装
 	return s.GetProposalStats(ctx, userID)
 }
 
 // GetQuestionStatistics 質問統計を取得（暫定実装）
-func (s *proposalService) GetQuestionStatistics(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error) {
+func (s *proposalService) GetQuestionStatistics(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error) {
 	// 暫定的にGetProposalStatsと同じ実装
 	return s.GetProposalStats(ctx, userID)
 }
@@ -881,8 +881,8 @@ func (s *proposalService) GetUserProposalRanking(ctx context.Context, limit int)
 }
 
 // CreateProposal 提案を作成（内部処理）
-func (s *proposalService) CreateProposal(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (*model.EngineerProposal, error) {
-	logger.LogInfo(s.logger, "提案作成開始", zap.String("project_id", projectID.String()), zap.String("user_id", userID.String()))
+func (s *proposalService) CreateProposal(ctx context.Context, projectID uuid.UUID, userID string) (*model.EngineerProposal, error) {
+	logger.LogInfo(s.logger, "提案作成開始", zap.String("project_id", projectID.String()), zap.String("user_id", userID))
 
 	// 重複チェック
 	exists, err := s.proposalRepo.CheckDuplicateProposal(ctx, projectID, userID)
@@ -911,7 +911,7 @@ func (s *proposalService) CreateProposal(ctx context.Context, projectID uuid.UUI
 }
 
 // CheckQuestionPermission 質問に対する権限をチェック
-func (s *proposalService) CheckQuestionPermission(ctx context.Context, questionID uuid.UUID, userID uuid.UUID) error {
+func (s *proposalService) CheckQuestionPermission(ctx context.Context, questionID uuid.UUID, userID string) error {
 	// 質問を取得
 	question, err := s.questionRepo.GetByID(ctx, questionID)
 	if err != nil {

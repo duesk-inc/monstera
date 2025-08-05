@@ -130,7 +130,7 @@ type WorkHistoryResponse struct {
 }
 
 // GetUserProfile ユーザーIDからプロフィール情報を取得
-func (s *ProfileService) GetUserProfile(userID uuid.UUID) (*ProfileResponse, error) {
+func (s *ProfileService) GetUserProfile(userID string) (*ProfileResponse, error) {
 	// ユーザー情報を取得
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
@@ -153,7 +153,7 @@ func (s *ProfileService) GetUserProfile(userID uuid.UUID) (*ProfileResponse, err
 
 	// デバッグログ: 取得したプロフィール情報
 	s.logger.Info("プロフィール情報取得完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("profile_id", profile.ID.String()),
 		zap.Int("certifications_count", len(profile.Certifications)),
 		zap.Any("certifications_raw", profile.Certifications),
@@ -164,7 +164,7 @@ func (s *ProfileService) GetUserProfile(userID uuid.UUID) (*ProfileResponse, err
 
 	// デバッグログ: レスポンス作成完了
 	s.logger.Info("プロフィールレスポンス作成完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("response_certifications_count", len(response.Certifications)),
 		zap.Any("response_certifications", response.Certifications),
 	)
@@ -173,7 +173,7 @@ func (s *ProfileService) GetUserProfile(userID uuid.UUID) (*ProfileResponse, err
 }
 
 // GetUserProfileWithWorkHistory ユーザーIDからプロフィール情報と職務経歴を取得
-func (s *ProfileService) GetUserProfileWithWorkHistory(userID uuid.UUID) (*ProfileResponse, []WorkHistoryResponse, error) {
+func (s *ProfileService) GetUserProfileWithWorkHistory(userID string) (*ProfileResponse, []WorkHistoryResponse, error) {
 	// ユーザー情報を取得
 	user, err := s.userRepo.FindByID(userID)
 	if err != nil {
@@ -469,7 +469,7 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 }
 
 // GetProfileHistoryByVersion 特定バージョンのプロフィール履歴を取得
-func (s *ProfileService) GetProfileHistoryByVersion(userID uuid.UUID, version int) (*ProfileHistoryResponse, error) {
+func (s *ProfileService) GetProfileHistoryByVersion(userID string, version int) (*ProfileHistoryResponse, error) {
 	// ユーザーのプロフィール情報を取得
 	profile, err := s.profileRepo.FindByUserID(userID)
 	if err != nil {
@@ -523,7 +523,7 @@ func (s *ProfileService) GetProfileHistoryByVersion(userID uuid.UUID, version in
 }
 
 // GetLatestProfileHistory 最新のプロフィール履歴を取得
-func (s *ProfileService) GetLatestProfileHistory(userID uuid.UUID) (*ProfileHistoryResponse, error) {
+func (s *ProfileService) GetLatestProfileHistory(userID string) (*ProfileHistoryResponse, error) {
 	// ユーザーのプロフィール情報を取得
 	profile, err := s.profileRepo.FindByUserID(userID)
 	if err != nil {
@@ -577,7 +577,7 @@ func (s *ProfileService) GetLatestProfileHistory(userID uuid.UUID) (*ProfileHist
 }
 
 // UpdateUserProfile ユーザープロフィールを更新
-func (s *ProfileService) UpdateUserProfile(userID uuid.UUID, education, nearestStation string, canTravel int, appealPoints string, workHistories []struct {
+func (s *ProfileService) UpdateUserProfile(userID string, education, nearestStation string, canTravel int, appealPoints string, workHistories []struct {
 	ProjectName      string `json:"project_name"`
 	StartDate        string `json:"start_date"`
 	EndDate          string `json:"end_date"`
@@ -755,9 +755,9 @@ type WorkHistoryHistoryResponse struct {
 }
 
 // UpdateUserProfileWithDTO DTOを使用してプロフィール情報を更新
-func (s *ProfileService) UpdateUserProfileWithDTO(userID uuid.UUID, request dto.ProfileSaveRequest, isTempSave bool) error {
+func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.ProfileSaveRequest, isTempSave bool) error {
 	s.logger.Info("プロフィール更新処理開始",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Bool("is_temp_save", isTempSave),
 		zap.Int("certifications_count", len(request.Certifications)),
 		zap.Int("work_histories_count", len(request.WorkHistory)),
@@ -780,18 +780,18 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID uuid.UUID, request dto.
 	var user model.User
 	if err := tx.First(&user, "id = ?", userID).Error; err != nil {
 		tx.Rollback()
-		s.logger.Error("ユーザーが見つかりません", zap.Error(err), zap.String("user_id", userID.String()))
+		s.logger.Error("ユーザーが見つかりません", zap.Error(err), zap.String("user_id", userID))
 		return err
 	}
 
-	s.logger.Info("ユーザー確認完了", zap.String("user_id", userID.String()), zap.String("email", user.Email))
+	s.logger.Info("ユーザー確認完了", zap.String("user_id", userID), zap.String("email", user.Email))
 
 	// プロフィール取得または作成
 	var profile model.Profile
 	err := tx.Where("user_id = ?", userID).First(&profile).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			s.logger.Info("プロフィールが存在しないため新規作成", zap.String("user_id", userID.String()))
+			s.logger.Info("プロフィールが存在しないため新規作成", zap.String("user_id", userID))
 			// 新規プロフィール作成
 			profile = model.Profile{
 				ID:             uuid.New(),
@@ -856,7 +856,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID uuid.UUID, request dto.
 	s.logger.Info("資格情報処理開始", zap.Int("certifications_count", len(request.Certifications)))
 
 	// マスタ資格の重複チェック
-	certificationIDMap := make(map[uuid.UUID]string) // certification_id -> 資格名のマップ
+	certificationIDMap := make(map[string]string) // certification_id -> 資格名のマップ
 	for _, certReq := range request.Certifications {
 		if certReq.Name == "" {
 			continue
@@ -1166,7 +1166,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID uuid.UUID, request dto.
 	}
 
 	s.logger.Info("プロフィール更新処理完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("profile_id", profile.ID.String()),
 		zap.Bool("is_temp_save", isTempSave),
 	)
@@ -1175,7 +1175,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID uuid.UUID, request dto.
 }
 
 // UpdateUserProfileWithTempSaveDTO DTOリクエストでユーザープロフィールを一時保存（資格情報含む）
-func (s *ProfileService) UpdateUserProfileWithTempSaveDTO(userID uuid.UUID, request dto.ProfileTempSaveRequest) error {
+func (s *ProfileService) UpdateUserProfileWithTempSaveDTO(userID string, request dto.ProfileTempSaveRequest) error {
 	// ProfileTempSaveRequestをProfileSaveRequestに変換
 	saveRequest := dto.ProfileSaveRequest{
 		Education:      request.Education,

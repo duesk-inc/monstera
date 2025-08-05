@@ -9,8 +9,8 @@ import (
 
 // SkillSheet スキルシートモデル
 type SkillSheet struct {
-	ID                 uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
-	UserID             uuid.UUID      `gorm:"type:varchar(36);not null;unique" json:"user_id"`
+	ID                 uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID string      `gorm:"type:varchar(255);not null;unique" json:"user_id"`
 	User               User           `gorm:"foreignKey:UserID" json:"user"`
 	ITExperienceYears  int            `gorm:"not null;default:0" json:"it_experience_years"`
 	ITExperienceMonths int            `gorm:"not null;default:0" json:"it_experience_months"`

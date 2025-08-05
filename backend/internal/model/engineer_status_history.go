@@ -9,12 +9,12 @@ import (
 
 // EngineerStatusHistory エンジニアステータス履歴
 type EngineerStatusHistory struct {
-	ID             uuid.UUID `gorm:"type:char(36);primaryKey" json:"id"`
-	UserID         uuid.UUID `gorm:"type:char(36);not null" json:"user_id"`
+	ID             uuid.UUID `gorm:"type:varchar(255);primaryKey" json:"id"`
+	UserID string `gorm:"type:varchar(255);not null" json:"user_id"`
 	PreviousStatus *string   `gorm:"type:enum('active','standby','resigned','long_leave')" json:"previous_status"`
 	NewStatus      string    `gorm:"type:enum('active','standby','resigned','long_leave');not null" json:"new_status"`
 	ChangeReason   string    `gorm:"type:text" json:"change_reason"`
-	ChangedBy      uuid.UUID `gorm:"type:char(36);not null" json:"changed_by"`
+	ChangedBy string `gorm:"type:varchar(255);not null" json:"changed_by"`
 	ChangedAt      time.Time `gorm:"type:datetime(3);not null;default:CURRENT_TIMESTAMP(3)" json:"changed_at"`
 	CreatedAt      time.Time `gorm:"type:datetime(3);not null;default:CURRENT_TIMESTAMP(3)" json:"created_at"`
 

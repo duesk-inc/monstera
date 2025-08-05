@@ -36,7 +36,7 @@ func TestAlertSettingsRepository_Create(t *testing.T) {
 
 	// テストユーザーを作成
 	user := &model.User{
-		ID:    uuid.New(),
+		ID:    uuid.New().String(),
 		Email: "test@example.com",
 		Name:  "Test User",
 	}
@@ -64,7 +64,7 @@ func TestAlertSettingsRepository_GetSettings(t *testing.T) {
 
 	// テストユーザーを作成
 	user := &model.User{
-		ID:    uuid.New(),
+		ID:    uuid.New().String(),
 		Email: "test@example.com",
 		Name:  "Test User",
 	}
@@ -113,7 +113,7 @@ func TestAlertSettingsRepository_GetByID(t *testing.T) {
 
 	// テストユーザーを作成
 	user := &model.User{
-		ID:    uuid.New(),
+		ID:    uuid.New().String(),
 		Email: "test@example.com",
 		Name:  "Test User",
 	}
@@ -146,7 +146,7 @@ func TestAlertSettingsRepository_Update(t *testing.T) {
 
 	// テストユーザーを作成
 	user := &model.User{
-		ID:    uuid.New(),
+		ID:    uuid.New().String(),
 		Email: "test@example.com",
 		Name:  "Test User",
 	}
@@ -187,7 +187,7 @@ func TestAlertSettingsRepository_Delete(t *testing.T) {
 
 	// テストユーザーを作成
 	user := &model.User{
-		ID:    uuid.New(),
+		ID:    uuid.New().String(),
 		Email: "test@example.com",
 		Name:  "Test User",
 	}

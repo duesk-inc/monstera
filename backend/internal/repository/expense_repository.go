@@ -26,23 +26,23 @@ type ExpenseRepository interface {
 
 	// 一覧・検索機能
 	List(ctx context.Context, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error)
-	ListByUserID(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error)
+	ListByUserID(ctx context.Context, userID string, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error)
 	ListForApproval(ctx context.Context, approverID uuid.UUID, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error)
 
 	// 集計機能
-	GetMonthlySummary(ctx context.Context, userID uuid.UUID, year int, month int) (*model.ExpenseSummary, error)
-	GetYearlySummary(ctx context.Context, userID uuid.UUID, year int) ([]model.ExpenseSummary, error)
-	GetUserExpenseStatistics(ctx context.Context, userID uuid.UUID, fromDate, toDate time.Time) (*dto.ExpenseStatsResponse, error)
+	GetMonthlySummary(ctx context.Context, userID string, year int, month int) (*model.ExpenseSummary, error)
+	GetYearlySummary(ctx context.Context, userID string, year int) ([]model.ExpenseSummary, error)
+	GetUserExpenseStatistics(ctx context.Context, userID string, fromDate, toDate time.Time) (*dto.ExpenseStatsResponse, error)
 
 	// 承認関連
 	GetPendingApprovals(ctx context.Context, approverID uuid.UUID) ([]model.Expense, error)
 	UpdateStatus(ctx context.Context, id uuid.UUID, status model.ExpenseStatus) error
-	CountPendingByUserID(ctx context.Context, userID uuid.UUID) (int64, error)
+	CountPendingByUserID(ctx context.Context, userID string) (int64, error)
 
 	// 制限チェック関連
-	GetTotalAmountInPeriod(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) (int, error)
-	GetMonthlyTotal(ctx context.Context, userID uuid.UUID, year int, month int) (int, error)
-	GetYearlyTotal(ctx context.Context, userID uuid.UUID, year int) (int, error)
+	GetTotalAmountInPeriod(ctx context.Context, userID string, startDate, endDate time.Time) (int, error)
+	GetMonthlyTotal(ctx context.Context, userID string, year int, month int) (int, error)
+	GetYearlyTotal(ctx context.Context, userID string, year int) (int, error)
 
 	// ユーティリティ
 	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
@@ -50,7 +50,7 @@ type ExpenseRepository interface {
 	SetLogger(logger *zap.Logger)
 
 	// CSVエクスポート用
-	GetByUserIDForExport(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseExportRequest) ([]*model.Expense, error)
+	GetByUserIDForExport(ctx context.Context, userID string, filter *dto.ExpenseExportRequest) ([]*model.Expense, error)
 	GetAllForExport(ctx context.Context, filter *dto.ExpenseExportRequest) ([]*model.Expense, error)
 
 	// 期限関連
@@ -90,14 +90,14 @@ func (r *ExpenseRepositoryImpl) Create(ctx context.Context, expense *model.Expen
 	if err := r.db.WithContext(ctx).Create(expense).Error; err != nil {
 		r.logger.Error("Failed to create expense",
 			zap.Error(err),
-			zap.String("user_id", expense.UserID.String()),
+			zap.String("user_id", expense.UserID),
 			zap.String("title", expense.Title))
 		return err
 	}
 
 	r.logger.Info("Expense created successfully",
 		zap.String("expense_id", expense.ID.String()),
-		zap.String("user_id", expense.UserID.String()),
+		zap.String("user_id", expense.UserID),
 		zap.String("title", expense.Title))
 	return nil
 }
@@ -241,14 +241,14 @@ func (r *ExpenseRepositoryImpl) List(ctx context.Context, filter *dto.ExpenseFil
 }
 
 // ListByUserID 特定ユーザーの経費申請一覧を取得
-func (r *ExpenseRepositoryImpl) ListByUserID(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error) {
+func (r *ExpenseRepositoryImpl) ListByUserID(ctx context.Context, userID string, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error) {
 	query := r.buildFilterQuery(ctx, filter).Where("user_id = ?", userID)
 
 	var total int64
 	if err := query.Model(&model.Expense{}).Count(&total).Error; err != nil {
 		r.logger.Error("Failed to count user expenses",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, 0, err
 	}
 
@@ -264,7 +264,7 @@ func (r *ExpenseRepositoryImpl) ListByUserID(ctx context.Context, userID uuid.UU
 	if err != nil {
 		r.logger.Error("Failed to list user expenses",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, 0, err
 	}
 
@@ -314,7 +314,7 @@ func (r *ExpenseRepositoryImpl) ListForApproval(ctx context.Context, approverID 
 // ========================================
 
 // GetMonthlySummary 月次集計を取得
-func (r *ExpenseRepositoryImpl) GetMonthlySummary(ctx context.Context, userID uuid.UUID, year int, month int) (*model.ExpenseSummary, error) {
+func (r *ExpenseRepositoryImpl) GetMonthlySummary(ctx context.Context, userID string, year int, month int) (*model.ExpenseSummary, error) {
 	var summary model.ExpenseSummary
 	err := r.db.WithContext(ctx).
 		Where("user_id = ? AND year = ? AND month = ?", userID, year, month).
@@ -332,7 +332,7 @@ func (r *ExpenseRepositoryImpl) GetMonthlySummary(ctx context.Context, userID uu
 		}
 		r.logger.Error("Failed to get monthly summary",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("year", year),
 			zap.Int("month", month))
 		return nil, err
@@ -342,7 +342,7 @@ func (r *ExpenseRepositoryImpl) GetMonthlySummary(ctx context.Context, userID uu
 }
 
 // GetYearlySummary 年次集計を取得
-func (r *ExpenseRepositoryImpl) GetYearlySummary(ctx context.Context, userID uuid.UUID, year int) ([]model.ExpenseSummary, error) {
+func (r *ExpenseRepositoryImpl) GetYearlySummary(ctx context.Context, userID string, year int) ([]model.ExpenseSummary, error) {
 	var summaries []model.ExpenseSummary
 	err := r.db.WithContext(ctx).
 		Where("user_id = ? AND year = ?", userID, year).
@@ -352,7 +352,7 @@ func (r *ExpenseRepositoryImpl) GetYearlySummary(ctx context.Context, userID uui
 	if err != nil {
 		r.logger.Error("Failed to get yearly summary",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("year", year))
 		return nil, err
 	}
@@ -361,7 +361,7 @@ func (r *ExpenseRepositoryImpl) GetYearlySummary(ctx context.Context, userID uui
 }
 
 // GetUserExpenseStatistics ユーザーの経費統計を取得
-func (r *ExpenseRepositoryImpl) GetUserExpenseStatistics(ctx context.Context, userID uuid.UUID, fromDate, toDate time.Time) (*dto.ExpenseStatsResponse, error) {
+func (r *ExpenseRepositoryImpl) GetUserExpenseStatistics(ctx context.Context, userID string, fromDate, toDate time.Time) (*dto.ExpenseStatsResponse, error) {
 	type statsResult struct {
 		TotalExpenses    int64
 		ApprovedExpenses int64
@@ -391,7 +391,7 @@ func (r *ExpenseRepositoryImpl) GetUserExpenseStatistics(ctx context.Context, us
 	if err != nil {
 		r.logger.Error("Failed to get user expense statistics",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -469,7 +469,7 @@ func (r *ExpenseRepositoryImpl) UpdateStatus(ctx context.Context, id uuid.UUID, 
 }
 
 // CountPendingByUserID ユーザーの承認待ち件数を取得
-func (r *ExpenseRepositoryImpl) CountPendingByUserID(ctx context.Context, userID uuid.UUID) (int64, error) {
+func (r *ExpenseRepositoryImpl) CountPendingByUserID(ctx context.Context, userID string) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.Expense{}).
@@ -479,7 +479,7 @@ func (r *ExpenseRepositoryImpl) CountPendingByUserID(ctx context.Context, userID
 	if err != nil {
 		r.logger.Error("Failed to count pending expenses",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return 0, err
 	}
 
@@ -491,7 +491,7 @@ func (r *ExpenseRepositoryImpl) CountPendingByUserID(ctx context.Context, userID
 // ========================================
 
 // GetTotalAmountInPeriod 指定期間の総金額を取得
-func (r *ExpenseRepositoryImpl) GetTotalAmountInPeriod(ctx context.Context, userID uuid.UUID, startDate, endDate time.Time) (int, error) {
+func (r *ExpenseRepositoryImpl) GetTotalAmountInPeriod(ctx context.Context, userID string, startDate, endDate time.Time) (int, error) {
 	var total int
 	err := r.db.WithContext(ctx).
 		Model(&model.Expense{}).
@@ -507,7 +507,7 @@ func (r *ExpenseRepositoryImpl) GetTotalAmountInPeriod(ctx context.Context, user
 	if err != nil {
 		r.logger.Error("Failed to get total amount in period",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Time("start_date", startDate),
 			zap.Time("end_date", endDate))
 		return 0, err
@@ -517,14 +517,14 @@ func (r *ExpenseRepositoryImpl) GetTotalAmountInPeriod(ctx context.Context, user
 }
 
 // GetMonthlyTotal 月次総額を取得
-func (r *ExpenseRepositoryImpl) GetMonthlyTotal(ctx context.Context, userID uuid.UUID, year int, month int) (int, error) {
+func (r *ExpenseRepositoryImpl) GetMonthlyTotal(ctx context.Context, userID string, year int, month int) (int, error) {
 	startDate := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
 	endDate := startDate.AddDate(0, 1, -1)
 	return r.GetTotalAmountInPeriod(ctx, userID, startDate, endDate)
 }
 
 // GetYearlyTotal 年次総額を取得
-func (r *ExpenseRepositoryImpl) GetYearlyTotal(ctx context.Context, userID uuid.UUID, year int) (int, error) {
+func (r *ExpenseRepositoryImpl) GetYearlyTotal(ctx context.Context, userID string, year int) (int, error) {
 	startDate := time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC)
 	endDate := time.Date(year, 12, 31, 23, 59, 59, 0, time.UTC)
 	return r.GetTotalAmountInPeriod(ctx, userID, startDate, endDate)
@@ -606,7 +606,7 @@ func (r *ExpenseRepositoryImpl) buildOrderClause(filter *dto.ExpenseFilterReques
 }
 
 // GetByUserIDForExport ユーザーIDで経費申請を取得（CSVエクスポート用）
-func (r *ExpenseRepositoryImpl) GetByUserIDForExport(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseExportRequest) ([]*model.Expense, error) {
+func (r *ExpenseRepositoryImpl) GetByUserIDForExport(ctx context.Context, userID string, filter *dto.ExpenseExportRequest) ([]*model.Expense, error) {
 	var expenses []*model.Expense
 	query := r.db.WithContext(ctx).
 		Preload("User").
@@ -623,7 +623,7 @@ func (r *ExpenseRepositoryImpl) GetByUserIDForExport(ctx context.Context, userID
 	if err := query.Find(&expenses).Error; err != nil {
 		r.logger.Error("Failed to get expenses for export",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 

@@ -422,7 +422,7 @@ func (s *CognitoAuthService) RefreshToken(ctx context.Context, refreshToken stri
 }
 
 // Logout ログアウト
-func (s *CognitoAuthService) Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error {
+func (s *CognitoAuthService) Logout(ctx context.Context, userID string, refreshToken string) error {
 	// セッションを削除
 	if err := s.sessionRepo.DeleteByRefreshToken(ctx, refreshToken); err != nil {
 		s.logger.Error("セッション削除エラー", zap.Error(err))
@@ -581,22 +581,22 @@ func (s *CognitoAuthService) ValidateClaims(claims map[string]interface{}) error
 
 // 以下は既存のAuthServiceインターフェースとの互換性のため
 
-func (s *CognitoAuthService) ValidateTOTP(userID, code string) (bool, error) {
+func (s *CognitoAuthService) ValidateTOTP(ctx context.Context, userID string, code string) error {
 	// Cognito MFAを使用する場合は実装
-	return false, fmt.Errorf("TOTP is not implemented yet")
+	return fmt.Errorf("TOTP is not implemented yet")
 }
 
-func (s *CognitoAuthService) SendSMSCode(phoneNumber string) (string, error) {
+func (s *CognitoAuthService) SendSMSCode(ctx context.Context, userID string) error {
 	// Cognito SMSを使用する場合は実装
-	return "", fmt.Errorf("SMS is not implemented yet")
+	return fmt.Errorf("SMS is not implemented yet")
 }
 
-func (s *CognitoAuthService) VerifySMSCode(verificationID, code string) (bool, error) {
+func (s *CognitoAuthService) VerifySMSCode(ctx context.Context, userID string, code string) error {
 	// Cognito SMSを使用する場合は実装
-	return false, fmt.Errorf("SMS verification is not implemented yet")
+	return fmt.Errorf("SMS verification is not implemented yet")
 }
 
-func (s *CognitoAuthService) UseBackupCode(ctx context.Context, userID uuid.UUID, code string) error {
+func (s *CognitoAuthService) UseBackupCode(ctx context.Context, userID string, code string) error {
 	// バックアップコードを使用する場合は実装
 	return fmt.Errorf("backup codes are not implemented yet")
 }

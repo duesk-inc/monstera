@@ -15,18 +15,18 @@ import (
 // ExpenseApproverSettingService 承認者設定サービスのインターフェース
 type ExpenseApproverSettingService interface {
 	// 承認者設定管理
-	CreateApproverSetting(ctx context.Context, userID uuid.UUID, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error)
+	CreateApproverSetting(ctx context.Context, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error)
 	GetApproverSettings(ctx context.Context) (*dto.ExpenseApproverSettingsResponse, error)
 	GetApproverSettingsByType(ctx context.Context, approvalType string) (*dto.ExpenseApproverSettingsResponse, error)
-	UpdateApproverSetting(ctx context.Context, settingID uuid.UUID, userID uuid.UUID, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error)
-	DeleteApproverSetting(ctx context.Context, settingID uuid.UUID, userID uuid.UUID) error
+	UpdateApproverSetting(ctx context.Context, settingID uuid.UUID, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error)
+	DeleteApproverSetting(ctx context.Context, settingID uuid.UUID, userID string) error
 
 	// 履歴管理
 	GetApproverSettingHistories(ctx context.Context, page, limit int) (*dto.ExpenseApproverSettingHistoriesResponse, error)
 	GetApproverSettingHistoryByID(ctx context.Context, settingID uuid.UUID) (*dto.ExpenseApproverSettingHistoriesResponse, error)
 
 	// 承認者取得（承認フロー作成用）
-	GetActiveApprovers(ctx context.Context, approvalType model.ApprovalType) ([]uuid.UUID, error)
+	GetActiveApprovers(ctx context.Context, approvalType model.ApprovalType) ([]string, error)
 }
 
 // expenseApproverSettingService 承認者設定サービスの実装
@@ -53,7 +53,7 @@ func NewExpenseApproverSettingService(
 }
 
 // CreateApproverSetting 承認者設定を作成
-func (s *expenseApproverSettingService) CreateApproverSetting(ctx context.Context, userID uuid.UUID, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error) {
+func (s *expenseApproverSettingService) CreateApproverSetting(ctx context.Context, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error) {
 	// 承認者の存在確認
 	approver, err := s.userRepo.FindByID(req.ApproverID)
 	if err != nil {
@@ -183,7 +183,7 @@ func (s *expenseApproverSettingService) GetApproverSettingsByType(ctx context.Co
 }
 
 // UpdateApproverSetting 承認者設定を更新
-func (s *expenseApproverSettingService) UpdateApproverSetting(ctx context.Context, settingID uuid.UUID, userID uuid.UUID, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error) {
+func (s *expenseApproverSettingService) UpdateApproverSetting(ctx context.Context, settingID uuid.UUID, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error) {
 	// 既存の設定を取得
 	setting, err := s.settingRepo.GetByID(ctx, settingID)
 	if err != nil {
@@ -289,7 +289,7 @@ func (s *expenseApproverSettingService) UpdateApproverSetting(ctx context.Contex
 }
 
 // DeleteApproverSetting 承認者設定を削除
-func (s *expenseApproverSettingService) DeleteApproverSetting(ctx context.Context, settingID uuid.UUID, userID uuid.UUID) error {
+func (s *expenseApproverSettingService) DeleteApproverSetting(ctx context.Context, settingID uuid.UUID, userID string) error {
 	// 既存の設定を取得
 	setting, err := s.settingRepo.GetByID(ctx, settingID)
 	if err != nil {
@@ -382,14 +382,14 @@ func (s *expenseApproverSettingService) GetApproverSettingHistoryByID(ctx contex
 }
 
 // GetActiveApprovers アクティブな承認者を取得（承認フロー作成用）
-func (s *expenseApproverSettingService) GetActiveApprovers(ctx context.Context, approvalType model.ApprovalType) ([]uuid.UUID, error) {
+func (s *expenseApproverSettingService) GetActiveApprovers(ctx context.Context, approvalType model.ApprovalType) ([]string, error) {
 	settings, err := s.settingRepo.GetActiveByApprovalType(ctx, approvalType)
 	if err != nil {
 		s.logger.Error("Failed to get active approvers", zap.Error(err))
 		return nil, err
 	}
 
-	approverIDs := make([]uuid.UUID, 0, len(settings))
+	approverIDs := make([]string, 0, len(settings))
 	for _, setting := range settings {
 		approverIDs = append(approverIDs, setting.ApproverID)
 	}
@@ -399,7 +399,7 @@ func (s *expenseApproverSettingService) GetActiveApprovers(ctx context.Context, 
 		s.logger.Warn("No active approvers found for approval type",
 			zap.String("approval_type", string(approvalType)))
 		// デフォルトの承認者IDを返す（実装に応じて変更）
-		// return []uuid.UUID{uuid.MustParse("00000000-0000-0000-0000-000000000001")}, nil
+		// return []string{uuid.MustParse("00000000-0000-0000-0000-000000000001")}, nil
 	}
 
 	return approverIDs, nil

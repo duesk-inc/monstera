@@ -13,7 +13,7 @@ type UserLeaveBalanceRepository interface {
 	GetByUserAndType(ctx context.Context, userID, leaveTypeID uuid.UUID) (*model.UserLeaveBalance, error)
 	Create(ctx context.Context, balance *model.UserLeaveBalance) error
 	Update(ctx context.Context, balance *model.UserLeaveBalance) error
-	GetByUser(ctx context.Context, userID uuid.UUID) ([]*model.UserLeaveBalance, error)
+	GetByUser(ctx context.Context, userID string) ([]*model.UserLeaveBalance, error)
 }
 
 type userLeaveBalanceRepository struct {
@@ -51,7 +51,7 @@ func (r *userLeaveBalanceRepository) Create(ctx context.Context, balance *model.
 	if err != nil {
 		r.Logger.Error("Failed to create user leave balance",
 			zap.Error(err),
-			zap.String("user_id", balance.UserID.String()),
+			zap.String("user_id", balance.UserID),
 			zap.String("leave_type_id", balance.LeaveTypeID.String()))
 		return err
 	}
@@ -64,7 +64,7 @@ func (r *userLeaveBalanceRepository) Update(ctx context.Context, balance *model.
 	if err != nil {
 		r.Logger.Error("Failed to update user leave balance",
 			zap.Error(err),
-			zap.String("user_id", balance.UserID.String()),
+			zap.String("user_id", balance.UserID),
 			zap.String("leave_type_id", balance.LeaveTypeID.String()))
 		return err
 	}
@@ -72,7 +72,7 @@ func (r *userLeaveBalanceRepository) Update(ctx context.Context, balance *model.
 	return nil
 }
 
-func (r *userLeaveBalanceRepository) GetByUser(ctx context.Context, userID uuid.UUID) ([]*model.UserLeaveBalance, error) {
+func (r *userLeaveBalanceRepository) GetByUser(ctx context.Context, userID string) ([]*model.UserLeaveBalance, error) {
 	var balances []*model.UserLeaveBalance
 	err := r.DB.WithContext(ctx).
 		Preload("LeaveType").
@@ -82,7 +82,7 @@ func (r *userLeaveBalanceRepository) GetByUser(ctx context.Context, userID uuid.
 	if err != nil {
 		r.Logger.Error("Failed to get user leave balances",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 

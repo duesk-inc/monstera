@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/scrypt"
 )
 
@@ -27,27 +26,6 @@ func NewSecurityUtils() *SecurityUtils {
 		saltLength: 32,
 		keyLength:  32,
 	}
-}
-
-// HashPassword パスワードをハッシュ化（bcrypt使用）
-func (s *SecurityUtils) HashPassword(password string) (string, error) {
-	if len(password) == 0 {
-		return "", fmt.Errorf("パスワードが空です")
-	}
-
-	// bcryptでハッシュ化（コスト12）
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(password), 12)
-	if err != nil {
-		return "", fmt.Errorf("パスワードのハッシュ化に失敗しました: %w", err)
-	}
-
-	return string(hashedBytes), nil
-}
-
-// VerifyPassword パスワードを検証
-func (s *SecurityUtils) VerifyPassword(hashedPassword, password string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	return err == nil
 }
 
 // GenerateSalt ランダムソルトを生成
@@ -106,108 +84,6 @@ func (s *SecurityUtils) GenerateAPIKey() (string, error) {
 
 	randomPart := hex.EncodeToString(randomBytes)
 	return prefix + timestamp + randomPart, nil
-}
-
-// ValidatePassword パスワード強度をチェック
-func (s *SecurityUtils) ValidatePassword(password string) error {
-	if len(password) < 8 {
-		return fmt.Errorf("パスワードは8文字以上である必要があります")
-	}
-
-	if len(password) > 128 {
-		return fmt.Errorf("パスワードは128文字以下である必要があります")
-	}
-
-	// 文字種のチェック
-	hasLower := regexp.MustCompile(`[a-z]`).MatchString(password)
-	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(password)
-	hasNumber := regexp.MustCompile(`[0-9]`).MatchString(password)
-	hasSpecial := regexp.MustCompile(`[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]`).MatchString(password)
-
-	complexityCount := 0
-	if hasLower {
-		complexityCount++
-	}
-	if hasUpper {
-		complexityCount++
-	}
-	if hasNumber {
-		complexityCount++
-	}
-	if hasSpecial {
-		complexityCount++
-	}
-
-	if complexityCount < 3 {
-		return fmt.Errorf("パスワードには英小文字、英大文字、数字、記号のうち少なくとも3種類を含める必要があります")
-	}
-
-	// よくあるパスワードパターンをチェック
-	if err := s.checkCommonPatterns(password); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// checkCommonPatterns よくあるパスワードパターンをチェック
-func (s *SecurityUtils) checkCommonPatterns(password string) error {
-	// 連続する文字のチェック
-	if s.hasSequentialChars(password, 4) {
-		return fmt.Errorf("連続する文字を4文字以上使用することはできません")
-	}
-
-	// 繰り返し文字のチェック
-	if s.hasRepeatingChars(password, 4) {
-		return fmt.Errorf("同じ文字を4回以上繰り返すことはできません")
-	}
-
-	// よくあるパスワードリスト
-	commonPasswords := []string{
-		"password", "123456", "qwerty", "admin", "letmein",
-		"welcome", "monkey", "1234567890", "password123",
-	}
-
-	lowercasePassword := strings.ToLower(password)
-	for _, common := range commonPasswords {
-		if strings.Contains(lowercasePassword, common) {
-			return fmt.Errorf("よく使われるパスワードは使用できません")
-		}
-	}
-
-	return nil
-}
-
-// hasSequentialChars 連続する文字があるかチェック
-func (s *SecurityUtils) hasSequentialChars(password string, threshold int) bool {
-	count := 1
-	for i := 1; i < len(password); i++ {
-		if password[i] == password[i-1]+1 || password[i] == password[i-1]-1 {
-			count++
-			if count >= threshold {
-				return true
-			}
-		} else {
-			count = 1
-		}
-	}
-	return false
-}
-
-// hasRepeatingChars 繰り返し文字があるかチェック
-func (s *SecurityUtils) hasRepeatingChars(password string, threshold int) bool {
-	count := 1
-	for i := 1; i < len(password); i++ {
-		if password[i] == password[i-1] {
-			count++
-			if count >= threshold {
-				return true
-			}
-		} else {
-			count = 1
-		}
-	}
-	return false
 }
 
 // SanitizeInput 入力のサニタイズ

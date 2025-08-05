@@ -23,13 +23,13 @@ import (
 // ExpenseService 経費申請サービスのインターフェース
 type ExpenseService interface {
 	// 基本CRUD操作
-	Create(ctx context.Context, userID uuid.UUID, req *dto.CreateExpenseRequest) (*model.Expense, error)
-	GetByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*model.ExpenseWithDetails, error)
-	Update(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.UpdateExpenseRequest) (*model.Expense, error)
-	Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error
+	Create(ctx context.Context, userID string, req *dto.CreateExpenseRequest) (*model.Expense, error)
+	GetByID(ctx context.Context, id uuid.UUID, userID string) (*model.ExpenseWithDetails, error)
+	Update(ctx context.Context, id uuid.UUID, userID string, req *dto.UpdateExpenseRequest) (*model.Expense, error)
+	Delete(ctx context.Context, id uuid.UUID, userID string) error
 
 	// 一覧取得
-	List(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseFilterRequest) (*dto.ExpenseListResponse, error)
+	List(ctx context.Context, userID string, filter *dto.ExpenseFilterRequest) (*dto.ExpenseListResponse, error)
 	ListAll(ctx context.Context, filter *dto.ExpenseFilterRequest) (*dto.ExpenseListResponse, error)
 
 	// カテゴリ管理
@@ -46,15 +46,15 @@ type ExpenseService interface {
 	BulkUpdateCategories(ctx context.Context, req *dto.BulkUpdateCategoriesRequest) error
 
 	// 集計
-	GetMonthlySummary(ctx context.Context, userID uuid.UUID, year int, month int) (*dto.ExpenseSummaryResponse, error)
-	GetYearlySummary(ctx context.Context, userID uuid.UUID, year int) (*dto.ExpenseYearlySummaryResponse, error)
-	GetFiscalYearSummary(ctx context.Context, userID uuid.UUID, fiscalYear int) (*dto.ExpenseYearlySummaryResponse, error)
+	GetMonthlySummary(ctx context.Context, userID string, year int, month int) (*dto.ExpenseSummaryResponse, error)
+	GetYearlySummary(ctx context.Context, userID string, year int) (*dto.ExpenseYearlySummaryResponse, error)
+	GetFiscalYearSummary(ctx context.Context, userID string, fiscalYear int) (*dto.ExpenseYearlySummaryResponse, error)
 
 	// 上限管理（レガシー）
 	GetCurrentLimits(ctx context.Context) (*dto.ExpenseLimitResponse, error)
-	CheckLimits(ctx context.Context, userID uuid.UUID, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error)
+	CheckLimits(ctx context.Context, userID string, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error)
 	GetExpenseLimits(ctx context.Context) ([]model.ExpenseLimit, error)
-	UpdateExpenseLimit(ctx context.Context, userID uuid.UUID, req *dto.UpdateExpenseLimitRequest) (*model.ExpenseLimit, error)
+	UpdateExpenseLimit(ctx context.Context, userID string, req *dto.UpdateExpenseLimitRequest) (*model.ExpenseLimit, error)
 
 	// 上限管理（スコープ対応）
 	GetExpenseLimitsWithScope(ctx context.Context, filter *dto.ExpenseLimitListRequest) (*dto.ExpenseLimitListResponse, error)
@@ -62,12 +62,12 @@ type ExpenseService interface {
 	CreateExpenseLimitWithScope(ctx context.Context, createdBy uuid.UUID, req *dto.CreateExpenseLimitRequest) (*dto.ExpenseLimitDetailResponse, error)
 	UpdateExpenseLimitWithScope(ctx context.Context, id uuid.UUID, createdBy uuid.UUID, req *dto.UpdateExpenseLimitV2Request) (*dto.ExpenseLimitDetailResponse, error)
 	DeleteExpenseLimitWithScope(ctx context.Context, id uuid.UUID) error
-	CheckLimitsWithScope(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error)
+	CheckLimitsWithScope(ctx context.Context, userID string, departmentID *uuid.UUID, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error)
 	GetExpenseLimitHistory(ctx context.Context, filter *dto.ExpenseLimitHistoryRequest) (*dto.ExpenseLimitHistoryResponse, error)
 
 	// 申請提出・取消
-	SubmitExpense(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.SubmitExpenseRequest) (*model.Expense, error)
-	CancelExpense(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.CancelExpenseRequest) (*model.Expense, error)
+	SubmitExpense(ctx context.Context, id uuid.UUID, userID string, req *dto.SubmitExpenseRequest) (*model.Expense, error)
+	CancelExpense(ctx context.Context, id uuid.UUID, userID string, req *dto.CancelExpenseRequest) (*model.Expense, error)
 
 	// 承認フロー
 	ApproveExpense(ctx context.Context, id uuid.UUID, approverID uuid.UUID, req *dto.ApproveExpenseRequest) (*model.Expense, error)
@@ -75,24 +75,24 @@ type ExpenseService interface {
 	GetPendingApprovals(ctx context.Context, approverID uuid.UUID, filter *dto.ApprovalFilterRequest) (*dto.ApprovalListResponse, error)
 
 	// ファイルアップロード
-	GenerateUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error)
-	CompleteUpload(ctx context.Context, userID uuid.UUID, req *dto.CompleteUploadRequest) (*dto.CompleteUploadResponse, error)
-	DeleteUploadedFile(ctx context.Context, userID uuid.UUID, req *dto.DeleteUploadRequest) error
+	GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error)
+	CompleteUpload(ctx context.Context, userID string, req *dto.CompleteUploadRequest) (*dto.CompleteUploadResponse, error)
+	DeleteUploadedFile(ctx context.Context, userID string, req *dto.DeleteUploadRequest) error
 
 	// 承認催促関連
 	GetPendingExpenses(ctx context.Context, threshold time.Duration) ([]model.Expense, error)
 	GetCurrentApprover(ctx context.Context, expenseID uuid.UUID) (*uuid.UUID, error)
 
 	// 複数領収書対応
-	CreateWithReceipts(ctx context.Context, userID uuid.UUID, req *dto.CreateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error)
-	UpdateWithReceipts(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.UpdateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error)
-	GetExpenseReceipts(ctx context.Context, expenseID uuid.UUID, userID uuid.UUID) ([]dto.ExpenseReceiptDTO, error)
-	DeleteExpenseReceipt(ctx context.Context, expenseID uuid.UUID, receiptID uuid.UUID, userID uuid.UUID) error
-	UpdateReceiptOrder(ctx context.Context, expenseID uuid.UUID, userID uuid.UUID, req *dto.UpdateReceiptOrderRequest) error
-	GenerateReceiptUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateReceiptUploadURLRequest) (*dto.GenerateReceiptUploadURLResponse, error)
+	CreateWithReceipts(ctx context.Context, userID string, req *dto.CreateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error)
+	UpdateWithReceipts(ctx context.Context, id uuid.UUID, userID string, req *dto.UpdateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error)
+	GetExpenseReceipts(ctx context.Context, expenseID uuid.UUID, userID string) ([]dto.ExpenseReceiptDTO, error)
+	DeleteExpenseReceipt(ctx context.Context, expenseID uuid.UUID, receiptID uuid.UUID, userID string) error
+	UpdateReceiptOrder(ctx context.Context, expenseID uuid.UUID, userID string, req *dto.UpdateReceiptOrderRequest) error
+	GenerateReceiptUploadURL(ctx context.Context, userID string, req *dto.GenerateReceiptUploadURLRequest) (*dto.GenerateReceiptUploadURLResponse, error)
 
 	// CSVエクスポート
-	ExportExpensesCSV(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseExportRequest) ([]byte, error)
+	ExportExpensesCSV(ctx context.Context, userID string, filter *dto.ExpenseExportRequest) ([]byte, error)
 	ExportExpensesCSVAdmin(ctx context.Context, filter *dto.ExpenseExportRequest) ([]byte, error)
 
 	// 期限管理
@@ -159,7 +159,7 @@ func NewExpenseService(
 // ========================================
 
 // Create 新しい経費申請を作成
-func (s *expenseService) Create(ctx context.Context, userID uuid.UUID, req *dto.CreateExpenseRequest) (*model.Expense, error) {
+func (s *expenseService) Create(ctx context.Context, userID string, req *dto.CreateExpenseRequest) (*model.Expense, error) {
 	// カテゴリの存在確認
 	var category *model.ExpenseCategoryMaster
 	var err error
@@ -268,19 +268,19 @@ func (s *expenseService) Create(ctx context.Context, userID uuid.UUID, req *dto.
 	if err != nil {
 		s.logger.Error("Failed to create expense",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, dto.NewExpenseError(dto.ErrCodeInternalError, "経費申請の作成に失敗しました")
 	}
 
 	s.logger.Info("Expense created successfully",
 		zap.String("expense_id", expense.ID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	return expense, nil
 }
 
 // GetByID 指定されたIDの経費申請を取得
-func (s *expenseService) GetByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*model.ExpenseWithDetails, error) {
+func (s *expenseService) GetByID(ctx context.Context, id uuid.UUID, userID string) (*model.ExpenseWithDetails, error) {
 	expense, err := s.expenseRepo.GetDetailByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -301,7 +301,7 @@ func (s *expenseService) GetByID(ctx context.Context, id uuid.UUID, userID uuid.
 }
 
 // Update 経費申請を更新
-func (s *expenseService) Update(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.UpdateExpenseRequest) (*model.Expense, error) {
+func (s *expenseService) Update(ctx context.Context, id uuid.UUID, userID string, req *dto.UpdateExpenseRequest) (*model.Expense, error) {
 	// 既存の経費申請を取得
 	expense, err := s.expenseRepo.GetByID(ctx, id)
 	if err != nil {
@@ -427,13 +427,13 @@ func (s *expenseService) Update(ctx context.Context, id uuid.UUID, userID uuid.U
 
 	s.logger.Info("Expense updated successfully",
 		zap.String("expense_id", expense.ID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	return expense, nil
 }
 
 // Delete 経費申請を削除
-func (s *expenseService) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+func (s *expenseService) Delete(ctx context.Context, id uuid.UUID, userID string) error {
 	// 既存の経費申請を取得
 	expense, err := s.expenseRepo.GetByID(ctx, id)
 	if err != nil {
@@ -490,7 +490,7 @@ func (s *expenseService) Delete(ctx context.Context, id uuid.UUID, userID uuid.U
 
 	s.logger.Info("Expense deleted successfully",
 		zap.String("expense_id", id.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	return nil
 }
@@ -500,7 +500,7 @@ func (s *expenseService) Delete(ctx context.Context, id uuid.UUID, userID uuid.U
 // ========================================
 
 // List ユーザーの経費申請一覧を取得
-func (s *expenseService) List(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseFilterRequest) (*dto.ExpenseListResponse, error) {
+func (s *expenseService) List(ctx context.Context, userID string, filter *dto.ExpenseFilterRequest) (*dto.ExpenseListResponse, error) {
 	// ユーザーIDをフィルターに設定
 	filter.UserID = &userID
 
@@ -508,7 +508,7 @@ func (s *expenseService) List(ctx context.Context, userID uuid.UUID, filter *dto
 	if err != nil {
 		s.logger.Error("Failed to list expenses",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, dto.NewExpenseError(dto.ErrCodeInternalError, "経費申請一覧の取得に失敗しました")
 	}
 
@@ -664,7 +664,7 @@ func (s *expenseService) GetActiveCategories(ctx context.Context) ([]model.Expen
 // ========================================
 
 // GetMonthlySummary 月次集計を取得
-func (s *expenseService) GetMonthlySummary(ctx context.Context, userID uuid.UUID, year int, month int) (*dto.ExpenseSummaryResponse, error) {
+func (s *expenseService) GetMonthlySummary(ctx context.Context, userID string, year int, month int) (*dto.ExpenseSummaryResponse, error) {
 	summary, err := s.expenseRepo.GetMonthlySummary(ctx, userID, year, month)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -678,7 +678,7 @@ func (s *expenseService) GetMonthlySummary(ctx context.Context, userID uuid.UUID
 		} else {
 			s.logger.Error("Failed to get monthly summary",
 				zap.Error(err),
-				zap.String("user_id", userID.String()),
+				zap.String("user_id", userID),
 				zap.Int("year", year),
 				zap.Int("month", month))
 			return nil, dto.NewExpenseError(dto.ErrCodeInternalError, "月次集計の取得に失敗しました")
@@ -723,7 +723,7 @@ func (s *expenseService) GetMonthlySummary(ctx context.Context, userID uuid.UUID
 }
 
 // GetYearlySummary 年次集計を取得
-func (s *expenseService) GetYearlySummary(ctx context.Context, userID uuid.UUID, year int) (*dto.ExpenseYearlySummaryResponse, error) {
+func (s *expenseService) GetYearlySummary(ctx context.Context, userID string, year int) (*dto.ExpenseYearlySummaryResponse, error) {
 	// 月別内訳を取得
 	monthlyBreakdown := make([]dto.MonthlyBreakdown, 0, 12)
 	totalAmount := 0
@@ -763,7 +763,7 @@ func (s *expenseService) GetYearlySummary(ctx context.Context, userID uuid.UUID,
 }
 
 // GetFiscalYearSummary 会計年度集計を取得（4月〜翌年3月）
-func (s *expenseService) GetFiscalYearSummary(ctx context.Context, userID uuid.UUID, fiscalYear int) (*dto.ExpenseYearlySummaryResponse, error) {
+func (s *expenseService) GetFiscalYearSummary(ctx context.Context, userID string, fiscalYear int) (*dto.ExpenseYearlySummaryResponse, error) {
 	// 会計年度の月別内訳を取得（4月〜翌年3月）
 	monthlyBreakdown := make([]dto.MonthlyBreakdown, 0, 12)
 	totalAmount := 0
@@ -860,13 +860,13 @@ func (s *expenseService) GetCurrentLimits(ctx context.Context) (*dto.ExpenseLimi
 }
 
 // CheckLimits 上限チェック
-func (s *expenseService) CheckLimits(ctx context.Context, userID uuid.UUID, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error) {
+func (s *expenseService) CheckLimits(ctx context.Context, userID string, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error) {
 	// 月次上限チェック
 	withinMonthly, remainingMonthly, err := s.limitRepo.CheckMonthlyLimit(ctx, userID, amount, expenseDate)
 	if err != nil {
 		s.logger.Error("Failed to check monthly limit",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -875,7 +875,7 @@ func (s *expenseService) CheckLimits(ctx context.Context, userID uuid.UUID, amou
 	if err != nil {
 		s.logger.Error("Failed to check yearly limit",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
@@ -892,7 +892,7 @@ func (s *expenseService) CheckLimits(ctx context.Context, userID uuid.UUID, amou
 // ========================================
 
 // SubmitExpense 経費申請を提出
-func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.SubmitExpenseRequest) (*model.Expense, error) {
+func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID string, req *dto.SubmitExpenseRequest) (*model.Expense, error) {
 	// 既存の経費申請を取得
 	expense, err := s.expenseRepo.GetByID(ctx, id)
 	if err != nil {
@@ -969,7 +969,7 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 		if err != nil {
 			s.logger.Warn("Failed to get deadline setting, using default",
 				zap.Error(err),
-				zap.String("user_id", userID.String()))
+				zap.String("user_id", userID))
 			// エラーの場合はデフォルト値を使用
 			deadlineSetting = &model.ExpenseDeadlineSetting{
 				DefaultDeadlineDays: 30,
@@ -1053,7 +1053,7 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 
 	s.logger.Info("Expense submitted successfully",
 		zap.String("expense_id", expense.ID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	// 承認者を取得して通知を送信
 	pendingApprovals, err := s.approvalRepo.GetPendingApprovals(ctx, expense.ID)
@@ -1063,7 +1063,7 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 			zap.String("expense_id", expense.ID.String()))
 		// 通知エラーは無視して続行
 	} else {
-		approverIDs := make([]uuid.UUID, 0, len(pendingApprovals))
+		approverIDs := make([]string, 0, len(pendingApprovals))
 		for _, approval := range pendingApprovals {
 			if approval.ApproverID != uuid.Nil {
 				approverIDs = append(approverIDs, approval.ApproverID)
@@ -1099,7 +1099,7 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 			if err := s.notificationService.NotifyExpenseLimitWarning(ctx, userID, "monthly", monthlyUsageRate); err != nil {
 				s.logger.Error("Failed to send monthly limit warning notification",
 					zap.Error(err),
-					zap.String("user_id", userID.String()))
+					zap.String("user_id", userID))
 			}
 		}
 	}
@@ -1112,7 +1112,7 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 			if err := s.notificationService.NotifyExpenseLimitWarning(ctx, userID, "yearly", yearlyUsageRate); err != nil {
 				s.logger.Error("Failed to send yearly limit warning notification",
 					zap.Error(err),
-					zap.String("user_id", userID.String()))
+					zap.String("user_id", userID))
 			}
 		}
 	}
@@ -1125,7 +1125,7 @@ func (s *expenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID
 }
 
 // CancelExpense 経費申請を取消
-func (s *expenseService) CancelExpense(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.CancelExpenseRequest) (*model.Expense, error) {
+func (s *expenseService) CancelExpense(ctx context.Context, id uuid.UUID, userID string, req *dto.CancelExpenseRequest) (*model.Expense, error) {
 	// 既存の経費申請を取得
 	expense, err := s.expenseRepo.GetByID(ctx, id)
 	if err != nil {
@@ -1230,7 +1230,7 @@ func (s *expenseService) CancelExpense(ctx context.Context, id uuid.UUID, userID
 
 	s.logger.Info("Expense cancelled successfully",
 		zap.String("expense_id", expense.ID.String()),
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("reason", req.Reason))
 
 	// TODO: 通知処理（承認者への取消通知）
@@ -1239,7 +1239,7 @@ func (s *expenseService) CancelExpense(ctx context.Context, id uuid.UUID, userID
 }
 
 // updateMonthlySummary 月次集計を更新（内部ヘルパー関数）
-func (s *expenseService) updateMonthlySummary(ctx context.Context, tx *gorm.DB, userID uuid.UUID, expenseDate time.Time, amountDelta int, action string) error {
+func (s *expenseService) updateMonthlySummary(ctx context.Context, tx *gorm.DB, userID string, expenseDate time.Time, amountDelta int, action string) error {
 	// 対象月を特定
 	year := expenseDate.Year()
 	month := int(expenseDate.Month())
@@ -1471,7 +1471,7 @@ func (s *expenseService) ApproveExpense(ctx context.Context, id uuid.UUID, appro
 						zap.Error(err),
 						zap.String("expense_id", expense.ID.String()))
 				} else if len(pendingApprovals) > 0 {
-					nextApproverIDs := make([]uuid.UUID, 0, len(pendingApprovals))
+					nextApproverIDs := make([]string, 0, len(pendingApprovals))
 					for _, approval := range pendingApprovals {
 						if approval.ApproverID != uuid.Nil {
 							nextApproverIDs = append(nextApproverIDs, approval.ApproverID)
@@ -1736,13 +1736,13 @@ func (s *expenseService) GetPendingApprovals(ctx context.Context, approverID uui
 // ========================================
 
 // GenerateUploadURL ファイルアップロード用のPre-signed URLを生成
-func (s *expenseService) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
+func (s *expenseService) GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
 	// S3Serviceにリクエストをdelegate
 	return s.s3Service.GenerateUploadURL(ctx, userID, req)
 }
 
 // CompleteUpload ファイルアップロードの完了処理
-func (s *expenseService) CompleteUpload(ctx context.Context, userID uuid.UUID, req *dto.CompleteUploadRequest) (*dto.CompleteUploadResponse, error) {
+func (s *expenseService) CompleteUpload(ctx context.Context, userID string, req *dto.CompleteUploadRequest) (*dto.CompleteUploadResponse, error) {
 	// S3キーの形式をバリデーション
 	if !IsValidS3Key(req.S3Key) {
 		return nil, dto.NewExpenseError(dto.ErrCodeInvalidS3Key, "無効なS3キーです")
@@ -1759,7 +1759,7 @@ func (s *expenseService) CompleteUpload(ctx context.Context, userID uuid.UUID, r
 
 	if extractedUserID != userID {
 		s.logger.Warn("User ID mismatch in S3 key",
-			zap.String("expected_user_id", userID.String()),
+			zap.String("expected_user_id", userID),
 			zap.String("extracted_user_id", extractedUserID.String()),
 			zap.String("s3_key", req.S3Key))
 		return nil, dto.NewExpenseError(dto.ErrCodeUnauthorized, "このファイルへのアクセス権限がありません")
@@ -1791,14 +1791,14 @@ func (s *expenseService) CompleteUpload(ctx context.Context, userID uuid.UUID, r
 
 	s.logger.Info("File upload completed successfully",
 		zap.String("s3_key", req.S3Key),
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int64("file_size", fileInfo.FileSize))
 
 	return response, nil
 }
 
 // DeleteUploadedFile アップロード済みファイルを削除
-func (s *expenseService) DeleteUploadedFile(ctx context.Context, userID uuid.UUID, req *dto.DeleteUploadRequest) error {
+func (s *expenseService) DeleteUploadedFile(ctx context.Context, userID string, req *dto.DeleteUploadRequest) error {
 	// S3キーの形式をバリデーション
 	if !IsValidS3Key(req.S3Key) {
 		return dto.NewExpenseError(dto.ErrCodeInvalidS3Key, "無効なS3キーです")
@@ -1815,7 +1815,7 @@ func (s *expenseService) DeleteUploadedFile(ctx context.Context, userID uuid.UUI
 
 	if extractedUserID != userID {
 		s.logger.Warn("User ID mismatch in S3 key for deletion",
-			zap.String("expected_user_id", userID.String()),
+			zap.String("expected_user_id", userID),
 			zap.String("extracted_user_id", extractedUserID.String()),
 			zap.String("s3_key", req.S3Key))
 		return dto.NewExpenseError(dto.ErrCodeUnauthorized, "このファイルを削除する権限がありません")
@@ -1832,7 +1832,7 @@ func (s *expenseService) DeleteUploadedFile(ctx context.Context, userID uuid.UUI
 
 	s.logger.Info("File deleted successfully",
 		zap.String("s3_key", req.S3Key),
-		zap.String("user_id", userID.String()))
+		zap.String("user_id", userID))
 
 	return nil
 }
@@ -1864,7 +1864,6 @@ func ExtractUserIDFromS3Key(s3Key string) (uuid.UUID, error) {
 		return uuid.Nil, fmt.Errorf("invalid S3 key format: %s", s3Key)
 	}
 
-	userID, err := uuid.Parse(parts[1])
 	if err != nil {
 		return uuid.Nil, fmt.Errorf("invalid user ID in S3 key: %s", parts[1])
 	}
@@ -1888,9 +1887,9 @@ func (s *expenseService) GetExpenseLimits(ctx context.Context) ([]model.ExpenseL
 }
 
 // UpdateExpenseLimit 経費申請上限を更新
-func (s *expenseService) UpdateExpenseLimit(ctx context.Context, userID uuid.UUID, req *dto.UpdateExpenseLimitRequest) (*model.ExpenseLimit, error) {
+func (s *expenseService) UpdateExpenseLimit(ctx context.Context, userID string, req *dto.UpdateExpenseLimitRequest) (*model.ExpenseLimit, error) {
 	s.logger.Info("経費申請上限更新開始",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("limit_type", req.LimitType),
 		zap.Int("amount", req.Amount))
 
@@ -1945,7 +1944,7 @@ func (s *expenseService) UpdateExpenseLimit(ctx context.Context, userID uuid.UUI
 	}
 
 	s.logger.Info("経費申請上限更新成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("limit_id", newLimit.ID.String()),
 		zap.String("limit_type", req.LimitType),
 		zap.Int("amount", req.Amount))
@@ -2223,9 +2222,9 @@ func (s *expenseService) DeleteExpenseLimitWithScope(ctx context.Context, id uui
 }
 
 // CheckLimitsWithScope スコープ対応の上限チェック
-func (s *expenseService) CheckLimitsWithScope(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error) {
+func (s *expenseService) CheckLimitsWithScope(ctx context.Context, userID string, departmentID *uuid.UUID, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error) {
 	s.logger.Info("経費申請上限チェック（スコープ対応）開始",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("amount", amount))
 
 	// リポジトリを使って上限チェック
@@ -2233,12 +2232,12 @@ func (s *expenseService) CheckLimitsWithScope(ctx context.Context, userID uuid.U
 	if err != nil {
 		s.logger.Error("Failed to check limits with scope",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		return nil, err
 	}
 
 	s.logger.Info("経費申請上限チェック（スコープ対応）完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Bool("within_monthly_limit", result.WithinMonthlyLimit),
 		zap.Bool("within_yearly_limit", result.WithinYearlyLimit))
 
@@ -2715,7 +2714,7 @@ func (s *expenseService) ReorderCategories(ctx context.Context, req *dto.Reorder
 		zap.Int("count", len(req.CategoryOrders)))
 
 	// カテゴリオーダーマップを作成
-	categoryOrders := make(map[uuid.UUID]int)
+	categoryOrders := make(map[string]int)
 	for _, order := range req.CategoryOrders {
 		categoryOrders[order.ID] = order.DisplayOrder
 	}
@@ -2886,7 +2885,7 @@ func (s *expenseService) getApproverSetting(ctx context.Context) (*model.Expense
 // ========================================
 
 // CreateWithReceipts 複数領収書を含む経費申請を作成
-func (s *expenseService) CreateWithReceipts(ctx context.Context, userID uuid.UUID, req *dto.CreateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error) {
+func (s *expenseService) CreateWithReceipts(ctx context.Context, userID string, req *dto.CreateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error) {
 	// トランザクション開始
 	var result *dto.ExpenseWithReceiptsResponse
 	err := s.db.Transaction(func(tx *gorm.DB) error {
@@ -3016,7 +3015,7 @@ func (s *expenseService) CreateWithReceipts(ctx context.Context, userID uuid.UUI
 
 		// キャッシュをクリア
 		if s.cacheManager != nil && s.cacheManager.IsEnabled() {
-			s.cacheManager.DeleteByPrefix(ctx, fmt.Sprintf("expense:user:%s:", userID.String()))
+			s.cacheManager.DeleteByPrefix(ctx, fmt.Sprintf("expense:user:%s:", userID))
 		}
 
 		// 監査ログ記録
@@ -3043,7 +3042,7 @@ func (s *expenseService) CreateWithReceipts(ctx context.Context, userID uuid.UUI
 }
 
 // UpdateWithReceipts 複数領収書を含む経費申請を更新
-func (s *expenseService) UpdateWithReceipts(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.UpdateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error) {
+func (s *expenseService) UpdateWithReceipts(ctx context.Context, id uuid.UUID, userID string, req *dto.UpdateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error) {
 	var result *dto.ExpenseWithReceiptsResponse
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		// 既存の経費申請を取得
@@ -3178,7 +3177,7 @@ func (s *expenseService) UpdateWithReceipts(ctx context.Context, id uuid.UUID, u
 
 		// キャッシュをクリア
 		if s.cacheManager != nil && s.cacheManager.IsEnabled() {
-			s.cacheManager.DeleteByPrefix(ctx, fmt.Sprintf("expense:user:%s:", userID.String()))
+			s.cacheManager.DeleteByPrefix(ctx, fmt.Sprintf("expense:user:%s:", userID))
 			s.cacheManager.Delete(ctx, fmt.Sprintf("expense:%s", id.String()))
 		}
 
@@ -3206,7 +3205,7 @@ func (s *expenseService) UpdateWithReceipts(ctx context.Context, id uuid.UUID, u
 }
 
 // GetExpenseReceipts 経費申請の領収書一覧を取得
-func (s *expenseService) GetExpenseReceipts(ctx context.Context, expenseID uuid.UUID, userID uuid.UUID) ([]dto.ExpenseReceiptDTO, error) {
+func (s *expenseService) GetExpenseReceipts(ctx context.Context, expenseID uuid.UUID, userID string) ([]dto.ExpenseReceiptDTO, error) {
 	// 経費申請の存在確認と権限チェック
 	expense, err := s.expenseRepo.GetByID(ctx, expenseID)
 	if err != nil {
@@ -3248,7 +3247,7 @@ func (s *expenseService) GetExpenseReceipts(ctx context.Context, expenseID uuid.
 }
 
 // DeleteExpenseReceipt 経費申請の領収書を削除
-func (s *expenseService) DeleteExpenseReceipt(ctx context.Context, expenseID uuid.UUID, receiptID uuid.UUID, userID uuid.UUID) error {
+func (s *expenseService) DeleteExpenseReceipt(ctx context.Context, expenseID uuid.UUID, receiptID uuid.UUID, userID string) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// 経費申請の存在確認と権限チェック
 		expense, err := s.expenseRepo.GetByID(ctx, expenseID)
@@ -3333,7 +3332,7 @@ func (s *expenseService) DeleteExpenseReceipt(ctx context.Context, expenseID uui
 }
 
 // UpdateReceiptOrder 領収書の表示順序を更新
-func (s *expenseService) UpdateReceiptOrder(ctx context.Context, expenseID uuid.UUID, userID uuid.UUID, req *dto.UpdateReceiptOrderRequest) error {
+func (s *expenseService) UpdateReceiptOrder(ctx context.Context, expenseID uuid.UUID, userID string, req *dto.UpdateReceiptOrderRequest) error {
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// 経費申請の存在確認と権限チェック
 		expense, err := s.expenseRepo.GetByID(ctx, expenseID)
@@ -3381,14 +3380,14 @@ func (s *expenseService) UpdateReceiptOrder(ctx context.Context, expenseID uuid.
 }
 
 // GenerateReceiptUploadURL 領収書アップロード用のURLを生成
-func (s *expenseService) GenerateReceiptUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateReceiptUploadURLRequest) (*dto.GenerateReceiptUploadURLResponse, error) {
+func (s *expenseService) GenerateReceiptUploadURL(ctx context.Context, userID string, req *dto.GenerateReceiptUploadURLRequest) (*dto.GenerateReceiptUploadURLResponse, error) {
 	// ファイル名のバリデーション
 	if strings.Contains(req.FileName, "..") || strings.Contains(req.FileName, "/") {
 		return nil, dto.NewExpenseError(dto.ErrCodeInvalidRequest, "不正なファイル名です")
 	}
 
 	// S3キーを生成
-	s3Key := fmt.Sprintf("receipts/%s/%s/%s", userID.String(), uuid.New().String(), req.FileName)
+	s3Key := fmt.Sprintf("receipts/%s/%s/%s", userID, uuid.New().String(), req.FileName)
 
 	// アップロードURLを生成
 	uploadURL, headers, err := s.s3Service.GeneratePresignedUploadURL(ctx, s3Key, req.ContentType, time.Hour)
@@ -3405,7 +3404,7 @@ func (s *expenseService) GenerateReceiptUploadURL(ctx context.Context, userID uu
 }
 
 // ExportExpensesCSV ユーザーの経費申請をCSVエクスポート
-func (s *expenseService) ExportExpensesCSV(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseExportRequest) ([]byte, error) {
+func (s *expenseService) ExportExpensesCSV(ctx context.Context, userID string, filter *dto.ExpenseExportRequest) ([]byte, error) {
 	// デフォルト値設定
 	if filter.DateFormat == "" {
 		filter.DateFormat = "2006-01-02"
@@ -3455,7 +3454,7 @@ func (s *expenseService) ExportExpensesCSVAdmin(ctx context.Context, filter *dto
 }
 
 // generateCSV CSV生成処理
-func (s *expenseService) generateCSV(ctx context.Context, expenses []*model.Expense, filter *dto.ExpenseExportRequest, userID uuid.UUID) ([]byte, error) {
+func (s *expenseService) generateCSV(ctx context.Context, expenses []*model.Expense, filter *dto.ExpenseExportRequest, userID string) ([]byte, error) {
 	// CSVレコードのスライスを作成
 	records := []dto.ExpenseCSVRecord{}
 

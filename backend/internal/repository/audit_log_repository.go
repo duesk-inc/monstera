@@ -15,7 +15,7 @@ type AuditLogRepository interface {
 	Create(ctx context.Context, auditLog *model.AuditLog) error
 	GetByID(ctx context.Context, id uuid.UUID) (*model.AuditLog, error)
 	GetByFilters(ctx context.Context, filters AuditLogFilters) ([]*model.AuditLog, int64, error)
-	GetByUserID(ctx context.Context, userID uuid.UUID, limit int, offset int) ([]*model.AuditLog, error)
+	GetByUserID(ctx context.Context, userID string, limit int, offset int) ([]*model.AuditLog, error)
 	GetByResourceID(ctx context.Context, resourceType model.ResourceType, resourceID string, limit int, offset int) ([]*model.AuditLog, error)
 	DeleteOldLogs(ctx context.Context, retentionDays int) (int64, error)
 	GetSuspiciousActivities(ctx context.Context, filters SuspiciousActivityFilters) ([]*SuspiciousActivity, error)
@@ -77,7 +77,7 @@ func (r *auditLogRepository) Create(ctx context.Context, auditLog *model.AuditLo
 	if err := r.db.WithContext(ctx).Create(auditLog).Error; err != nil {
 		r.logger.Error("Failed to create audit log",
 			zap.Error(err),
-			zap.String("user_id", auditLog.UserID.String()),
+			zap.String("user_id", auditLog.UserID),
 			zap.String("action", auditLog.Action),
 			zap.String("resource_type", auditLog.ResourceType),
 		)
@@ -86,7 +86,7 @@ func (r *auditLogRepository) Create(ctx context.Context, auditLog *model.AuditLo
 
 	r.logger.Debug("Audit log created",
 		zap.String("id", auditLog.ID.String()),
-		zap.String("user_id", auditLog.UserID.String()),
+		zap.String("user_id", auditLog.UserID),
 		zap.String("action", auditLog.Action),
 		zap.String("resource_type", auditLog.ResourceType),
 	)
@@ -144,7 +144,7 @@ func (r *auditLogRepository) GetByFilters(ctx context.Context, filters AuditLogF
 }
 
 // GetByUserID ユーザーIDで監査ログを取得
-func (r *auditLogRepository) GetByUserID(ctx context.Context, userID uuid.UUID, limit int, offset int) ([]*model.AuditLog, error) {
+func (r *auditLogRepository) GetByUserID(ctx context.Context, userID string, limit int, offset int) ([]*model.AuditLog, error) {
 	var auditLogs []*model.AuditLog
 	if err := r.db.WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -154,7 +154,7 @@ func (r *auditLogRepository) GetByUserID(ctx context.Context, userID uuid.UUID, 
 		Find(&auditLogs).Error; err != nil {
 		r.logger.Error("Failed to get audit logs by user ID",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 		)
 		return nil, err
 	}

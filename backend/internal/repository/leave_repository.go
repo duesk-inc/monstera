@@ -21,27 +21,27 @@ type LeaveRepository interface {
 	GetLeaveTypeByID(ctx context.Context, id string) (model.LeaveType, error)
 
 	// ユーザーの休暇残日数
-	GetUserLeaveBalances(ctx context.Context, userID uuid.UUID) ([]model.UserLeaveBalance, error)
-	GetUserLeaveBalanceByType(ctx context.Context, userID uuid.UUID, leaveTypeID string) (model.UserLeaveBalance, error)
+	GetUserLeaveBalances(ctx context.Context, userID string) ([]model.UserLeaveBalance, error)
+	GetUserLeaveBalanceByType(ctx context.Context, userID string, leaveTypeID string) (model.UserLeaveBalance, error)
 	UpdateUserLeaveBalance(ctx context.Context, balance model.UserLeaveBalance) error
 
 	// 休暇申請
 	CreateLeaveRequest(ctx context.Context, request model.LeaveRequest) (model.LeaveRequest, error)
-	GetLeaveRequestsByUserID(ctx context.Context, userID uuid.UUID) ([]model.LeaveRequest, error)
+	GetLeaveRequestsByUserID(ctx context.Context, userID string) ([]model.LeaveRequest, error)
 	GetLeaveRequestByID(ctx context.Context, id uuid.UUID) (model.LeaveRequest, error)
 	UpdateLeaveRequest(ctx context.Context, request model.LeaveRequest) error
-	CheckExistingLeaveRequestsByDate(ctx context.Context, userID uuid.UUID, dates []time.Time) (map[string]bool, error)
+	CheckExistingLeaveRequestsByDate(ctx context.Context, userID string, dates []time.Time) (map[string]bool, error)
 
 	// 休日情報
 	GetHolidaysByYear(ctx context.Context, year int) ([]model.Holiday, error)
 
 	// 振替特別休暇
-	GetSubstituteLeaveGrants(ctx context.Context, userID uuid.UUID) ([]model.SubstituteLeaveGrant, error)
+	GetSubstituteLeaveGrants(ctx context.Context, userID string) ([]model.SubstituteLeaveGrant, error)
 	GetSubstituteLeaveGrantByID(ctx context.Context, id uuid.UUID) (model.SubstituteLeaveGrant, error)
 	CreateSubstituteLeaveGrant(ctx context.Context, grant model.SubstituteLeaveGrant) (model.SubstituteLeaveGrant, error)
 	UpdateSubstituteLeaveGrant(ctx context.Context, grant model.SubstituteLeaveGrant) error
 	DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.UUID) error
-	GetTotalSubstituteLeaveBalance(ctx context.Context, userID uuid.UUID) (float64, error)
+	GetTotalSubstituteLeaveBalance(ctx context.Context, userID string) (float64, error)
 }
 
 // leaveRepository は休暇関連のリポジトリ実装です
@@ -76,7 +76,7 @@ func (r *leaveRepository) GetLeaveTypeByID(ctx context.Context, id string) (mode
 }
 
 // GetUserLeaveBalances はユーザーの休暇残日数一覧を取得します
-func (r *leaveRepository) GetUserLeaveBalances(ctx context.Context, userID uuid.UUID) ([]model.UserLeaveBalance, error) {
+func (r *leaveRepository) GetUserLeaveBalances(ctx context.Context, userID string) ([]model.UserLeaveBalance, error) {
 	var balances []model.UserLeaveBalance
 	result := r.WithContext(ctx).
 		Preload("LeaveType").
@@ -86,7 +86,7 @@ func (r *leaveRepository) GetUserLeaveBalances(ctx context.Context, userID uuid.
 }
 
 // GetUserLeaveBalanceByType はユーザーの特定休暇種別の残日数を取得します
-func (r *leaveRepository) GetUserLeaveBalanceByType(ctx context.Context, userID uuid.UUID, leaveTypeID string) (model.UserLeaveBalance, error) {
+func (r *leaveRepository) GetUserLeaveBalanceByType(ctx context.Context, userID string, leaveTypeID string) (model.UserLeaveBalance, error) {
 	var balance model.UserLeaveBalance
 	result := r.WithContext(ctx).
 		Preload("LeaveType").
@@ -210,7 +210,7 @@ func (r *leaveRepository) CreateLeaveRequest(ctx context.Context, request model.
 }
 
 // GetLeaveRequestsByUserID はユーザーIDによる休暇申請一覧を取得します
-func (r *leaveRepository) GetLeaveRequestsByUserID(ctx context.Context, userID uuid.UUID) ([]model.LeaveRequest, error) {
+func (r *leaveRepository) GetLeaveRequestsByUserID(ctx context.Context, userID string) ([]model.LeaveRequest, error) {
 	var requests []model.LeaveRequest
 	result := r.WithContext(ctx).
 		Preload("LeaveType").
@@ -256,7 +256,7 @@ func (r *leaveRepository) GetHolidaysByYear(ctx context.Context, year int) ([]mo
 }
 
 // GetSubstituteLeaveGrants はユーザーの振替特別休暇付与履歴一覧を取得します
-func (r *leaveRepository) GetSubstituteLeaveGrants(ctx context.Context, userID uuid.UUID) ([]model.SubstituteLeaveGrant, error) {
+func (r *leaveRepository) GetSubstituteLeaveGrants(ctx context.Context, userID string) ([]model.SubstituteLeaveGrant, error) {
 	var grants []model.SubstituteLeaveGrant
 	result := r.WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -311,7 +311,7 @@ func (r *leaveRepository) DeleteSubstituteLeaveGrant(ctx context.Context, id uui
 }
 
 // GetTotalSubstituteLeaveBalance はユーザーの振替特別休暇の合計残日数を取得します
-func (r *leaveRepository) GetTotalSubstituteLeaveBalance(ctx context.Context, userID uuid.UUID) (float64, error) {
+func (r *leaveRepository) GetTotalSubstituteLeaveBalance(ctx context.Context, userID string) (float64, error) {
 	type Result struct {
 		TotalRemaining float64
 	}
@@ -328,7 +328,7 @@ func (r *leaveRepository) GetTotalSubstituteLeaveBalance(ctx context.Context, us
 }
 
 // CheckExistingLeaveRequestsByDate はユーザーの特定の日付における既存の休暇申請を確認します
-func (r *leaveRepository) CheckExistingLeaveRequestsByDate(ctx context.Context, userID uuid.UUID, dates []time.Time) (map[string]bool, error) {
+func (r *leaveRepository) CheckExistingLeaveRequestsByDate(ctx context.Context, userID string, dates []time.Time) (map[string]bool, error) {
 	existingRequests := make(map[string]bool)
 
 	// 日付文字列のリストを作成（SQLクエリ用）

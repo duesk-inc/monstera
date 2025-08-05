@@ -45,7 +45,7 @@ func (o *ProposalQueryOptimizer) GetOptimizedProposalQuery(ctx context.Context) 
 }
 
 // ForUser ユーザーフィルターを適用
-func (q *OptimizedProposalQuery) ForUser(userID uuid.UUID) *OptimizedProposalQuery {
+func (q *OptimizedProposalQuery) ForUser(userID string) *OptimizedProposalQuery {
 	q.query = q.query.Where("user_id = ?", userID)
 	return q
 }
@@ -289,8 +289,8 @@ func NewCachedProposalCounter(db *gorm.DB, logger *zap.Logger) *CachedProposalCo
 }
 
 // CountWithCache キャッシュを使用した件数取得
-func (c *CachedProposalCounter) CountWithCache(ctx context.Context, userID uuid.UUID, status string) (int64, error) {
-	cacheKey := userID.String() + ":" + status
+func (c *CachedProposalCounter) CountWithCache(ctx context.Context, userID string, status string) (int64, error) {
+	cacheKey := userID + ":" + status
 
 	// キャッシュチェック
 	if cached, ok := c.cache[cacheKey]; ok {
@@ -312,7 +312,7 @@ func (c *CachedProposalCounter) CountWithCache(ctx context.Context, userID uuid.
 	if err := query.Count(&count).Error; err != nil {
 		c.logger.Error("Failed to count proposals",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.String("status", status))
 		return 0, err
 	}

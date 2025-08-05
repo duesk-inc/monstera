@@ -4,12 +4,11 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // UserDTO ユーザー情報DTO（簡易版）
 type UserDTO struct {
-	ID         uuid.UUID `json:"id"`
+	ID         string `json:"id"`
 	Email      string    `json:"email"`
 	FirstName  string    `json:"first_name"`
 	LastName   string    `json:"last_name"`
@@ -102,7 +101,7 @@ type AlertDetailSummaryDTO struct {
 }
 
 // ToAlertSettingsModel DTOからモデルに変換
-func (dto *CreateAlertSettingsRequest) ToAlertSettingsModel(updatedBy uuid.UUID) *model.AlertSettings {
+func (dto *CreateAlertSettingsRequest) ToAlertSettingsModel(updatedBy string) *model.AlertSettings {
 	return &model.AlertSettings{
 		WeeklyHoursLimit:            dto.WeeklyHoursLimit,
 		WeeklyHoursChangeLimit:      dto.WeeklyHoursChangeLimit,
@@ -120,7 +119,7 @@ func ToAlertSettingsDTO(alert *model.AlertSettings) *AlertSettingsDTO {
 		WeeklyHoursChangeLimit:      alert.WeeklyHoursChangeLimit,
 		ConsecutiveHolidayWorkLimit: alert.ConsecutiveHolidayWorkLimit,
 		MonthlyOvertimeLimit:        alert.MonthlyOvertimeLimit,
-		UpdatedBy:                   alert.UpdatedBy.String(),
+		UpdatedBy:                   alert.UpdatedBy,
 		CreatedAt:                   alert.CreatedAt,
 		UpdatedAt:                   alert.UpdatedAt,
 	}
@@ -152,7 +151,7 @@ func ToAlertHistoryDTO(alert *model.AlertHistory) *AlertHistoryDTO {
 
 	dto := &AlertHistoryDTO{
 		ID:             alert.ID.String(),
-		UserID:         alert.UserID.String(),
+		UserID:         alert.UserID,
 		AlertType:      string(alert.AlertType),
 		Severity:       string(alert.Severity),
 		DetectedValue:  detectedValue,

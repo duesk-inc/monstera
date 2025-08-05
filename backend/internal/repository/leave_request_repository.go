@@ -51,7 +51,7 @@ func (r *leaveRequestRepository) Create(ctx context.Context, request *model.Leav
 	if err != nil {
 		r.Logger.Error("Failed to create leave request",
 			zap.Error(err),
-			zap.String("user_id", request.UserID.String()))
+			zap.String("user_id", request.UserID))
 		return err
 	}
 

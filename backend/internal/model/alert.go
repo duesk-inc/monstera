@@ -11,12 +11,12 @@ import (
 
 // AlertSettings アラート設定（システム全体で1レコード）
 type AlertSettings struct {
-	ID                          uuid.UUID `gorm:"type:char(36);primary_key" json:"id"`
+	ID                          uuid.UUID `gorm:"type:varchar(255);primary_key" json:"id"`
 	WeeklyHoursLimit            int       `gorm:"not null;default:60" json:"weekly_hours_limit"`
 	WeeklyHoursChangeLimit      int       `gorm:"not null;default:20" json:"weekly_hours_change_limit"`
 	ConsecutiveHolidayWorkLimit int       `gorm:"not null;default:3" json:"consecutive_holiday_work_limit"`
 	MonthlyOvertimeLimit        int       `gorm:"not null;default:80" json:"monthly_overtime_limit"`
-	UpdatedBy                   uuid.UUID `gorm:"type:char(36);not null" json:"updated_by"`
+	UpdatedBy string `gorm:"type:varchar(255);not null" json:"updated_by"`
 	UpdatedByUser               *User     `gorm:"foreignKey:UpdatedBy" json:"updated_by_user,omitempty"`
 	UpdatedAt                   time.Time `json:"updated_at"`
 	CreatedAt                   time.Time `json:"created_at"`
@@ -37,10 +37,10 @@ func (a *AlertSettings) BeforeCreate(tx *gorm.DB) error {
 
 // AlertHistory アラート履歴
 type AlertHistory struct {
-	ID                uuid.UUID       `gorm:"type:char(36);primary_key" json:"id"`
-	UserID            uuid.UUID       `gorm:"type:char(36);not null" json:"user_id"`
+	ID                uuid.UUID       `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID string       `gorm:"type:varchar(255);not null" json:"user_id"`
 	User              *User           `gorm:"foreignKey:UserID" json:"user,omitempty"`
-	WeeklyReportID    *uuid.UUID      `gorm:"type:char(36)" json:"weekly_report_id,omitempty"`
+	WeeklyReportID    *uuid.UUID      `gorm:"type:varchar(255)" json:"weekly_report_id,omitempty"`
 	WeeklyReport      *WeeklyReport   `gorm:"foreignKey:WeeklyReportID" json:"weekly_report,omitempty"`
 	AlertType         AlertType       `gorm:"type:varchar(50);not null" json:"alert_type"`
 	Severity          AlertSeverity   `gorm:"type:varchar(20);not null" json:"severity"`
@@ -48,7 +48,7 @@ type AlertHistory struct {
 	ThresholdValue    json.RawMessage `gorm:"type:json;not null" json:"threshold_value"`
 	Status            AlertStatus     `gorm:"type:varchar(20);not null;default:'unhandled'" json:"status"`
 	ResolvedAt        *time.Time      `json:"resolved_at,omitempty"`
-	ResolvedBy        *uuid.UUID      `gorm:"type:char(36)" json:"resolved_by,omitempty"`
+	ResolvedBy        *uuid.UUID      `gorm:"type:varchar(255)" json:"resolved_by,omitempty"`
 	ResolvedByUser    *User           `gorm:"foreignKey:ResolvedBy" json:"resolved_by_user,omitempty"`
 	ResolutionComment *string         `gorm:"type:text" json:"resolution_comment,omitempty"`
 	CreatedAt         time.Time       `json:"created_at"`

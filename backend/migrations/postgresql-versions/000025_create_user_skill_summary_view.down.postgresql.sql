@@ -1,1 +1,0 @@
--- user_skill_summaryビューを削除 DROP VIEW IF EXISTS user_skill_summary;

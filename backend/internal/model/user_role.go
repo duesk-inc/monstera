@@ -8,8 +8,8 @@ import (
 
 // UserRole ユーザーとロールの多対多関係を管理
 type UserRole struct {
-	ID        uuid.UUID `gorm:"type:varchar(36);primaryKey" json:"id"` // テストで必要なIDフィールド
-	UserID    uuid.UUID `gorm:"type:varchar(36);primaryKey" json:"user_id"`
+	ID        uuid.UUID `gorm:"type:varchar(255);primaryKey" json:"id"` // テストで必要なIDフィールド
+	UserID string `gorm:"type:varchar(255);primaryKey" json:"user_id"`
 	RoleID    int       `gorm:"type:tinyint;primaryKey" json:"role_id"` // テストで必要なRoleIDフィールド
 	Role      Role      `gorm:"type:tinyint;primaryKey" json:"role"`
 	CreatedAt time.Time `json:"created_at"`

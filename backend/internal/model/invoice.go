@@ -63,7 +63,7 @@ type InvoiceDetail struct {
 	ID          uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
 	InvoiceID   uuid.UUID      `gorm:"type:varchar(36);not null" json:"invoice_id"`
 	ProjectID   *uuid.UUID     `gorm:"type:varchar(36)" json:"project_id"`
-	UserID      *uuid.UUID     `gorm:"type:varchar(36)" json:"user_id"`
+	UserID      *string     `gorm:"type:varchar(255)" json:"user_id"`
 	Description string         `gorm:"size:255;not null" json:"description"`
 	Quantity    float64        `gorm:"type:decimal(10,2);default:1" json:"quantity"`
 	UnitPrice   float64        `gorm:"type:decimal(10,2);not null" json:"unit_price"`

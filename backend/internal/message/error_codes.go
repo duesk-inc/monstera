@@ -31,7 +31,6 @@ const (
 	ErrCodeInvalidDate        ErrorCode = "VAL_007" // 日付形式エラー
 	ErrCodeInvalidTime        ErrorCode = "VAL_008" // 時刻形式エラー
 	ErrCodeInvalidUUID        ErrorCode = "VAL_009" // UUID形式エラー
-	ErrCodeInvalidPassword    ErrorCode = "VAL_010" // パスワード形式エラー
 	ErrCodeInvalidPhoneNumber ErrorCode = "VAL_011" // 電話番号形式エラー
 	ErrCodeInvalidPostalCode  ErrorCode = "VAL_012" // 郵便番号形式エラー
 	ErrCodeInvalidURL         ErrorCode = "VAL_013" // URL形式エラー
@@ -217,7 +216,6 @@ var ErrorCodeMapping = map[ErrorCode]int{
 	ErrCodeInvalidDate:        http.StatusBadRequest,
 	ErrCodeInvalidTime:        http.StatusBadRequest,
 	ErrCodeInvalidUUID:        http.StatusBadRequest,
-	ErrCodeInvalidPassword:    http.StatusBadRequest,
 	ErrCodeInvalidPhoneNumber: http.StatusBadRequest,
 	ErrCodeInvalidPostalCode:  http.StatusBadRequest,
 	ErrCodeInvalidURL:         http.StatusBadRequest,

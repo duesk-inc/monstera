@@ -211,8 +211,8 @@ func (m *CognitoAuthMiddleware) AdminRequired() gin.HandlerFunc {
 			return
 		}
 
-		// 管理者権限をチェック（ロール1: admin, ロール2: manager）
-		if user.Role != 1 && user.Role != 2 {
+		// 管理者権限をチェック（スーパー管理者または管理者）
+		if user.Role != model.RoleSuperAdmin && user.Role != model.RoleAdmin {
 			m.logger.Warn("管理者権限なしでのアクセス試行",
 				zap.String("user_id", user.ID.String()),
 				zap.Int("role", int(user.Role)),

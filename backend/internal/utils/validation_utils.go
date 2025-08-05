@@ -217,27 +217,6 @@ func (v *ValidationUtils) ValidatePostalCode(postalCode string) error {
 	return nil
 }
 
-// ValidatePassword パスワードのバリデーション
-func (v *ValidationUtils) ValidatePassword(password string) error {
-	if len(password) < 8 {
-		return fmt.Errorf("パスワードは8文字以上で入力してください")
-	}
-
-	if len(password) > 128 {
-		return fmt.Errorf("パスワードは128文字以内で入力してください")
-	}
-
-	// 英数字を含むかチェック
-	hasLetter := regexp.MustCompile(`[a-zA-Z]`).MatchString(password)
-	hasNumber := regexp.MustCompile(`[0-9]`).MatchString(password)
-
-	if !hasLetter || !hasNumber {
-		return fmt.Errorf("パスワードは英字と数字を両方含む必要があります")
-	}
-
-	return nil
-}
-
 // ValidateFileSize ファイルサイズのバリデーション
 func (v *ValidationUtils) ValidateFileSize(size int64, maxSize int64) error {
 	if size > maxSize {
@@ -338,8 +317,6 @@ func (v *ValidationUtils) ToErrorCode(err error) message.ErrorCode {
 		return message.ErrCodeInvalidDate
 	case strings.Contains(errorMessage, "UUID") || strings.Contains(errorMessage, "形式"):
 		return message.ErrCodeInvalidUUID
-	case strings.Contains(errorMessage, "パスワード"):
-		return message.ErrCodeInvalidPassword
 	case strings.Contains(errorMessage, "電話番号"):
 		return message.ErrCodeInvalidPhoneNumber
 	case strings.Contains(errorMessage, "郵便番号"):

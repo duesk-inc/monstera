@@ -13,7 +13,7 @@ type EngineerProposalQuestion struct {
 	ProposalID   uuid.UUID      `gorm:"type:varchar(36);not null" json:"proposal_id"`
 	QuestionText string         `gorm:"type:text;not null" json:"question_text"`
 	ResponseText *string        `gorm:"type:text" json:"response_text"`
-	SalesUserID  *uuid.UUID     `gorm:"type:varchar(36)" json:"sales_user_id"`
+	SalesUserID  *string     `gorm:"type:varchar(255)" json:"sales_user_id"`
 	IsResponded  bool           `gorm:"default:false;not null" json:"is_responded"`
 	RespondedAt  *time.Time     `json:"responded_at"`
 	CreatedAt    time.Time      `json:"created_at"`
@@ -44,7 +44,7 @@ func (q *EngineerProposalQuestion) CanRespond() bool {
 }
 
 // Respond 営業担当者の回答を記録
-func (q *EngineerProposalQuestion) Respond(responseText string, salesUserID uuid.UUID) error {
+func (q *EngineerProposalQuestion) Respond(responseText string, salesUserID string) error {
 	if !q.CanRespond() {
 		return gorm.ErrInvalidData
 	}
@@ -77,6 +77,6 @@ func (q *EngineerProposalQuestion) GetResponseLength() int {
 }
 
 // IsRespondedBySalesUser 特定の営業担当者が回答したかチェック
-func (q *EngineerProposalQuestion) IsRespondedBySalesUser(salesUserID uuid.UUID) bool {
+func (q *EngineerProposalQuestion) IsRespondedBySalesUser(salesUserID string) bool {
 	return q.IsResponded && q.SalesUserID != nil && *q.SalesUserID == salesUserID
 }

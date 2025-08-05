@@ -9,8 +9,8 @@ import (
 
 // AuditLog 監査ログ
 type AuditLog struct {
-	ID           uuid.UUID `json:"id" gorm:"type:char(36);primaryKey;default:(UUID())"`
-	UserID       uuid.UUID `json:"user_id" gorm:"type:char(36);not null;index"`
+	ID           uuid.UUID `json:"id" gorm:"type:varchar(255);primaryKey;default:(UUID())"`
+	UserID string `json:"user_id" gorm:"type:varchar(255);not null;index"`
 	Action       string    `json:"action" gorm:"type:varchar(100);not null;index"`
 	ResourceType string    `json:"resource_type" gorm:"type:varchar(50);not null;index"`
 	ResourceID   *string   `json:"resource_id" gorm:"type:varchar(100);index"`

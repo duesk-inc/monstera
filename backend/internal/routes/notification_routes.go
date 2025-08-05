@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
@@ -12,7 +14,7 @@ import (
 // NotificationRoutes 通知関連のルート設定
 type NotificationRoutes struct {
 	handler                    handler.NotificationHandler
-	authMiddleware             *middleware.AuthRefactoredMiddleware
+	authMiddleware             *middleware.CognitoAuthMiddleware
 	weeklyReportAuthMiddleware *middleware.WeeklyReportAuthMiddleware
 	logger                     *zap.Logger
 }
@@ -20,7 +22,7 @@ type NotificationRoutes struct {
 // NewNotificationRoutes NotificationRoutesのインスタンスを作成
 func NewNotificationRoutes(
 	handler handler.NotificationHandler,
-	authMiddleware *middleware.AuthRefactoredMiddleware,
+	authMiddleware *middleware.CognitoAuthMiddleware,
 	weeklyReportAuthMiddleware *middleware.WeeklyReportAuthMiddleware,
 	logger *zap.Logger,
 ) *NotificationRoutes {
@@ -43,11 +45,39 @@ func (nr *NotificationRoutes) SetupRoutes(router *gin.Engine) {
 
 	// 管理者権限が必要なエンドポイント
 	admin := auth.Group("")
-	admin.Use(nr.authMiddleware.RequireRoles(model.RoleAdmin, model.RoleSuperAdmin))
+	admin.Use(nr.authMiddleware.AdminRequired())
 
 	// 管理者またはマネージャー権限が必要なエンドポイント
 	manager := auth.Group("")
-	manager.Use(nr.authMiddleware.RequireRoles(model.RoleAdmin, model.RoleSuperAdmin, model.RoleManager))
+	manager.Use(func(c *gin.Context) {
+		// ユーザー情報を取得
+		userInterface, exists := c.Get("user")
+		if !exists {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "ユーザー情報が見つかりません"})
+			c.Abort()
+			return
+		}
+
+		user, ok := userInterface.(*model.User)
+		if !ok {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "ユーザー情報の形式が無効です"})
+			c.Abort()
+			return
+		}
+
+		// 管理者またはマネージャー権限をチェック
+		if user.Role != model.RoleSuperAdmin && user.Role != model.RoleAdmin && user.Role != model.RoleManager {
+			nr.logger.Warn("権限なしでのアクセス試行",
+				zap.String("user_id", user.ID.String()),
+				zap.Int("role", int(user.Role)),
+			)
+			c.JSON(http.StatusForbidden, gin.H{"error": "管理者またはマネージャー権限が必要です"})
+			c.Abort()
+			return
+		}
+
+		c.Next()
+	})
 
 	// ユーザー向け通知API
 	nr.setupUserNotificationRoutes(auth)

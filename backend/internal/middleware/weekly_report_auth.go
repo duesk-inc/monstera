@@ -23,7 +23,7 @@ type WeeklyReportAuthMiddleware struct {
 	weeklyReportRefactoredRepo repository.WeeklyReportRefactoredRepository
 	userRepo                   repository.UserRepository
 	departmentRepo             repository.DepartmentRepository
-	authMiddleware             *AuthRefactoredMiddleware
+	authMiddleware             *CognitoAuthMiddleware
 }
 
 // NewWeeklyReportAuthMiddleware WeeklyReportAuthMiddlewareのインスタンスを作成
@@ -33,7 +33,7 @@ func NewWeeklyReportAuthMiddleware(
 	weeklyReportRefactoredRepo repository.WeeklyReportRefactoredRepository,
 	userRepo repository.UserRepository,
 	departmentRepo repository.DepartmentRepository,
-	authMiddleware *AuthRefactoredMiddleware,
+	authMiddleware *CognitoAuthMiddleware,
 ) *WeeklyReportAuthMiddleware {
 	return &WeeklyReportAuthMiddleware{
 		logger:                     logger,

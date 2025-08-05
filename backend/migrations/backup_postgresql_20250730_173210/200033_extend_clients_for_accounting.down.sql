@@ -1,8 +1,0 @@
--- clientsテーブルから経理機能用カラムを削除
-ALTER TABLE clients 
-    DROP COLUMN billing_closing_day,
-    DROP COLUMN freee_client_id,
-    DROP COLUMN freee_sync_status,
-    DROP COLUMN freee_synced_at,
-    DROP INDEX idx_clients_freee_client_id,
-    DROP INDEX idx_clients_freee_sync_status;

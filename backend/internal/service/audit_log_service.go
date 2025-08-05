@@ -18,9 +18,9 @@ import (
 // AuditLogService 監査ログサービスインターフェース
 type AuditLogService interface {
 	LogActivity(ctx context.Context, params LogActivityParams) error
-	LogHTTPRequest(ctx context.Context, c *gin.Context, userID uuid.UUID, action model.AuditActionType, resourceType model.ResourceType, resourceID *string, duration time.Duration) error
+	LogHTTPRequest(ctx context.Context, c *gin.Context, userID string, action model.AuditActionType, resourceType model.ResourceType, resourceID *string, duration time.Duration) error
 	GetAuditLogs(ctx context.Context, filters repository.AuditLogFilters) ([]*model.AuditLog, int64, error)
-	GetUserAuditLogs(ctx context.Context, userID uuid.UUID, page, limit int) ([]*model.AuditLog, error)
+	GetUserAuditLogs(ctx context.Context, userID string, page, limit int) ([]*model.AuditLog, error)
 	GetResourceAuditLogs(ctx context.Context, resourceType model.ResourceType, resourceID string, page, limit int) ([]*model.AuditLog, error)
 	GetSuspiciousActivities(ctx context.Context, filters repository.SuspiciousActivityFilters) ([]*repository.SuspiciousActivity, error)
 	CleanupOldLogs(ctx context.Context, retentionDays int) (int64, error)
@@ -130,7 +130,7 @@ func (s *auditLogService) LogActivity(ctx context.Context, params LogActivityPar
 }
 
 // LogHTTPRequest HTTPリクエストをログに記録
-func (s *auditLogService) LogHTTPRequest(ctx context.Context, c *gin.Context, userID uuid.UUID, action model.AuditActionType, resourceType model.ResourceType, resourceID *string, duration time.Duration) error {
+func (s *auditLogService) LogHTTPRequest(ctx context.Context, c *gin.Context, userID string, action model.AuditActionType, resourceType model.ResourceType, resourceID *string, duration time.Duration) error {
 	// 監査対象でない場合はスキップ
 	if !action.ShouldAudit() {
 		return nil
@@ -183,7 +183,7 @@ func (s *auditLogService) GetAuditLogs(ctx context.Context, filters repository.A
 }
 
 // GetUserAuditLogs ユーザーの監査ログを取得
-func (s *auditLogService) GetUserAuditLogs(ctx context.Context, userID uuid.UUID, page, limit int) ([]*model.AuditLog, error) {
+func (s *auditLogService) GetUserAuditLogs(ctx context.Context, userID string, page, limit int) ([]*model.AuditLog, error) {
 	if limit <= 0 {
 		limit = 20
 	}

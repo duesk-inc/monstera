@@ -18,7 +18,7 @@ type ExportJobRepository interface {
 	// GetByID IDでエクスポートジョブを取得
 	GetByID(ctx context.Context, id uuid.UUID) (*model.ExportJob, error)
 	// GetByUserID ユーザーIDでエクスポートジョブ一覧を取得
-	GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]model.ExportJob, error)
+	GetByUserID(ctx context.Context, userID string, limit int) ([]model.ExportJob, error)
 	// UpdateStatus ジョブのステータスを更新
 	UpdateStatus(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error
 	// GetExpiredJobs 期限切れジョブを取得
@@ -48,7 +48,7 @@ func NewExportJobRepository(db *gorm.DB, logger *zap.Logger) ExportJobRepository
 func (r *exportJobRepository) Create(ctx context.Context, job *model.ExportJob) error {
 	if err := r.db.WithContext(ctx).Create(job).Error; err != nil {
 		r.logger.Error("Failed to create export job",
-			zap.String("user_id", job.UserID.String()),
+			zap.String("user_id", job.UserID),
 			zap.String("job_type", string(job.JobType)),
 			zap.Error(err),
 		)
@@ -79,7 +79,7 @@ func (r *exportJobRepository) GetByID(ctx context.Context, id uuid.UUID) (*model
 }
 
 // GetByUserID ユーザーIDでエクスポートジョブ一覧を取得
-func (r *exportJobRepository) GetByUserID(ctx context.Context, userID uuid.UUID, limit int) ([]model.ExportJob, error) {
+func (r *exportJobRepository) GetByUserID(ctx context.Context, userID string, limit int) ([]model.ExportJob, error) {
 	var jobs []model.ExportJob
 	query := r.db.WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -91,7 +91,7 @@ func (r *exportJobRepository) GetByUserID(ctx context.Context, userID uuid.UUID,
 
 	if err := query.Find(&jobs).Error; err != nil {
 		r.logger.Error("Failed to get export jobs by user ID",
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Error(err),
 		)
 		return nil, err
@@ -211,7 +211,7 @@ func (r *exportJobRepository) GetStaleProcessingJobs(ctx context.Context, timeou
 }
 
 // CountJobsByStatus ステータス別のジョブ数を取得
-func (r *exportJobRepository) CountJobsByStatus(ctx context.Context, userID *uuid.UUID) (map[model.ExportJobStatus]int64, error) {
+func (r *exportJobRepository) CountJobsByStatus(ctx context.Context, userID *string) (map[model.ExportJobStatus]int64, error) {
 	type statusCount struct {
 		Status model.ExportJobStatus
 		Count  int64

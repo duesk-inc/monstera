@@ -13,7 +13,7 @@ import (
 // WeeklyReportRefactoredService リファクタリング版週報サービスのインターフェース
 type WeeklyReportRefactoredService interface {
 	// ユーザー向けメソッド
-	GetUserWeeklyReports(ctx context.Context, userID uuid.UUID, params *ListParams) (*WeeklyReportListResponse, error)
+	GetUserWeeklyReports(ctx context.Context, userID string, params *ListParams) (*WeeklyReportListResponse, error)
 	GetUserWeeklyReportDetail(ctx context.Context, userID, reportID uuid.UUID) (interface{}, error)
 	CreateWeeklyReport(ctx context.Context, report *model.WeeklyReport, dailyRecords []*model.DailyRecord) error
 	UpdateWeeklyReport(ctx context.Context, report *model.WeeklyReport, dailyRecords []*model.DailyRecord) error
@@ -24,8 +24,8 @@ type WeeklyReportRefactoredService interface {
 	GetAllWeeklyReports(ctx context.Context, params *AdminListParams) (*WeeklyReportListResponse, error)
 	GetUnsubmittedReports(ctx context.Context, params *UnsubmittedListParams) (*WeeklyReportListResponse, error)
 	GetWeeklyReportStatistics(ctx context.Context, startDate, endDate time.Time) (*StatisticsResponse, error)
-	BatchSubmitReports(ctx context.Context, reportIDs []uuid.UUID) error
-	BatchUpdateDeadlines(ctx context.Context, reportIDs []uuid.UUID, deadline time.Time) error
+	BatchSubmitReports(ctx context.Context, reportIDs []string) error
+	BatchUpdateDeadlines(ctx context.Context, reportIDs []string, deadline time.Time) error
 }
 
 // weeklyReportRefactoredService リファクタリング版週報サービスの実装
@@ -43,7 +43,7 @@ func NewWeeklyReportRefactoredService(db *gorm.DB, logger *zap.Logger) WeeklyRep
 }
 
 // GetUserWeeklyReports ユーザーの週報一覧を取得
-func (s *weeklyReportRefactoredService) GetUserWeeklyReports(ctx context.Context, userID uuid.UUID, params *ListParams) (*WeeklyReportListResponse, error) {
+func (s *weeklyReportRefactoredService) GetUserWeeklyReports(ctx context.Context, userID string, params *ListParams) (*WeeklyReportListResponse, error) {
 	// TODO: 実装
 	return nil, nil
 }
@@ -97,13 +97,13 @@ func (s *weeklyReportRefactoredService) GetWeeklyReportStatistics(ctx context.Co
 }
 
 // BatchSubmitReports 複数の週報を一括提出
-func (s *weeklyReportRefactoredService) BatchSubmitReports(ctx context.Context, reportIDs []uuid.UUID) error {
+func (s *weeklyReportRefactoredService) BatchSubmitReports(ctx context.Context, reportIDs []string) error {
 	// TODO: 実装
 	return nil
 }
 
 // BatchUpdateDeadlines 複数の週報の期限を一括更新
-func (s *weeklyReportRefactoredService) BatchUpdateDeadlines(ctx context.Context, reportIDs []uuid.UUID, deadline time.Time) error {
+func (s *weeklyReportRefactoredService) BatchUpdateDeadlines(ctx context.Context, reportIDs []string, deadline time.Time) error {
 	// TODO: 実装
 	return nil
 }

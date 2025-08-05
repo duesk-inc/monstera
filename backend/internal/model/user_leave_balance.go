@@ -9,8 +9,8 @@ import (
 // UserLeaveBalance はユーザーの休暇残日数を表すモデルです
 type UserLeaveBalance struct {
 	ID            uuid.UUID  `gorm:"primaryKey;type:varchar(36)" json:"id"`
-	UserID        uuid.UUID  `gorm:"type:varchar(36)" json:"user_id"`
-	LeaveTypeID   uuid.UUID  `gorm:"type:varchar(36)" json:"leave_type_id"`
+	UserID string  `gorm:"type:varchar(255)" json:"user_id"`
+	LeaveTypeID   uuid.UUID  `gorm:"type:varchar(255)" json:"leave_type_id"`
 	FiscalYear    int        `json:"fiscal_year"`
 	TotalDays     float64    `gorm:"type:decimal(5,1)" json:"total_days"`
 	UsedDays      float64    `gorm:"type:decimal(5,1);default:0" json:"used_days"`

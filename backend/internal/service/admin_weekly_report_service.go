@@ -19,7 +19,7 @@ import (
 type AdminWeeklyReportService interface {
 	GetWeeklyReports(ctx context.Context, page, limit int, status, userID, dateFrom, dateTo string) ([]dto.AdminWeeklyReportDTO, int64, error)
 	GetWeeklyReportDetail(ctx context.Context, reportID uuid.UUID) (*dto.AdminWeeklyReportDetailDTO, error)
-	CommentWeeklyReport(ctx context.Context, reportID, userID uuid.UUID, comment string) error
+	CommentWeeklyReport(ctx context.Context, reportID, userID string, comment string) error
 	GetMonthlyAttendance(ctx context.Context, month string) ([]dto.MonthlyAttendanceDTO, error)
 	GetFollowUpRequiredUsers(ctx context.Context) ([]dto.FollowUpUserDTO, error)
 	ExportMonthlyReport(ctx context.Context, month, format string) ([]byte, string, string, error)
@@ -159,7 +159,7 @@ func (s *adminWeeklyReportService) GetWeeklyReportDetail(ctx context.Context, re
 }
 
 // CommentWeeklyReport 週報にコメントを追加
-func (s *adminWeeklyReportService) CommentWeeklyReport(ctx context.Context, reportID, userID uuid.UUID, comment string) error {
+func (s *adminWeeklyReportService) CommentWeeklyReport(ctx context.Context, reportID, userID string, comment string) error {
 	// トランザクション開始
 	tx := s.db.WithContext(ctx).Begin()
 	defer func() {
@@ -235,7 +235,7 @@ func (s *adminWeeklyReportService) GetMonthlyAttendance(ctx context.Context, mon
 	}
 
 	// ユーザーごとに集計
-	userAttendanceMap := make(map[uuid.UUID]*dto.MonthlyAttendanceDTO)
+	userAttendanceMap := make(map[string]*dto.MonthlyAttendanceDTO)
 
 	for _, report := range reports {
 		if _, exists := userAttendanceMap[report.UserID]; !exists {
@@ -299,8 +299,8 @@ func (s *adminWeeklyReportService) GetFollowUpRequiredUsers(ctx context.Context)
 	}
 
 	// ユーザーIDを収集
-	userIDs := make([]uuid.UUID, len(users))
-	userMap := make(map[uuid.UUID]model.User)
+	userIDs := make([]string, len(users))
+	userMap := make(map[string]model.User)
 	for i, user := range users {
 		userIDs[i] = user.ID
 		userMap[user.ID] = user
@@ -328,7 +328,7 @@ func (s *adminWeeklyReportService) GetFollowUpRequiredUsers(ctx context.Context)
 	}
 
 	// 最新週報をユーザーIDでマップ化
-	latestReportMap := make(map[uuid.UUID]LatestReportInfo)
+	latestReportMap := make(map[string]LatestReportInfo)
 	for _, report := range latestReports {
 		latestReportMap[report.UserID] = report
 	}
@@ -588,7 +588,7 @@ func (s *adminWeeklyReportService) calculateWorkHourStats(reports []model.Weekly
 
 // calculateUserSummaries ユーザー別サマリーを計算
 func (s *adminWeeklyReportService) calculateUserSummaries(reports []model.WeeklyReport) []dto.UserWeeklyReportSummaryDTO {
-	userMap := make(map[uuid.UUID]*dto.UserWeeklyReportSummaryDTO)
+	userMap := make(map[string]*dto.UserWeeklyReportSummaryDTO)
 
 	for _, report := range reports {
 		if _, exists := userMap[report.UserID]; !exists {
@@ -1129,8 +1129,8 @@ func (s *adminWeeklyReportService) calculateDepartmentStatsForMonth(
 	ctx context.Context,
 	reports []model.WeeklyReport,
 ) []dto.DepartmentStatsDTO {
-	departmentMap := make(map[uuid.UUID]*dto.DepartmentStatsDTO)
-	departmentReports := make(map[uuid.UUID][]model.WeeklyReport)
+	departmentMap := make(map[string]*dto.DepartmentStatsDTO)
+	departmentReports := make(map[string][]model.WeeklyReport)
 
 	// 部署ごとにレポートをグループ化
 	for _, report := range reports {
@@ -1199,8 +1199,8 @@ func (s *adminWeeklyReportService) calculateTopPerformers(
 	reports []model.WeeklyReport,
 	limit int,
 ) []dto.UserPerformanceDTO {
-	userPerformance := make(map[uuid.UUID]*dto.UserPerformanceDTO)
-	userReports := make(map[uuid.UUID][]model.WeeklyReport)
+	userPerformance := make(map[string]*dto.UserPerformanceDTO)
+	userReports := make(map[string][]model.WeeklyReport)
 
 	// ユーザーごとにレポートをグループ化
 	for _, report := range reports {

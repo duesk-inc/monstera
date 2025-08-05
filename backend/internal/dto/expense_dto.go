@@ -49,7 +49,7 @@ type CancelExpenseRequest struct {
 // ExpenseResponse 経費申請レスポンス
 type ExpenseResponse struct {
 	ID          uuid.UUID  `json:"id"`
-	UserID      uuid.UUID  `json:"user_id"`
+	UserID string  `json:"user_id"`
 	Title       string     `json:"title"`
 	Category    string     `json:"category"`
 	Amount      int        `json:"amount"`
@@ -113,7 +113,7 @@ type CategoryMasterResponse struct {
 // SummaryResponse 集計レスポンス
 type SummaryResponse struct {
 	ID             uuid.UUID `json:"id"`
-	UserID         uuid.UUID `json:"user_id"`
+	UserID string `json:"user_id"`
 	Year           int       `json:"year"`
 	Month          int       `json:"month"`
 	TotalAmount    int       `json:"total_amount"`
@@ -129,17 +129,17 @@ type LimitsResponse struct {
 
 // LimitResponse 制限情報レスポンス
 type LimitResponse struct {
-	ID            uuid.UUID `json:"id"`
+	ID            string `json:"id"`
 	LimitType     string    `json:"limit_type"` // monthly, yearly
 	Amount        int       `json:"amount"`
 	EffectiveFrom time.Time `json:"effective_from"`
-	CreatedBy     uuid.UUID `json:"created_by"`
+	CreatedBy     string `json:"created_by"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
 // UserSummary ユーザー概要情報
 type UserSummary struct {
-	ID        uuid.UUID `json:"id"`
+	ID        string `json:"id"`
 	Email     string    `json:"email"`
 	FirstName string    `json:"first_name"`
 	LastName  string    `json:"last_name"`
@@ -276,7 +276,7 @@ func GetFiscalYearFromDate(date time.Time) int {
 }
 
 // ToExpense CreateExpenseRequestからExpenseモデルに変換
-func (r *CreateExpenseRequest) ToExpense(userID uuid.UUID) model.Expense {
+func (r *CreateExpenseRequest) ToExpense(userID string) model.Expense {
 	return model.Expense{
 		UserID:      userID,
 		Title:       r.Title,
@@ -389,7 +389,7 @@ func (r *ExpenseDetailResponse) FromExpenseWithDetails(expenseWithDetails model.
 		r.CurrentLimits = &LimitsResponse{}
 		if expenseWithDetails.CurrentLimits.MonthlyLimit != nil {
 			r.CurrentLimits.MonthlyLimit = &LimitResponse{
-				ID:            expenseWithDetails.CurrentLimits.MonthlyLimit.ID,
+				ID:            expenseWithDetails.CurrentLimits.MonthlyLimit.ID.String(),
 				LimitType:     string(expenseWithDetails.CurrentLimits.MonthlyLimit.LimitType),
 				Amount:        expenseWithDetails.CurrentLimits.MonthlyLimit.Amount,
 				EffectiveFrom: expenseWithDetails.CurrentLimits.MonthlyLimit.EffectiveFrom,
@@ -399,7 +399,7 @@ func (r *ExpenseDetailResponse) FromExpenseWithDetails(expenseWithDetails model.
 		}
 		if expenseWithDetails.CurrentLimits.YearlyLimit != nil {
 			r.CurrentLimits.YearlyLimit = &LimitResponse{
-				ID:            expenseWithDetails.CurrentLimits.YearlyLimit.ID,
+				ID:            expenseWithDetails.CurrentLimits.YearlyLimit.ID.String(),
 				LimitType:     string(expenseWithDetails.CurrentLimits.YearlyLimit.LimitType),
 				Amount:        expenseWithDetails.CurrentLimits.YearlyLimit.Amount,
 				EffectiveFrom: expenseWithDetails.CurrentLimits.YearlyLimit.EffectiveFrom,
@@ -814,7 +814,7 @@ func (r *GenerateUploadURLRequest) ValidateFileUpload() []FileValidationError {
 }
 
 // GenerateS3Key S3オブジェクトキーを生成
-func (r *GenerateUploadURLRequest) GenerateS3Key(userID uuid.UUID) string {
+func (r *GenerateUploadURLRequest) GenerateS3Key(userID string) string {
 	// フォーマット: expenses/{user_id}/{year}/{month}/{timestamp}_{filename}
 	now := time.Now()
 
@@ -835,7 +835,7 @@ func (r *GenerateUploadURLRequest) GenerateS3Key(userID uuid.UUID) string {
 		sanitizeFileName(r.FileName), ext)
 
 	return fmt.Sprintf("expenses/%s/%d/%02d/%s",
-		userID.String(), now.Year(), now.Month(), safeName)
+		userID, now.Year(), now.Month(), safeName)
 }
 
 // sanitizeFileName ファイル名を安全な形式に変換
@@ -881,7 +881,7 @@ func (r *CompleteUploadRequest) ToReceiptURL(baseURL string) string {
 
 // ExpenseYearlySummaryResponse 年次集計レスポンス
 type ExpenseYearlySummaryResponse struct {
-	UserID           uuid.UUID          `json:"user_id"`
+	UserID string          `json:"user_id"`
 	Year             int                `json:"year"`
 	IsFiscalYear     bool               `json:"is_fiscal_year"` // 会計年度かどうか（true=会計年度、false=カレンダー年度）
 	TotalAmount      int                `json:"total_amount"`
@@ -1057,7 +1057,7 @@ type CreateExpenseLimitRequest struct {
 	LimitType     string     `json:"limit_type" binding:"required,oneof=monthly yearly"`           // 制限種別（monthly/yearly）
 	LimitScope    string     `json:"limit_scope" binding:"required,oneof=company department user"` // 制限適用範囲
 	Amount        int        `json:"amount" binding:"required,min=1,max=100000000"`                // 上限金額（1円〜1億円）
-	UserID        *uuid.UUID `json:"user_id,omitempty" binding:"omitempty,uuid"`                   // 個人制限の場合のユーザーID
+	UserID        *string `json:"user_id,omitempty" binding:"omitempty"`                   // 個人制限の場合のユーザーID
 	DepartmentID  *uuid.UUID `json:"department_id,omitempty" binding:"omitempty,uuid"`             // 部門制限の場合の部門ID
 	EffectiveFrom time.Time  `json:"effective_from" binding:"required"`                            // 適用開始日時
 }
@@ -1067,7 +1067,7 @@ type UpdateExpenseLimitV2Request struct {
 	LimitType     string     `json:"limit_type" binding:"required,oneof=monthly yearly"`           // 制限種別（monthly/yearly）
 	LimitScope    string     `json:"limit_scope" binding:"required,oneof=company department user"` // 制限適用範囲
 	Amount        int        `json:"amount" binding:"required,min=1,max=100000000"`                // 上限金額（1円〜1億円）
-	UserID        *uuid.UUID `json:"user_id,omitempty" binding:"omitempty,uuid"`                   // 個人制限の場合のユーザーID
+	UserID        *string `json:"user_id,omitempty" binding:"omitempty"`                   // 個人制限の場合のユーザーID
 	DepartmentID  *uuid.UUID `json:"department_id,omitempty" binding:"omitempty,uuid"`             // 部門制限の場合の部門ID
 	EffectiveFrom time.Time  `json:"effective_from" binding:"required"`                            // 適用開始日時
 }
@@ -1084,14 +1084,14 @@ type ExpenseLimitListRequest struct {
 
 // ExpenseLimitDetailResponse 経費申請上限詳細レスポンス
 type ExpenseLimitDetailResponse struct {
-	ID            uuid.UUID  `json:"id"`
+	ID            string  `json:"id"`
 	LimitType     string     `json:"limit_type"`              // monthly/yearly
 	LimitScope    string     `json:"limit_scope"`             // company/department/user
 	Amount        int        `json:"amount"`                  // 上限金額
-	UserID        *uuid.UUID `json:"user_id,omitempty"`       // 個人制限の場合のユーザーID
+	UserID        *string `json:"user_id,omitempty"`       // 個人制限の場合のユーザーID
 	DepartmentID  *uuid.UUID `json:"department_id,omitempty"` // 部門制限の場合の部門ID
 	EffectiveFrom time.Time  `json:"effective_from"`          // 適用開始日時
-	CreatedBy     uuid.UUID  `json:"created_by"`              // 設定者ID
+	CreatedBy     string  `json:"created_by"`              // 設定者ID
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 	// リレーション情報
@@ -1157,7 +1157,7 @@ func (r *UpdateExpenseLimitV2Request) Validate() error {
 }
 
 // ToModel CreateExpenseLimitRequestをExpenseLimitモデルに変換
-func (r *CreateExpenseLimitRequest) ToModel(createdBy uuid.UUID) *model.ExpenseLimit {
+func (r *CreateExpenseLimitRequest) ToModel(createdBy string) *model.ExpenseLimit {
 	limit := &model.ExpenseLimit{
 		LimitType:     model.LimitType(r.LimitType),
 		LimitScope:    model.LimitScope(r.LimitScope),
@@ -1178,7 +1178,7 @@ func (r *CreateExpenseLimitRequest) ToModel(createdBy uuid.UUID) *model.ExpenseL
 
 // FromModel ExpenseLimitモデルからExpenseLimitDetailResponseに変換
 func (r *ExpenseLimitDetailResponse) FromModel(limit *model.ExpenseLimit) {
-	r.ID = limit.ID
+	r.ID = limit.ID.String()
 	r.LimitType = string(limit.LimitType)
 	r.LimitScope = string(limit.LimitScope)
 	r.Amount = limit.Amount
