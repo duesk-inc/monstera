@@ -105,7 +105,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	h.logger.Info("Login request received",
 		zap.String("email", req.Email),
-		zap.Bool("has_password", req.Password != ""),
 	)
 
 	// ユーザーエージェントとIPアドレスを取得

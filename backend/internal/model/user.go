@@ -1,11 +1,9 @@
 package model
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -13,7 +11,6 @@ import (
 type User struct {
 	ID               uuid.UUID  `gorm:"type:varchar(36);primary_key" json:"id"`
 	Email            string     `gorm:"size:255;not null;unique" json:"email"`
-	Password         string     `gorm:"size:255;not null" json:"-"`
 	FirstName        string     `gorm:"size:255;not null" json:"first_name"`
 	LastName         string     `gorm:"size:255;not null" json:"last_name"`
 	Name             string     `gorm:"size:255" json:"name"` // テストで必要なNameフィールド
@@ -64,28 +61,6 @@ func (u *User) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
-// SetPassword パスワードをハッシュ化して設定
-func (u *User) SetPassword(password string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	u.Password = string(hashedPassword)
-	return nil
-}
-
-// CheckPassword パスワードが正しいか確認
-func (u *User) CheckPassword(password string) bool {
-	// デバッグ用に比較内容の文字数を出力（セキュリティ上、実際の内容は出力しない）
-	fmt.Printf("Input password length: %d, Stored hash length: %d\n", len(password), len(u.Password))
-
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
-	// エラーの場合もデバッグ情報として記録
-	if err != nil {
-		fmt.Printf("Password check failed: %v\n", err)
-	}
-	return err == nil
-}
 
 // FullName 氏名を取得
 func (u *User) FullName() string {

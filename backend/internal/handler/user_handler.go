@@ -36,11 +36,6 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// パスワード強度チェック
-	if !h.isPasswordStrong(req.Password) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "パスワードが要件を満たしていません"})
-		return
-	}
 
 	// メールアドレス形式チェック
 	if !h.isValidEmail(req.Email) {

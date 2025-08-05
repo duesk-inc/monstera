@@ -218,7 +218,6 @@ func (h *adminEngineerHandler) CreateEngineer(c *gin.Context) {
 	// サービス用の入力データに変換
 	input := service.CreateEngineerInput{
 		Email:          req.Email,
-		Password:       req.Password,
 		FirstName:      req.FirstName,
 		LastName:       req.LastName,
 		FirstNameKana:  ptrToStr(req.FirstNameKana),

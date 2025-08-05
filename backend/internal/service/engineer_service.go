@@ -39,7 +39,6 @@ type EngineerService interface {
 // CreateEngineerInput エンジニア作成入力
 type CreateEngineerInput struct {
 	Email          string
-	Password       string
 	FirstName      string
 	LastName       string
 	FirstNameKana  string
@@ -175,17 +174,7 @@ func (s *engineerService) CreateEngineer(ctx context.Context, input CreateEngine
 			Status:         "active",
 		}
 
-		// パスワード設定
-		if input.Password != "" {
-			if err := user.SetPassword(input.Password); err != nil {
-				return fmt.Errorf("パスワードの設定に失敗しました: %w", err)
-			}
-		} else {
-			// パスワードが未指定の場合はメールアドレスを使用
-			if err := user.SetPassword(input.Email); err != nil {
-				return fmt.Errorf("パスワードの設定に失敗しました: %w", err)
-			}
-		}
+		// パスワードはCognito側で管理されるため、ここでは設定しない
 
 		// name フィールドを設定（互換性のため）
 		user.Name = user.FullName()
