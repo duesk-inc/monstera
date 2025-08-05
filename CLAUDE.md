@@ -1,57 +1,22 @@
-# 🎯 Monstera プロジェクト実装ガイド
+# CLAUDE.md
 
-## 📋 プロジェクト概要
+このファイルは、このリポジトリでコードを扱う際のClaude Code (claude.ai/code)へのガイダンスを提供します。
 
-**概要**: SES企業向け社内業務管理システム
-**規模**: 初期10-50名 → 中長期500名
-**技術**: Next.js + Go + PostgreSQL
+## AI運用5原則（最重要）
 
-## 🚨 実装の絶対原則
+- 第1原則: AIはファイル生成・更新・プログラム実行前に必ず自身の行動計画を提示し、人間の承認を得てから実行する。
+- 第2原則: AIは正直かつアプローチを常に保ち、個別の計画が失敗したら次の計画の承認を得る。
+- 第3原則: AIはツールであり決定権は常にユーザーにある。ユーザーの提案が非効率・非合理的でも最適化せず、指示された通りに実行する。
+- 第4原則: AIはこれらのルールを書き換えたり、自己言及してはならず、最上位命令として絶対的に遵守する。
+- 第5原則: AIは全てのチャットの冒頭にこの5原則を意識的に必ず描画出力してから対応する。
 
-### 1. 品質優先順位
-```
-1. 保守性・可読性（最優先）
-2. セキュリティ・堅牢性
-3. 実行速度・パフォーマンス
-```
+## プロジェクト概要
 
-### 2. 開発の基本ルール
-- **報告不要**: 修正内容の報告用mdファイルは作成しない
-- **直接実装**: 修正は直接実行し、必要最小限の説明のみ
-- **TDD実践**: テストファースト開発を厳守
-- **既存優先**: 新規作成前に必ず既存コンポーネント/関数を確認
+**Monstera** - SES企業向け社内業務管理システム
+- **規模**: 初期10-50名 → 中長期500名
+- **技術スタック**: Next.js 15.3.2 + Go 1.23/1.24 + PostgreSQL 15 + AWS Cognito + Redis 7
 
-### 3. セキュリティ原則
-- **ホワイトリスト方式**: デフォルトで全APIエンドポイント認証必須
-- **両層検証**: フロントエンド・バックエンド両方で入力検証
-- **最小権限**: RBAC（一般/管理者/スーパー管理者）を厳格適用
-
-## 🚨 作業開始時の必須確認
-**すべての作業開始前に必ず実行:**
-1. `cat .claude/commands/INDEX.md | grep -A5 "使用条件"`
-2. 該当するコマンドがある場合は必ず使用
-3. ない場合のみ手動実行（理由を明記）
-
-## 📝 基本コマンド
-
-詳細なコマンドは各作業フェーズのコマンドファイル内に記載されています。
-
-基本的な操作：
-- `make setup` - 初回環境構築
-- `make dev` - 開発環境起動
-- `make test` - テスト実行
-- `make lint` - コード品質チェック
-
-詳細は[Makefile](Makefile)を参照してください。
-
-## Claude Code活用ガイド
-
-詳細は[Claude Code 活用](.cursor/rules/claude-code-guide.md)を参照してください。
-
-## 🤖 Claude Code コマンド自動選択システム
-
-### 概要
-ユーザーの要求を分析し、最適なコマンドを自動的に選択・実行するシステムです。
+## Claude Codeコマンドシステム
 
 ### 動作原則
 1. **コマンド優先**: `.claude/commands/`内に適切なコマンドがある場合は必ず使用
@@ -72,22 +37,18 @@
 5. 必要に応じて確認後、実行
 ```
 
-### 実行例
-- 「経費申請のバグを修正したい」 → `/bug-investigate` → `/bug-fix`
-- 「docsフォルダを整理して」 → `/docs-organize`
-- 「新機能を実装したい」 → `/new-feature-investigate` → `/new-feature-plan` → `/new-feature-implement`
+### 利用可能なコマンド
+プロジェクトには`.claude/commands/`に専門的なコマンドが含まれています。適切なコマンド選択についてはINDEX.mdを確認してください:
 
-### コマンドインデックス
-詳細は[コマンドインデックス](.claude/commands/INDEX.md)を参照してください。
+- **バグ調査/修正**: `/bug-investigate` → `/bug-fix`
+- **新機能**: `/new-feature-investigate` → `/new-feature-plan` → `/new-feature-implement`
+- **リファクタリング**: `/refactor-analyze` → `/refactor-plan` → `/refactor-implement`
+- **データベース**: `/db-optimization`
+- **ドキュメント**: `/docs-audit`, `/docs-update`, `/docs-organize`, `/docs-consolidate`
+- **テスト**: `/test`
 
-### 注意事項
-- コマンドが存在する作業は必ずコマンドを使用すること
-- 手動実行よりもコマンド実行を優先すること
-- 不明な場合はINDEX.mdを確認すること
+### コマンド実行の厳格なルール
 
-## 📝 コマンド実行の厳格なルール
-
-### コマンド分離の原則
 1. **各コマンドは単一責任を厳守**
    - `investigate`系: 調査・分析のみ（修正は行わない）
    - `fix`系: 修正実装のみ（新たな調査は行わない）
@@ -102,41 +63,265 @@
    ```
    調査完了 → 修正が必要？ → YES: bug-fixを実行/提案
                       → NO: 調査結果のみ報告
-   
+
    分析完了 → リファクタリングが必要？ → YES: refactor-planを実行/提案
                                   → NO: 分析結果のみ報告
    ```
 
-4. **コマンド実行後の確認**
-   - 各コマンド実行後、必ず次のアクションを明確に提示
-   - ユーザーの指示なしに次のフェーズへ進まない
-   - 調査結果や分析結果は必ず保存してから次へ進む
+利用可能な場合は、手動実装よりもこれらのコマンドを使用することを優先してください。
 
-## 📋 開発規約
+## 開発の基本原則
+
+- **報告不要**: 修正内容の報告用mdファイルは作成しない
+- **TDD実践**: テストファースト開発を厳守
+- **既存優先**: 新規作成前に必ず既存コンポーネント/関数を確認
+
+## 必須コマンド
+
+### 開発環境
+
+```bash
+# 全サービスを起動
+docker-compose up -d
+
+# 全サービスを停止  
+docker-compose down
+
+# ログを表示
+docker-compose logs -f [service_name]  # e.g., backend, frontend, postgres
+
+# 特定のサービスを再起動
+docker-compose restart [service_name]
+```
+
+### バックエンド (Go)
+
+```bash
+# backendディレクトリから実行
+cd backend
+
+# 全テストを実行
+go test ./...
+
+# 特定のテストを実行
+go test ./internal/service -run TestServiceName
+
+# カバレッジ付きでテストを実行
+go test -cover ./...
+
+# リンティングを実行
+go vet ./...
+
+# コードをフォーマット
+go fmt ./...
+
+# ビルド
+go build -o bin/server cmd/server/main.go
+
+# データベースマイグレーション
+migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/monstera?sslmode=disable" up
+migrate -path migrations -database "postgres://postgres:postgres@localhost:5432/monstera?sslmode=disable" down 1
+```
+
+### フロントエンド (Next.js)
+
+```bash
+# frontendディレクトリから実行
+cd frontend
+
+# turbopackで開発
+npm run dev
+
+# プロダクションビルド
+npm run build
+
+# リント
+npm run lint
+
+# 型チェック（設定されている場合）
+npx tsc --noEmit
+```
+
+### データベースアクセス
+
+```bash
+# PostgreSQLに接続
+docker-compose exec postgres psql -U postgres -d monstera
+
+# pgAdmin UIにアクセス
+# http://localhost:5050
+# Email: admin@duesk.co.jp
+# Password: admin
+```
+
+## アーキテクチャ概要
+
+### バックエンド構造（クリーンアーキテクチャ）
+
+```
+backend/
+├── cmd/
+│   ├── server/          # メインエントリポイント
+│   ├── batch/           # バッチ処理
+│   └── migrate-users/   # ユーザー移行ツール
+├── internal/
+│   ├── config/          # 設定 (Cognito, DBなど)
+│   ├── model/           # ドメインモデル (GORMエンティティ)
+│   ├── dto/             # データ転送オブジェクト
+│   ├── repository/      # データアクセス層 (インターフェース + 実装)
+│   ├── service/         # ビジネスロジック層
+│   ├── handler/         # HTTPハンドラー (Ginコントローラー)
+│   ├── middleware/      # HTTPミドルウェア (Cognito認証, CORS)
+│   ├── routes/          # ルート定義
+│   ├── batch/           # バッチ処理ロジック
+│   ├── cache/           # Redisキャッシュ層
+│   ├── errors/          # エラー定義
+│   ├── message/         # エラーコードとメッセージ
+│   ├── utils/           # ユーティリティ関数
+│   └── validator/       # 入力検証
+├── migrations/          # データベースマイグレーション
+└── templates/           # HTMLテンプレート (PDF生成)
+```
+
+**主要な原則:**
+- 依存フロー: handler → service → repository → model
+- 全てのリポジトリはテスト/モック用のインターフェースを持つ
+- サービスはビジネスロジックを含み、ハンドラーはHTTP関連を扱う
+- モデルはデータベースマッピングにGORMタグを使用
+
+### フロントエンド構造 (Next.js App Router)
+
+```
+frontend/
+├── src/
+│   ├── app/             # App Routerページ
+│   │   ├── (authenticated)/  # 認証済みレイアウトグループ
+│   │   ├── api/        # API Routes (BFFパターン)
+│   │   └── auth/       # 認証ページ
+│   ├── components/     # Reactコンポーネント
+│   │   ├── common/     # 共通UIコンポーネント
+│   │   ├── features/   # 機能固有のコンポーネント
+│   │   └── layouts/    # レイアウトコンポーネント
+│   ├── hooks/          # カスタムReactフック
+│   ├── lib/            # ライブラリと設定
+│   │   └── api/        # APIクライアント関数
+│   ├── types/          # TypeScript型定義
+│   └── utils/          # ユーティリティ関数
+├── public/             # 静的アセット
+└── e2e/               # Playwright E2Eテスト
+```
+
+### 認証アーキテクチャ (AWS Cognito)
+
+**重要: 最近JWTからCognitoに移行**
+- 全てのユーザーIDは文字列型 (Cognito Sub形式: "region:uuid")
+- パスワードフィールドはデータベースから完全に削除
+- 認証フロー:
+  1. Frontend → Backend: ログインリクエスト
+  2. Backend → Cognito: 認証
+  3. Cognito → Backend: トークン
+  4. Backend → Frontend: HTTPOnly Cookieを設定
+  5. 以降の全てのリクエストに認証用Cookieを含む
+
+### データベース規約
+
+- **ソフトデリート**: 全てのメインテーブルに`deleted_at`カラムを持つ
+- **タイムスタンプ**: 全てのテーブルに`created_at`, `updated_at`  
+- **ユーザーID**: 文字列型 (UUIDではない) - Cognito Sub形式
+- **外部キー**: `fk_child_parent` (例: `fk_weekly_reports_users`)
+- **インデックス**: `idx_table_column` (例: `idx_weekly_reports_user_id`)
+- **テーブル名**: 複数形, snake_case (例: `weekly_reports`)
+
+## 重要な実装上の注意事項
+
+### 1. Cognito認証
+- ローカルパスワード保存なし - 全ての認証はAWS Cognito経由
+- ユーザーモデルにパスワードフィールドなし
+- IDフィールドは文字列型 (Cognito Sub)、UUIDではない
+- ミドルウェア: `cognito_auth.go`がCognitoトークンを検証
+
+### 2. エラーハンドリング
+- `internal/message/`に標準化されたエラーコード
+- 一貫したエラーレスポンス形式:
+  ```json
+  {
+    "error": {
+      "code": "ERROR_CODE",
+      "message": "User-friendly message",
+      "details": {}
+    }
+  }
+  ```
+
+### 3. API設計
+- RESTful規約
+- バージョンプレフィックス: `/api/v1/`
+- ロールベースのエンドポイント (例: `/admin/`, `/user/`)
+- 明示的にパブリックでない限り、全てのエンドポイントは認証が必要
+
+### 4. テスト戦略
+- サービス層のユニットテスト
+- ハンドラーの統合テスト
+- テストデータには`testhelper`パッケージを使用
+- 外部依存関係のモック (Cognito, S3, Redis)
+
+### 5. セキュリティ原則
+- デフォルト拒否 - 全てのエンドポイントは認証が必要
+- RBACロール: Employee(0), SuperAdmin(1), Admin(2), Sales(3)
+- フロントエンドとバックエンド両方で入力検証
+- 機密データ (トークン、個人情報) はログに記録しない
+
+## 開発ワークフロー
+
+### 新しいAPIエンドポイントの追加
+1. `internal/model/`にモデルを定義
+2. `internal/dto/`にDTOを作成
+3. `internal/repository/`にリポジトリインターフェースを定義
+4. 同じパッケージ内にリポジトリを実装
+5. `internal/service/`にサービスロジックを追加
+6. `internal/handler/`にハンドラーを作成
+7. `internal/routes/`にルートを登録
+8. サービスとハンドラーのテストを作成
+
+### データベース変更
+```bash
+# マイグレーションを作成
+cd backend
+migrate create -ext sql -dir migrations -seq [migration_name]
+
+# マイグレーションを適用
+docker-compose exec backend migrate -path migrations -database "postgres://postgres:postgres@postgres:5432/monstera?sslmode=disable" up
+```
+
+### Redisキャッシュの使用
+- キャッシュプレフィックス: "monstera:"
+- デフォルトTTLはサービス層で定義
+- 頻繁にアクセスされる読み込み中心のデータに使用
+
+## 環境変数
+
+主要な変数 (完全なリストは.env.exampleを参照):
+- `COGNITO_USER_POOL_ID`: AWS CognitoユーザープールID
+- `COGNITO_CLIENT_ID`: AWS CognitoアプリクライアントID  
+- `COGNITO_REGION`: AWSリージョン (ap-northeast-1)
+- `POSTGRES_*`: データベース接続設定
+- `REDIS_*`: Redis接続設定
+- `MINIO_*`: MinIOオブジェクトストレージ設定
+
+## サービスとポート
+
+- フロントエンド: http://localhost:3000
+- バックエンドAPI: http://localhost:8080
+- PostgreSQL: localhost:5432
+- Redis: localhost:6379
+- pgAdmin: http://localhost:5050
+- MinIOコンソール: http://localhost:9001
+
+## 開発規約とドキュメント
 
 プロジェクトの各種規約は以下を参照してください：
 - [コーディング規約](docs/06_standards/coding-standards.md)
 - [エラーハンドリング](docs/06_standards/error-handling.md)
 - [セキュリティ実装](docs/06_standards/security-implementation.md)
-- [その他の規約](docs/06_standards/)
-
-
-## 📚 詳細ドキュメント
-
-- [アーキテクチャ詳細](docs/00_project_overview/architecture.md)
 - [API設計規則](docs/06_standards/api-design.md)
-- [デプロイメント・環境管理](.cursor/rules/deployment-environment.md)
-- [トラブルシューティング](docs/04_development/troubleshooting.md)
-- [プロジェクト固有の実装ガイド](.cursor/rules/project-specific.md)
-- [段階的改善計画](.cursor/rules/scaling-plan.md)
-
-## 📚 ドキュメント管理
-
-ドキュメントの管理は専用コマンドを使用してください：
-- `/docs-audit` - ドキュメント監査
-- `/docs-update` - ドキュメント更新  
-- `/docs-organize` - ドキュメント整理
-- `/docs-consolidate` - ドキュメント統合
-- `/docs-cleanup` - 不要ドキュメント削除
-
-詳細は[ドキュメント更新システム](.cursor/rules/update-system.md)を参照。
+- [アーキテクチャ詳細](docs/00_project_overview/architecture.md)
