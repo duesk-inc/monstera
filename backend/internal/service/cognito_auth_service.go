@@ -505,7 +505,7 @@ func (s *CognitoAuthService) syncUserWithDB(ctx context.Context, cognitoUser map
 			}
 
 			user = &model.User{
-				ID:             uuid.New(),
+				ID:             cognitoSub, // Cognito SubをIDとして使用
 				Email:          email,
 				FirstName:      firstName,
 				LastName:       lastName,
