@@ -3,25 +3,44 @@
 ## .claude/commands の役割
 プロジェクトには以下の開発フローコマンドが定義されています：
 
-1. **investigate.md** - 調査フェーズ
-   - 問題の詳細分析
-   - 関連コードの特定
-   - 解決策の検討
+### 開発系コマンド
+1. **new-feature-investigate** - 新機能の調査・分析
+2. **new-feature-plan** - 新機能の設計・計画
+3. **new-feature-implement** - 新機能の実装
+4. **bug-investigate** - バグの調査
+5. **bug-fix** - バグの修正実装
+6. **refactor-analyze** - リファクタリング分析
+7. **refactor-plan** - リファクタリング計画
+8. **refactor-implement** - リファクタリング実装
+9. **root-cause-analysis** - 根本原因分析
+10. **feature-removal** / **feature-removal-v2** - 機能削除
+11. **implementation-proposal** - 実装提案
+12. **db-optimization** - データベース最適化
 
-2. **plan.md** - 計画フェーズ
-   - 実装計画の作成
-   - タスク分割
-   - 技術的判断の記録
+### テスト系コマンド
+- **test** - テストの実装・実行
 
-3. **implement.md** - 実装フェーズ
-   - 計画に基づく実装
-   - 段階的なコミット
-   - Draft PR の作成・更新
+### ドキュメント系コマンド
+- **docs-audit** - ドキュメント監査
+- **docs-update** - ドキュメント更新
+- **docs-cleanup** - ドキュメント削除
+- **docs-organize** - ドキュメント整理
+- **docs-consolidate** - ドキュメント統合
 
-4. **test.md** - テストフェーズ
-   - テストの実行
-   - 品質チェック
-   - 問題の修正
+### 品質管理系コマンド
+- **quality-audit** - 品質監査
+- **quality-improve** - 品質改善
+
+## コマンド実行の厳格なルール
+
+1. **各コマンドは単一責任を厳守**
+   - `investigate`系: 調査・分析のみ（修正は行わない）
+   - `fix`系: 修正実装のみ（新たな調査は行わない）
+   - `plan`系: 設計・計画のみ（実装は行わない）
+
+2. **コマンド終了時の必須アクション**
+   - 各コマンドの「最終出力形式」に従ってステータスを報告
+   - 次のコマンドを明示的に提案またはユーザーに実行を依頼
 
 ## Serena での改善方法
 

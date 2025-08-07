@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS work_histories (
     technologies TEXT NOT NULL,
     team_size INT NOT NULL,
     role VARCHAR(255) NOT NULL,
+    duration_months INT,
     created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     deleted_at TIMESTAMP NULL,

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS leave_requests (
   user_id VARCHAR(36) NOT NULL,
   leave_type_id VARCHAR(36) NOT NULL,
   request_date DATE NOT NULL,
-  is_hourly_based BOOLEAN NOT NULL,
+  is_hourly_based BOOLEAN NOT NULL DEFAULT FALSE,
   reason TEXT,
   total_days DECIMAL(5,1) NOT NULL,
   status VARCHAR(20) DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),

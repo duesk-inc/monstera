@@ -58,16 +58,25 @@ CREATE INDEX IF NOT EXISTS idx_expense_categories_active ON expense_categories(i
 CREATE TABLE IF NOT EXISTS expense_limits (
     id VARCHAR(36) PRIMARY KEY,
     limit_type expense_limit_type_enum NOT NULL,
+    limit_scope VARCHAR(20) NOT NULL DEFAULT 'company' CHECK (limit_scope IN ('company', 'department', 'user')),
     amount INT NOT NULL,
+    user_id VARCHAR(36) NULL,
+    department_id VARCHAR(36) NULL,
     effective_from TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     created_by VARCHAR(36) NOT NULL,
     created_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
-    CONSTRAINT fk_expense_limits_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT fk_expense_limits_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_expense_limits_user_id FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- インデックスの作成
 CREATE INDEX IF NOT EXISTS idx_expense_limits_type_date ON expense_limits(limit_type, effective_from);
+CREATE INDEX IF NOT EXISTS idx_expense_limits_user_id ON expense_limits(user_id);
+CREATE INDEX IF NOT EXISTS idx_expense_limits_department_id ON expense_limits(department_id);
+CREATE INDEX IF NOT EXISTS idx_expense_limits_scope_type_effective ON expense_limits(limit_scope, limit_type, effective_from);
+CREATE INDEX IF NOT EXISTS idx_expense_limits_user_type_effective ON expense_limits(user_id, limit_type, effective_from);
+CREATE INDEX IF NOT EXISTS idx_expense_limits_dept_type_effective ON expense_limits(department_id, limit_type, effective_from);
 
 -- 4. 集計テーブル
 CREATE TABLE IF NOT EXISTS expense_summaries (
@@ -78,6 +87,7 @@ CREATE TABLE IF NOT EXISTS expense_summaries (
     total_amount INT NOT NULL DEFAULT 0,
     approved_amount INT NOT NULL DEFAULT 0,
     pending_amount INT NOT NULL DEFAULT 0,
+    expense_count INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     CONSTRAINT uk_user_period UNIQUE (user_id, year, month),

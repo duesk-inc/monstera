@@ -6,19 +6,29 @@ SES企業向け社内業務管理システム
 - 企業の業務効率化を支援
 
 ## 技術スタック
-- **Frontend**: Next.js (TypeScript)
-  - React ベースのフレームワーク
+- **Frontend**: Next.js 15.3.2 (TypeScript)
+  - React 19 ベースのフレームワーク
   - TypeScript による型安全性
   - Jest/Playwright によるテスト
+  - Turbopack による開発
   
-- **Backend**: Go (Gin フレームワーク)
+- **Backend**: Go 1.23/1.24 (Gin フレームワーク)
   - RESTful API
   - Clean Architecture パターン
   - 階層構造: handler → service → repository
   
-- **Database**: PostgreSQL
-  - マイグレーション管理あり
+- **Database**: PostgreSQL 15
+  - マイグレーション管理あり (golang-migrate)
   - pgAdmin による管理
+  
+- **認証**: AWS Cognito
+  - JWT認証から完全移行済み
+  - HTTPOnly Cookie による認証
+  - ユーザーIDは文字列型 (Cognito Sub形式)
+  
+- **キャッシュ**: Redis 7
+  - セッション管理
+  - 頻繁にアクセスされるデータのキャッシュ
   
 - **Infrastructure**: Docker Compose
   - 開発環境の統一
