@@ -14,7 +14,6 @@ BEGIN
         id, 
         cognito_sub, 
         email, 
-        password,  -- Cognito認証のためダミー値
         first_name, 
         last_name, 
         phone_number,
@@ -26,7 +25,6 @@ BEGIN
         test_user_id,
         test_user_id, 
         'engineer_test@duesk.co.jp',
-        'cognito-auth-only',  -- Cognito認証のみ使用
         'Engineer',
         'Test',
         '',
@@ -41,7 +39,6 @@ BEGIN
         id, 
         cognito_sub, 
         email, 
-        password,
         first_name, 
         last_name, 
         phone_number,
@@ -53,7 +50,6 @@ BEGIN
         admin_user_id,
         admin_user_id,  -- 実際のCognito Subに置き換えてください
         'admin@duesk.co.jp',
-        'cognito-auth-only',
         'Admin',
         'User',
         '',
@@ -68,7 +64,6 @@ BEGIN
         id, 
         cognito_sub, 
         email, 
-        password,
         first_name, 
         last_name, 
         phone_number,
@@ -80,7 +75,6 @@ BEGIN
         user1_id,
         user1_id,  -- 実際のCognito Subに置き換えてください
         'tanaka.taro@duesk.co.jp',
-        'cognito-auth-only',
         'Taro',
         'Tanaka',
         '',
@@ -95,7 +89,6 @@ BEGIN
         id, 
         cognito_sub, 
         email, 
-        password,
         first_name, 
         last_name, 
         phone_number,
@@ -108,7 +101,6 @@ BEGIN
         user2_id,
         user2_id,  -- 実際のCognito Subに置き換えてください
         'sato.hanako@duesk.co.jp',
-        'cognito-auth-only',
         'Hanako',
         'Sato',
         '',
@@ -128,4 +120,4 @@ END $$;
 -- 注意事項:
 -- 1. 本番環境では従業員登録API (/api/v1/auth/register) を使用してください
 -- 2. 上記のユーザーIDは実際のCognito Subに置き換える必要があります
--- 3. パスワードフィールドは互換性のため残していますが、Cognito認証のみ使用されます
+-- 3. Cognito認証のみ使用されるため、パスワードフィールドは削除されました

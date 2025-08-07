@@ -1,4 +1,2 @@
--- virus_scan_logsÆüÖënJd
+-- virus_scan_logsãƒ†ãƒ¼ãƒ–ãƒ«ã‚’å‰Šé™¤
 DROP TABLE IF EXISTS virus_scan_logs CASCADE;
-
--- ¢#Y‹¤óÇÃ¯¹‚êÕ„kJdUŒ‹

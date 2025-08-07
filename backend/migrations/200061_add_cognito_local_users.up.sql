@@ -5,7 +5,6 @@
 INSERT INTO users (
     id, 
     email, 
-    password,
     cognito_sub, 
     first_name, 
     last_name, 
@@ -22,7 +21,6 @@ INSERT INTO users (
 ) VALUES (
     gen_random_uuid(),
     'admin@duesk.co.jp',
-    '$2a$10$adIxMrFe4jXQD7cFGfx4P.5vnd4iXuHBfrbNEQY0JrLE/2vHtHoUy', -- dummy password (Cognito auth only)
     '53b0f090-3c9c-4b60-b00b-242a911a40e1',
     'Admin',
     'User',
@@ -44,7 +42,6 @@ INSERT INTO users (
 INSERT INTO users (
     id, 
     email, 
-    password,
     cognito_sub, 
     first_name, 
     last_name, 
@@ -61,7 +58,6 @@ INSERT INTO users (
 ) VALUES (
     gen_random_uuid(),
     'engineer_test@duesk.co.jp',
-    '$2a$10$adIxMrFe4jXQD7cFGfx4P.5vnd4iXuHBfrbNEQY0JrLE/2vHtHoUy', -- dummy password (Cognito auth only)
     '3826c3d7-989d-4462-bedb-7dcb59b79d16',
     'Employee',
     'User',
