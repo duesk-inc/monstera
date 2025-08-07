@@ -16,12 +16,9 @@ services:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./docker/postgres/postgresql-development.conf:/etc/postgresql/postgresql.conf
-      - ./docker/postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf
       - ./docker/postgres/init:/docker-entrypoint-initdb.d
     networks:
       - monstera-network
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf -c hba_file=/etc/postgresql/pg_hba.conf
     healthcheck:
       test:
         [
