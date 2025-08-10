@@ -9,7 +9,7 @@ import (
 
 // RolePermission ロール権限管理モデル
 type RolePermission struct {
-	ID         uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID         string         `gorm:"type:varchar(255);primary_key" json:"id"`
 	Role       string         `gorm:"size:50;not null" json:"role"`
 	Permission string         `gorm:"size:100;not null" json:"permission"`
 	CreatedAt  time.Time      `json:"created_at"`
@@ -19,8 +19,8 @@ type RolePermission struct {
 
 // BeforeCreate UUIDを生成
 func (rp *RolePermission) BeforeCreate(tx *gorm.DB) error {
-	if rp.ID == uuid.Nil {
-		rp.ID = uuid.New()
+	if rp.ID == "" {
+		rp.ID = uuid.New().String()
 	}
 	return nil
 }

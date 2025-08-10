@@ -36,15 +36,15 @@ func NewHandlerUtil(logger *zap.Logger) *HandlerUtil {
 }
 
 // GetAuthenticatedUserID 認証済みユーザーのIDを取得する共通関数
-func (h *HandlerUtil) GetAuthenticatedUserID(c *gin.Context) (uuid.UUID, bool) {
+func (h *HandlerUtil) GetAuthenticatedUserID(c *gin.Context) (string, bool) {
 	// userutil.GetUserIDFromContextを利用
-	userUUID, ok := userutil.GetUserIDFromContext(c, h.Logger)
+	userID, ok := userutil.GetUserIDFromContext(c, h.Logger)
 	if !ok {
 		RespondError(c, http.StatusUnauthorized, message.MsgUnauthorized)
-		return uuid.UUID{}, false
+		return "", false
 	}
 
-	return userUUID, true
+	return userID, true
 }
 
 // ParseUUIDParam パスパラメータからUUIDを解析する

@@ -9,7 +9,7 @@ import (
 
 // Session セッション情報
 type Session struct {
-	ID           uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
+	ID           string         `gorm:"type:varchar(255);primary_key" json:"id"`
 	UserID string      `gorm:"type:varchar(255);not null;index" json:"user_id"`
 	RefreshToken string         `gorm:"type:text;not null;unique" json:"refresh_token"`
 	UserAgent    string         `gorm:"type:varchar(255)" json:"user_agent"`
@@ -26,8 +26,8 @@ type Session struct {
 
 // BeforeCreate UUIDを自動生成
 func (s *Session) BeforeCreate(tx *gorm.DB) error {
-	if s.ID == uuid.Nil {
-		s.ID = uuid.New()
+	if s.ID == "" {
+		s.ID = uuid.New().String()
 	}
 	if s.CreatedAt.IsZero() {
 		s.CreatedAt = time.Now()

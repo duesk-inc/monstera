@@ -49,8 +49,8 @@ const (
 
 // Project 案件管理モデル
 type Project struct {
-	ID              uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
-	ClientID        uuid.UUID      `gorm:"type:varchar(255);not null" json:"client_id"`
+	ID              string         `gorm:"type:varchar(255);primary_key" json:"id"`
+	ClientID        string         `gorm:"type:varchar(255);not null" json:"client_id"`
 	ProjectName     string         `gorm:"size:200;not null" json:"project_name"`
 	ProjectCode     string         `gorm:"size:50" json:"project_code"`
 	Status          ProjectStatus  `gorm:"size:50;default:'proposal'" json:"status"`
@@ -74,7 +74,7 @@ type Project struct {
 
 // Client 取引先管理モデル
 type Client struct {
-	ID              uuid.UUID   `gorm:"type:varchar(255);primary_key" json:"id"`
+	ID              string      `gorm:"type:varchar(255);primary_key" json:"id"`
 	CompanyName     string      `gorm:"size:200;not null" json:"company_name"`
 	CompanyNameKana string      `gorm:"size:200;not null" json:"company_name_kana"`
 	BillingType     BillingType `gorm:"size:50;default:'monthly'" json:"billing_type"`
@@ -120,8 +120,8 @@ const (
 
 // ProjectAssignment エンジニア案件アサインモデル
 type ProjectAssignment struct {
-	ID              uuid.UUID  `gorm:"type:varchar(255);primary_key" json:"id"`
-	ProjectID       uuid.UUID  `gorm:"type:varchar(255);not null" json:"project_id"`
+	ID              string     `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProjectID       string     `gorm:"type:varchar(255);not null" json:"project_id"`
 	UserID string  `gorm:"type:varchar(255);not null" json:"user_id"`
 	Role            string     `gorm:"size:100" json:"role"`
 	StartDate       time.Time  `gorm:"not null" json:"start_date"`
@@ -144,49 +144,10 @@ type ProjectAssignment struct {
 	User    User    `gorm:"foreignKey:UserID" json:"user,omitempty"`
 }
 
-// BeforeCreate UUIDを生成
+// BeforeCreate UUID生成
 func (p *Project) BeforeCreate(tx *gorm.DB) error {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
-	}
-	return nil
-}
-
-// BeforeCreate UUIDを生成
-func (c *Client) BeforeCreate(tx *gorm.DB) error {
-	if c.ID == uuid.Nil {
-		c.ID = uuid.New()
-	}
-	return nil
-}
-
-// GetBillingClosingDay 請求締日を取得（設定されていない場合は月末）
-func (c *Client) GetBillingClosingDay() int {
-	if c.BillingClosingDay == nil {
-		return 31 // 月末
-	}
-	return *c.BillingClosingDay
-}
-
-// IsFreeSynced freeと同期済みかチェック
-func (c *Client) IsFreeSynced() bool {
-	return c.FreeSyncStatus == FreeSyncStatusSynced
-}
-
-// ShouldSyncToFreee freeに同期が必要かチェック
-func (c *Client) ShouldSyncToFreee() bool {
-	return c.FreeSyncStatus == FreeSyncStatusNotSynced || c.FreeSyncStatus == FreeSyncStatusFailed
-}
-
-// HasFreeeClientID freeの取引先IDが設定されているかチェック
-func (c *Client) HasFreeeClientID() bool {
-	return c.FreeeClientID != nil && *c.FreeeClientID > 0
-}
-
-// BeforeCreate UUIDを生成
-func (pa *ProjectAssignment) BeforeCreate(tx *gorm.DB) error {
-	if pa.ID == uuid.Nil {
-		pa.ID = uuid.New()
+	if p.ID == "" {
+		p.ID = uuid.New().String()
 	}
 	return nil
 }

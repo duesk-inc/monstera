@@ -13,6 +13,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+
+	"fmt"
 )
 
 // AuditLogConfig 監査ログミドルウェア設定
@@ -85,24 +87,29 @@ func AuditLogMiddleware(auditService service.AuditLogService, logger *zap.Logger
 		duration := time.Since(start)
 
 		// ユーザー情報の取得
-		userID, exists := c.Get("user_id")
+		userIDInterface, exists := c.Get("user_id")
+		var userID string
 		if !exists {
 			// 未認証の場合でも重要なアクションは記録
 			if isImportantUnauthenticatedAction(c) {
 				// ログイン失敗の場合は未認証として記録
 				if c.Writer.Status() >= 400 {
-					userID = uuid.Nil
+					// システムユーザーのCognito Sub形式のID
+					userID = "system-00000000-0000-0000-0000-000000000000"
 				} else {
 					// ログイン成功の場合は再度ユーザーIDを取得
-					userID, exists = c.Get("user_id")
+					userIDInterface, exists = c.Get("user_id")
 					if !exists {
 						// まだ取得できない場合は監査ログ記録をスキップ
 						return
 					}
+					userID = userIDInterface.(string)
 				}
 			} else {
 				return
 			}
+		} else {
+			userID = userIDInterface.(string)
 		}
 
 		// アクションとリソースタイプの特定
@@ -119,7 +126,7 @@ func AuditLogMiddleware(auditService service.AuditLogService, logger *zap.Logger
 			if err := auditService.LogHTTPRequest(
 				ctx,
 				c,
-				userID.(uuid.UUID),
+				userID,
 				model.AuditActionType(action),
 				model.ResourceType(resourceType),
 				resourceID,

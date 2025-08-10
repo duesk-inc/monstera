@@ -12,7 +12,7 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	
 	"go.uber.org/zap"
 )
 

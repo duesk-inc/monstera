@@ -21,7 +21,7 @@ const (
 
 // TechnologyMaster 技術マスタ
 type TechnologyMaster struct {
-	ID          uuid.UUID    `gorm:"type:char(36);primaryKey" json:"id"`
+	ID          string       `gorm:"type:varchar(255);primaryKey" json:"id"`
 	Category    TechCategory `gorm:"type:enum('programming_languages','servers_databases','tools');not null" json:"category"`
 	Name        string       `gorm:"type:varchar(100);not null" json:"name"`
 	DisplayName string       `gorm:"type:varchar(100)" json:"display_name"`
@@ -41,8 +41,8 @@ func (TechnologyMaster) TableName() string {
 
 // BeforeCreate UUID自動生成
 func (t *TechnologyMaster) BeforeCreate(tx *gorm.DB) error {
-	if t.ID == uuid.Nil {
-		t.ID = uuid.New()
+	if t.ID == "" {
+		t.ID = uuid.New().String()
 	}
 	return nil
 }

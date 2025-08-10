@@ -9,12 +9,12 @@ import (
 
 // Department 部署モデル
 type Department struct {
-	ID        uuid.UUID  `gorm:"type:varchar(36);primary_key;default:(UUID())" json:"id"`
-	Name      string     `gorm:"type:varchar(100);not null" json:"name" validate:"required,max=100"`
-	ParentID  *uuid.UUID `gorm:"type:varchar(36)" json:"parent_id"`
-	ManagerID *uuid.UUID `gorm:"type:varchar(36)" json:"manager_id"`
-	SortOrder int        `gorm:"default:0" json:"sort_order"`
-	IsActive  bool       `gorm:"default:true" json:"is_active"`
+	ID        string  `gorm:"type:varchar(255);primary_key" json:"id"`
+	Name      string  `gorm:"type:varchar(100);not null" json:"name" validate:"required,max=100"`
+	ParentID  *string `gorm:"type:varchar(255)" json:"parent_id"`
+	ManagerID *string `gorm:"type:varchar(255)" json:"manager_id"` // Cognito Sub
+	SortOrder int     `gorm:"default:0" json:"sort_order"`
+	IsActive  bool    `gorm:"default:true" json:"is_active"`
 	CreatedAt time.Time  `gorm:"not null;default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time  `gorm:"not null;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"`
@@ -28,8 +28,8 @@ type Department struct {
 
 // BeforeCreate IDの自動生成
 func (d *Department) BeforeCreate(tx *gorm.DB) error {
-	if d.ID == uuid.Nil {
-		d.ID = uuid.New()
+	if d.ID == "" {
+		d.ID = uuid.New().String()
 	}
 	return nil
 }

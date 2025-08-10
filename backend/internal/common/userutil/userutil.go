@@ -8,23 +8,25 @@ import (
 
 // GetUserIDFromContext はGinコンテキストからユーザーIDを取得します
 // 取得に成功した場合はUUID型のユーザーIDと真を、失敗した場合は空のUUIDと偽を返します
-func GetUserIDFromContext(c *gin.Context, logger *zap.Logger) (uuid.UUID, bool) {
+// GetUserIDFromContext はGinコンテキストからユーザーIDを取得します
+// 取得に成功した場合はstring型のユーザーIDと真を、失敗した場合は空文字列と偽を返します
+func GetUserIDFromContext(c *gin.Context, logger *zap.Logger) (string, bool) {
 	// コンテキストからユーザーIDを取得
 	userIDValue, exists := c.Get("user_id")
 	if !exists {
 		if logger != nil {
 			logger.Error("ユーザーIDがコンテキストに存在しません")
 		}
-		return uuid.Nil, false
+		return "", false
 	}
 
-	// ユーザーIDをUUID型に変換
-	userID, ok := userIDValue.(uuid.UUID)
+	// ユーザーIDをstring型に変換
+	userID, ok := userIDValue.(string)
 	if !ok {
 		if logger != nil {
 			logger.Error("ユーザーIDの型が無効です", zap.Any("userID", userIDValue))
 		}
-		return uuid.Nil, false
+		return "", false
 	}
 
 	return userID, true

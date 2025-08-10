@@ -21,7 +21,7 @@ INSERT INTO users (
 ) VALUES (
     gen_random_uuid(),
     'admin@duesk.co.jp',
-    '53b0f090-3c9c-4b60-b00b-242a911a40e1',
+    'c754ea38-50c1-7073-43f0-680d98538caa',
     'Admin',
     'User',
     'Admin User',
@@ -58,7 +58,7 @@ INSERT INTO users (
 ) VALUES (
     gen_random_uuid(),
     'engineer_test@duesk.co.jp',
-    '17a40a68-a061-7028-e5a0-db2da1ee6e6d',
+    '37f4ba88-80e1-7053-57f9-84c245af87df',
     'Employee',
     'User',
     'Employee User',
