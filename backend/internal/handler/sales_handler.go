@@ -8,7 +8,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -59,23 +58,23 @@ func (h *salesHandler) GetSalesActivities(c *gin.Context) {
 
 	// 検索条件
 	if clientIDStr := c.Query("client_id"); clientIDStr != "" {
-		clientID, err := uuid.Parse(clientIDStr)
-		if err == nil {
-			req.ClientID = &clientID
+		// UUID validation removed after migration
+		if clientIDStr != "" {
+			req.ClientID = &clientIDStr
 		}
 	}
 
 	if projectIDStr := c.Query("project_id"); projectIDStr != "" {
-		projectID, err := uuid.Parse(projectIDStr)
-		if err == nil {
-			req.ProjectID = &projectID
+		// UUID validation removed after migration
+		if projectIDStr != "" {
+			req.ProjectID = &projectIDStr
 		}
 	}
 
 	if userIDStr := c.Query("user_id"); userIDStr != "" {
-		userID, err := uuid.Parse(userIDStr)
-		if err == nil {
-			req.UserID = &userID
+		// UUID validation removed after migration
+		if userIDStr != "" {
+			req.UserID = &userIDStr
 		}
 	}
 
@@ -243,9 +242,9 @@ func (h *salesHandler) GetSalesSummary(c *gin.Context) {
 	// リクエストパラメータを取得
 	var userID *string
 	if userIDStr := c.Query("user_id"); userIDStr != "" {
-		id, err := uuid.Parse(userIDStr)
-		if err == nil {
-			userID = &id
+		// UUID validation removed after migration
+		if userIDStr != "" {
+			userID = &userIDStr
 		}
 	}
 
@@ -281,9 +280,9 @@ func (h *salesHandler) GetSalesPipeline(c *gin.Context) {
 	// リクエストパラメータを取得
 	var userID *string
 	if userIDStr := c.Query("user_id"); userIDStr != "" {
-		id, err := uuid.Parse(userIDStr)
-		if err == nil {
-			userID = &id
+		// UUID validation removed after migration
+		if userIDStr != "" {
+			userID = &userIDStr
 		}
 	}
 

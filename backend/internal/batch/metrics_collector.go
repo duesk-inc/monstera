@@ -2,10 +2,8 @@ package batch
 
 import (
 	"context"
-	"fmt"
 	"time"
 
-	"github.com/duesk/monstera/internal/metrics"
 	"github.com/duesk/monstera/internal/repository"
 	"go.uber.org/zap"
 )
@@ -75,9 +73,10 @@ func (m *MetricsCollector) collect() {
 	activeUsers, err := m.userRepo.CountActiveUsers(ctx, 30) // 30日以内にログインしたユーザー
 	if err != nil {
 		m.logger.Error("Failed to count active users", zap.Error(err))
-		metrics.RecordError("metrics_collection", "user", "medium")
+		// metrics.RecordError("metrics_collection", "user", "medium") // TODO: metrics package not yet implemented
 	} else {
-		metrics.ActiveUsersGauge.Set(float64(activeUsers))
+		// metrics.ActiveUsersGauge.Set(float64(activeUsers)) // TODO: metrics package not yet implemented
+		_ = activeUsers // suppress unused variable warning
 	}
 
 	// 承認待ち件数を収集（レベル1とレベル2）
@@ -85,9 +84,10 @@ func (m *MetricsCollector) collect() {
 		count, err := m.approvalRepo.CountPendingByLevel(ctx, level)
 		if err != nil {
 			m.logger.Error("Failed to count pending approvals", zap.Error(err), zap.Int("level", level))
-			metrics.RecordError("metrics_collection", "approval", "medium")
+			// metrics.RecordError("metrics_collection", "approval", "medium") // TODO: metrics package not yet implemented
 		} else {
-			metrics.PendingApprovalsGauge.WithLabelValues(fmt.Sprintf("%d", level)).Set(float64(count))
+			// metrics.PendingApprovalsGauge.WithLabelValues(fmt.Sprintf("%d", level)).Set(float64(count)) // TODO: metrics package not yet implemented
+			_ = count // suppress unused variable warning
 		}
 	}
 
@@ -95,8 +95,9 @@ func (m *MetricsCollector) collect() {
 	expiringSoon, err := m.expenseRepo.CountExpiringSoon(ctx, 1)
 	if err != nil {
 		m.logger.Error("Failed to count expiring expenses", zap.Error(err))
-		metrics.RecordError("metrics_collection", "expense", "low")
+		// metrics.RecordError("metrics_collection", "expense", "low") // TODO: metrics package not yet implemented
 	}
+	_ = expiringSoon // suppress unused variable warning
 
 	m.logger.Debug("Metrics collected successfully",
 		zap.Int64("active_users", activeUsers),

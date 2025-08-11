@@ -173,7 +173,7 @@ func (h *ProjectGroupHandler) DeleteProjectGroup(c *gin.Context) {
 		return
 	}
 
-	err = h.projectGroupService.DeleteProjectGroup(c.Request.Context(), groupID)
+	err := h.projectGroupService.DeleteProjectGroup(c.Request.Context(), groupID)
 	if err != nil {
 		h.logger.Error("Failed to delete project group", zap.Error(err))
 		utils.RespondError(c, http.StatusInternalServerError, "プロジェクトグループの削除に失敗しました")
@@ -283,7 +283,7 @@ func (h *ProjectGroupHandler) AddProjectsToGroup(c *gin.Context) {
 	}
 
 	// プロジェクトを追加
-	err = h.projectGroupService.AddProjectsToGroup(c.Request.Context(), groupID, req.ProjectIDs)
+	err := h.projectGroupService.AddProjectsToGroup(c.Request.Context(), groupID, req.ProjectIDs)
 	if err != nil {
 		h.logger.Error("Failed to add projects to group", zap.Error(err))
 		utils.RespondError(c, http.StatusInternalServerError, "プロジェクトの追加")
@@ -336,7 +336,7 @@ func (h *ProjectGroupHandler) RemoveProjectsFromGroup(c *gin.Context) {
 	}
 
 	// プロジェクトを削除
-	err = h.projectGroupService.RemoveProjectsFromGroup(c.Request.Context(), groupID, req.ProjectIDs)
+	err := h.projectGroupService.RemoveProjectsFromGroup(c.Request.Context(), groupID, req.ProjectIDs)
 	if err != nil {
 		h.logger.Error("Failed to remove projects from group", zap.Error(err))
 		utils.RespondError(c, http.StatusInternalServerError, "プロジェクトの削除")

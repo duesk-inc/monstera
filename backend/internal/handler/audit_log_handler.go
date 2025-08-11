@@ -10,7 +10,6 @@ import (
 	"github.com/duesk/monstera/internal/service"
 	"github.com/duesk/monstera/internal/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -79,8 +78,9 @@ func (h *AuditLogHandler) GetAuditLogs(c *gin.Context) {
 
 	// UserIDの変換
 	if req.UserID != nil {
-		if userID, err := uuid.Parse(*req.UserID); err == nil {
-			filters.UserID = &userID
+		// UUID validation removed after migration
+		if *req.UserID != "" {
+			filters.UserID = req.UserID
 		} else {
 			utils.RespondError(c, http.StatusBadRequest, "ユーザーIDの形式が不正です")
 			return

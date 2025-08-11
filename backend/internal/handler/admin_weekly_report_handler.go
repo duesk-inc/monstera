@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"time"
@@ -467,7 +468,7 @@ func (h *adminWeeklyReportHandler) GetExportJobStatus(c *gin.Context) {
 	jobID := jobIDStr
 	// UUID validation removed after migration
 	if jobID == "" {
-		HandleError(c, http.StatusBadRequest, "不正なジョブIDです", h.Logger, err)
+		HandleError(c, http.StatusBadRequest, "不正なジョブIDです", h.Logger, fmt.Errorf("empty job ID"))
 		return
 	}
 

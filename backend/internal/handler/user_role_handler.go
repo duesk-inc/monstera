@@ -144,7 +144,7 @@ func (h *UserRoleHandler) GetRoles(c *gin.Context) {
 	// 文字列配列に変換
 	roleStrings := make([]string, len(roles))
 	for i, role := range roles {
-		roleStrings[i] = role
+		roleStrings[i] = role.String()
 	}
 
 	c.JSON(http.StatusOK, gin.H{

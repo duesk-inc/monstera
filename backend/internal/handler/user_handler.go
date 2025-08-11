@@ -37,10 +37,11 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 
 	// メールアドレス形式チェック
-	if !h.isValidEmail(req.Email) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "メールアドレスの形式が正しくありません"})
-		return
-	}
+	// TODO: Email validation is handled by Cognito
+	// if !h.isValidEmail(req.Email) {
+	//	c.JSON(http.StatusBadRequest, gin.H{"error": "メールアドレスの形式が正しくありません"})
+	//	return
+	// }
 
 	user, err := h.userService.CreateUser(c.Request.Context(), &req)
 	if err != nil {

@@ -226,7 +226,7 @@ func RegisterAccountingHealthCheck(
 		}
 
 		// freeeサービスのチェック（ダミーユーザーIDで確認）
-		dummyUserID := uuid.New()
+		dummyUserID := uuid.New().String()
 		if _, err := freeeService.GetConnectionStatus(ctx, dummyUserID); err != nil {
 			// 接続がないのは正常なので、エラーの種類を確認
 			if err.Error() != "freee settings not found" {

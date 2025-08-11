@@ -16,7 +16,6 @@ import (
 	"github.com/duesk/monstera/internal/utils"
 	"github.com/duesk/monstera/pkg/debug"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -74,7 +73,7 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 			userRoleStr = v
 		case *model.Role:
 			if v != nil {
-				userRoleStr = v
+				userRoleStr = v.String()
 			} else {
 				userRoleStr = "unknown"
 			}
@@ -94,7 +93,7 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 		},
 		debug.RequestDebugData{
 			Method:   c.Request.Method,
-			URL:      c.Request.URL,
+			URL:      c.Request.URL.String(),
 			RawBody:  string(bodyBytes),
 			UserID:   userUUID,
 			UserRole: userRoleStr,
@@ -210,7 +209,7 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 	// デバッグ: レポートのステータスを確認
 	h.logger.Debug("Weekly report created",
 		zap.String("report_id", report.ID),
-		zap.String("status", report.Status),
+		zap.String("status", string(report.Status)),
 		zap.Any("status_type", fmt.Sprintf("%T", report.Status)))
 
 	// デバッグログ: レスポンス送信
@@ -294,7 +293,7 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			userRoleStr = v
 		case *model.Role:
 			if v != nil {
-				userRoleStr = v
+				userRoleStr = v.String()
 			} else {
 				userRoleStr = "unknown"
 			}
@@ -314,7 +313,7 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 		},
 		debug.RequestDebugData{
 			Method:     c.Request.Method,
-			URL:        c.Request.URL,
+			URL:        c.Request.URL.String(),
 			RawBody:    string(bodyBytes),
 			UserID:     userUUID,
 			UserRole:   userRoleStr,
@@ -603,8 +602,9 @@ func (h *WeeklyReportHandler) List(c *gin.Context) {
 		filters.UserID = userUUID
 	} else if userIDStr := c.Query("user_id"); userIDStr != "" {
 		// 管理者やマネージャーは特定ユーザーの週報をフィルタリング可能
-		if id, err := uuid.Parse(userIDStr); err == nil {
-			filters.UserID = id
+		// UUID validation removed after migration
+		if userIDStr != "" {
+			filters.UserID = userIDStr
 		}
 	}
 
@@ -620,7 +620,7 @@ func (h *WeeklyReportHandler) List(c *gin.Context) {
 		h.logger.Debug("Report status check",
 			zap.Int("index", i),
 			zap.String("report_id", report.ID),
-			zap.String("status", report.Status),
+			zap.String("status", string(report.Status)),
 			zap.Any("status_type", fmt.Sprintf("%T", report.Status)),
 			zap.Int("status_length", len(report.Status)),
 			zap.String("status_quoted", fmt.Sprintf("%q", report.Status)))
@@ -642,7 +642,7 @@ func (h *WeeklyReportHandler) List(c *gin.Context) {
 			UserID:                   report.UserID,
 			StartDate:                report.StartDate,
 			EndDate:                  report.EndDate,
-			Status:                   report.Status,
+			Status:                   string(report.Status),
 			WeeklyRemarks:            report.WeeklyRemarks,
 			WorkplaceName:            report.WorkplaceName,
 			WorkplaceHours:           report.WorkplaceHours,
@@ -904,9 +904,8 @@ func (h *WeeklyReportHandler) SaveAsDraft(c *gin.Context) {
 
 	// リクエストIDが指定されている場合は既存レコードのIDを設定
 	if req.ID != "" {
-		if id, err := uuid.Parse(req.ID); err == nil {
-			report.ID = id
-		}
+		// UUID validation removed after migration
+		report.ID = req.ID
 	}
 
 	// 日次勤怠記録を変換
@@ -974,9 +973,8 @@ func (h *WeeklyReportHandler) SaveAndSubmit(c *gin.Context) {
 
 	// リクエストIDが指定されている場合は既存レコードのIDを設定
 	if req.ID != "" {
-		if id, err := uuid.Parse(req.ID); err == nil {
-			report.ID = id
-		}
+		// UUID validation removed after migration
+		report.ID = req.ID
 	}
 
 	// 提出日時を設定
@@ -1016,7 +1014,7 @@ func (h *WeeklyReportHandler) createReportResponse(report *model.WeeklyReport) *
 	// デバッグログ: 変換前のステータス値を確認
 	h.logger.Debug("Creating report response",
 		zap.String("report_id", report.ID),
-		zap.String("status", report.Status),
+		zap.String("status", string(report.Status)),
 		zap.Any("status_type", fmt.Sprintf("%T", report.Status)),
 		zap.Int("status_length", len(report.Status)),
 		zap.String("status_quoted", fmt.Sprintf("%q", report.Status)))
@@ -1026,7 +1024,7 @@ func (h *WeeklyReportHandler) createReportResponse(report *model.WeeklyReport) *
 		UserID:                   report.UserID,
 		StartDate:                report.StartDate,
 		EndDate:                  report.EndDate,
-		Status:                   report.Status, // WeeklyReportStatusEnumのString()メソッドを使用
+		Status:                   string(report.Status), // WeeklyReportStatusEnumのString()メソッドを使用
 		WeeklyRemarks:            report.WeeklyRemarks,
 		WorkplaceName:            report.WorkplaceName,
 		WorkplaceHours:           report.WorkplaceHours,

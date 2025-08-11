@@ -68,7 +68,7 @@ func (nr *NotificationRoutes) SetupRoutes(router *gin.Engine) {
 		// 管理者またはマネージャー権限をチェック
 		if user.Role != model.RoleSuperAdmin && user.Role != model.RoleAdmin && user.Role != model.RoleManager {
 			nr.logger.Warn("権限なしでのアクセス試行",
-				zap.String("user_id", user.ID.String()),
+				zap.String("user_id", user.ID),
 				zap.Int("role", int(user.Role)),
 			)
 			c.JSON(http.StatusForbidden, gin.H{"error": "管理者またはマネージャー権限が必要です"})

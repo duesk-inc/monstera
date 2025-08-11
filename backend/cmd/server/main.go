@@ -122,7 +122,8 @@ func main() {
 	// スキルシートリポジトリを追加
 	skillSheetRepo := internalRepo.NewSkillSheetRepository(commonBaseRepo)
 	// セッションリポジトリを追加
-	sessionRepo := internalRepo.NewSessionRepository(db, logger)
+	// TODO: SessionRepository implementation is pending
+	// sessionRepo := internalRepo.NewSessionRepository(db, logger)
 	// 休暇申請管理用リポジトリを追加
 	leaveRequestRepo := internalRepo.NewLeaveRequestRepository(db, logger)
 	// leaveAdminRepo := internalRepo.NewLeaveRequestAdminRepository(db, logger) // TODO: 実装予定
@@ -166,7 +167,7 @@ func main() {
 			cfg,
 			db,
 			userRepo,
-			sessionRepo,
+			nil, // TODO: pass sessionRepo when SessionRepository is implemented
 			logger,
 		)
 		if err != nil {
@@ -471,8 +472,11 @@ func main() {
 		for {
 			select {
 			case <-ticker.C:
-				ctx := context.Background()
-				deletedCount, err := sessionRepo.DeleteExpiredSessions(ctx)
+				// ctx := context.Background() // TODO: uncomment when SessionRepository is implemented
+				// TODO: uncomment when SessionRepository is implemented
+				// deletedCount, err := sessionRepo.DeleteExpiredSessions(ctx)
+				deletedCount := 0
+				var err error
 				if err != nil {
 					logger.Error("Failed to delete expired sessions", zap.Error(err))
 				} else if deletedCount > 0 {
@@ -818,7 +822,7 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 			// 管理者またはマネージャー権限をチェック
 			if user.Role != model.RoleSuperAdmin && user.Role != model.RoleAdmin && user.Role != model.RoleManager {
 				logger.Warn("権限なしでのアクセス試行",
-					zap.String("user_id", user.ID.String()),
+					zap.String("user_id", user.ID),
 					zap.Int("role", int(user.Role)),
 				)
 				c.JSON(http.StatusForbidden, gin.H{"error": "管理者またはマネージャー権限が必要です"})

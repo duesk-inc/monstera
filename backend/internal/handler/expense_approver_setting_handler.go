@@ -129,7 +129,7 @@ func (h *ExpenseApproverSettingHandler) UpdateApproverSetting(c *gin.Context) {
 	settingID := settingIDStr
 	// UUID validation removed after migration
 	if settingID == "" {
-		h.logger.Error("Invalid setting ID", zap.Error(err))
+		h.logger.Error("Invalid setting ID", zap.String("id", settingIDStr))
 		utils.RespondError(c, http.StatusBadRequest, "設定IDが不正です")
 		return
 	}
@@ -184,7 +184,7 @@ func (h *ExpenseApproverSettingHandler) DeleteApproverSetting(c *gin.Context) {
 	settingID := settingIDStr
 	// UUID validation removed after migration
 	if settingID == "" {
-		h.logger.Error("Invalid setting ID", zap.Error(err))
+		h.logger.Error("Invalid setting ID", zap.String("id", settingIDStr))
 		utils.RespondError(c, http.StatusBadRequest, "設定IDが不正です")
 		return
 	}
@@ -244,7 +244,7 @@ func (h *ExpenseApproverSettingHandler) GetApproverSettingHistories(c *gin.Conte
 		settingID := settingIDStr
 		// UUID validation removed after migration
 		if settingID == "" {
-			h.logger.Error("Invalid setting ID", zap.Error(err))
+			h.logger.Error("Invalid setting ID", zap.String("id", settingIDStr))
 			utils.RespondError(c, http.StatusBadRequest, "設定IDが不正です")
 			return
 		}

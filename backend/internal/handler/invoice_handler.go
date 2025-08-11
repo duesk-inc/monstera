@@ -8,7 +8,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -58,9 +57,9 @@ func (h *invoiceHandler) GetInvoices(c *gin.Context) {
 
 	// 検索条件
 	if clientIDStr := c.Query("client_id"); clientIDStr != "" {
-		clientID, err := uuid.Parse(clientIDStr)
-		if err == nil {
-			req.ClientID = &clientID
+		// UUID validation removed after migration
+		if clientIDStr != "" {
+			req.ClientID = &clientIDStr
 		}
 	}
 
@@ -265,9 +264,9 @@ func (h *invoiceHandler) GetInvoiceSummary(c *gin.Context) {
 	// リクエストパラメータを取得
 	var clientID *string
 	if clientIDStr := c.Query("client_id"); clientIDStr != "" {
-		id, err := uuid.Parse(clientIDStr)
-		if err == nil {
-			clientID = &id
+		// UUID validation removed after migration
+		if clientIDStr != "" {
+			clientID = &clientIDStr
 		}
 	}
 

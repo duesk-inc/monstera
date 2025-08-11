@@ -10,7 +10,6 @@ import (
 	"github.com/duesk/monstera/internal/service"
 	"github.com/duesk/monstera/pkg/debug"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 

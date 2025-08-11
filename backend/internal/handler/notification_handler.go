@@ -214,7 +214,7 @@ func (h *notificationHandler) MarkAsRead(c *gin.Context) {
 		id := idStr
 		// UUID validation removed after migration
 		if id == "" {
-			h.respondError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidNotificationID, idStr), err)
+			h.respondError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidNotificationID, idStr), fmt.Errorf("invalid notification ID: %s", idStr))
 			return
 		}
 		notificationIDs = append(notificationIDs, id)
@@ -257,12 +257,12 @@ func (h *notificationHandler) MarkAsReadSingle(c *gin.Context) {
 	notificationID := notificationIDStr
 	// UUID validation removed after migration
 	if notificationID == "" {
-		h.respondError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidNotificationID, notificationIDStr), err)
+		h.respondError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidNotificationID, notificationIDStr), fmt.Errorf("invalid notification ID: %s", notificationIDStr))
 		return
 	}
 
 	// サービス呼び出し
-	err = h.notificationService.MarkAsRead(c.Request.Context(), userID, notificationID)
+	err := h.notificationService.MarkAsRead(c.Request.Context(), userID, notificationID)
 	if err != nil {
 		h.respondError(c, http.StatusInternalServerError, message.MsgNotificationMarkReadError, err)
 		return
@@ -345,15 +345,15 @@ func (h *notificationHandler) CreateNotification(c *gin.Context) {
 		userID := userIDStr
 		// UUID validation removed after migration
 		if userID == "" {
-			h.respondError(c, http.StatusBadRequest, "Invalid user ID format", err)
+			h.respondError(c, http.StatusBadRequest, "Invalid user ID format", fmt.Errorf("invalid user ID: %s", userIDStr))
 			return
 		}
 
 		var referenceID *string
 		if request.ReferenceID != nil {
-			refUUID, err := uuid.Parse(*request.ReferenceID)
-			if err == nil {
-				referenceID = &refUUID
+			// UUID validation removed after migration
+			if *request.ReferenceID != "" {
+				referenceID = request.ReferenceID
 			}
 		}
 
@@ -582,7 +582,7 @@ func (h *notificationHandler) UpdateNotification(c *gin.Context) {
 	}
 
 	// 通知を更新
-	err = h.notificationService.UpdateAdvancedNotification(c.Request.Context(), notificationUUID, &req)
+	err := h.notificationService.UpdateAdvancedNotification(c.Request.Context(), notificationUUID, &req)
 	if err != nil {
 		h.errorHandler.HandleInternalError(c, err, "notification_update")
 		return
@@ -715,8 +715,12 @@ func (h *notificationHandler) SendWeeklyReportReminder(c *gin.Context) {
 		return
 	}
 
+	recipientID := ""
+	if req.RecipientID != nil {
+		recipientID = *req.RecipientID
+	}
 	h.logger.Info("Weekly report reminder sent",
-		zap.String("recipient_id", req.RecipientID),
+		zap.String("recipient_id", recipientID),
 		zap.String("start_date", req.StartDate.Format("2006-01-02")),
 		zap.String("end_date", req.EndDate.Format("2006-01-02")),
 		zap.String("sent_by", h.getCurrentUserID(c)))

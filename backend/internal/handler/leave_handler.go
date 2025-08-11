@@ -303,7 +303,7 @@ func (h *leaveHandler) UpdateSubstituteLeaveGrant(c *gin.Context) {
 	id := idStr
 	// UUID validation removed after migration
 	if id == "" {
-		h.handleError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidIDFormat, idStr), err, "id", idStr)
+		h.handleError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidIDFormat, idStr), fmt.Errorf("invalid ID format: %s", idStr), "id", idStr)
 		return
 	}
 
@@ -349,7 +349,7 @@ func (h *leaveHandler) DeleteSubstituteLeaveGrant(c *gin.Context) {
 	id := idStr
 	// UUID validation removed after migration
 	if id == "" {
-		h.handleError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidIDFormat, idStr), err, "id", idStr)
+		h.handleError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidIDFormat, idStr), fmt.Errorf("invalid ID format: %s", idStr), "id", idStr)
 		return
 	}
 

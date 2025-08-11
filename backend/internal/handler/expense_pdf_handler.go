@@ -6,7 +6,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -47,9 +46,11 @@ func NewExpensePDFHandler(
 // @Router /api/v1/expenses/{id}/pdf [get]
 func (h *expensePDFHandler) GenerateExpensePDF(c *gin.Context) {
 	// パスパラメータから経費申請IDを取得
-	expenseID, err := uuid.Parse(c.Param("id"))
-	if err != nil {
-		h.logger.Error("Invalid expense ID", zap.Error(err))
+	expenseIDStr := c.Param("id")
+	expenseID := expenseIDStr
+	// UUID validation removed after migration
+	if expenseID == "" {
+		h.logger.Error("Invalid expense ID", zap.String("id", expenseIDStr))
 		c.JSON(http.StatusBadRequest, dto.ErrorResponse{
 			Error: "無効な経費申請IDです",
 			Code:  "INVALID_EXPENSE_ID",

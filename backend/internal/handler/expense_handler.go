@@ -12,7 +12,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -1459,8 +1458,9 @@ func (h *ExpenseHandler) getQueryParam(c *gin.Context, key string) *string {
 
 func (h *ExpenseHandler) parseUUIDParam(c *gin.Context, key string) *string {
 	if value := c.Query(key); value != "" {
-		if id, err := uuid.Parse(value); err == nil {
-			return &id
+		// UUID validation removed after migration
+		if value != "" {
+			return &value
 		}
 	}
 	return nil

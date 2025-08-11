@@ -9,7 +9,6 @@ import (
 	"github.com/duesk/monstera/internal/service"
 	"github.com/duesk/monstera/internal/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -66,8 +65,9 @@ func (h *leaveAdminHandler) GetLeaveRequests(c *gin.Context) {
 
 	// 休暇種別フィルター
 	if leaveTypeIDStr := c.Query("leave_type_id"); leaveTypeIDStr != "" {
-		if leaveTypeID, err := uuid.Parse(leaveTypeIDStr); err == nil {
-			filters.LeaveTypeID = &leaveTypeID
+		// UUID validation removed after migration
+		if leaveTypeIDStr != "" {
+			filters.LeaveTypeID = &leaveTypeIDStr
 		}
 	}
 
@@ -242,8 +242,9 @@ func (h *leaveAdminHandler) GetLeaveStatistics(c *gin.Context) {
 
 	// 休暇種別フィルター
 	if leaveTypeIDStr := c.Query("leave_type_id"); leaveTypeIDStr != "" {
-		if leaveTypeID, err := uuid.Parse(leaveTypeIDStr); err == nil {
-			filters.LeaveTypeID = &leaveTypeID
+		// UUID validation removed after migration
+		if leaveTypeIDStr != "" {
+			filters.LeaveTypeID = &leaveTypeIDStr
 		}
 	}
 

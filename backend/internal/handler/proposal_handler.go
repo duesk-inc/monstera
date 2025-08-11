@@ -209,7 +209,7 @@ func (h *proposalHandler) UpdateProposalStatus(c *gin.Context) {
 	}
 
 	// サービス呼び出し
-	err = h.proposalService.UpdateProposalStatus(ctx, proposalID, userID, &req)
+	err := h.proposalService.UpdateProposalStatus(ctx, proposalID, userID, &req)
 	if err != nil {
 		h.handleServiceError(c, err, "提案ステータスの更新に失敗しました")
 		return
@@ -361,7 +361,7 @@ func (h *proposalHandler) UpdateQuestion(c *gin.Context) {
 	}
 
 	// サービス呼び出し
-	err = h.proposalService.UpdateQuestion(ctx, questionID, userID, &req)
+	err := h.proposalService.UpdateQuestion(ctx, questionID, userID, &req)
 	if err != nil {
 		h.handleServiceError(c, err, "質問の更新に失敗しました")
 		return
@@ -404,7 +404,7 @@ func (h *proposalHandler) DeleteQuestion(c *gin.Context) {
 	}
 
 	// サービス呼び出し
-	err = h.proposalService.DeleteQuestion(ctx, questionID, userID)
+	err := h.proposalService.DeleteQuestion(ctx, questionID, userID)
 	if err != nil {
 		h.handleServiceError(c, err, "質問の削除に失敗しました")
 		return
@@ -456,7 +456,7 @@ func (h *proposalHandler) RespondToQuestion(c *gin.Context) {
 	}
 
 	// サービス呼び出し
-	err = h.proposalService.RespondToQuestion(ctx, questionID, userID, &req)
+	err := h.proposalService.RespondToQuestion(ctx, questionID, userID, &req)
 	if err != nil {
 		h.handleServiceError(c, err, "質問への回答に失敗しました")
 		return
@@ -555,7 +555,7 @@ func (h *proposalHandler) AssignQuestionToSales(c *gin.Context) {
 	}
 
 	// サービス呼び出し
-	err = h.proposalService.AssignQuestionToSales(ctx, questionID, userID, req.SalesUserID)
+	err := h.proposalService.AssignQuestionToSales(ctx, questionID, userID, req.SalesUserID)
 	if err != nil {
 		h.handleServiceError(c, err, "質問の割り当てに失敗しました")
 		return
