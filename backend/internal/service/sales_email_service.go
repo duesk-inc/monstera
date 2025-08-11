@@ -7,7 +7,6 @@ import (
 
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -282,7 +281,7 @@ func (s *salesEmailService) CreateEmailCampaign(ctx context.Context, req *Create
 
 	campaign := &model.EmailCampaign{
 		Name:         req.Name,
-		TemplateID:   uuid.MustParse(req.TemplateID),
+		TemplateID:   req.TemplateID,
 		ScheduledAt:  req.ScheduledAt,
 		TargetRole:   req.TargetRole,
 		TargetStatus: req.TargetStatus,
@@ -416,7 +415,7 @@ func (s *salesEmailService) SendCampaign(ctx context.Context, campaignID string)
 	}
 
 	// テンプレート取得
-	template, err := s.templateRepo.GetByID(ctx, campaign.TemplateID.String())
+	template, err := s.templateRepo.GetByID(ctx, campaign.TemplateID)
 	if err != nil {
 		return fmt.Errorf("テンプレートの取得に失敗しました: %w", err)
 	}

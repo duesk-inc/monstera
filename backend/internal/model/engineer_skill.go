@@ -9,12 +9,12 @@ import (
 
 // EngineerSkillCategory エンジニアスキルカテゴリ
 type EngineerSkillCategory struct {
-	ID        uuid.UUID  `gorm:"type:varchar(255);primaryKey" json:"id"`
-	Name      string     `gorm:"type:varchar(100);not null" json:"name"`
-	ParentID  *uuid.UUID `gorm:"type:varchar(255)" json:"parent_id"`
-	SortOrder int        `gorm:"type:int;default:0" json:"sort_order"`
-	CreatedAt time.Time  `gorm:"type:datetime(3);not null;default:CURRENT_TIMESTAMP(3)" json:"created_at"`
-	UpdatedAt time.Time  `gorm:"type:datetime(3);default:CURRENT_TIMESTAMP(3)" json:"updated_at"`
+	ID        string    `gorm:"type:varchar(255);primaryKey" json:"id"`
+	Name      string    `gorm:"type:varchar(100);not null" json:"name"`
+	ParentID  *string   `gorm:"type:varchar(255)" json:"parent_id"`
+	SortOrder int       `gorm:"type:int;default:0" json:"sort_order"`
+	CreatedAt time.Time `gorm:"type:datetime(3);not null;default:CURRENT_TIMESTAMP(3)" json:"created_at"`
+	UpdatedAt time.Time `gorm:"type:datetime(3);default:CURRENT_TIMESTAMP(3)" json:"updated_at"`
 
 	// Relations
 	Parent   *EngineerSkillCategory  `gorm:"foreignKey:ParentID" json:"parent,omitempty"`
@@ -29,17 +29,17 @@ func (EngineerSkillCategory) TableName() string {
 
 // BeforeCreate UUID自動生成
 func (e *EngineerSkillCategory) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // EngineerSkill エンジニアスキル
 type EngineerSkill struct {
-	ID              uuid.UUID `gorm:"type:varchar(255);primaryKey" json:"id"`
-	UserID string `gorm:"type:varchar(255);not null" json:"user_id"`
-	SkillCategoryID uuid.UUID `gorm:"type:varchar(255);not null" json:"skill_category_id"`
+	ID              string    `gorm:"type:varchar(255);primaryKey" json:"id"`
+	UserID          string    `gorm:"type:varchar(255);not null" json:"user_id"`
+	SkillCategoryID string    `gorm:"type:varchar(255);not null" json:"skill_category_id"`
 	SkillName       string    `gorm:"type:varchar(100);not null" json:"skill_name"`
 	SkillLevel      int       `gorm:"type:int;check:(skill_level >= 1 AND skill_level <= 5)" json:"skill_level"`
 	CreatedAt       time.Time `gorm:"type:datetime(3);not null;default:CURRENT_TIMESTAMP(3)" json:"created_at"`
@@ -57,8 +57,8 @@ func (EngineerSkill) TableName() string {
 
 // BeforeCreate UUID自動生成
 func (e *EngineerSkill) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -97,11 +97,11 @@ func IsValidSkillLevel(level int) bool {
 
 // 主要なスキルカテゴリID（初期データ用）
 var (
-	SkillCategoryFrontendID = uuid.MustParse("01234567-89ab-cdef-0123-456789abcde1")
-	SkillCategoryBackendID  = uuid.MustParse("01234567-89ab-cdef-0123-456789abcde2")
-	SkillCategoryInfraID    = uuid.MustParse("01234567-89ab-cdef-0123-456789abcde3")
-	SkillCategoryDatabaseID = uuid.MustParse("01234567-89ab-cdef-0123-456789abcde4")
-	SkillCategoryMobileID   = uuid.MustParse("01234567-89ab-cdef-0123-456789abcde5")
-	SkillCategoryDevOpsID   = uuid.MustParse("01234567-89ab-cdef-0123-456789abcde6")
-	SkillCategoryOtherID    = uuid.MustParse("01234567-89ab-cdef-0123-456789abcde7")
+	SkillCategoryFrontendID = "01234567-89ab-cdef-0123-456789abcde1"
+	SkillCategoryBackendID  = "01234567-89ab-cdef-0123-456789abcde2"
+	SkillCategoryInfraID    = "01234567-89ab-cdef-0123-456789abcde3"
+	SkillCategoryDatabaseID = "01234567-89ab-cdef-0123-456789abcde4"
+	SkillCategoryMobileID   = "01234567-89ab-cdef-0123-456789abcde5"
+	SkillCategoryDevOpsID   = "01234567-89ab-cdef-0123-456789abcde6"
+	SkillCategoryOtherID    = "01234567-89ab-cdef-0123-456789abcde7"
 )

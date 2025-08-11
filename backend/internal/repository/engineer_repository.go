@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -14,10 +13,10 @@ import (
 type EngineerRepository interface {
 	// エンジニア情報の基本CRUD
 	FindEngineers(ctx context.Context, filters EngineerFilters) ([]*model.User, int64, error)
-	FindEngineerByID(ctx context.Context, id uuid.UUID) (*model.User, error)
+	FindEngineerByID(ctx context.Context, id string) (*model.User, error)
 	CreateEngineer(ctx context.Context, user *model.User) error
 	UpdateEngineer(ctx context.Context, user *model.User) error
-	DeleteEngineer(ctx context.Context, id uuid.UUID) error
+	DeleteEngineer(ctx context.Context, id string) error
 
 	// ステータス履歴
 	CreateStatusHistory(ctx context.Context, history *model.EngineerStatusHistory) error
@@ -29,7 +28,7 @@ type EngineerRepository interface {
 
 	// プロジェクト履歴
 	FindProjectHistoryByUserID(ctx context.Context, userID string) ([]*model.EngineerProjectHistory, error)
-	UpdateProjectHistoryCurrent(ctx context.Context, userID string, projectID uuid.UUID) error
+	UpdateProjectHistoryCurrent(ctx context.Context, userID string, projectID string) error
 
 	// ユーティリティ
 	ExistsByEmail(ctx context.Context, email string) (bool, error)
@@ -177,7 +176,7 @@ func (r *engineerRepository) FindEngineers(ctx context.Context, filters Engineer
 }
 
 // FindEngineerByID IDでエンジニアを取得
-func (r *engineerRepository) FindEngineerByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
+func (r *engineerRepository) FindEngineerByID(ctx context.Context, id string) (*model.User, error) {
 	var user model.User
 
 	err := r.db.WithContext(ctx).
@@ -204,7 +203,7 @@ func (r *engineerRepository) UpdateEngineer(ctx context.Context, user *model.Use
 }
 
 // DeleteEngineer エンジニアを論理削除
-func (r *engineerRepository) DeleteEngineer(ctx context.Context, id uuid.UUID) error {
+func (r *engineerRepository) DeleteEngineer(ctx context.Context, id string) error {
 	return r.db.WithContext(ctx).Delete(&model.User{}, id).Error
 }
 
@@ -264,7 +263,7 @@ func (r *engineerRepository) FindProjectHistoryByUserID(ctx context.Context, use
 }
 
 // UpdateProjectHistoryCurrent 現在のプロジェクトを更新
-func (r *engineerRepository) UpdateProjectHistoryCurrent(ctx context.Context, userID string, projectID uuid.UUID) error {
+func (r *engineerRepository) UpdateProjectHistoryCurrent(ctx context.Context, userID string, projectID string) error {
 	// トランザクション内で実行
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// 既存の現在プロジェクトをクリア
@@ -275,7 +274,7 @@ func (r *engineerRepository) UpdateProjectHistoryCurrent(ctx context.Context, us
 		}
 
 		// 指定されたプロジェクトを現在に設定
-		if projectID != uuid.Nil {
+		if projectID != "" {
 			return tx.Model(&model.EngineerProjectHistory{}).
 				Where("user_id = ? AND project_id = ?", userID, projectID).
 				Update("is_current", true).Error

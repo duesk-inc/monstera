@@ -25,8 +25,8 @@ const (
 
 // Invoice 請求管理モデル
 type Invoice struct {
-	ID            uuid.UUID     `gorm:"type:varchar(36);primary_key" json:"id"`
-	ClientID      uuid.UUID     `gorm:"type:varchar(36);not null" json:"client_id"`
+	ID            string        `gorm:"type:varchar(36);primary_key" json:"id"`
+	ClientID      string        `gorm:"type:varchar(36);not null" json:"client_id"`
 	InvoiceNumber string        `gorm:"size:50;not null;unique" json:"invoice_number"`
 	InvoiceDate   time.Time     `gorm:"not null" json:"invoice_date"`
 	DueDate       time.Time     `gorm:"not null" json:"due_date"`
@@ -39,11 +39,11 @@ type Invoice struct {
 	PaidDate      *time.Time    `json:"paid_date"`
 	PaymentMethod string        `gorm:"size:50" json:"payment_method"`
 	Notes         string        `gorm:"type:text" json:"notes"`
-	CreatedBy     uuid.UUID     `gorm:"type:varchar(36)" json:"created_by"`
+	CreatedBy     string        `gorm:"type:varchar(36)" json:"created_by"`
 
 	// 経理機能拡張フィールド
 	FreeeInvoiceID *int           `json:"freee_invoice_id"`
-	ProjectGroupID *uuid.UUID     `gorm:"type:varchar(36)" json:"project_group_id"`
+	ProjectGroupID *string        `gorm:"type:varchar(36)" json:"project_group_id"`
 	FreeSyncStatus FreeSyncStatus `gorm:"type:enum('not_synced','synced','failed','pending');default:'not_synced'" json:"freee_sync_status"`
 	FreeSyncedAt   *time.Time     `json:"freee_synced_at"`
 
@@ -60,10 +60,10 @@ type Invoice struct {
 
 // InvoiceDetail 請求明細モデル
 type InvoiceDetail struct {
-	ID          uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
-	InvoiceID   uuid.UUID      `gorm:"type:varchar(36);not null" json:"invoice_id"`
-	ProjectID   *uuid.UUID     `gorm:"type:varchar(36)" json:"project_id"`
-	UserID      *string     `gorm:"type:varchar(255)" json:"user_id"`
+	ID          string         `gorm:"type:varchar(36);primary_key" json:"id"`
+	InvoiceID   string         `gorm:"type:varchar(36);not null" json:"invoice_id"`
+	ProjectID   *string        `gorm:"type:varchar(36)" json:"project_id"`
+	UserID      *string        `gorm:"type:varchar(255)" json:"user_id"`
 	Description string         `gorm:"size:255;not null" json:"description"`
 	Quantity    float64        `gorm:"type:decimal(10,2);default:1" json:"quantity"`
 	UnitPrice   float64        `gorm:"type:decimal(10,2);not null" json:"unit_price"`
@@ -81,8 +81,8 @@ type InvoiceDetail struct {
 
 // BeforeCreate UUIDを生成
 func (i *Invoice) BeforeCreate(tx *gorm.DB) error {
-	if i.ID == uuid.Nil {
-		i.ID = uuid.New()
+	if i.ID == "" {
+		i.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -138,8 +138,8 @@ func (i *Invoice) CanMarkAsPaid() bool {
 
 // BeforeCreate UUIDを生成
 func (id *InvoiceDetail) BeforeCreate(tx *gorm.DB) error {
-	if id.ID == uuid.Nil {
-		id.ID = uuid.New()
+	if id.ID == "" {
+		id.ID = uuid.New().String()
 	}
 	return nil
 }

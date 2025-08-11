@@ -2,11 +2,9 @@ package service
 
 import (
 	"context"
-	"time"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"time"
 )
 
 // WorkHistoryService 職務経歴サービスのインターフェース
@@ -32,7 +30,7 @@ func NewWorkHistoryService(db *gorm.DB, logger *zap.Logger) WorkHistoryService {
 
 // WorkHistoryData 職務経歴データ
 type WorkHistoryData struct {
-	UserID        uuid.UUID
+	UserID        string
 	Email         string
 	LastName      string
 	FirstName     string
@@ -51,7 +49,7 @@ type WorkHistoryData struct {
 
 // WorkHistoryItem 職務経歴項目
 type WorkHistoryItem struct {
-	ID                   uuid.UUID
+	ID                   string
 	ProjectName          string
 	StartDate            time.Time
 	EndDate              *time.Time

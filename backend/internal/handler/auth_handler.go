@@ -11,7 +11,6 @@ import (
 	"github.com/duesk/monstera/internal/service"
 	"github.com/duesk/monstera/internal/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -174,8 +173,8 @@ func (h *AuthHandler) Logout(c *gin.Context) {
 		RespondError(c, http.StatusUnauthorized, "ユーザー情報が見つかりません")
 		return
 	}
-	
-	userID, ok := userIDValue.(uuid.UUID)
+
+	userID, ok := userIDValue.(string)
 	if !ok {
 		RespondError(c, http.StatusInternalServerError, "ユーザーID形式が不正です")
 		return

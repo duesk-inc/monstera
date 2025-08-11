@@ -2,18 +2,16 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // SalesActivityDTO 営業活動DTO
 type SalesActivityDTO struct {
-	ID              uuid.UUID  `json:"id"`
-	ClientID        uuid.UUID  `json:"client_id"`
+	ID              string     `json:"id"`
+	ClientID        string     `json:"client_id"`
 	ClientName      string     `json:"client_name"`
-	ProjectID       *uuid.UUID `json:"project_id"`
+	ProjectID       *string    `json:"project_id"`
 	ProjectName     string     `json:"project_name,omitempty"`
-	UserID string  `json:"user_id"`
+	UserID          string     `json:"user_id"`
 	UserName        string     `json:"user_name"`
 	ActivityType    string     `json:"activity_type"`
 	ActivityDate    time.Time  `json:"activity_date"`
@@ -28,8 +26,8 @@ type SalesActivityDTO struct {
 
 // CreateSalesActivityRequest 営業活動作成リクエスト
 type CreateSalesActivityRequest struct {
-	ClientID        uuid.UUID  `json:"client_id" binding:"required"`
-	ProjectID       *uuid.UUID `json:"project_id"`
+	ClientID        string     `json:"client_id" binding:"required"`
+	ProjectID       *string    `json:"project_id"`
 	ActivityType    string     `json:"activity_type" binding:"required,oneof=visit call email meeting proposal contract other"`
 	ActivityDate    time.Time  `json:"activity_date" binding:"required"`
 	Title           string     `json:"title" binding:"required,max=200"`
@@ -52,9 +50,9 @@ type UpdateSalesActivityRequest struct {
 
 // SalesActivitySearchRequest 営業活動検索リクエスト
 type SalesActivitySearchRequest struct {
-	ClientID     *uuid.UUID `form:"client_id"`
-	ProjectID    *uuid.UUID `form:"project_id"`
-	UserID       *uuid.UUID `form:"user_id"`
+	ClientID     *string    `form:"client_id"`
+	ProjectID    *string    `form:"project_id"`
+	UserID       *string    `form:"user_id"`
 	ActivityType string     `form:"activity_type"`
 	Status       string     `form:"status"`
 	DateFrom     *time.Time `form:"date_from"`
@@ -65,8 +63,8 @@ type SalesActivitySearchRequest struct {
 
 // SalesPipelineDTO 営業パイプラインDTO
 type SalesPipelineDTO struct {
-	ID            uuid.UUID  `json:"id"`
-	ClientID      uuid.UUID  `json:"client_id"`
+	ID            string     `json:"id"`
+	ClientID      string     `json:"client_id"`
 	ClientName    string     `json:"client_name"`
 	ProjectName   string     `json:"project_name"`
 	Stage         string     `json:"stage"`
@@ -98,9 +96,9 @@ type PipelineStage struct {
 
 // ExtensionTargetDTO 契約延長確認対象DTO
 type ExtensionTargetDTO struct {
-	ProjectID     uuid.UUID  `json:"project_id"`
+	ProjectID     string     `json:"project_id"`
 	ProjectName   string     `json:"project_name"`
-	ClientID      uuid.UUID  `json:"client_id"`
+	ClientID      string     `json:"client_id"`
 	ClientName    string     `json:"client_name"`
 	EndDate       *time.Time `json:"end_date"`
 	DaysRemaining int        `json:"days_remaining"`
@@ -111,13 +109,13 @@ type ExtensionTargetDTO struct {
 
 // SalesTargetDTO 営業目標DTO
 type SalesTargetDTO struct {
-	ID               uuid.UUID `json:"id"`
-	UserID string `json:"user_id"`
-	UserName         string    `json:"user_name"`
-	TargetMonth      string    `json:"target_month"`
-	TargetAmount     float64   `json:"target_amount"`
-	AchievedAmount   float64   `json:"achieved_amount"`
-	AchievementRate  float64   `json:"achievement_rate"`
-	NewClients       int       `json:"new_clients"`
-	TargetNewClients int       `json:"target_new_clients"`
+	ID               string  `json:"id"`
+	UserID           string  `json:"user_id"`
+	UserName         string  `json:"user_name"`
+	TargetMonth      string  `json:"target_month"`
+	TargetAmount     float64 `json:"target_amount"`
+	AchievedAmount   float64 `json:"achieved_amount"`
+	AchievementRate  float64 `json:"achievement_rate"`
+	NewClients       int     `json:"new_clients"`
+	TargetNewClients int     `json:"target_new_clients"`
 }

@@ -22,7 +22,7 @@ type MockWorkHistoryEnhancedService struct {
 	mock.Mock
 }
 
-func (m *MockWorkHistoryEnhancedService) GetWorkHistory(ctx context.Context, userID uuid.UUID) (*dto.WorkHistoryListResponse, error) {
+func (m *MockWorkHistoryEnhancedService) GetWorkHistory(ctx context.Context, userID string) (*dto.WorkHistoryListResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -30,7 +30,7 @@ func (m *MockWorkHistoryEnhancedService) GetWorkHistory(ctx context.Context, use
 	return args.Get(0).(*dto.WorkHistoryListResponse), args.Error(1)
 }
 
-func (m *MockWorkHistoryEnhancedService) GetWorkHistoryByID(ctx context.Context, id uuid.UUID) (*dto.WorkHistoryEnhancedResponse, error) {
+func (m *MockWorkHistoryEnhancedService) GetWorkHistoryByID(ctx context.Context, id string) (*dto.WorkHistoryEnhancedResponse, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -38,7 +38,7 @@ func (m *MockWorkHistoryEnhancedService) GetWorkHistoryByID(ctx context.Context,
 	return args.Get(0).(*dto.WorkHistoryEnhancedResponse), args.Error(1)
 }
 
-func (m *MockWorkHistoryEnhancedService) CreateWorkHistory(ctx context.Context, userID uuid.UUID, req dto.WorkHistoryRequestV2) (*dto.WorkHistoryEnhancedResponse, error) {
+func (m *MockWorkHistoryEnhancedService) CreateWorkHistory(ctx context.Context, userID string, req dto.WorkHistoryRequestV2) (*dto.WorkHistoryEnhancedResponse, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -46,7 +46,7 @@ func (m *MockWorkHistoryEnhancedService) CreateWorkHistory(ctx context.Context, 
 	return args.Get(0).(*dto.WorkHistoryEnhancedResponse), args.Error(1)
 }
 
-func (m *MockWorkHistoryEnhancedService) UpdateWorkHistory(ctx context.Context, id uuid.UUID, req dto.WorkHistoryRequestV2) (*dto.WorkHistoryEnhancedResponse, error) {
+func (m *MockWorkHistoryEnhancedService) UpdateWorkHistory(ctx context.Context, id string, req dto.WorkHistoryRequestV2) (*dto.WorkHistoryEnhancedResponse, error) {
 	args := m.Called(ctx, id, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -54,12 +54,12 @@ func (m *MockWorkHistoryEnhancedService) UpdateWorkHistory(ctx context.Context, 
 	return args.Get(0).(*dto.WorkHistoryEnhancedResponse), args.Error(1)
 }
 
-func (m *MockWorkHistoryEnhancedService) DeleteWorkHistory(ctx context.Context, id uuid.UUID) error {
+func (m *MockWorkHistoryEnhancedService) DeleteWorkHistory(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockWorkHistoryEnhancedService) GetUserSummary(ctx context.Context, userID uuid.UUID) (*dto.WorkHistorySummaryResponse, error) {
+func (m *MockWorkHistoryEnhancedService) GetUserSummary(ctx context.Context, userID string) (*dto.WorkHistorySummaryResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -67,7 +67,7 @@ func (m *MockWorkHistoryEnhancedService) GetUserSummary(ctx context.Context, use
 	return args.Get(0).(*dto.WorkHistorySummaryResponse), args.Error(1)
 }
 
-func (m *MockWorkHistoryEnhancedService) GetUserTechnologySkills(ctx context.Context, userID uuid.UUID) ([]dto.TechnologySkillExperienceResponse, error) {
+func (m *MockWorkHistoryEnhancedService) GetUserTechnologySkills(ctx context.Context, userID string) ([]dto.TechnologySkillExperienceResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -83,7 +83,7 @@ func (m *MockWorkHistoryEnhancedService) SearchWorkHistories(ctx context.Context
 	return args.Get(0).(*dto.WorkHistoryListResponse), args.Error(1)
 }
 
-func (m *MockWorkHistoryEnhancedService) SaveTemporary(ctx context.Context, userID uuid.UUID, req dto.WorkHistoryTempSaveRequestV2) error {
+func (m *MockWorkHistoryEnhancedService) SaveTemporary(ctx context.Context, userID string, req dto.WorkHistoryTempSaveRequestV2) error {
 	args := m.Called(ctx, userID, req)
 	return args.Error(0)
 }
@@ -104,7 +104,7 @@ func (m *MockWorkHistoryEnhancedService) BulkUpdateWorkHistories(ctx context.Con
 	return args.Get(0).([]dto.WorkHistoryEnhancedResponse), args.Error(1)
 }
 
-func (m *MockWorkHistoryEnhancedService) CalculateITExperience(ctx context.Context, userID uuid.UUID) (*dto.ITExperienceResponse, error) {
+func (m *MockWorkHistoryEnhancedService) CalculateITExperience(ctx context.Context, userID string) (*dto.ITExperienceResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -141,7 +141,7 @@ func (m *MockTechnologySuggestionService) GetPopularByCategory(ctx context.Conte
 	return args.Get(0).([]dto.TechnologySuggestionResponse), args.Error(1)
 }
 
-func (m *MockTechnologySuggestionService) GetUserRecentTechnologies(ctx context.Context, userID uuid.UUID, limit int) ([]dto.TechnologySuggestionResponse, error) {
+func (m *MockTechnologySuggestionService) GetUserRecentTechnologies(ctx context.Context, userID string, limit int) ([]dto.TechnologySuggestionResponse, error) {
 	args := m.Called(ctx, userID, limit)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -194,24 +194,24 @@ func TestWorkHistoryHandler(t *testing.T) {
 	logger := zap.NewNop()
 	handler := NewWorkHistoryHandler(mockWorkHistoryService, mockTechService, logger)
 
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	t.Run("GetWorkHistory - 成功", func(t *testing.T) {
 		router := setupTestRouter()
 		router.GET("/api/v1/work-history", func(c *gin.Context) {
-			c.Set("userID", userID.String())
+			c.Set("userID", userID)
 			handler.GetWorkHistory(c)
 		})
 
 		response := &dto.WorkHistoryListResponse{
 			Summary: dto.WorkHistorySummaryResponse{
-				UserID:            userID.String(),
+				UserID:            userID,
 				TotalProjectCount: 3,
 			},
 			WorkHistories: []dto.WorkHistoryEnhancedResponse{
 				{
 					ID:          uuid.New().String(),
-					UserID:      userID.String(),
+					UserID:      userID,
 					ProjectName: "テストプロジェクト",
 				},
 			},
@@ -238,7 +238,7 @@ func TestWorkHistoryHandler(t *testing.T) {
 	t.Run("CreateWorkHistory - 成功", func(t *testing.T) {
 		router := setupTestRouter()
 		router.POST("/api/v1/work-history", func(c *gin.Context) {
-			c.Set("userID", userID.String())
+			c.Set("userID", userID)
 			handler.CreateWorkHistory(c)
 		})
 
@@ -251,7 +251,7 @@ func TestWorkHistoryHandler(t *testing.T) {
 
 		createdResponse := &dto.WorkHistoryEnhancedResponse{
 			ID:          uuid.New().String(),
-			UserID:      userID.String(),
+			UserID:      userID,
 			ProjectName: "新規プロジェクト",
 			StartDate:   "2023-01-01",
 			Role:        "SE",

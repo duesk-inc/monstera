@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -39,7 +38,7 @@ func (m *MockAuthService) Logout(ctx context.Context, refreshToken string) error
 }
 
 // GetUserByID ユーザーID取得のモック
-func (m *MockAuthService) GetUserByID(ctx context.Context, userID uuid.UUID) (*model.User, error) {
+func (m *MockAuthService) GetUserByID(ctx context.Context, userID string) (*model.User, error) {
 	args := m.Called(ctx, userID)
 	if user, ok := args.Get(0).(*model.User); ok {
 		return user, args.Error(1)

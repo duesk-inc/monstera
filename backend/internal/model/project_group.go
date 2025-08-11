@@ -9,11 +9,11 @@ import (
 
 // ProjectGroup プロジェクトグループモデル
 type ProjectGroup struct {
-	ID          uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID          string         `gorm:"type:varchar(36);primary_key" json:"id"`
 	GroupName   string         `gorm:"size:255;not null" json:"group_name"`
-	ClientID    uuid.UUID      `gorm:"type:varchar(36);not null" json:"client_id"`
+	ClientID    string         `gorm:"type:varchar(36);not null" json:"client_id"`
 	Description string         `gorm:"type:text" json:"description"`
-	CreatedBy   uuid.UUID      `gorm:"type:varchar(36);not null" json:"created_by"`
+	CreatedBy   string         `gorm:"type:varchar(36);not null" json:"created_by"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
@@ -28,17 +28,17 @@ type ProjectGroup struct {
 
 // BeforeCreate UUIDを生成
 func (pg *ProjectGroup) BeforeCreate(tx *gorm.DB) error {
-	if pg.ID == uuid.Nil {
-		pg.ID = uuid.New()
+	if pg.ID == "" {
+		pg.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // ProjectGroupMapping プロジェクトグループマッピングモデル
 type ProjectGroupMapping struct {
-	ID             uuid.UUID `gorm:"type:varchar(36);primary_key" json:"id"`
-	ProjectGroupID uuid.UUID `gorm:"type:varchar(36);not null" json:"project_group_id"`
-	ProjectID      uuid.UUID `gorm:"type:varchar(36);not null" json:"project_id"`
+	ID             string    `gorm:"type:varchar(36);primary_key" json:"id"`
+	ProjectGroupID string    `gorm:"type:varchar(36);not null" json:"project_group_id"`
+	ProjectID      string    `gorm:"type:varchar(36);not null" json:"project_id"`
 	CreatedAt      time.Time `json:"created_at"`
 
 	// リレーション
@@ -48,8 +48,8 @@ type ProjectGroupMapping struct {
 
 // BeforeCreate UUIDを生成
 func (pgm *ProjectGroupMapping) BeforeCreate(tx *gorm.DB) error {
-	if pgm.ID == uuid.Nil {
-		pgm.ID = uuid.New()
+	if pgm.ID == "" {
+		pgm.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -64,7 +64,7 @@ type ProjectGroupWithProjects struct {
 
 // ProjectGroupSummary プロジェクトグループサマリー
 type ProjectGroupSummary struct {
-	ID              uuid.UUID  `json:"id"`
+	ID              string     `json:"id"`
 	GroupName       string     `json:"group_name"`
 	ClientName      string     `json:"client_name"`
 	ProjectCount    int        `json:"project_count"`

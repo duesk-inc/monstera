@@ -3,8 +3,6 @@ package dto
 import (
 	"fmt"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // FreeeOAuthRequest freee OAuth認証リクエスト
@@ -228,9 +226,9 @@ type UpdateFreeeInvoiceRequest struct {
 
 // FreeeClientSyncRequest freee取引先同期リクエスト
 type FreeeClientSyncRequest struct {
-	ClientIDs []uuid.UUID `json:"client_ids" binding:"required,min=1"`
-	CompanyID int         `json:"company_id" binding:"required"`
-	SyncMode  string      `json:"sync_mode" binding:"oneof=create_only update_only create_update"` // create_only, update_only, create_update
+	ClientIDs []string `json:"client_ids" binding:"required,min=1"`
+	CompanyID int      `json:"company_id" binding:"required"`
+	SyncMode  string   `json:"sync_mode" binding:"oneof=create_only update_only create_update"` // create_only, update_only, create_update
 }
 
 // FreeeClientSyncResponse freee取引先同期レスポンス
@@ -245,21 +243,21 @@ type FreeeClientSyncResponse struct {
 
 // FreeeClientSyncResultDTO freee取引先同期結果DTO
 type FreeeClientSyncResultDTO struct {
-	ClientID       uuid.UUID `json:"client_id"`
-	ClientName     string    `json:"client_name"`
-	Status         string    `json:"status"`    // success, failed, skipped
-	Operation      string    `json:"operation"` // created, updated, skipped
-	FreeePartnerID *int      `json:"freee_partner_id,omitempty"`
-	Error          *string   `json:"error,omitempty"`
-	Details        *string   `json:"details,omitempty"`
+	ClientID       string  `json:"client_id"`
+	ClientName     string  `json:"client_name"`
+	Status         string  `json:"status"`    // success, failed, skipped
+	Operation      string  `json:"operation"` // created, updated, skipped
+	FreeePartnerID *int    `json:"freee_partner_id,omitempty"`
+	Error          *string `json:"error,omitempty"`
+	Details        *string `json:"details,omitempty"`
 }
 
 // FreeeInvoiceSyncRequest freee請求書同期リクエスト
 type FreeeInvoiceSyncRequest struct {
-	InvoiceIDs []uuid.UUID `json:"invoice_ids" binding:"required,min=1"`
-	CompanyID  int         `json:"company_id" binding:"required"`
-	SyncMode   string      `json:"sync_mode" binding:"oneof=create_only update_only create_update"`
-	AutoIssue  bool        `json:"auto_issue"` // 自動で発行状態にするか
+	InvoiceIDs []string `json:"invoice_ids" binding:"required,min=1"`
+	CompanyID  int      `json:"company_id" binding:"required"`
+	SyncMode   string   `json:"sync_mode" binding:"oneof=create_only update_only create_update"`
+	AutoIssue  bool     `json:"auto_issue"` // 自動で発行状態にするか
 }
 
 // FreeeInvoiceSyncResponse freee請求書同期レスポンス
@@ -274,24 +272,24 @@ type FreeeInvoiceSyncResponse struct {
 
 // FreeeInvoiceSyncResultDTO freee請求書同期結果DTO
 type FreeeInvoiceSyncResultDTO struct {
-	InvoiceID       uuid.UUID `json:"invoice_id"`
-	InvoiceNumber   string    `json:"invoice_number"`
-	ClientName      string    `json:"client_name"`
-	Status          string    `json:"status"`    // success, failed, skipped
-	Operation       string    `json:"operation"` // created, updated, issued, skipped
-	FreeeInvoiceID  *int      `json:"freee_invoice_id,omitempty"`
-	FreeeInvoiceURL *string   `json:"freee_invoice_url,omitempty"`
-	Error           *string   `json:"error,omitempty"`
-	Details         *string   `json:"details,omitempty"`
+	InvoiceID       string  `json:"invoice_id"`
+	InvoiceNumber   string  `json:"invoice_number"`
+	ClientName      string  `json:"client_name"`
+	Status          string  `json:"status"`    // success, failed, skipped
+	Operation       string  `json:"operation"` // created, updated, issued, skipped
+	FreeeInvoiceID  *int    `json:"freee_invoice_id,omitempty"`
+	FreeeInvoiceURL *string `json:"freee_invoice_url,omitempty"`
+	Error           *string `json:"error,omitempty"`
+	Details         *string `json:"details,omitempty"`
 }
 
 // FreeePaymentSyncRequest freee入金同期リクエスト
 type FreeePaymentSyncRequest struct {
-	CompanyID        int         `json:"company_id" binding:"required"`
-	StartDate        *time.Time  `json:"start_date,omitempty"`
-	EndDate          *time.Time  `json:"end_date,omitempty"`
-	InvoiceIDs       []uuid.UUID `json:"invoice_ids,omitempty"` // 指定した請求書のみ同期
-	AutoUpdateStatus bool        `json:"auto_update_status"`    // 入金情報に基づいて請求書ステータスを自動更新
+	CompanyID        int        `json:"company_id" binding:"required"`
+	StartDate        *time.Time `json:"start_date,omitempty"`
+	EndDate          *time.Time `json:"end_date,omitempty"`
+	InvoiceIDs       []string   `json:"invoice_ids,omitempty"` // 指定した請求書のみ同期
+	AutoUpdateStatus bool       `json:"auto_update_status"`    // 入金情報に基づいて請求書ステータスを自動更新
 }
 
 // FreeePaymentSyncResponse freee入金同期レスポンス
@@ -305,16 +303,16 @@ type FreeePaymentSyncResponse struct {
 
 // FreeePaymentSyncResultDTO freee入金同期結果DTO
 type FreeePaymentSyncResultDTO struct {
-	FreeePaymentID int        `json:"freee_payment_id"`
-	InvoiceID      *uuid.UUID `json:"invoice_id,omitempty"`
-	InvoiceNumber  *string    `json:"invoice_number,omitempty"`
-	ClientName     string     `json:"client_name"`
-	Amount         int        `json:"amount"`
-	PaymentDate    string     `json:"payment_date"`
-	Status         string     `json:"status"`    // matched, unmatched, processed
-	Operation      string     `json:"operation"` // updated, created, skipped
-	Error          *string    `json:"error,omitempty"`
-	Details        *string    `json:"details,omitempty"`
+	FreeePaymentID int     `json:"freee_payment_id"`
+	InvoiceID      *string `json:"invoice_id,omitempty"`
+	InvoiceNumber  *string `json:"invoice_number,omitempty"`
+	ClientName     string  `json:"client_name"`
+	Amount         int     `json:"amount"`
+	PaymentDate    string  `json:"payment_date"`
+	Status         string  `json:"status"`    // matched, unmatched, processed
+	Operation      string  `json:"operation"` // updated, created, skipped
+	Error          *string `json:"error,omitempty"`
+	Details        *string `json:"details,omitempty"`
 }
 
 // FreeeSettingsDTO freee設定DTO

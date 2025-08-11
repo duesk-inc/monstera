@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
 	"go.uber.org/zap"
 )
@@ -294,14 +293,14 @@ func (j *ExpenseApprovalReminderJob) Run() {
 		approverID, err := j.ExpenseService.GetCurrentApprover(ctx, expense.ID)
 		if err != nil {
 			j.Logger.Error("Failed to get current approver",
-				zap.String("expense_id", expense.ID.String()),
+				zap.String("expense_id", expense.ID),
 				zap.Error(err),
 			)
 			continue
 		}
 
 		if approverID != nil {
-			approverExpenses[approverID.String()] = append(approverExpenses[approverID.String()], expense)
+			approverExpenses[*approverID] = append(approverExpenses[*approverID], expense)
 		}
 	}
 
@@ -310,16 +309,7 @@ func (j *ExpenseApprovalReminderJob) Run() {
 	errorCount := 0
 
 	for approverIDStr, expenses := range approverExpenses {
-		approverID, err := uuid.Parse(approverIDStr)
-		if err != nil {
-			j.Logger.Error("Invalid approver ID",
-				zap.String("approver_id", approverIDStr),
-				zap.Error(err),
-			)
-			errorCount++
-			continue
-		}
-
+		approverID := approverIDStr
 		// 催促通知を送信
 		err = j.NotificationService.NotifyExpenseApprovalReminder(ctx, approverID, expenses)
 		if err != nil {

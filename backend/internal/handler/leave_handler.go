@@ -12,7 +12,6 @@ import (
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -80,16 +79,16 @@ func (h *leaveHandler) GetUserLeaveBalances(c *gin.Context) {
 
 	h.logger.Info("休暇残日数一覧取得開始",
 		zap.String("endpoint", "GetUserLeaveBalances"),
-		zap.String("user_id", userUUID.String()))
+		zap.String("user_id", userUUID))
 
 	balances, err := h.leaveService.GetUserLeaveBalances(ctx, userUUID)
 	if err != nil {
-		h.handleError(c, http.StatusInternalServerError, message.MsgLeaveBalanceListLoadFailed, err, "user_id", userUUID.String())
+		h.handleError(c, http.StatusInternalServerError, message.MsgLeaveBalanceListLoadFailed, err, "user_id", userUUID)
 		return
 	}
 
 	h.logger.Info("休暇残日数一覧取得完了",
-		zap.String("user_id", userUUID.String()),
+		zap.String("user_id", userUUID),
 		zap.Int("count", len(balances)))
 	c.JSON(http.StatusOK, balances)
 }
@@ -113,7 +112,7 @@ func (h *leaveHandler) CreateLeaveRequest(c *gin.Context) {
 	// デバッグログ: 受信データの詳細確認
 	h.logger.Info("=== 受信データ詳細確認 ===",
 		zap.String("endpoint", "CreateLeaveRequest"),
-		zap.String("user_id", userUUID.String()),
+		zap.String("user_id", userUUID),
 		zap.String("leave_type_id", req.LeaveTypeID),
 		zap.Bool("is_hourly_based", req.IsHourlyBased),
 		zap.String("reason", req.Reason),
@@ -132,7 +131,7 @@ func (h *leaveHandler) CreateLeaveRequest(c *gin.Context) {
 
 	h.logger.Info("休暇申請作成開始",
 		zap.String("endpoint", "CreateLeaveRequest"),
-		zap.String("user_id", userUUID.String()),
+		zap.String("user_id", userUUID),
 		zap.String("leave_type_id", req.LeaveTypeID),
 		zap.Int("details_count", len(req.RequestDetails)))
 
@@ -142,13 +141,13 @@ func (h *leaveHandler) CreateLeaveRequest(c *gin.Context) {
 	response, err := h.leaveService.CreateLeaveRequest(ctx, req)
 	if err != nil {
 		h.handleError(c, http.StatusBadRequest, message.MsgLeaveRequestCreateFailed, err,
-			"user_id", userUUID.String(),
+			"user_id", userUUID,
 			"leave_type_id", req.LeaveTypeID)
 		return
 	}
 
 	h.logger.Info("休暇申請作成完了",
-		zap.String("user_id", userUUID.String()),
+		zap.String("user_id", userUUID),
 		zap.String("request_id", response.ID))
 	c.JSON(http.StatusCreated, response)
 }
@@ -165,16 +164,16 @@ func (h *leaveHandler) GetLeaveRequests(c *gin.Context) {
 
 	h.logger.Info("休暇申請一覧取得開始",
 		zap.String("endpoint", "GetLeaveRequests"),
-		zap.String("user_id", userUUID.String()))
+		zap.String("user_id", userUUID))
 
 	requests, err := h.leaveService.GetLeaveRequestsByUserID(ctx, userUUID)
 	if err != nil {
-		h.handleError(c, http.StatusInternalServerError, message.MsgLeaveRequestListLoadFailed, err, "user_id", userUUID.String())
+		h.handleError(c, http.StatusInternalServerError, message.MsgLeaveRequestListLoadFailed, err, "user_id", userUUID)
 		return
 	}
 
 	h.logger.Info("休暇申請一覧取得完了",
-		zap.String("user_id", userUUID.String()),
+		zap.String("user_id", userUUID),
 		zap.Int("count", len(requests)))
 	c.JSON(http.StatusOK, requests)
 }
@@ -222,16 +221,16 @@ func (h *leaveHandler) GetSubstituteLeaveGrants(c *gin.Context) {
 
 	h.logger.Info("振替特別休暇付与履歴一覧取得開始",
 		zap.String("endpoint", "GetSubstituteLeaveGrants"),
-		zap.String("user_id", userUUID.String()))
+		zap.String("user_id", userUUID))
 
 	grants, err := h.leaveService.GetSubstituteLeaveGrants(ctx, userUUID)
 	if err != nil {
-		h.handleError(c, http.StatusInternalServerError, message.MsgSubstituteLeaveGrantListLoadFailed, err, "user_id", userUUID.String())
+		h.handleError(c, http.StatusInternalServerError, message.MsgSubstituteLeaveGrantListLoadFailed, err, "user_id", userUUID)
 		return
 	}
 
 	h.logger.Info("振替特別休暇付与履歴一覧取得完了",
-		zap.String("user_id", userUUID.String()),
+		zap.String("user_id", userUUID),
 		zap.Int("count", len(grants)))
 	c.JSON(http.StatusOK, grants)
 }
@@ -248,15 +247,15 @@ func (h *leaveHandler) GetSubstituteLeaveGrantSummary(c *gin.Context) {
 
 	h.logger.Info("振替特別休暇サマリー取得開始",
 		zap.String("endpoint", "GetSubstituteLeaveGrantSummary"),
-		zap.String("user_id", userUUID.String()))
+		zap.String("user_id", userUUID))
 
 	summary, err := h.leaveService.GetSubstituteLeaveGrantSummary(ctx, userUUID)
 	if err != nil {
-		h.handleError(c, http.StatusInternalServerError, message.MsgSubstituteLeaveGrantSummaryLoadFailed, err, "user_id", userUUID.String())
+		h.handleError(c, http.StatusInternalServerError, message.MsgSubstituteLeaveGrantSummaryLoadFailed, err, "user_id", userUUID)
 		return
 	}
 
-	h.logger.Info("振替特別休暇サマリー取得完了", zap.String("user_id", userUUID.String()))
+	h.logger.Info("振替特別休暇サマリー取得完了", zap.String("user_id", userUUID))
 	c.JSON(http.StatusOK, summary)
 }
 
@@ -278,19 +277,19 @@ func (h *leaveHandler) CreateSubstituteLeaveGrant(c *gin.Context) {
 
 	h.logger.Info("振替特別休暇付与履歴作成開始",
 		zap.String("endpoint", "CreateSubstituteLeaveGrant"),
-		zap.String("operator_id", userUUID.String()),
-		zap.String("target_user_id", req.UserID.String()))
+		zap.String("operator_id", userUUID),
+		zap.String("target_user_id", req.UserID))
 
 	response, err := h.leaveService.CreateSubstituteLeaveGrant(ctx, req)
 	if err != nil {
 		h.handleError(c, http.StatusBadRequest, message.MsgSubstituteLeaveGrantCreateFailed, err,
-			"operator_id", userUUID.String(),
-			"target_user_id", req.UserID.String())
+			"operator_id", userUUID,
+			"target_user_id", req.UserID)
 		return
 	}
 
 	h.logger.Info("振替特別休暇付与履歴作成完了",
-		zap.String("operator_id", userUUID.String()),
+		zap.String("operator_id", userUUID),
 		zap.String("grant_id", response.ID))
 	c.JSON(http.StatusCreated, response)
 }
@@ -301,8 +300,9 @@ func (h *leaveHandler) UpdateSubstituteLeaveGrant(c *gin.Context) {
 	idStr := c.Param("id")
 
 	// IDの形式チェック
-	id, err := uuid.Parse(idStr)
-	if err != nil {
+	id := idStr
+	// UUID validation removed after migration
+	if id == "" {
 		h.handleError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidIDFormat, idStr), err, "id", idStr)
 		return
 	}
@@ -321,22 +321,22 @@ func (h *leaveHandler) UpdateSubstituteLeaveGrant(c *gin.Context) {
 
 	h.logger.Info("振替特別休暇付与履歴更新開始",
 		zap.String("endpoint", "UpdateSubstituteLeaveGrant"),
-		zap.String("operator_id", userUUID.String()),
-		zap.String("grant_id", id.String()),
-		zap.String("target_user_id", req.UserID.String()))
+		zap.String("operator_id", userUUID),
+		zap.String("grant_id", id),
+		zap.String("target_user_id", req.UserID))
 
 	response, err := h.leaveService.UpdateSubstituteLeaveGrant(ctx, id, req)
 	if err != nil {
 		h.handleError(c, http.StatusBadRequest, message.MsgSubstituteLeaveGrantUpdateFailed, err,
-			"operator_id", userUUID.String(),
-			"grant_id", id.String(),
-			"target_user_id", req.UserID.String())
+			"operator_id", userUUID,
+			"grant_id", id,
+			"target_user_id", req.UserID)
 		return
 	}
 
 	h.logger.Info("振替特別休暇付与履歴更新完了",
-		zap.String("operator_id", userUUID.String()),
-		zap.String("grant_id", id.String()))
+		zap.String("operator_id", userUUID),
+		zap.String("grant_id", id))
 	c.JSON(http.StatusOK, response)
 }
 
@@ -346,8 +346,9 @@ func (h *leaveHandler) DeleteSubstituteLeaveGrant(c *gin.Context) {
 	idStr := c.Param("id")
 
 	// IDの形式チェック
-	id, err := uuid.Parse(idStr)
-	if err != nil {
+	id := idStr
+	// UUID validation removed after migration
+	if id == "" {
 		h.handleError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidIDFormat, idStr), err, "id", idStr)
 		return
 	}
@@ -360,19 +361,19 @@ func (h *leaveHandler) DeleteSubstituteLeaveGrant(c *gin.Context) {
 
 	h.logger.Info("振替特別休暇付与履歴削除開始",
 		zap.String("endpoint", "DeleteSubstituteLeaveGrant"),
-		zap.String("operator_id", userUUID.String()),
-		zap.String("grant_id", id.String()))
+		zap.String("operator_id", userUUID),
+		zap.String("grant_id", id))
 
 	if err := h.leaveService.DeleteSubstituteLeaveGrant(ctx, id); err != nil {
 		h.handleError(c, http.StatusBadRequest, message.MsgSubstituteLeaveGrantDeleteFailed, err,
-			"operator_id", userUUID.String(),
-			"grant_id", id.String())
+			"operator_id", userUUID,
+			"grant_id", id)
 		return
 	}
 
 	h.logger.Info("振替特別休暇付与履歴削除完了",
-		zap.String("operator_id", userUUID.String()),
-		zap.String("grant_id", id.String()))
+		zap.String("operator_id", userUUID),
+		zap.String("grant_id", id))
 	c.JSON(http.StatusOK, gin.H{"message": message.MsgSubstituteLeaveGrantDeleted})
 }
 

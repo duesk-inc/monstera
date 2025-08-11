@@ -8,22 +8,22 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/duesk/monstera/internal/config"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"go.uber.org/zap"
 )
 
 // CognitoAuthMiddleware Cognito認証ミドルウェア（簡素化版）
 type CognitoAuthMiddleware struct {
-	cfg         *config.Config
-	logger      *zap.Logger
+	cfg           *config.Config
+	logger        *zap.Logger
 	cognitoClient *cognitoidentityprovider.Client
-	userRepo    repository.UserRepository
-	jwks        jwk.Set
+	userRepo      repository.UserRepository
+	jwks          jwk.Set
 }
 
 // NewCognitoAuthMiddleware 新しいCognito認証ミドルウェアを作成

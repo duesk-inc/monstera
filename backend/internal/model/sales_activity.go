@@ -43,12 +43,12 @@ const (
 
 // SalesActivity 営業活動管理モデル
 type SalesActivity struct {
-	ID                     uuid.UUID           `gorm:"type:varchar(36);primary_key" json:"id"`
-	ClientID               uuid.UUID           `gorm:"type:varchar(36);not null" json:"client_id"`
-	ProjectID              *uuid.UUID          `gorm:"type:varchar(36)" json:"project_id"`
+	ID                     string              `gorm:"type:varchar(255);primary_key" json:"id"`
+	ClientID               string              `gorm:"type:varchar(255);not null" json:"client_id"`
+	ProjectID              *string             `gorm:"type:varchar(255)" json:"project_id"`
 	ActivityType           SalesActivityType   `gorm:"size:50;not null" json:"activity_type"`
-	TargetUserID           *string          `gorm:"type:varchar(255)" json:"target_user_id"`
-	SalesRepID             *uuid.UUID          `gorm:"type:varchar(36)" json:"sales_rep_id"`
+	TargetUserID           *string             `gorm:"type:varchar(255)" json:"target_user_id"`
+	SalesRepID             *string             `gorm:"type:varchar(255)" json:"sales_rep_id"`
 	Status                 SalesActivityStatus `gorm:"size:50;default:'planning'" json:"status"`
 	Probability            int                 `gorm:"default:0" json:"probability"`
 	EstimatedMonthlyAmount float64             `gorm:"type:decimal(10,2)" json:"estimated_monthly_amount"`
@@ -70,8 +70,8 @@ type SalesActivity struct {
 
 // BeforeCreate UUIDを生成
 func (sa *SalesActivity) BeforeCreate(tx *gorm.DB) error {
-	if sa.ID == uuid.Nil {
-		sa.ID = uuid.New()
+	if sa.ID == "" {
+		sa.ID = uuid.New().String()
 	}
 	return nil
 }

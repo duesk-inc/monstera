@@ -6,16 +6,15 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type LeaveRequestAdminRepository interface {
 	GetAllWithFilters(ctx context.Context, filters LeaveRequestFilters, pagination Pagination) ([]*model.LeaveRequest, int64, error)
-	ApproveRequest(ctx context.Context, requestID, approverID uuid.UUID) error
-	RejectRequest(ctx context.Context, requestID, approverID uuid.UUID, reason string) error
-	BulkApprove(ctx context.Context, requestIDs []uuid.UUID, approverID uuid.UUID) error
+	ApproveRequest(ctx context.Context, requestID, approverID string) error
+	RejectRequest(ctx context.Context, requestID, approverID string, reason string) error
+	BulkApprove(ctx context.Context, requestIDs []string, approverID string) error
 	GetStatistics(ctx context.Context, filters StatisticsFilters) (*LeaveStatistics, error)
 	GetUserStatistics(ctx context.Context, userID string, filters StatisticsFilters) (*UserLeaveStatistics, error)
 }
@@ -37,7 +36,7 @@ type LeaveRequestFilters struct {
 	StartDate      *time.Time
 	EndDate        *time.Time
 	Status         string
-	LeaveTypeID    *uuid.UUID
+	LeaveTypeID    *string
 	ExcludeRetired bool
 }
 
@@ -49,8 +48,8 @@ type Pagination struct {
 type StatisticsFilters struct {
 	Year        int
 	Month       *int
-	UserID      *uuid.UUID
-	LeaveTypeID *uuid.UUID
+	UserID      *string
+	LeaveTypeID *string
 }
 
 type LeaveStatistics struct {
@@ -75,7 +74,7 @@ type MonthlyStatistic struct {
 }
 
 type UserLeaveStatistics struct {
-	UserID           uuid.UUID              `json:"userId"`
+	UserID           string                 `json:"userId"`
 	UserName         string                 `json:"userName"`
 	TotalUsedDays    map[string]float64     `json:"totalUsedDays"`
 	RemainingDays    map[string]float64     `json:"remainingDays"`
@@ -147,7 +146,7 @@ func (r *leaveRequestAdminRepository) GetAllWithFilters(ctx context.Context, fil
 	return requests, total, nil
 }
 
-func (r *leaveRequestAdminRepository) ApproveRequest(ctx context.Context, requestID, approverID uuid.UUID) error {
+func (r *leaveRequestAdminRepository) ApproveRequest(ctx context.Context, requestID, approverID string) error {
 	now := time.Now()
 	return r.db.WithContext(ctx).Model(&model.LeaveRequest{}).
 		Where("id = ? AND status = ?", requestID, "pending").
@@ -159,7 +158,7 @@ func (r *leaveRequestAdminRepository) ApproveRequest(ctx context.Context, reques
 		}).Error
 }
 
-func (r *leaveRequestAdminRepository) RejectRequest(ctx context.Context, requestID, approverID uuid.UUID, reason string) error {
+func (r *leaveRequestAdminRepository) RejectRequest(ctx context.Context, requestID, approverID string, reason string) error {
 	now := time.Now()
 	return r.db.WithContext(ctx).Model(&model.LeaveRequest{}).
 		Where("id = ? AND status = ?", requestID, "pending").
@@ -172,7 +171,7 @@ func (r *leaveRequestAdminRepository) RejectRequest(ctx context.Context, request
 		}).Error
 }
 
-func (r *leaveRequestAdminRepository) BulkApprove(ctx context.Context, requestIDs []uuid.UUID, approverID uuid.UUID) error {
+func (r *leaveRequestAdminRepository) BulkApprove(ctx context.Context, requestIDs []string, approverID string) error {
 	now := time.Now()
 	return r.db.WithContext(ctx).Model(&model.LeaveRequest{}).
 		Where("id IN ? AND status = ?", requestIDs, "pending").
@@ -264,11 +263,12 @@ func (r *leaveRequestAdminRepository) GetStatistics(ctx context.Context, filters
 }
 
 func (r *leaveRequestAdminRepository) GetUserStatistics(ctx context.Context, userID string, filters StatisticsFilters) (*UserLeaveStatistics, error) {
-	parsedUserID, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, err
+	parsedUserID := userID
+	// UUID validation removed after migration
+	if parsedUserID == "" {
+		return nil, fmt.Errorf("user ID cannot be empty")
 	}
-	
+
 	userStats := &UserLeaveStatistics{
 		UserID:        parsedUserID,
 		TotalUsedDays: make(map[string]float64),

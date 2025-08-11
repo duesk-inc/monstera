@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -14,8 +13,8 @@ import (
 type ExportService interface {
 	// エクスポートジョブ管理
 	CreateExportJob(ctx context.Context, userID string, jobType model.ExportJobType, format model.ExportJobFormat, parameters json.RawMessage) (*model.ExportJob, error)
-	ProcessExportJob(ctx context.Context, jobID uuid.UUID) error
-	GetExportJob(ctx context.Context, jobID uuid.UUID) (*model.ExportJob, error)
+	ProcessExportJob(ctx context.Context, jobID string) error
+	GetExportJob(ctx context.Context, jobID string) (*model.ExportJob, error)
 
 	// 既存メソッド
 	ExportData(ctx context.Context) error
@@ -54,7 +53,7 @@ func (s *exportService) CreateExportJob(ctx context.Context, userID string, jobT
 }
 
 // ProcessExportJob エクスポートジョブを処理
-func (s *exportService) ProcessExportJob(ctx context.Context, jobID uuid.UUID) error {
+func (s *exportService) ProcessExportJob(ctx context.Context, jobID string) error {
 	// TODO: 実際のエクスポート処理を実装
 	// 暫定的にステータスを更新するのみ
 	if err := s.db.WithContext(ctx).Model(&model.ExportJob{}).
@@ -70,7 +69,7 @@ func (s *exportService) ProcessExportJob(ctx context.Context, jobID uuid.UUID) e
 }
 
 // GetExportJob エクスポートジョブを取得
-func (s *exportService) GetExportJob(ctx context.Context, jobID uuid.UUID) (*model.ExportJob, error) {
+func (s *exportService) GetExportJob(ctx context.Context, jobID string) (*model.ExportJob, error) {
 	var job model.ExportJob
 	if err := s.db.WithContext(ctx).First(&job, "id = ?", jobID).Error; err != nil {
 		s.logger.Error("Failed to get export job", zap.Error(err))

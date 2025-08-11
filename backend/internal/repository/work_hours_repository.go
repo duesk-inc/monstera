@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +21,7 @@ func (r *WorkHoursRepository) Create(workHour *model.WorkHour) error {
 }
 
 // FindByID IDで作業時間を検索
-func (r *WorkHoursRepository) FindByID(id uuid.UUID) (*model.WorkHour, error) {
+func (r *WorkHoursRepository) FindByID(id string) (*model.WorkHour, error) {
 	var workHour model.WorkHour
 	err := r.db.First(&workHour, "id = ?", id).Error
 	if err != nil {
@@ -32,7 +31,7 @@ func (r *WorkHoursRepository) FindByID(id uuid.UUID) (*model.WorkHour, error) {
 }
 
 // FindByReportID 週報IDで作業時間を検索
-func (r *WorkHoursRepository) FindByReportID(reportID uuid.UUID) ([]*model.WorkHour, error) {
+func (r *WorkHoursRepository) FindByReportID(reportID string) ([]*model.WorkHour, error) {
 	var workHours []*model.WorkHour
 	err := r.db.Where("weekly_report_id = ?", reportID).Find(&workHours).Error
 	if err != nil {
@@ -47,17 +46,17 @@ func (r *WorkHoursRepository) Update(workHour *model.WorkHour) error {
 }
 
 // Delete 作業時間を削除
-func (r *WorkHoursRepository) Delete(id uuid.UUID) error {
+func (r *WorkHoursRepository) Delete(id string) error {
 	return r.db.Delete(&model.WorkHour{}, "id = ?", id).Error
 }
 
 // DeleteByReportID 週報IDに基づいて作業時間を一括削除
-func (r *WorkHoursRepository) DeleteByReportID(reportID uuid.UUID) error {
+func (r *WorkHoursRepository) DeleteByReportID(reportID string) error {
 	return r.db.Delete(&model.WorkHour{}, "weekly_report_id = ?", reportID).Error
 }
 
 // SumHoursByReportID 週報IDの作業時間合計を取得
-func (r *WorkHoursRepository) SumHoursByReportID(reportID uuid.UUID) (float64, error) {
+func (r *WorkHoursRepository) SumHoursByReportID(reportID string) (float64, error) {
 	var totalHours float64
 	err := r.db.Model(&model.WorkHour{}).
 		Where("weekly_report_id = ?", reportID).

@@ -7,7 +7,6 @@ import (
 
 	"github.com/duesk/monstera/internal/common/repository"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -16,19 +15,19 @@ import (
 type InvoiceRepository interface {
 	CrudRepository[model.Invoice]
 	FindByInvoiceNumber(ctx context.Context, invoiceNumber string) (*model.Invoice, error)
-	FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.Invoice, error)
+	FindByClientID(ctx context.Context, clientID string) ([]*model.Invoice, error)
 	FindByStatus(ctx context.Context, status model.InvoiceStatus) ([]*model.Invoice, error)
 	FindOverdue(ctx context.Context) ([]*model.Invoice, error)
-	GetSummary(ctx context.Context, clientID *uuid.UUID, dateFrom, dateTo *time.Time) (*InvoiceSummary, error)
+	GetSummary(ctx context.Context, clientID *string, dateFrom, dateTo *time.Time) (*InvoiceSummary, error)
 	CreateWithDetails(ctx context.Context, invoice *model.Invoice, details []*model.InvoiceDetail) error
 
 	// 経理機能拡張
-	FindByBillingMonth(ctx context.Context, billingMonth string, clientID *uuid.UUID) ([]*model.Invoice, error)
-	FindByProjectGroupID(ctx context.Context, projectGroupID uuid.UUID) ([]*model.Invoice, error)
+	FindByBillingMonth(ctx context.Context, billingMonth string, clientID *string) ([]*model.Invoice, error)
+	FindByProjectGroupID(ctx context.Context, projectGroupID string) ([]*model.Invoice, error)
 	FindByFreeSyncStatus(ctx context.Context, status model.FreeSyncStatus) ([]*model.Invoice, error)
 	FindNeedingSync(ctx context.Context, limit int) ([]*model.Invoice, error)
-	UpdateFreeSyncStatus(ctx context.Context, id uuid.UUID, status model.FreeSyncStatus, freeeInvoiceID *int) error
-	GetMonthlyRevenue(ctx context.Context, year, month int, clientID *uuid.UUID) (float64, error)
+	UpdateFreeSyncStatus(ctx context.Context, id string, status model.FreeSyncStatus, freeeInvoiceID *int) error
+	GetMonthlyRevenue(ctx context.Context, year, month int, clientID *string) (float64, error)
 	GetBillingStats(ctx context.Context, startDate, endDate time.Time) (*BillingStats, error)
 	CreateBatch(ctx context.Context, invoices []*model.Invoice) error
 }
@@ -92,7 +91,7 @@ func (r *invoiceRepository) FindByInvoiceNumber(ctx context.Context, invoiceNumb
 }
 
 // FindByClientID 取引先IDで検索
-func (r *invoiceRepository) FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.Invoice, error) {
+func (r *invoiceRepository) FindByClientID(ctx context.Context, clientID string) ([]*model.Invoice, error) {
 	var invoices []*model.Invoice
 	err := r.db.WithContext(ctx).
 		Where("client_id = ? AND deleted_at IS NULL", clientID).
@@ -101,7 +100,7 @@ func (r *invoiceRepository) FindByClientID(ctx context.Context, clientID uuid.UU
 
 	if err != nil {
 		r.logger.Error("Failed to find invoices by client ID",
-			zap.String("client_id", clientID.String()),
+			zap.String("client_id", clientID),
 			zap.Error(err))
 		return nil, err
 	}
@@ -148,7 +147,7 @@ func (r *invoiceRepository) FindOverdue(ctx context.Context) ([]*model.Invoice, 
 }
 
 // GetSummary 請求書サマリを取得
-func (r *invoiceRepository) GetSummary(ctx context.Context, clientID *uuid.UUID, dateFrom, dateTo *time.Time) (*InvoiceSummary, error) {
+func (r *invoiceRepository) GetSummary(ctx context.Context, clientID *string, dateFrom, dateTo *time.Time) (*InvoiceSummary, error) {
 	summary := &InvoiceSummary{}
 
 	query := r.db.WithContext(ctx).Model(&model.Invoice{}).
@@ -333,7 +332,7 @@ func (r *invoiceRepository) Transaction(ctx context.Context, fn func(*gorm.DB) e
 }
 
 // FindByBillingMonth 請求月で検索
-func (r *invoiceRepository) FindByBillingMonth(ctx context.Context, billingMonth string, clientID *uuid.UUID) ([]*model.Invoice, error) {
+func (r *invoiceRepository) FindByBillingMonth(ctx context.Context, billingMonth string, clientID *string) ([]*model.Invoice, error) {
 	var invoices []*model.Invoice
 	query := r.db.WithContext(ctx).
 		Where("billing_month = ? AND deleted_at IS NULL", billingMonth)
@@ -359,7 +358,7 @@ func (r *invoiceRepository) FindByBillingMonth(ctx context.Context, billingMonth
 }
 
 // FindByProjectGroupID プロジェクトグループIDで検索
-func (r *invoiceRepository) FindByProjectGroupID(ctx context.Context, projectGroupID uuid.UUID) ([]*model.Invoice, error) {
+func (r *invoiceRepository) FindByProjectGroupID(ctx context.Context, projectGroupID string) ([]*model.Invoice, error) {
 	var invoices []*model.Invoice
 	err := r.db.WithContext(ctx).
 		Where("project_group_id = ? AND deleted_at IS NULL", projectGroupID).
@@ -370,7 +369,7 @@ func (r *invoiceRepository) FindByProjectGroupID(ctx context.Context, projectGro
 
 	if err != nil {
 		r.logger.Error("Failed to find invoices by project group ID",
-			zap.String("project_group_id", projectGroupID.String()),
+			zap.String("project_group_id", projectGroupID),
 			zap.Error(err))
 		return nil, err
 	}
@@ -419,7 +418,7 @@ func (r *invoiceRepository) FindNeedingSync(ctx context.Context, limit int) ([]*
 }
 
 // UpdateFreeSyncStatus freee同期ステータスを更新
-func (r *invoiceRepository) UpdateFreeSyncStatus(ctx context.Context, id uuid.UUID, status model.FreeSyncStatus, freeeInvoiceID *int) error {
+func (r *invoiceRepository) UpdateFreeSyncStatus(ctx context.Context, id string, status model.FreeSyncStatus, freeeInvoiceID *int) error {
 	updates := map[string]interface{}{
 		"freee_sync_status": status,
 		"freee_synced_at":   time.Now(),
@@ -436,7 +435,7 @@ func (r *invoiceRepository) UpdateFreeSyncStatus(ctx context.Context, id uuid.UU
 
 	if result.Error != nil {
 		r.logger.Error("Failed to update freee sync status",
-			zap.String("id", id.String()),
+			zap.String("id", id),
 			zap.Error(result.Error))
 		return result.Error
 	}
@@ -449,7 +448,7 @@ func (r *invoiceRepository) UpdateFreeSyncStatus(ctx context.Context, id uuid.UU
 }
 
 // GetMonthlyRevenue 月次収益を取得
-func (r *invoiceRepository) GetMonthlyRevenue(ctx context.Context, year, month int, clientID *uuid.UUID) (float64, error) {
+func (r *invoiceRepository) GetMonthlyRevenue(ctx context.Context, year, month int, clientID *string) (float64, error) {
 	billingMonth := fmt.Sprintf("%04d-%02d", year, month)
 
 	query := r.db.WithContext(ctx).

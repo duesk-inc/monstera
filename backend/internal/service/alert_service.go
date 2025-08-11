@@ -11,7 +11,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -28,8 +27,8 @@ type AlertService interface {
 	GetAlertSettings(ctx context.Context) (*model.AlertSettings, error)
 	CreateAlertSettings(ctx context.Context, req *dto.CreateAlertSettingsRequest, userID string) (*model.AlertSettings, error)
 	GetAlertSettingsList(ctx context.Context, page, limit int) ([]*model.AlertSettings, int64, error)
-	UpdateAlertSettings(ctx context.Context, id uuid.UUID, req *dto.UpdateAlertSettingsRequest, userID string) (*model.AlertSettings, error)
-	DeleteAlertSettings(ctx context.Context, id uuid.UUID) error
+	UpdateAlertSettings(ctx context.Context, id string, req *dto.UpdateAlertSettingsRequest, userID string) (*model.AlertSettings, error)
+	DeleteAlertSettings(ctx context.Context, id string) error
 
 	// アラート検出・作成
 	DetectWeeklyReportAlerts(ctx context.Context, weekStart, weekEnd time.Time) error
@@ -41,14 +40,14 @@ type AlertService interface {
 	GetAlertByID(ctx context.Context, id string) (*model.AlertHistory, error)
 	GetAlerts(ctx context.Context, filters repository.AlertFilters, page, limit int) ([]*model.AlertHistory, int64, error)
 	GetAlertHistories(ctx context.Context, filters map[string]string, page, limit int) ([]*model.AlertHistory, int64, error)
-	GetAlertHistory(ctx context.Context, id uuid.UUID) (*model.AlertHistory, error)
+	GetAlertHistory(ctx context.Context, id string) (*model.AlertHistory, error)
 	GetUnresolvedAlertsByUsers(ctx context.Context, userIDs []string) ([]*model.AlertHistory, error)
 	GetAlertsByUser(ctx context.Context, userID string, status *model.AlertStatus) ([]*model.AlertHistory, error)
 
 	// アラートステータス管理
-	UpdateAlertStatus(ctx context.Context, id uuid.UUID, status string, comment string, userID string) error
-	ResolveAlert(ctx context.Context, id string, resolvedBy uuid.UUID, comment string) error
-	StartHandlingAlert(ctx context.Context, id string, handlerID uuid.UUID) error
+	UpdateAlertStatus(ctx context.Context, id string, status string, comment string, userID string) error
+	ResolveAlert(ctx context.Context, id string, resolvedBy string, comment string) error
+	StartHandlingAlert(ctx context.Context, id string, handlerID string) error
 
 	// 統計・分析
 	GetAlertStats(ctx context.Context, startDate, endDate time.Time) (*repository.AlertStats, error)
@@ -59,8 +58,8 @@ type AlertService interface {
 
 // CreateAlertRequest アラート作成リクエスト
 type CreateAlertRequest struct {
-	UserID         uuid.UUID              `json:"user_id" validate:"required"`
-	WeeklyReportID *uuid.UUID             `json:"weekly_report_id,omitempty"`
+	UserID         string                 `json:"user_id" validate:"required"`
+	WeeklyReportID *string                `json:"weekly_report_id,omitempty"`
 	AlertType      model.AlertType        `json:"alert_type" validate:"required"`
 	Severity       model.AlertSeverity    `json:"severity" validate:"required"`
 	DetectedValue  map[string]interface{} `json:"detected_value" validate:"required"`
@@ -124,7 +123,7 @@ func (s *alertService) GetAlertSettings(ctx context.Context) (*model.AlertSettin
 }
 
 // UpdateAlertSettings アラート設定を更新
-func (s *alertService) UpdateAlertSettings(ctx context.Context, id uuid.UUID, req *dto.UpdateAlertSettingsRequest, userID string) (*model.AlertSettings, error) {
+func (s *alertService) UpdateAlertSettings(ctx context.Context, id string, req *dto.UpdateAlertSettingsRequest, userID string) (*model.AlertSettings, error) {
 	// 現在の設定を取得
 	currentSettings, err := s.GetAlertSettings(ctx)
 	if err != nil {
@@ -260,7 +259,7 @@ func (s *alertService) CreateAlert(ctx context.Context, req *CreateAlertRequest)
 	// ユーザーの存在確認
 	if _, err := s.userRepo.FindByID(req.UserID); err != nil {
 		s.logger.Error("User not found",
-			zap.String("user_id", req.UserID.String()),
+			zap.String("user_id", req.UserID),
 			zap.Error(err))
 		return nil, fmt.Errorf("ユーザーが見つかりません: %w", err)
 	}
@@ -288,7 +287,7 @@ func (s *alertService) CreateAlert(ctx context.Context, req *CreateAlertRequest)
 
 	if err := s.alertHistoryRepo.Create(ctx, alert); err != nil {
 		s.logger.Error("Failed to create alert",
-			zap.String("user_id", req.UserID.String()),
+			zap.String("user_id", req.UserID),
 			zap.String("type", string(req.AlertType)),
 			zap.Error(err))
 		return nil, fmt.Errorf("アラートの作成に失敗しました: %w", err)
@@ -298,15 +297,15 @@ func (s *alertService) CreateAlert(ctx context.Context, req *CreateAlertRequest)
 	/*
 		if err := s.notificationService.SendAlertNotifications(ctx, []*model.AlertHistory{alert}); err != nil {
 			s.logger.Error("Failed to send alert notification",
-				zap.String("alert_id", alert.ID.String()),
+				zap.String("alert_id", alert.ID),
 				zap.Error(err))
 			// 通知送信エラーは無視（アラート自体は作成済み）
 		}
 	*/
 
 	s.logger.Info("Alert created successfully",
-		zap.String("alert_id", alert.ID.String()),
-		zap.String("user_id", req.UserID.String()),
+		zap.String("alert_id", alert.ID),
+		zap.String("user_id", req.UserID),
 		zap.String("type", string(req.AlertType)))
 
 	return alert, nil
@@ -339,11 +338,7 @@ func (s *alertService) CreateBulkAlerts(ctx context.Context, alerts []model.Aler
 
 // GetAlertByID IDでアラートを取得
 func (s *alertService) GetAlertByID(ctx context.Context, id string) (*model.AlertHistory, error) {
-	alertID, err := uuid.Parse(id)
-	if err != nil {
-		return nil, fmt.Errorf("無効なアラートID: %w", err)
-	}
-
+	alertID := id
 	alert, err := s.alertHistoryRepo.GetByID(ctx, alertID)
 	if err != nil {
 		s.logger.Error("Failed to get alert by ID",
@@ -407,7 +402,7 @@ func (s *alertService) GetAlertsByUser(ctx context.Context, userID string, statu
 }
 
 // UpdateAlertStatus アラートのステータスを更新（内部実装）
-func (s *alertService) updateAlertStatusInternal(ctx context.Context, id string, status model.AlertStatus, resolvedBy *uuid.UUID, comment string) error {
+func (s *alertService) updateAlertStatusInternal(ctx context.Context, id string, status model.AlertStatus, resolvedBy *string, comment string) error {
 	// 既存のアラートを確認
 	alert, err := s.GetAlertByID(ctx, id)
 	if err != nil {
@@ -419,12 +414,8 @@ func (s *alertService) updateAlertStatusInternal(ctx context.Context, id string,
 		return fmt.Errorf("無効なステータス遷移です: %s → %s", alert.Status, status)
 	}
 
-	alertID, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("無効なアラートID: %w", err)
-	}
-
-	handledBy := uuid.Nil
+	alertID := id
+	handledBy := ""
 	if resolvedBy != nil {
 		handledBy = *resolvedBy
 	}
@@ -446,7 +437,7 @@ func (s *alertService) updateAlertStatusInternal(ctx context.Context, id string,
 }
 
 // UpdateAlertStatus アラートのステータスを更新（ハンドラー用の新しいシグネチャ）
-func (s *alertService) UpdateAlertStatus(ctx context.Context, id uuid.UUID, status string, comment string, userID string) error {
+func (s *alertService) UpdateAlertStatus(ctx context.Context, id string, status string, comment string, userID string) error {
 	// ステータスをmodel.AlertStatusに変換
 	var alertStatus model.AlertStatus
 	switch status {
@@ -461,17 +452,17 @@ func (s *alertService) UpdateAlertStatus(ctx context.Context, id uuid.UUID, stat
 	}
 
 	// 内部実装を呼び出し
-	return s.updateAlertStatusInternal(ctx, id.String(), alertStatus, &userID, comment)
+	return s.updateAlertStatusInternal(ctx, id, alertStatus, &userID, comment)
 }
 
 // ResolveAlert アラートを解決済みにする
-func (s *alertService) ResolveAlert(ctx context.Context, id string, resolvedBy uuid.UUID, comment string) error {
+func (s *alertService) ResolveAlert(ctx context.Context, id string, resolvedBy string, comment string) error {
 	return s.updateAlertStatusInternal(ctx, id, model.AlertStatusResolved, &resolvedBy, comment)
 }
 
 // StartHandlingAlert アラートの対応を開始
-func (s *alertService) StartHandlingAlert(ctx context.Context, id string, handlerID uuid.UUID) error {
-	comment := fmt.Sprintf("対応開始: %s", handlerID.String())
+func (s *alertService) StartHandlingAlert(ctx context.Context, id string, handlerID string) error {
+	comment := fmt.Sprintf("対応開始: %s", handlerID)
 	return s.updateAlertStatusInternal(ctx, id, model.AlertStatusHandling, &handlerID, comment)
 }
 
@@ -741,7 +732,7 @@ func (s *alertService) countConsecutiveHolidayWork(ctx context.Context, report *
 	if err != nil {
 		s.logger.Error("Failed to get consecutive holiday work days",
 			zap.Error(err),
-			zap.String("user_id", report.UserID.String()),
+			zap.String("user_id", report.UserID),
 			zap.Time("end_date", report.EndDate))
 		return 0
 	}
@@ -1145,7 +1136,7 @@ func (s *alertService) GetAlertSettingsList(ctx context.Context, page, limit int
 }
 
 // DeleteAlertSettings アラート設定を削除（暫定実装）
-func (s *alertService) DeleteAlertSettings(ctx context.Context, id uuid.UUID) error {
+func (s *alertService) DeleteAlertSettings(ctx context.Context, id string) error {
 	// TODO: 実際の実装
 	return nil
 }
@@ -1157,7 +1148,7 @@ func (s *alertService) GetAlertHistories(ctx context.Context, filters map[string
 }
 
 // GetAlertHistory アラート履歴を取得（暫定実装）
-func (s *alertService) GetAlertHistory(ctx context.Context, id uuid.UUID) (*model.AlertHistory, error) {
+func (s *alertService) GetAlertHistory(ctx context.Context, id string) (*model.AlertHistory, error) {
 	// TODO: 実際の実装
 	return &model.AlertHistory{}, nil
 }

@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -15,15 +14,15 @@ type ExpenseReceiptRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, receipt *model.ExpenseReceipt) error
 	CreateBatch(ctx context.Context, receipts []*model.ExpenseReceipt) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseReceipt, error)
-	GetByExpenseID(ctx context.Context, expenseID uuid.UUID) ([]*model.ExpenseReceipt, error)
+	GetByID(ctx context.Context, id string) (*model.ExpenseReceipt, error)
+	GetByExpenseID(ctx context.Context, expenseID string) ([]*model.ExpenseReceipt, error)
 	Update(ctx context.Context, receipt *model.ExpenseReceipt) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	DeleteByExpenseID(ctx context.Context, expenseID uuid.UUID) error
+	Delete(ctx context.Context, id string) error
+	DeleteByExpenseID(ctx context.Context, expenseID string) error
 
 	// 表示順序関連
-	UpdateDisplayOrder(ctx context.Context, id uuid.UUID, displayOrder int) error
-	GetMaxDisplayOrder(ctx context.Context, expenseID uuid.UUID) (int, error)
+	UpdateDisplayOrder(ctx context.Context, id string, displayOrder int) error
+	GetMaxDisplayOrder(ctx context.Context, expenseID string) (int, error)
 }
 
 // expenseReceiptRepository 経費領収書リポジトリの実装
@@ -45,7 +44,7 @@ func (r *expenseReceiptRepository) Create(ctx context.Context, receipt *model.Ex
 	if err := r.db.WithContext(ctx).Create(receipt).Error; err != nil {
 		r.logger.Error("Failed to create expense receipt",
 			zap.Error(err),
-			zap.String("expense_id", receipt.ExpenseID.String()),
+			zap.String("expense_id", receipt.ExpenseID),
 		)
 		return err
 	}
@@ -69,7 +68,7 @@ func (r *expenseReceiptRepository) CreateBatch(ctx context.Context, receipts []*
 }
 
 // GetByID IDから領収書を取得
-func (r *expenseReceiptRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseReceipt, error) {
+func (r *expenseReceiptRepository) GetByID(ctx context.Context, id string) (*model.ExpenseReceipt, error) {
 	var receipt model.ExpenseReceipt
 	if err := r.db.WithContext(ctx).
 		Where("id = ?", id).
@@ -79,7 +78,7 @@ func (r *expenseReceiptRepository) GetByID(ctx context.Context, id uuid.UUID) (*
 		}
 		r.logger.Error("Failed to get expense receipt by ID",
 			zap.Error(err),
-			zap.String("id", id.String()),
+			zap.String("id", id),
 		)
 		return nil, err
 	}
@@ -87,7 +86,7 @@ func (r *expenseReceiptRepository) GetByID(ctx context.Context, id uuid.UUID) (*
 }
 
 // GetByExpenseID 経費申請IDから領収書一覧を取得
-func (r *expenseReceiptRepository) GetByExpenseID(ctx context.Context, expenseID uuid.UUID) ([]*model.ExpenseReceipt, error) {
+func (r *expenseReceiptRepository) GetByExpenseID(ctx context.Context, expenseID string) ([]*model.ExpenseReceipt, error) {
 	var receipts []*model.ExpenseReceipt
 	if err := r.db.WithContext(ctx).
 		Where("expense_id = ?", expenseID).
@@ -95,7 +94,7 @@ func (r *expenseReceiptRepository) GetByExpenseID(ctx context.Context, expenseID
 		Find(&receipts).Error; err != nil {
 		r.logger.Error("Failed to get expense receipts by expense ID",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()),
+			zap.String("expense_id", expenseID),
 		)
 		return nil, err
 	}
@@ -112,7 +111,7 @@ func (r *expenseReceiptRepository) Update(ctx context.Context, receipt *model.Ex
 	if result.Error != nil {
 		r.logger.Error("Failed to update expense receipt",
 			zap.Error(result.Error),
-			zap.String("id", receipt.ID.String()),
+			zap.String("id", receipt.ID),
 		)
 		return result.Error
 	}
@@ -125,7 +124,7 @@ func (r *expenseReceiptRepository) Update(ctx context.Context, receipt *model.Ex
 }
 
 // Delete 領収書を削除
-func (r *expenseReceiptRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *expenseReceiptRepository) Delete(ctx context.Context, id string) error {
 	result := r.db.WithContext(ctx).
 		Where("id = ?", id).
 		Delete(&model.ExpenseReceipt{})
@@ -133,7 +132,7 @@ func (r *expenseReceiptRepository) Delete(ctx context.Context, id uuid.UUID) err
 	if result.Error != nil {
 		r.logger.Error("Failed to delete expense receipt",
 			zap.Error(result.Error),
-			zap.String("id", id.String()),
+			zap.String("id", id),
 		)
 		return result.Error
 	}
@@ -146,13 +145,13 @@ func (r *expenseReceiptRepository) Delete(ctx context.Context, id uuid.UUID) err
 }
 
 // DeleteByExpenseID 経費申請IDから領収書を全て削除
-func (r *expenseReceiptRepository) DeleteByExpenseID(ctx context.Context, expenseID uuid.UUID) error {
+func (r *expenseReceiptRepository) DeleteByExpenseID(ctx context.Context, expenseID string) error {
 	if err := r.db.WithContext(ctx).
 		Where("expense_id = ?", expenseID).
 		Delete(&model.ExpenseReceipt{}).Error; err != nil {
 		r.logger.Error("Failed to delete expense receipts by expense ID",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()),
+			zap.String("expense_id", expenseID),
 		)
 		return err
 	}
@@ -160,7 +159,7 @@ func (r *expenseReceiptRepository) DeleteByExpenseID(ctx context.Context, expens
 }
 
 // UpdateDisplayOrder 表示順序を更新
-func (r *expenseReceiptRepository) UpdateDisplayOrder(ctx context.Context, id uuid.UUID, displayOrder int) error {
+func (r *expenseReceiptRepository) UpdateDisplayOrder(ctx context.Context, id string, displayOrder int) error {
 	result := r.db.WithContext(ctx).
 		Model(&model.ExpenseReceipt{}).
 		Where("id = ?", id).
@@ -169,7 +168,7 @@ func (r *expenseReceiptRepository) UpdateDisplayOrder(ctx context.Context, id uu
 	if result.Error != nil {
 		r.logger.Error("Failed to update expense receipt display order",
 			zap.Error(result.Error),
-			zap.String("id", id.String()),
+			zap.String("id", id),
 			zap.Int("display_order", displayOrder),
 		)
 		return result.Error
@@ -183,7 +182,7 @@ func (r *expenseReceiptRepository) UpdateDisplayOrder(ctx context.Context, id uu
 }
 
 // GetMaxDisplayOrder 経費申請の最大表示順序を取得
-func (r *expenseReceiptRepository) GetMaxDisplayOrder(ctx context.Context, expenseID uuid.UUID) (int, error) {
+func (r *expenseReceiptRepository) GetMaxDisplayOrder(ctx context.Context, expenseID string) (int, error) {
 	var maxOrder int
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseReceipt{}).
@@ -194,7 +193,7 @@ func (r *expenseReceiptRepository) GetMaxDisplayOrder(ctx context.Context, expen
 	if err != nil {
 		r.logger.Error("Failed to get max display order",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()),
+			zap.String("expense_id", expenseID),
 		)
 		return 0, err
 	}

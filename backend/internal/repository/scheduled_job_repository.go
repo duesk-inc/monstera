@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -16,9 +15,9 @@ import (
 type ScheduledJobRepositoryInterface interface {
 	// ジョブCRUD
 	Create(ctx context.Context, job *model.ScheduledJob) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.ScheduledJob, error)
+	GetByID(ctx context.Context, id string) (*model.ScheduledJob, error)
 	Update(ctx context.Context, job *model.ScheduledJob) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 
 	// ジョブ検索
 	List(ctx context.Context, jobType *model.ScheduledJobType, status *model.ScheduledJobStatus, limit, offset int) ([]*model.ScheduledJob, error)
@@ -28,19 +27,19 @@ type ScheduledJobRepositoryInterface interface {
 
 	// 実行管理
 	GetDueJobs(ctx context.Context, now time.Time) ([]*model.ScheduledJob, error)
-	UpdateLastRunAt(ctx context.Context, id uuid.UUID, lastRunAt time.Time, nextRunAt *time.Time) error
-	UpdateStatus(ctx context.Context, id uuid.UUID, status model.ScheduledJobStatus) error
-	AddExecutionHistory(ctx context.Context, id uuid.UUID, status string, duration int64, errorMessage *string, resultSummary *string) error
+	UpdateLastRunAt(ctx context.Context, id string, lastRunAt time.Time, nextRunAt *time.Time) error
+	UpdateStatus(ctx context.Context, id string, status model.ScheduledJobStatus) error
+	AddExecutionHistory(ctx context.Context, id string, status string, duration int64, errorMessage *string, resultSummary *string) error
 
 	// 統計情報
 	GetSummaryByType(ctx context.Context) ([]*model.ScheduledJobSummary, error)
 	GetStats(ctx context.Context) (*model.ScheduledJobStats, error)
-	GetExecutionHistory(ctx context.Context, jobID uuid.UUID, limit int) ([]model.ExecutionHistory, error)
+	GetExecutionHistory(ctx context.Context, jobID string, limit int) ([]model.ExecutionHistory, error)
 
 	// バリデーション
-	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
-	ExistsByName(ctx context.Context, name string, excludeID *uuid.UUID) (bool, error)
-	CanExecute(ctx context.Context, id uuid.UUID) (bool, error)
+	ExistsByID(ctx context.Context, id string) (bool, error)
+	ExistsByName(ctx context.Context, name string, excludeID *string) (bool, error)
+	CanExecute(ctx context.Context, id string) (bool, error)
 }
 
 // scheduledJobRepository スケジュールジョブリポジトリ実装
@@ -67,7 +66,7 @@ func (r *scheduledJobRepository) Create(ctx context.Context, job *model.Schedule
 }
 
 // GetByID IDでスケジュールジョブを取得
-func (r *scheduledJobRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.ScheduledJob, error) {
+func (r *scheduledJobRepository) GetByID(ctx context.Context, id string) (*model.ScheduledJob, error) {
 	var job model.ScheduledJob
 	err := r.db.WithContext(ctx).
 		Preload("Creator").
@@ -78,7 +77,7 @@ func (r *scheduledJobRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
-		r.logger.Error("Failed to get scheduled job by ID", zap.Error(err), zap.String("id", id.String()))
+		r.logger.Error("Failed to get scheduled job by ID", zap.Error(err), zap.String("id", id))
 		return nil, fmt.Errorf("スケジュールジョブの取得に失敗しました: %w", err)
 	}
 
@@ -93,7 +92,7 @@ func (r *scheduledJobRepository) Update(ctx context.Context, job *model.Schedule
 		Updates(job)
 
 	if result.Error != nil {
-		r.logger.Error("Failed to update scheduled job", zap.Error(result.Error), zap.String("id", job.ID.String()))
+		r.logger.Error("Failed to update scheduled job", zap.Error(result.Error), zap.String("id", job.ID))
 		return fmt.Errorf("スケジュールジョブの更新に失敗しました: %w", result.Error)
 	}
 
@@ -105,13 +104,13 @@ func (r *scheduledJobRepository) Update(ctx context.Context, job *model.Schedule
 }
 
 // Delete スケジュールジョブを論理削除
-func (r *scheduledJobRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *scheduledJobRepository) Delete(ctx context.Context, id string) error {
 	result := r.db.WithContext(ctx).
 		Where("id = ?", id).
 		Delete(&model.ScheduledJob{})
 
 	if result.Error != nil {
-		r.logger.Error("Failed to delete scheduled job", zap.Error(result.Error), zap.String("id", id.String()))
+		r.logger.Error("Failed to delete scheduled job", zap.Error(result.Error), zap.String("id", id))
 		return fmt.Errorf("スケジュールジョブの削除に失敗しました: %w", result.Error)
 	}
 
@@ -230,7 +229,7 @@ func (r *scheduledJobRepository) GetDueJobs(ctx context.Context, now time.Time) 
 }
 
 // UpdateLastRunAt 最終実行時刻を更新
-func (r *scheduledJobRepository) UpdateLastRunAt(ctx context.Context, id uuid.UUID, lastRunAt time.Time, nextRunAt *time.Time) error {
+func (r *scheduledJobRepository) UpdateLastRunAt(ctx context.Context, id string, lastRunAt time.Time, nextRunAt *time.Time) error {
 	updates := map[string]interface{}{
 		"last_run_at": lastRunAt,
 		"next_run_at": nextRunAt,
@@ -254,7 +253,7 @@ func (r *scheduledJobRepository) UpdateLastRunAt(ctx context.Context, id uuid.UU
 }
 
 // UpdateStatus ステータスを更新
-func (r *scheduledJobRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status model.ScheduledJobStatus) error {
+func (r *scheduledJobRepository) UpdateStatus(ctx context.Context, id string, status model.ScheduledJobStatus) error {
 	result := r.db.WithContext(ctx).
 		Model(&model.ScheduledJob{}).
 		Where("id = ? AND deleted_at IS NULL", id).
@@ -273,7 +272,7 @@ func (r *scheduledJobRepository) UpdateStatus(ctx context.Context, id uuid.UUID,
 }
 
 // AddExecutionHistory 実行履歴を追加
-func (r *scheduledJobRepository) AddExecutionHistory(ctx context.Context, id uuid.UUID, status string, duration int64, errorMessage *string, resultSummary *string) error {
+func (r *scheduledJobRepository) AddExecutionHistory(ctx context.Context, id string, status string, duration int64, errorMessage *string, resultSummary *string) error {
 	// トランザクション内で処理
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// ジョブを取得
@@ -441,7 +440,7 @@ func (r *scheduledJobRepository) GetStats(ctx context.Context) (*model.Scheduled
 }
 
 // GetExecutionHistory 実行履歴を取得
-func (r *scheduledJobRepository) GetExecutionHistory(ctx context.Context, jobID uuid.UUID, limit int) ([]model.ExecutionHistory, error) {
+func (r *scheduledJobRepository) GetExecutionHistory(ctx context.Context, jobID string, limit int) ([]model.ExecutionHistory, error) {
 	var job model.ScheduledJob
 	err := r.db.WithContext(ctx).
 		Where("id = ? AND deleted_at IS NULL", jobID).
@@ -469,7 +468,7 @@ func (r *scheduledJobRepository) GetExecutionHistory(ctx context.Context, jobID 
 }
 
 // ExistsByID IDでスケジュールジョブの存在を確認
-func (r *scheduledJobRepository) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (r *scheduledJobRepository) ExistsByID(ctx context.Context, id string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ScheduledJob{}).
@@ -485,7 +484,7 @@ func (r *scheduledJobRepository) ExistsByID(ctx context.Context, id uuid.UUID) (
 }
 
 // ExistsByName 名前でスケジュールジョブの存在を確認
-func (r *scheduledJobRepository) ExistsByName(ctx context.Context, name string, excludeID *uuid.UUID) (bool, error) {
+func (r *scheduledJobRepository) ExistsByName(ctx context.Context, name string, excludeID *string) (bool, error) {
 	var count int64
 	query := r.db.WithContext(ctx).
 		Model(&model.ScheduledJob{}).
@@ -505,7 +504,7 @@ func (r *scheduledJobRepository) ExistsByName(ctx context.Context, name string, 
 }
 
 // CanExecute ジョブが実行可能か確認
-func (r *scheduledJobRepository) CanExecute(ctx context.Context, id uuid.UUID) (bool, error) {
+func (r *scheduledJobRepository) CanExecute(ctx context.Context, id string) (bool, error) {
 	var job model.ScheduledJob
 	err := r.db.WithContext(ctx).
 		Where("id = ? AND deleted_at IS NULL", id).

@@ -48,12 +48,12 @@ const (
 
 // WeeklyReportArchive アーカイブされた週報モデル
 type WeeklyReportArchive struct {
-	ID                   uuid.UUID     `gorm:"type:varchar(255);primary_key" json:"id"`
-	OriginalID           uuid.UUID     `gorm:"type:varchar(255);not null;index" json:"original_id"`
-	UserID string     `gorm:"type:varchar(255);not null;index" json:"user_id"`
+	ID                   string        `gorm:"type:varchar(255);primary_key" json:"id"`
+	OriginalID           string        `gorm:"type:varchar(255);not null;index" json:"original_id"`
+	UserID               string        `gorm:"type:varchar(255);not null;index" json:"user_id"`
 	UserName             string        `gorm:"type:varchar(255);not null" json:"user_name"`
 	UserEmail            string        `gorm:"type:varchar(255);not null" json:"user_email"`
-	DepartmentID         *uuid.UUID    `gorm:"type:varchar(255);index" json:"department_id"`
+	DepartmentID         *string       `gorm:"type:varchar(255);index" json:"department_id"`
 	DepartmentName       *string       `gorm:"type:varchar(255)" json:"department_name"`
 	StartDate            time.Time     `gorm:"type:date;not null;index" json:"start_date"`
 	EndDate              time.Time     `gorm:"type:date;not null;index" json:"end_date"`
@@ -67,7 +67,7 @@ type WeeklyReportArchive struct {
 	SubmittedAt          *time.Time    `gorm:"default:null" json:"submitted_at"`
 	CommentedAt          *time.Time    `gorm:"default:null" json:"commented_at"`
 	ArchivedAt           time.Time     `gorm:"not null;default:CURRENT_TIMESTAMP;index" json:"archived_at"`
-	ArchivedBy string     `gorm:"type:varchar(255);not null" json:"archived_by"`
+	ArchivedBy           string        `gorm:"type:varchar(255);not null" json:"archived_by"`
 	ArchiveReason        ArchiveReason `gorm:"type:enum('retention_policy','manual','data_migration');not null;default:'retention_policy';index" json:"archive_reason"`
 	FiscalYear           int           `gorm:"type:year;not null" json:"fiscal_year"`
 	FiscalQuarter        int           `gorm:"type:tinyint;not null;check:fiscal_quarter BETWEEN 1 AND 4" json:"fiscal_quarter"`
@@ -89,18 +89,18 @@ func (WeeklyReportArchive) TableName() string {
 
 // BeforeCreate UUIDを生成
 func (w *WeeklyReportArchive) BeforeCreate(tx *gorm.DB) error {
-	if w.ID == uuid.Nil {
-		w.ID = uuid.New()
+	if w.ID == "" {
+		w.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // DailyRecordArchive アーカイブされた日次記録モデル
 type DailyRecordArchive struct {
-	ID                     uuid.UUID `gorm:"type:varchar(255);primary_key" json:"id"`
-	OriginalID             uuid.UUID `gorm:"type:varchar(255);not null;index" json:"original_id"`
-	WeeklyReportArchiveID  uuid.UUID `gorm:"type:varchar(255);not null;index" json:"weekly_report_archive_id"`
-	OriginalWeeklyReportID uuid.UUID `gorm:"type:varchar(255);not null;index" json:"original_weekly_report_id"`
+	ID                     string    `gorm:"type:varchar(255);primary_key" json:"id"`
+	OriginalID             string    `gorm:"type:varchar(255);not null;index" json:"original_id"`
+	WeeklyReportArchiveID  string    `gorm:"type:varchar(255);not null;index" json:"weekly_report_archive_id"`
+	OriginalWeeklyReportID string    `gorm:"type:varchar(255);not null;index" json:"original_weekly_report_id"`
 	RecordDate             time.Time `gorm:"type:date;not null;index" json:"record_date"`
 	IsHoliday              bool      `gorm:"not null;default:false" json:"is_holiday"`
 	IsHolidayWork          bool      `gorm:"not null;default:false" json:"is_holiday_work"`
@@ -127,18 +127,18 @@ func (DailyRecordArchive) TableName() string {
 
 // BeforeCreate UUIDを生成
 func (d *DailyRecordArchive) BeforeCreate(tx *gorm.DB) error {
-	if d.ID == uuid.Nil {
-		d.ID = uuid.New()
+	if d.ID == "" {
+		d.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // WorkHourArchive アーカイブされた勤怠時間モデル
 type WorkHourArchive struct {
-	ID                     uuid.UUID  `gorm:"type:varchar(255);primary_key" json:"id"`
-	OriginalID             uuid.UUID  `gorm:"type:varchar(255);not null;index" json:"original_id"`
-	WeeklyReportArchiveID  uuid.UUID  `gorm:"type:varchar(255);not null;index" json:"weekly_report_archive_id"`
-	OriginalWeeklyReportID uuid.UUID  `gorm:"type:varchar(255);not null;index" json:"original_weekly_report_id"`
+	ID                     string     `gorm:"type:varchar(255);primary_key" json:"id"`
+	OriginalID             string     `gorm:"type:varchar(255);not null;index" json:"original_id"`
+	WeeklyReportArchiveID  string     `gorm:"type:varchar(255);not null;index" json:"weekly_report_archive_id"`
+	OriginalWeeklyReportID string     `gorm:"type:varchar(255);not null;index" json:"original_weekly_report_id"`
 	Date                   time.Time  `gorm:"type:date;not null;index" json:"date"`
 	StartTime              *time.Time `gorm:"type:time" json:"start_time"`
 	EndTime                *time.Time `gorm:"type:time" json:"end_time"`
@@ -163,15 +163,15 @@ func (WorkHourArchive) TableName() string {
 
 // BeforeCreate UUIDを生成
 func (w *WorkHourArchive) BeforeCreate(tx *gorm.DB) error {
-	if w.ID == uuid.Nil {
-		w.ID = uuid.New()
+	if w.ID == "" {
+		w.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // ArchiveStatistics アーカイブ統計モデル
 type ArchiveStatistics struct {
-	ID              uuid.UUID       `gorm:"type:varchar(255);primary_key" json:"id"`
+	ID              string          `gorm:"type:varchar(255);primary_key" json:"id"`
 	ArchiveType     ArchiveType     `gorm:"type:enum('weekly_reports','daily_records','work_hours','bulk_archive');not null;index" json:"archive_type"`
 	FiscalYear      int             `gorm:"type:year;not null" json:"fiscal_year"`
 	FiscalQuarter   *int            `gorm:"type:tinyint;check:fiscal_quarter BETWEEN 1 AND 4" json:"fiscal_quarter"`
@@ -181,7 +181,7 @@ type ArchiveStatistics struct {
 	ArchivedRecords int             `gorm:"not null;default:0" json:"archived_records"`
 	FailedRecords   int             `gorm:"not null;default:0" json:"failed_records"`
 	ArchiveReason   ArchiveReason   `gorm:"type:enum('retention_policy','manual','data_migration');not null;default:'retention_policy'" json:"archive_reason"`
-	ExecutedBy      uuid.UUID       `gorm:"type:varchar(255);not null;index" json:"executed_by"`
+	ExecutedBy      string          `gorm:"type:varchar(255);not null;index" json:"executed_by"`
 	ExecutionMethod ExecutionMethod `gorm:"type:enum('batch','manual','api');not null;default:'batch'" json:"execution_method"`
 	Status          ArchiveStatus   `gorm:"type:enum('pending','processing','completed','failed','cancelled');not null;default:'pending';index" json:"status"`
 	ErrorMessage    *string         `gorm:"type:text" json:"error_message"`
@@ -202,8 +202,8 @@ func (ArchiveStatistics) TableName() string {
 
 // BeforeCreate UUIDを生成
 func (a *ArchiveStatistics) BeforeCreate(tx *gorm.DB) error {
-	if a.ID == uuid.Nil {
-		a.ID = uuid.New()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -251,7 +251,7 @@ func (a *ArchiveStatistics) IsRunning() bool {
 // ArchiveFilter アーカイブ検索フィルタ
 type ArchiveFilter struct {
 	UserID        *string
-	DepartmentID  *uuid.UUID
+	DepartmentID  *string
 	FiscalYear    *int
 	FiscalQuarter *int
 	StartDate     *time.Time

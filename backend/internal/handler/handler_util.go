@@ -14,7 +14,6 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -48,16 +47,16 @@ func (h *HandlerUtil) GetAuthenticatedUserID(c *gin.Context) (string, bool) {
 }
 
 // ParseUUIDParam パスパラメータからUUIDを解析する
-func (h *HandlerUtil) ParseUUIDParam(c *gin.Context, paramName string) (uuid.UUID, bool) {
+func (h *HandlerUtil) ParseUUIDParam(c *gin.Context, paramName string) (string, bool) {
 	idStr := c.Param(paramName)
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		h.Logger.Warn("Invalid UUID parameter",
+	id := idStr
+	// UUID validation removed after migration
+	if id == "" {
+		h.Logger.Warn("Empty ID parameter",
 			zap.String("param", paramName),
-			zap.String("value", idStr),
-			zap.Error(err))
+			zap.String("value", idStr))
 		RespondError(c, http.StatusBadRequest, fmt.Sprintf("無効な%sです", paramName))
-		return uuid.UUID{}, false
+		return "", false
 	}
 	return id, true
 }
@@ -97,14 +96,15 @@ func (h *HandlerUtil) RespondValidationError(c *gin.Context, errors map[string]s
 }
 
 // ParseUUID UUIDをパースする共通ユーティリティ
-func ParseUUID(c *gin.Context, paramName string, logger *zap.Logger) (uuid.UUID, error) {
-	id, err := uuid.Parse(c.Param(paramName))
-	if err != nil {
+func ParseUUID(c *gin.Context, paramName string, logger *zap.Logger) (string, error) {
+	id := c.Param(paramName)
+	// UUID validation removed after migration to string
+	if id == "" {
 		if logger != nil {
-			logger.Error("Invalid UUID format", zap.Error(err), zap.String("param", paramName))
+			logger.Error("Empty ID", zap.String("param", paramName))
 		}
 		RespondError(c, http.StatusBadRequest, message.MsgInvalidIDFormat)
-		return uuid.UUID{}, err
+		return "", fmt.Errorf("empty ID")
 	}
 	return id, nil
 }

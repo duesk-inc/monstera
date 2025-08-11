@@ -40,8 +40,8 @@ type LeaveService interface {
 	GetSubstituteLeaveGrants(ctx context.Context, userID string) ([]dto.SubstituteLeaveGrantResponse, error)
 	GetSubstituteLeaveGrantSummary(ctx context.Context, userID string) (dto.SubstituteLeaveGrantSummaryResponse, error)
 	CreateSubstituteLeaveGrant(ctx context.Context, req dto.SubstituteLeaveGrantRequest) (dto.SubstituteLeaveGrantResponse, error)
-	UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.UUID, req dto.SubstituteLeaveGrantRequest) (dto.SubstituteLeaveGrantResponse, error)
-	DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.UUID) error
+	UpdateSubstituteLeaveGrant(ctx context.Context, id string, req dto.SubstituteLeaveGrantRequest) (dto.SubstituteLeaveGrantResponse, error)
+	DeleteSubstituteLeaveGrant(ctx context.Context, id string) error
 
 	// 振替特別休暇残日数の更新
 	UpdateSubstituteLeaveUsage(ctx context.Context, userID string, usedDays float64) error
@@ -85,7 +85,7 @@ func (s *leaveService) GetLeaveTypes(ctx context.Context) ([]dto.LeaveTypeRespon
 	results := make([]dto.LeaveTypeResponse, len(leaveTypes))
 	for i, lt := range leaveTypes {
 		results[i] = dto.LeaveTypeResponse{
-			ID:                lt.ID.String(),
+			ID:                lt.ID,
 			Code:              lt.Code,
 			Name:              lt.Name,
 			Description:       lt.Description,
@@ -116,8 +116,8 @@ func (s *leaveService) GetUserLeaveBalances(ctx context.Context, userID string) 
 	results := make([]dto.UserLeaveBalanceResponse, len(balances))
 	for i, b := range balances {
 		results[i] = dto.UserLeaveBalanceResponse{
-			ID:            b.ID.String(),
-			LeaveTypeID:   b.LeaveTypeID.String(),
+			ID:            b.ID,
+			LeaveTypeID:   b.LeaveTypeID,
 			LeaveTypeName: b.LeaveType.Name,
 			FiscalYear:    b.FiscalYear,
 			TotalDays:     b.TotalDays,
@@ -136,7 +136,7 @@ func (s *leaveService) GetUserLeaveBalances(ctx context.Context, userID string) 
 // CreateLeaveRequest は新しい休暇申請を作成します
 func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequestRequest) (dto.LeaveRequestResponse, error) {
 	logger.LogInfo(s.logger, "休暇申請作成開始",
-		zap.String("user_id", req.UserID.String()),
+		zap.String("user_id", req.UserID),
 		zap.String("leave_type_id", req.LeaveTypeID),
 		zap.Float64("total_days", req.TotalDays),
 		zap.Int("details_count", len(req.RequestDetails)))
@@ -168,7 +168,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 	balance, err := s.leaveRepo.GetUserLeaveBalanceByType(ctx, req.UserID, req.LeaveTypeID)
 	if err != nil {
 		return dto.LeaveRequestResponse{}, logger.LogAndWrapError(s.logger, err, "休暇残日数の取得に失敗しました",
-			zap.String("user_id", req.UserID.String()),
+			zap.String("user_id", req.UserID),
 			zap.String("leave_type_id", req.LeaveTypeID))
 	}
 
@@ -176,7 +176,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 		logger.LogWarn(s.logger, "休暇残日数不足",
 			zap.Float64("requested_days", req.TotalDays),
 			zap.Float64("remaining_days", balance.RemainingDays),
-			zap.String("user_id", req.UserID.String()),
+			zap.String("user_id", req.UserID),
 			zap.String("leave_type_id", req.LeaveTypeID))
 		return dto.LeaveRequestResponse{}, fmt.Errorf(message.MsgLeaveBalanceExceededFormat, balance.RemainingDays)
 	}
@@ -208,7 +208,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 	existingRequests, err := s.leaveRepo.CheckExistingLeaveRequestsByDate(ctx, req.UserID, leaveDates)
 	if err != nil {
 		return dto.LeaveRequestResponse{}, logger.LogAndWrapError(s.logger, err, "既存の休暇申請の確認に失敗しました",
-			zap.String("user_id", req.UserID.String()))
+			zap.String("user_id", req.UserID))
 	}
 
 	// 既に休暇申請されている日付があるかチェック
@@ -222,7 +222,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 	if len(takenDates) > 0 {
 		logger.LogWarn(s.logger, "既に申請されている日付が含まれている",
 			zap.Strings("taken_dates", takenDates),
-			zap.String("user_id", req.UserID.String()))
+			zap.String("user_id", req.UserID))
 		return dto.LeaveRequestResponse{}, fmt.Errorf(message.MsgLeaveDatesAlreadyRequested, strings.Join(takenDates, ", "))
 	}
 
@@ -248,7 +248,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 		processedDates[datePart] = true
 
 		details = append(details, model.LeaveRequestDetail{
-			ID:        uuid.New(),
+			ID:        uuid.New().String(),
 			LeaveDate: leaveDate,
 			StartTime: d.StartTime,
 			EndTime:   d.EndTime,
@@ -258,7 +258,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 
 	// 重複除外後に日数が0になった場合はエラー
 	if len(details) == 0 {
-		logger.LogWarn(s.logger, "有効な休暇申請日が含まれていない", zap.String("user_id", req.UserID.String()))
+		logger.LogWarn(s.logger, "有効な休暇申請日が含まれていない", zap.String("user_id", req.UserID))
 		return dto.LeaveRequestResponse{}, errors.New(message.MsgNoValidLeaveDates)
 	}
 
@@ -270,7 +270,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 	}
 
 	request := model.LeaveRequest{
-		ID:            uuid.New(),
+		ID:            uuid.New().String(),
 		UserID:        req.UserID,
 		LeaveTypeID:   leaveTypeUUID,
 		RequestDate:   now,
@@ -295,7 +295,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 		createdRequest, err := txLeaveRepo.CreateLeaveRequest(ctx, request)
 		if err != nil {
 			return logger.LogAndWrapError(s.logger, err, "休暇申請の作成に失敗しました",
-				zap.String("user_id", req.UserID.String()))
+				zap.String("user_id", req.UserID))
 		}
 
 		// 残日数を更新
@@ -306,8 +306,8 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 		// gormのモデル構造の違いを考慮して、明示的にSaveするフィールドを指定
 		if err := txLeaveRepo.UpdateUserLeaveBalance(ctx, balance); err != nil {
 			return logger.LogAndWrapError(s.logger, err, "休暇残日数の更新に失敗しました",
-				zap.String("user_id", req.UserID.String()),
-				zap.String("balance_id", balance.ID.String()))
+				zap.String("user_id", req.UserID),
+				zap.String("balance_id", balance.ID))
 		}
 
 		// 振替特別休暇の場合は特別な処理
@@ -316,7 +316,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 			// 通常のメソッドではなく、トランザクション内で実行するための内部実装を使用
 			if err := s.updateSubstituteLeaveUsageWithTx(ctx, tx, req.UserID, req.TotalDays); err != nil {
 				return logger.LogAndWrapError(s.logger, err, "振替特別休暇の残日数更新に失敗しました",
-					zap.String("user_id", req.UserID.String()),
+					zap.String("user_id", req.UserID),
 					zap.Float64("used_days", req.TotalDays))
 			}
 		}
@@ -325,7 +325,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 		detailResponses := make([]dto.LeaveRequestDetailResponse, len(createdRequest.Details))
 		for i, d := range createdRequest.Details {
 			detailResponses[i] = dto.LeaveRequestDetailResponse{
-				ID:        d.ID.String(),
+				ID:        d.ID,
 				LeaveDate: dateutil.FormatDate(d.LeaveDate),
 				StartTime: d.StartTime,
 				EndTime:   d.EndTime,
@@ -334,9 +334,9 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 		}
 
 		response = dto.LeaveRequestResponse{
-			ID:            createdRequest.ID.String(),
+			ID:            createdRequest.ID,
 			UserID:        createdRequest.UserID,
-			LeaveTypeID:   createdRequest.LeaveTypeID.String(),
+			LeaveTypeID:   createdRequest.LeaveTypeID,
 			LeaveTypeName: createdRequest.LeaveType.Name,
 			RequestDate:   dateutil.FormatDate(createdRequest.RequestDate),
 			IsHourlyBased: createdRequest.IsHourlyBased,
@@ -355,7 +355,7 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 
 	logger.LogInfo(s.logger, "休暇申請作成完了",
 		zap.String("request_id", response.ID),
-		zap.String("user_id", req.UserID.String()),
+		zap.String("user_id", req.UserID),
 		zap.String("leave_type", leaveType.Name),
 		zap.Float64("days", req.TotalDays))
 
@@ -443,7 +443,7 @@ func (s *leaveService) updateSubstituteLeaveUsageWithTx(ctx context.Context, tx 
 	substituteLeaveTypeID := leaveType.ID
 
 	// 休暇残日数を取得して更新
-	balance, err := txLeaveRepo.GetUserLeaveBalanceByType(ctx, userID, substituteLeaveTypeID.String())
+	balance, err := txLeaveRepo.GetUserLeaveBalanceByType(ctx, userID, substituteLeaveTypeID)
 	if err != nil {
 		return logger.LogAndWrapError(s.logger, err, "休暇残日数の取得に失敗しました")
 	}
@@ -482,7 +482,7 @@ func (s *leaveService) GetLeaveRequestsByUserID(ctx context.Context, userID stri
 		detailResponses := make([]dto.LeaveRequestDetailResponse, len(r.Details))
 		for j, d := range r.Details {
 			detailResponses[j] = dto.LeaveRequestDetailResponse{
-				ID:        d.ID.String(),
+				ID:        d.ID,
 				LeaveDate: dateutil.FormatDate(d.LeaveDate),
 				StartTime: d.StartTime,
 				EndTime:   d.EndTime,
@@ -491,9 +491,9 @@ func (s *leaveService) GetLeaveRequestsByUserID(ctx context.Context, userID stri
 		}
 
 		results[i] = dto.LeaveRequestResponse{
-			ID:            r.ID.String(),
+			ID:            r.ID,
 			UserID:        r.UserID,
-			LeaveTypeID:   r.LeaveTypeID.String(),
+			LeaveTypeID:   r.LeaveTypeID,
 			LeaveTypeName: r.LeaveType.Name,
 			RequestDate:   dateutil.FormatDate(r.RequestDate),
 			IsHourlyBased: r.IsHourlyBased,
@@ -507,8 +507,8 @@ func (s *leaveService) GetLeaveRequestsByUserID(ctx context.Context, userID stri
 			results[i].ProcessedAt = dateutil.FormatDateTime(*r.ProcessedAt)
 		}
 
-		if r.ApproverID != nil && *r.ApproverID != uuid.Nil {
-			results[i].ApproverID = r.ApproverID.String()
+		if r.ApproverID != nil && *r.ApproverID != "" {
+			results[i].ApproverID = *r.ApproverID
 		}
 	}
 
@@ -562,7 +562,7 @@ func (s *leaveService) GetSubstituteLeaveGrants(ctx context.Context, userID stri
 		// 有効期限を過ぎている場合は期限切れフラグを更新
 		if !g.IsExpired && g.ExpireDate.Before(now) {
 			logger.LogInfo(s.logger, "振替特別休暇期限切れを検出",
-				zap.String("grant_id", g.ID.String()),
+				zap.String("grant_id", g.ID),
 				zap.String("user_id", userID),
 				zap.Time("expire_date", g.ExpireDate))
 
@@ -572,12 +572,12 @@ func (s *leaveService) GetSubstituteLeaveGrants(ctx context.Context, userID stri
 				// エラーはログに記録するが、処理は続行
 				logger.LogWarn(s.logger, "有効期限切れの振替特別休暇更新に失敗",
 					zap.Error(err),
-					zap.String("grant_id", g.ID.String()))
+					zap.String("grant_id", g.ID))
 			}
 		}
 
 		results[i] = dto.SubstituteLeaveGrantResponse{
-			ID:            g.ID.String(),
+			ID:            g.ID,
 			UserID:        g.UserID,
 			GrantDate:     g.GrantDate.Format("2006-01-02"),
 			GrantedDays:   g.GrantedDays,
@@ -636,7 +636,7 @@ func (s *leaveService) GetSubstituteLeaveGrantSummary(ctx context.Context, userI
 // CreateSubstituteLeaveGrant は新しい振替特別休暇付与履歴を作成します
 func (s *leaveService) CreateSubstituteLeaveGrant(ctx context.Context, req dto.SubstituteLeaveGrantRequest) (dto.SubstituteLeaveGrantResponse, error) {
 	logger.LogInfo(s.logger, "振替特別休暇付与履歴作成開始",
-		zap.String("user_id", req.UserID.String()),
+		zap.String("user_id", req.UserID),
 		zap.String("grant_date", req.GrantDate),
 		zap.Float64("granted_days", req.GrantedDays),
 		zap.String("work_date", req.WorkDate),
@@ -664,7 +664,7 @@ func (s *leaveService) CreateSubstituteLeaveGrant(ctx context.Context, req dto.S
 	// 初期値設定
 	now := time.Now()
 	grant := model.SubstituteLeaveGrant{
-		ID:            uuid.New(),
+		ID:            uuid.New().String(),
 		UserID:        req.UserID,
 		GrantDate:     grantDate,
 		GrantedDays:   req.GrantedDays,
@@ -690,7 +690,7 @@ func (s *leaveService) CreateSubstituteLeaveGrant(ctx context.Context, req dto.S
 		if err != nil {
 			logger.LogError(s.logger, "振替特別休暇付与履歴の作成失敗",
 				zap.Error(err),
-				zap.String("user_id", req.UserID.String()))
+				zap.String("user_id", req.UserID))
 			return fmt.Errorf("振替特別休暇付与履歴の作成に失敗しました: %w", err)
 		}
 
@@ -702,7 +702,7 @@ func (s *leaveService) CreateSubstituteLeaveGrant(ctx context.Context, req dto.S
 			return fmt.Errorf("休暇種別の取得に失敗しました: %w", err)
 		}
 
-		var substituteLeaveTypeID uuid.UUID
+		var substituteLeaveTypeID string
 		for _, lt := range leaveTypes {
 			if lt.Code == "substitute" {
 				substituteLeaveTypeID = lt.ID
@@ -710,18 +710,18 @@ func (s *leaveService) CreateSubstituteLeaveGrant(ctx context.Context, req dto.S
 			}
 		}
 
-		if substituteLeaveTypeID == uuid.Nil {
+		if substituteLeaveTypeID == "" {
 			logger.LogError(s.logger, "振替特別休暇の種別が見つからない")
 			return fmt.Errorf(message.MsgSubstituteLeaveTypeNotFound)
 		}
 
 		// 休暇残日数を取得して更新
-		balance, err := txLeaveRepo.GetUserLeaveBalanceByType(ctx, req.UserID, substituteLeaveTypeID.String())
+		balance, err := txLeaveRepo.GetUserLeaveBalanceByType(ctx, req.UserID, substituteLeaveTypeID)
 		if err != nil {
 			logger.LogError(s.logger, "休暇残日数の取得失敗",
 				zap.Error(err),
-				zap.String("user_id", req.UserID.String()),
-				zap.String("leave_type_id", substituteLeaveTypeID.String()))
+				zap.String("user_id", req.UserID),
+				zap.String("leave_type_id", substituteLeaveTypeID))
 			return fmt.Errorf("休暇残日数の取得に失敗しました: %w", err)
 		}
 
@@ -730,7 +730,7 @@ func (s *leaveService) CreateSubstituteLeaveGrant(ctx context.Context, req dto.S
 		if err != nil {
 			logger.LogError(s.logger, "振替特別休暇合計残日数の計算失敗",
 				zap.Error(err),
-				zap.String("user_id", req.UserID.String()))
+				zap.String("user_id", req.UserID))
 			return fmt.Errorf("振替特別休暇合計残日数の計算に失敗しました: %w", err)
 		}
 
@@ -742,14 +742,14 @@ func (s *leaveService) CreateSubstituteLeaveGrant(ctx context.Context, req dto.S
 		if err := txLeaveRepo.UpdateUserLeaveBalance(ctx, balance); err != nil {
 			logger.LogError(s.logger, "休暇残日数の更新失敗",
 				zap.Error(err),
-				zap.String("user_id", req.UserID.String()),
-				zap.String("balance_id", balance.ID.String()))
+				zap.String("user_id", req.UserID),
+				zap.String("balance_id", balance.ID))
 			return fmt.Errorf("休暇残日数の更新に失敗しました: %w", err)
 		}
 
 		// レスポンスの作成
 		response = dto.SubstituteLeaveGrantResponse{
-			ID:            createdGrant.ID.String(),
+			ID:            createdGrant.ID,
 			UserID:        createdGrant.UserID,
 			GrantDate:     createdGrant.GrantDate.Format("2006-01-02"),
 			GrantedDays:   createdGrant.GrantedDays,
@@ -770,17 +770,17 @@ func (s *leaveService) CreateSubstituteLeaveGrant(ctx context.Context, req dto.S
 
 	logger.LogInfo(s.logger, "振替特別休暇付与履歴作成完了",
 		zap.String("grant_id", response.ID),
-		zap.String("user_id", req.UserID.String()),
+		zap.String("user_id", req.UserID),
 		zap.Float64("granted_days", req.GrantedDays))
 
 	return response, nil
 }
 
 // UpdateSubstituteLeaveGrant は振替特別休暇付与履歴を更新します
-func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.UUID, req dto.SubstituteLeaveGrantRequest) (dto.SubstituteLeaveGrantResponse, error) {
+func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id string, req dto.SubstituteLeaveGrantRequest) (dto.SubstituteLeaveGrantResponse, error) {
 	logger.LogInfo(s.logger, "振替特別休暇付与履歴更新開始",
-		zap.String("grant_id", id.String()),
-		zap.String("user_id", req.UserID.String()),
+		zap.String("grant_id", id),
+		zap.String("user_id", req.UserID),
 		zap.String("grant_date", req.GrantDate),
 		zap.Float64("granted_days", req.GrantedDays))
 
@@ -789,7 +789,7 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 	if err != nil {
 		logger.LogError(s.logger, "指定された振替特別休暇付与履歴が見つからない",
 			zap.Error(err),
-			zap.String("grant_id", id.String()))
+			zap.String("grant_id", id))
 		return dto.SubstituteLeaveGrantResponse{}, fmt.Errorf("指定された振替特別休暇付与履歴が見つかりません: %w", err)
 	}
 
@@ -817,7 +817,7 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 		logger.LogWarn(s.logger, "付与日数を使用済日数よりも少なく設定することはできない",
 			zap.Float64("used_days", existingGrant.UsedDays),
 			zap.Float64("requested_granted_days", req.GrantedDays),
-			zap.String("grant_id", id.String()))
+			zap.String("grant_id", id))
 		return dto.SubstituteLeaveGrantResponse{}, fmt.Errorf(message.MsgGrantedDaysLessThanUsed)
 	}
 
@@ -833,7 +833,7 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 	// 有効期限チェック
 	if existingGrant.ExpireDate.Before(time.Now()) {
 		logger.LogInfo(s.logger, "振替特別休暇が期限切れのため無効化",
-			zap.String("grant_id", id.String()),
+			zap.String("grant_id", id),
 			zap.Time("expire_date", existingGrant.ExpireDate))
 		existingGrant.IsExpired = true
 		existingGrant.RemainingDays = 0
@@ -850,7 +850,7 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 		if err := txLeaveRepo.UpdateSubstituteLeaveGrant(ctx, existingGrant); err != nil {
 			logger.LogError(s.logger, "振替特別休暇付与履歴の更新失敗",
 				zap.Error(err),
-				zap.String("grant_id", id.String()))
+				zap.String("grant_id", id))
 			return fmt.Errorf("振替特別休暇付与履歴の更新に失敗しました: %w", err)
 		}
 
@@ -862,7 +862,7 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 			return fmt.Errorf("休暇種別の取得に失敗しました: %w", err)
 		}
 
-		var substituteLeaveTypeID uuid.UUID
+		var substituteLeaveTypeID string
 		for _, lt := range leaveTypes {
 			if lt.Code == "substitute" {
 				substituteLeaveTypeID = lt.ID
@@ -870,18 +870,18 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 			}
 		}
 
-		if substituteLeaveTypeID == uuid.Nil {
+		if substituteLeaveTypeID == "" {
 			logger.LogError(s.logger, "振替特別休暇の種別が見つからない")
 			return fmt.Errorf(message.MsgSubstituteLeaveTypeNotFound)
 		}
 
 		// 休暇残日数を取得して更新
-		balance, err := txLeaveRepo.GetUserLeaveBalanceByType(ctx, req.UserID, substituteLeaveTypeID.String())
+		balance, err := txLeaveRepo.GetUserLeaveBalanceByType(ctx, req.UserID, substituteLeaveTypeID)
 		if err != nil {
 			logger.LogError(s.logger, "休暇残日数の取得失敗",
 				zap.Error(err),
-				zap.String("user_id", req.UserID.String()),
-				zap.String("leave_type_id", substituteLeaveTypeID.String()))
+				zap.String("user_id", req.UserID),
+				zap.String("leave_type_id", substituteLeaveTypeID))
 			return fmt.Errorf("休暇残日数の取得に失敗しました: %w", err)
 		}
 
@@ -890,7 +890,7 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 		if err != nil {
 			logger.LogError(s.logger, "振替特別休暇合計残日数の計算失敗",
 				zap.Error(err),
-				zap.String("user_id", req.UserID.String()))
+				zap.String("user_id", req.UserID))
 			return fmt.Errorf("振替特別休暇合計残日数の計算に失敗しました: %w", err)
 		}
 
@@ -902,14 +902,14 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 		if err := txLeaveRepo.UpdateUserLeaveBalance(ctx, balance); err != nil {
 			logger.LogError(s.logger, "休暇残日数の更新失敗",
 				zap.Error(err),
-				zap.String("user_id", req.UserID.String()),
-				zap.String("balance_id", balance.ID.String()))
+				zap.String("user_id", req.UserID),
+				zap.String("balance_id", balance.ID))
 			return fmt.Errorf("休暇残日数の更新に失敗しました: %w", err)
 		}
 
 		// レスポンスの作成
 		response = dto.SubstituteLeaveGrantResponse{
-			ID:            existingGrant.ID.String(),
+			ID:            existingGrant.ID,
 			UserID:        existingGrant.UserID,
 			GrantDate:     existingGrant.GrantDate.Format("2006-01-02"),
 			GrantedDays:   existingGrant.GrantedDays,
@@ -929,8 +929,8 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 	}
 
 	logger.LogInfo(s.logger, "振替特別休暇付与履歴更新完了",
-		zap.String("grant_id", id.String()),
-		zap.String("user_id", req.UserID.String()),
+		zap.String("grant_id", id),
+		zap.String("user_id", req.UserID),
 		zap.Float64("granted_days", req.GrantedDays),
 		zap.Float64("remaining_days", response.RemainingDays))
 
@@ -938,15 +938,15 @@ func (s *leaveService) UpdateSubstituteLeaveGrant(ctx context.Context, id uuid.U
 }
 
 // DeleteSubstituteLeaveGrant は振替特別休暇付与履歴を削除します
-func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.UUID) error {
-	logger.LogInfo(s.logger, "振替特別休暇付与履歴削除開始", zap.String("grant_id", id.String()))
+func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id string) error {
+	logger.LogInfo(s.logger, "振替特別休暇付与履歴削除開始", zap.String("grant_id", id))
 
 	// 既存の付与履歴を取得
 	existingGrant, err := s.leaveRepo.GetSubstituteLeaveGrantByID(ctx, id)
 	if err != nil {
 		logger.LogError(s.logger, "指定された振替特別休暇付与履歴が見つからない",
 			zap.Error(err),
-			zap.String("grant_id", id.String()))
+			zap.String("grant_id", id))
 		return fmt.Errorf("指定された振替特別休暇付与履歴が見つかりません: %w", err)
 	}
 
@@ -954,8 +954,8 @@ func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.U
 	if existingGrant.UsedDays > 0 {
 		logger.LogWarn(s.logger, "既に使用されている振替特別休暇は削除できない",
 			zap.Float64("used_days", existingGrant.UsedDays),
-			zap.String("grant_id", id.String()),
-			zap.String("user_id", existingGrant.UserID.String()))
+			zap.String("grant_id", id),
+			zap.String("user_id", existingGrant.UserID))
 		return fmt.Errorf(message.MsgSubstituteLeaveCannotDelete)
 	}
 
@@ -968,7 +968,7 @@ func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.U
 		if err := txLeaveRepo.DeleteSubstituteLeaveGrant(ctx, id); err != nil {
 			logger.LogError(s.logger, "振替特別休暇付与履歴の削除失敗",
 				zap.Error(err),
-				zap.String("grant_id", id.String()))
+				zap.String("grant_id", id))
 			return fmt.Errorf("振替特別休暇付与履歴の削除に失敗しました: %w", err)
 		}
 
@@ -980,7 +980,7 @@ func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.U
 			return fmt.Errorf("休暇種別の取得に失敗しました: %w", err)
 		}
 
-		var substituteLeaveTypeID uuid.UUID
+		var substituteLeaveTypeID string
 		for _, lt := range leaveTypes {
 			if lt.Code == "substitute" {
 				substituteLeaveTypeID = lt.ID
@@ -988,18 +988,18 @@ func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.U
 			}
 		}
 
-		if substituteLeaveTypeID == uuid.Nil {
+		if substituteLeaveTypeID == "" {
 			logger.LogError(s.logger, "振替特別休暇の種別が見つからない")
 			return fmt.Errorf(message.MsgSubstituteLeaveTypeNotFound)
 		}
 
 		// 休暇残日数を取得して更新
-		balance, err := txLeaveRepo.GetUserLeaveBalanceByType(ctx, existingGrant.UserID, substituteLeaveTypeID.String())
+		balance, err := txLeaveRepo.GetUserLeaveBalanceByType(ctx, existingGrant.UserID, substituteLeaveTypeID)
 		if err != nil {
 			logger.LogError(s.logger, "休暇残日数の取得失敗",
 				zap.Error(err),
-				zap.String("user_id", existingGrant.UserID.String()),
-				zap.String("leave_type_id", substituteLeaveTypeID.String()))
+				zap.String("user_id", existingGrant.UserID),
+				zap.String("leave_type_id", substituteLeaveTypeID))
 			return fmt.Errorf("休暇残日数の取得に失敗しました: %w", err)
 		}
 
@@ -1008,7 +1008,7 @@ func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.U
 		if err != nil {
 			logger.LogError(s.logger, "振替特別休暇合計残日数の計算失敗",
 				zap.Error(err),
-				zap.String("user_id", existingGrant.UserID.String()))
+				zap.String("user_id", existingGrant.UserID))
 			return fmt.Errorf("振替特別休暇合計残日数の計算に失敗しました: %w", err)
 		}
 
@@ -1020,8 +1020,8 @@ func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.U
 		if err := txLeaveRepo.UpdateUserLeaveBalance(ctx, balance); err != nil {
 			logger.LogError(s.logger, "休暇残日数の更新失敗",
 				zap.Error(err),
-				zap.String("user_id", existingGrant.UserID.String()),
-				zap.String("balance_id", balance.ID.String()))
+				zap.String("user_id", existingGrant.UserID),
+				zap.String("balance_id", balance.ID))
 			return fmt.Errorf("休暇残日数の更新に失敗しました: %w", err)
 		}
 
@@ -1033,8 +1033,8 @@ func (s *leaveService) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.U
 	}
 
 	logger.LogInfo(s.logger, "振替特別休暇付与履歴削除完了",
-		zap.String("grant_id", id.String()),
-		zap.String("user_id", existingGrant.UserID.String()),
+		zap.String("grant_id", id),
+		zap.String("user_id", existingGrant.UserID),
 		zap.Float64("granted_days", existingGrant.GrantedDays))
 
 	return nil

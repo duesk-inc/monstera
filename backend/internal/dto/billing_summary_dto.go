@@ -1,7 +1,5 @@
 package dto
 
-import "github.com/google/uuid"
-
 // BillingSummaryResponse 請求サマリーレスポンス
 type BillingSummaryResponse struct {
 	Year            int                    `json:"year"`
@@ -19,11 +17,11 @@ type BillingSummaryResponse struct {
 
 // ClientBillingSummary クライアント別請求サマリー
 type ClientBillingSummary struct {
-	ClientID     uuid.UUID `json:"client_id"`
-	ClientName   string    `json:"client_name"`
-	TotalAmount  float64   `json:"total_amount"`
-	InvoiceCount int       `json:"invoice_count"`
-	Status       string    `json:"status"`
+	ClientID     string  `json:"client_id"`
+	ClientName   string  `json:"client_name"`
+	TotalAmount  float64 `json:"total_amount"`
+	InvoiceCount int     `json:"invoice_count"`
+	Status       string  `json:"status"`
 }
 
 // BillingTypeSummary 請求タイプ別サマリー

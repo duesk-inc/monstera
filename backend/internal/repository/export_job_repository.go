@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -16,11 +15,11 @@ type ExportJobRepository interface {
 	// Create エクスポートジョブを作成
 	Create(ctx context.Context, job *model.ExportJob) error
 	// GetByID IDでエクスポートジョブを取得
-	GetByID(ctx context.Context, id uuid.UUID) (*model.ExportJob, error)
+	GetByID(ctx context.Context, id string) (*model.ExportJob, error)
 	// GetByUserID ユーザーIDでエクスポートジョブ一覧を取得
 	GetByUserID(ctx context.Context, userID string, limit int) ([]model.ExportJob, error)
 	// UpdateStatus ジョブのステータスを更新
-	UpdateStatus(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error
+	UpdateStatus(ctx context.Context, id string, updates map[string]interface{}) error
 	// GetExpiredJobs 期限切れジョブを取得
 	GetExpiredJobs(ctx context.Context) ([]model.ExportJob, error)
 	// DeleteExpiredJobs 期限切れジョブを削除
@@ -58,7 +57,7 @@ func (r *exportJobRepository) Create(ctx context.Context, job *model.ExportJob) 
 }
 
 // GetByID IDでエクスポートジョブを取得
-func (r *exportJobRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.ExportJob, error) {
+func (r *exportJobRepository) GetByID(ctx context.Context, id string) (*model.ExportJob, error) {
 	var job model.ExportJob
 	err := r.db.WithContext(ctx).
 		Where("id = ?", id).
@@ -69,7 +68,7 @@ func (r *exportJobRepository) GetByID(ctx context.Context, id uuid.UUID) (*model
 			return nil, err
 		}
 		r.logger.Error("Failed to get export job by ID",
-			zap.String("job_id", id.String()),
+			zap.String("job_id", id),
 			zap.Error(err),
 		)
 		return nil, err
@@ -101,7 +100,7 @@ func (r *exportJobRepository) GetByUserID(ctx context.Context, userID string, li
 }
 
 // UpdateStatus ジョブのステータスを更新
-func (r *exportJobRepository) UpdateStatus(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error {
+func (r *exportJobRepository) UpdateStatus(ctx context.Context, id string, updates map[string]interface{}) error {
 	// updated_atを追加
 	updates["updated_at"] = time.Now()
 
@@ -112,7 +111,7 @@ func (r *exportJobRepository) UpdateStatus(ctx context.Context, id uuid.UUID, up
 
 	if result.Error != nil {
 		r.logger.Error("Failed to update export job status",
-			zap.String("job_id", id.String()),
+			zap.String("job_id", id),
 			zap.Any("updates", updates),
 			zap.Error(result.Error),
 		)

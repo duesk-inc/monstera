@@ -31,14 +31,14 @@ const (
 
 // ExpenseLimit 経費申請上限モデル
 type ExpenseLimit struct {
-	ID            uuid.UUID  `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID            string     `gorm:"type:varchar(255);primary_key" json:"id"`
 	LimitType     LimitType  `gorm:"type:enum('monthly','yearly');not null" json:"limit_type"`             // 制限種別
 	LimitScope    LimitScope `gorm:"type:enum('company','department','user');not null" json:"limit_scope"` // 制限適用範囲
 	Amount        int        `gorm:"not null" json:"amount"`                                               // 上限金額（円）
-	UserID        *string `gorm:"type:varchar(255);index" json:"user_id"`                                // 個人制限の場合のユーザーID
-	DepartmentID  *uuid.UUID `gorm:"type:varchar(36);index" json:"department_id"`                          // 部門制限の場合の部門ID
+	UserID        *string    `gorm:"type:varchar(255);index" json:"user_id"`                               // 個人制限の場合のユーザーID
+	DepartmentID  *string    `gorm:"type:varchar(255);index" json:"department_id"`                         // 部門制限の場合の部門ID
 	EffectiveFrom time.Time  `gorm:"not null;default:CURRENT_TIMESTAMP(3)" json:"effective_from"`          // 適用開始日時
-	CreatedBy     string  `gorm:"type:varchar(255);not null" json:"created_by"`
+	CreatedBy     string     `gorm:"type:varchar(255);not null" json:"created_by"`
 	Creator       User       `gorm:"foreignKey:CreatedBy" json:"creator"`     // 設定者
 	User          *User      `gorm:"foreignKey:UserID" json:"user,omitempty"` // 対象ユーザー（個人制限の場合）
 	CreatedAt     time.Time  `json:"created_at"`
@@ -47,8 +47,8 @@ type ExpenseLimit struct {
 
 // BeforeCreate UUIDを生成
 func (el *ExpenseLimit) BeforeCreate(tx *gorm.DB) error {
-	if el.ID == uuid.Nil {
-		el.ID = uuid.New()
+	if el.ID == "" {
+		el.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func (el *ExpenseLimit) IsUserScope() bool {
 }
 
 // IsApplicableTo 指定されたユーザーに適用可能かチェック
-func (el *ExpenseLimit) IsApplicableTo(userID string, departmentID *uuid.UUID) bool {
+func (el *ExpenseLimit) IsApplicableTo(userID string, departmentID *string) bool {
 	switch el.LimitScope {
 	case LimitScopeCompany:
 		return true // 全社制限はすべてのユーザーに適用
@@ -135,7 +135,7 @@ func GetCurrentEffectiveLimits(db *gorm.DB) (monthlyLimit *ExpenseLimit, yearlyL
 }
 
 // GetEffectiveLimitsForUser 指定されたユーザーに適用される最も制限の厳しい制限を取得
-func GetEffectiveLimitsForUser(db *gorm.DB, userID string, departmentID *uuid.UUID) (*ExpenseLimit, *ExpenseLimit, error) {
+func GetEffectiveLimitsForUser(db *gorm.DB, userID string, departmentID *string) (*ExpenseLimit, *ExpenseLimit, error) {
 	now := time.Now()
 
 	// 月次制限の候補を取得
@@ -224,7 +224,7 @@ func CreateUserLimit(limitType LimitType, amount int, userID string, createdBy s
 }
 
 // CreateDepartmentLimit 部門制限を作成
-func CreateDepartmentLimit(limitType LimitType, amount int, departmentID uuid.UUID, createdBy string) ExpenseLimit {
+func CreateDepartmentLimit(limitType LimitType, amount int, departmentID string, createdBy string) ExpenseLimit {
 	return ExpenseLimit{
 		LimitType:     limitType,
 		LimitScope:    LimitScopeDepartment,

@@ -65,7 +65,7 @@ type SyncHistoryFilter struct {
 
 // SyncHistoryEntry 同期履歴エントリ
 type SyncHistoryEntry struct {
-	ID           uuid.UUID `json:"id"`
+	ID           string    `json:"id"`
 	PocProjectID string    `json:"poc_project_id"`
 	ProjectName  string    `json:"project_name"`
 	SyncType     string    `json:"sync_type"`
@@ -137,7 +137,7 @@ func (s *pocSyncService) SyncAllProjects(ctx context.Context) (*SyncResult, erro
 			result.FailureCount++
 			result.Errors = append(result.Errors, fmt.Sprintf("%s: %v", pocProject.Name, err))
 			s.logger.Error("Failed to sync project",
-				zap.String("poc_project_id", pocProject.ID.String()),
+				zap.String("poc_project_id", pocProject.ID),
 				zap.Error(err))
 		} else {
 			result.SuccessCount++
@@ -259,7 +259,7 @@ func (s *pocSyncService) CreateProjectFromPoc(ctx context.Context, pocProjectID 
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		// 新しいプロジェクトを作成
 		project = &model.Project{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			ProjectName: pocProject.Name,
 			Status:      model.ProjectStatusProposal,
 			StartDate:   pocProject.StartDate,
@@ -297,11 +297,7 @@ func (s *pocSyncService) UpdateProjectFromPoc(ctx context.Context, projectID str
 		return nil, fmt.Errorf("POCプロジェクトが見つかりません: %w", err)
 	}
 
-	projectUUID, err := uuid.Parse(projectID)
-	if err != nil {
-		return nil, fmt.Errorf("無効なプロジェクトID: %w", err)
-	}
-
+	projectUUID := projectID
 	project, err := s.projectRepo.FindByID(ctx, projectUUID)
 	if err != nil {
 		return nil, fmt.Errorf("プロジェクトが見つかりません: %w", err)
@@ -341,7 +337,7 @@ func (s *pocSyncService) UpdateSyncSettings(ctx context.Context, settings *SyncS
 // syncSingleProject 単一プロジェクトを同期（内部メソッド）
 func (s *pocSyncService) syncSingleProject(ctx context.Context, pocProject *model.PocProject) error {
 	// 同期開始
-	if err := s.pocRepo.UpdateSyncStatus(ctx, pocProject.ID.String(), model.PocSyncStatusSyncing, ""); err != nil {
+	if err := s.pocRepo.UpdateSyncStatus(ctx, pocProject.ID, model.PocSyncStatusSyncing, ""); err != nil {
 		return fmt.Errorf("同期ステータスの更新に失敗しました: %w", err)
 	}
 
@@ -349,7 +345,7 @@ func (s *pocSyncService) syncSingleProject(ctx context.Context, pocProject *mode
 	// 例: 外部APIからデータを取得し、プロジェクトを作成/更新
 
 	// 同期成功として処理
-	if err := s.pocRepo.UpdateSyncStatus(ctx, pocProject.ID.String(), model.PocSyncStatusCompleted, ""); err != nil {
+	if err := s.pocRepo.UpdateSyncStatus(ctx, pocProject.ID, model.PocSyncStatusCompleted, ""); err != nil {
 		return fmt.Errorf("同期完了ステータスの更新に失敗しました: %w", err)
 	}
 

@@ -6,16 +6,15 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // ExpenseExportRequest CSVエクスポートリクエスト
 type ExpenseExportRequest struct {
 	// フィルター条件
-	UserID       *uuid.UUID `json:"user_id,omitempty"`       // ユーザーID（管理者用）
-	DepartmentID *uuid.UUID `json:"department_id,omitempty"` // 部門ID（管理者用）
+	UserID       *string    `json:"user_id,omitempty"`       // ユーザーID（管理者用）
+	DepartmentID *string    `json:"department_id,omitempty"` // 部門ID（管理者用）
 	Status       *string    `json:"status,omitempty"`        // ステータス
-	CategoryID   *uuid.UUID `json:"category_id,omitempty"`   // カテゴリID
+	CategoryID   *string    `json:"category_id,omitempty"`   // カテゴリID
 	DateFrom     *time.Time `json:"date_from,omitempty"`     // 期間From
 	DateTo       *time.Time `json:"date_to,omitempty"`       // 期間To
 	AmountMin    *int       `json:"amount_min,omitempty"`    // 金額下限
@@ -106,7 +105,7 @@ type ExpenseCSVRecordEN struct {
 // ToCSVRecord ExpenseWithDetailsからCSVレコードに変換
 func ToCSVRecord(expense *model.ExpenseWithDetails, dateFormat string, includeReceipts bool, includeApprovals bool, receipts []model.ExpenseReceipt) ExpenseCSVRecord {
 	record := ExpenseCSVRecord{
-		ID:          expense.ID.String(),
+		ID:          expense.ID,
 		UserName:    expense.User.Name,
 		Department:  "", // 部門情報は別途設定
 		Title:       expense.Title,

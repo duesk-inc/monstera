@@ -5,15 +5,14 @@ import (
 
 	"github.com/duesk/monstera/internal/common/repository"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // WorkHistoryTechnologyRepository 職務経歴技術項目リポジトリインターフェース
 type WorkHistoryTechnologyRepository interface {
-	GetByWorkHistoryID(ctx context.Context, workHistoryID uuid.UUID) ([]model.WorkHistoryTechnology, error)
+	GetByWorkHistoryID(ctx context.Context, workHistoryID string) ([]model.WorkHistoryTechnology, error)
 	CreateBatch(ctx context.Context, technologies []model.WorkHistoryTechnology) error
-	DeleteByWorkHistoryID(ctx context.Context, workHistoryID uuid.UUID) error
-	GetWithCategory(ctx context.Context, workHistoryID uuid.UUID) ([]model.WorkHistoryTechnology, error)
+	DeleteByWorkHistoryID(ctx context.Context, workHistoryID string) error
+	GetWithCategory(ctx context.Context, workHistoryID string) ([]model.WorkHistoryTechnology, error)
 }
 
 // workHistoryTechnologyRepository 職務経歴技術項目リポジトリ実装
@@ -29,11 +28,11 @@ func NewWorkHistoryTechnologyRepository(base repository.BaseRepository) WorkHist
 }
 
 // GetByWorkHistoryID 職務経歴IDで技術項目を取得
-func (r *workHistoryTechnologyRepository) GetByWorkHistoryID(ctx context.Context, workHistoryID uuid.UUID) ([]model.WorkHistoryTechnology, error) {
+func (r *workHistoryTechnologyRepository) GetByWorkHistoryID(ctx context.Context, workHistoryID string) ([]model.WorkHistoryTechnology, error) {
 	var technologies []model.WorkHistoryTechnology
 
 	db := r.base.WithContext(ctx)
-	if err := db.Where("work_history_id = ?", workHistoryID.String()).Find(&technologies).Error; err != nil {
+	if err := db.Where("work_history_id = ?", workHistoryID).Find(&technologies).Error; err != nil {
 		return nil, err
 	}
 
@@ -41,11 +40,11 @@ func (r *workHistoryTechnologyRepository) GetByWorkHistoryID(ctx context.Context
 }
 
 // GetWithCategory カテゴリ情報を含めて職務経歴IDで技術項目を取得
-func (r *workHistoryTechnologyRepository) GetWithCategory(ctx context.Context, workHistoryID uuid.UUID) ([]model.WorkHistoryTechnology, error) {
+func (r *workHistoryTechnologyRepository) GetWithCategory(ctx context.Context, workHistoryID string) ([]model.WorkHistoryTechnology, error) {
 	var technologies []model.WorkHistoryTechnology
 
 	db := r.base.WithContext(ctx)
-	if err := db.Preload("Category").Where("work_history_id = ?", workHistoryID.String()).Find(&technologies).Error; err != nil {
+	if err := db.Preload("Category").Where("work_history_id = ?", workHistoryID).Find(&technologies).Error; err != nil {
 		return nil, err
 	}
 
@@ -63,7 +62,7 @@ func (r *workHistoryTechnologyRepository) CreateBatch(ctx context.Context, techn
 }
 
 // DeleteByWorkHistoryID 職務経歴IDに紐づく技術項目を全削除
-func (r *workHistoryTechnologyRepository) DeleteByWorkHistoryID(ctx context.Context, workHistoryID uuid.UUID) error {
+func (r *workHistoryTechnologyRepository) DeleteByWorkHistoryID(ctx context.Context, workHistoryID string) error {
 	db := r.base.WithContext(ctx)
-	return db.Where("work_history_id = ?", workHistoryID.String()).Delete(&model.WorkHistoryTechnology{}).Error
+	return db.Where("work_history_id = ?", workHistoryID).Delete(&model.WorkHistoryTechnology{}).Error
 }

@@ -9,8 +9,8 @@ import (
 
 // ExpenseReceipt 経費領収書モデル
 type ExpenseReceipt struct {
-	ID           uuid.UUID `gorm:"type:varchar(36);primary_key" json:"id"`
-	ExpenseID    uuid.UUID `gorm:"type:varchar(36);not null" json:"expense_id"`
+	ID           string    `gorm:"type:varchar(255);primary_key" json:"id"`
+	ExpenseID    string    `gorm:"type:varchar(255);not null" json:"expense_id"`
 	Expense      Expense   `gorm:"foreignKey:ExpenseID;references:ID" json:"-"`
 	ReceiptURL   string    `gorm:"type:varchar(255);not null" json:"receipt_url"`
 	S3Key        string    `gorm:"type:varchar(255);not null" json:"s3_key"`
@@ -29,8 +29,8 @@ func (ExpenseReceipt) TableName() string {
 
 // BeforeCreate 作成前の処理
 func (r *ExpenseReceipt) BeforeCreate(tx *gorm.DB) error {
-	if r.ID == uuid.Nil {
-		r.ID = uuid.New()
+	if r.ID == "" {
+		r.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -46,6 +46,6 @@ type ExpenseReceiptCreateInput struct {
 
 // ExpenseReceiptUpdateOrderInput 領収書表示順更新入力
 type ExpenseReceiptUpdateOrderInput struct {
-	ReceiptID    uuid.UUID `json:"receipt_id" validate:"required"`
-	DisplayOrder int       `json:"display_order" validate:"min=0"`
+	ReceiptID    string `json:"receipt_id" validate:"required"`
+	DisplayOrder int    `json:"display_order" validate:"min=0"`
 }

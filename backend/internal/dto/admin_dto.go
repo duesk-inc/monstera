@@ -4,13 +4,12 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // AdminWeeklyReportDTO 管理者用週報DTO
 type AdminWeeklyReportDTO struct {
-	ID             uuid.UUID  `json:"id"`
-	UserID string  `json:"user_id"`
+	ID             string     `json:"id"`
+	UserID         string     `json:"user_id"`
 	UserName       string     `json:"user_name"`
 	UserEmail      string     `json:"user_email"`
 	StartDate      time.Time  `json:"start_date"`
@@ -33,7 +32,7 @@ type AdminWeeklyReportDetailDTO struct {
 
 // DailyRecordDTO 日次レコードDTO
 type DailyRecordDTO struct {
-	ID               uuid.UUID `json:"id"`
+	ID               string    `json:"id"`
 	RecordDate       time.Time `json:"record_date"`
 	IsHoliday        bool      `json:"is_holiday"`
 	IsHolidayWork    bool      `json:"is_holiday_work"`
@@ -46,7 +45,7 @@ type DailyRecordDTO struct {
 
 // WorkHourDTO 勤務時間DTO
 type WorkHourDTO struct {
-	ID        uuid.UUID  `json:"id"`
+	ID        string     `json:"id"`
 	Date      time.Time  `json:"date"`
 	StartTime *time.Time `json:"start_time"`
 	EndTime   *time.Time `json:"end_time"`
@@ -55,7 +54,7 @@ type WorkHourDTO struct {
 
 // MonthlyAttendanceDTO 月次勤怠DTO
 type MonthlyAttendanceDTO struct {
-	UserID string                `json:"user_id"`
+	UserID           string                   `json:"user_id"`
 	UserName         string                   `json:"user_name"`
 	Month            string                   `json:"month"`
 	TotalWorkDays    int                      `json:"total_work_days"`
@@ -76,7 +75,7 @@ type WeeklyReportSummaryDTO struct {
 
 // FollowUpUserDTO フォローアップ対象ユーザーDTO
 type FollowUpUserDTO struct {
-	UserID string  `json:"user_id"`
+	UserID                 string     `json:"user_id"`
 	UserName               string     `json:"user_name"`
 	UserEmail              string     `json:"user_email"`
 	FollowUpReason         *string    `json:"follow_up_reason"`
@@ -138,7 +137,7 @@ func ConvertAdminWeeklyReportDTO(report *model.WeeklyReport, userName, userEmail
 		StartDate:      report.StartDate,
 		EndDate:        report.EndDate,
 		Status:         0, // レガシー互換性のため（廃止予定）
-		StatusString:   report.Status.String(),
+		StatusString:   string(report.Status),
 		TotalWorkHours: report.TotalWorkHours,
 		ManagerComment: report.ManagerComment,
 		CommentedAt:    report.CommentedAt,
@@ -182,16 +181,16 @@ type WorkHourStatsDTO struct {
 
 // DepartmentStatsDTO 部署別統計DTO
 type DepartmentStatsDTO struct {
-	DepartmentID     uuid.UUID `json:"department_id"`
-	DepartmentName   string    `json:"department_name"`
-	UserCount        int       `json:"user_count"`
-	SubmissionRate   float64   `json:"submission_rate"`
-	AverageWorkHours float64   `json:"average_work_hours"`
+	DepartmentID     string  `json:"department_id"`
+	DepartmentName   string  `json:"department_name"`
+	UserCount        int     `json:"user_count"`
+	SubmissionRate   float64 `json:"submission_rate"`
+	AverageWorkHours float64 `json:"average_work_hours"`
 }
 
 // UserWeeklyReportSummaryDTO ユーザー別週報サマリーDTO
 type UserWeeklyReportSummaryDTO struct {
-	UserID string  `json:"user_id"`
+	UserID           string     `json:"user_id"`
 	UserName         string     `json:"user_name"`
 	UserEmail        string     `json:"user_email"`
 	DepartmentName   string     `json:"department_name"`
@@ -270,14 +269,14 @@ type MonthlyStatsDTO struct {
 
 // UserPerformanceDTO ユーザーパフォーマンスDTO
 type UserPerformanceDTO struct {
-	UserID string `json:"user_id"`
-	UserName         string    `json:"user_name"`
-	DepartmentName   string    `json:"department_name"`
-	SubmissionRate   float64   `json:"submission_rate"`
-	AverageWorkHours float64   `json:"average_work_hours"`
-	TotalWorkHours   float64   `json:"total_work_hours"`
-	ReportCount      int       `json:"report_count"`
-	OnTimeRate       float64   `json:"on_time_rate"`
+	UserID           string  `json:"user_id"`
+	UserName         string  `json:"user_name"`
+	DepartmentName   string  `json:"department_name"`
+	SubmissionRate   float64 `json:"submission_rate"`
+	AverageWorkHours float64 `json:"average_work_hours"`
+	TotalWorkHours   float64 `json:"total_work_hours"`
+	ReportCount      int     `json:"report_count"`
+	OnTimeRate       float64 `json:"on_time_rate"`
 }
 
 // AlertSummaryDTO アラートサマリーDTO

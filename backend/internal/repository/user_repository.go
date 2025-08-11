@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -12,13 +11,13 @@ import (
 // UserRepository ユーザーに関するデータアクセスのインターフェース
 type UserRepository interface {
 	Create(ctx context.Context, user *model.User) error
-	FindByID(id uuid.UUID) (*model.User, error)
-	GetByID(ctx context.Context, id uuid.UUID) (*model.User, error)
+	FindByID(id string) (*model.User, error)
+	GetByID(ctx context.Context, id string) (*model.User, error)
 	GetByEmail(ctx context.Context, email string) (*model.User, error)
 	GetByCognitoSub(ctx context.Context, cognitoSub string) (*model.User, error)
 	FindByEmail(email string) (*model.User, error)
 	Update(ctx context.Context, user *model.User) error
-	Delete(id uuid.UUID) error
+	Delete(id string) error
 	List(offset, limit int) ([]model.User, int64, error)
 	FindByRole(role model.Role) ([]model.User, error)
 	// ロール管理メソッド
@@ -29,7 +28,7 @@ type UserRepository interface {
 	UpdateDefaultRole(userID string, defaultRole *model.Role) error
 	SetLogger(logger *zap.Logger)
 	// 統計メソッド
-	CountByDepartment(ctx context.Context, departmentID uuid.UUID) (int64, error)
+	CountByDepartment(ctx context.Context, departmentID string) (int64, error)
 	CountActiveUsers(ctx context.Context, days int) (int64, error)
 }
 
@@ -62,12 +61,12 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *model.User) error
 }
 
 // FindByID IDでユーザーを検索
-func (r *UserRepositoryImpl) FindByID(id uuid.UUID) (*model.User, error) {
+func (r *UserRepositoryImpl) FindByID(id string) (*model.User, error) {
 	var user model.User
 	err := r.DB.Preload("UserRoles").First(&user, "id = ?", id).Error
 	if err != nil {
 		if r.Logger != nil {
-			r.Logger.Error("Failed to find user by ID", zap.String("id", id.String()), zap.Error(err))
+			r.Logger.Error("Failed to find user by ID", zap.String("id", id), zap.Error(err))
 		}
 		return nil, err
 	}
@@ -75,15 +74,15 @@ func (r *UserRepositoryImpl) FindByID(id uuid.UUID) (*model.User, error) {
 }
 
 // GetByID ユーザーIDでユーザーを取得（Context付き）
-func (r *UserRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
+func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*model.User, error) {
 	var user model.User
 	if r.Logger != nil {
-		r.Logger.Info("Getting user by ID", zap.String("id", id.String()))
+		r.Logger.Info("Getting user by ID", zap.String("id", id))
 	}
 	err := r.DB.WithContext(ctx).Preload("UserRoles").First(&user, "id = ?", id).Error
 	if err != nil {
 		if r.Logger != nil {
-			r.Logger.Error("Failed to get user by ID", zap.String("id", id.String()), zap.Error(err))
+			r.Logger.Error("Failed to get user by ID", zap.String("id", id), zap.Error(err))
 		}
 		return nil, err
 	}
@@ -154,7 +153,7 @@ func (r *UserRepositoryImpl) FindByEmail(email string) (*model.User, error) {
 }
 
 // Delete ユーザーを削除（ソフトデリート）
-func (r *UserRepositoryImpl) Delete(id uuid.UUID) error {
+func (r *UserRepositoryImpl) Delete(id string) error {
 	return r.DB.Delete(&model.User{}, "id = ?", id).Error
 }
 
@@ -282,7 +281,7 @@ func (r *UserRepositoryImpl) UpdateDefaultRole(userID string, defaultRole *model
 }
 
 // CountByDepartment 部署別のユーザー数を取得
-func (r *UserRepositoryImpl) CountByDepartment(ctx context.Context, departmentID uuid.UUID) (int64, error) {
+func (r *UserRepositoryImpl) CountByDepartment(ctx context.Context, departmentID string) (int64, error) {
 	var count int64
 	err := r.DB.WithContext(ctx).Model(&model.User{}).
 		Where("department_id = ? AND active = ? AND deleted_at IS NULL", departmentID, true).

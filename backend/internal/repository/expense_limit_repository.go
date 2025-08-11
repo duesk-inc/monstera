@@ -7,7 +7,6 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -17,9 +16,9 @@ type ExpenseLimitRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, limit *model.ExpenseLimit) error
 	CreateLimit(ctx context.Context, limit *model.ExpenseLimit) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseLimit, error)
+	GetByID(ctx context.Context, id string) (*model.ExpenseLimit, error)
 	Update(ctx context.Context, limit *model.ExpenseLimit) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 
 	// 上限取得
 	GetCurrentMonthlyLimit(ctx context.Context) (*model.ExpenseLimit, error)
@@ -41,20 +40,20 @@ type ExpenseLimitRepository interface {
 	GetLimitHistoryWithScope(ctx context.Context, filter *dto.ExpenseLimitHistoryRequest) ([]model.ExpenseLimit, int64, error)
 
 	// 初期化・設定
-	InitializeDefaultLimits(ctx context.Context, createdBy uuid.UUID) error
-	UpdateLimitAmount(ctx context.Context, limitType model.LimitType, newAmount int, createdBy uuid.UUID) error
-	SetEffectiveDate(ctx context.Context, id uuid.UUID, effectiveFrom time.Time) error
+	InitializeDefaultLimits(ctx context.Context, createdBy string) error
+	UpdateLimitAmount(ctx context.Context, limitType model.LimitType, newAmount int, createdBy string) error
+	SetEffectiveDate(ctx context.Context, id string, effectiveFrom time.Time) error
 
 	// スコープ対応の新機能
 	GetLimitsWithScope(ctx context.Context, filter *dto.ExpenseLimitListRequest) ([]model.ExpenseLimit, int64, error)
-	GetEffectiveLimitsForUser(ctx context.Context, userID string, departmentID *uuid.UUID, limitType model.LimitType, targetDate time.Time) (*model.ExpenseLimit, error)
-	CheckLimitsForUser(ctx context.Context, userID string, departmentID *uuid.UUID, amount int, targetDate time.Time) (*dto.LimitCheckResult, error)
+	GetEffectiveLimitsForUser(ctx context.Context, userID string, departmentID *string, limitType model.LimitType, targetDate time.Time) (*model.ExpenseLimit, error)
+	CheckLimitsForUser(ctx context.Context, userID string, departmentID *string, amount int, targetDate time.Time) (*dto.LimitCheckResult, error)
 	CreateWithScope(ctx context.Context, limit *model.ExpenseLimit) error
 	UpdateWithScope(ctx context.Context, limit *model.ExpenseLimit) error
-	DeleteWithScope(ctx context.Context, id uuid.UUID) error
+	DeleteWithScope(ctx context.Context, id string) error
 
 	// ユーティリティ
-	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
+	ExistsByID(ctx context.Context, id string) (bool, error)
 	CountByType(ctx context.Context, limitType model.LimitType) (int64, error)
 	SetLogger(logger *zap.Logger)
 }
@@ -93,14 +92,14 @@ func (r *ExpenseLimitRepositoryImpl) Create(ctx context.Context, limit *model.Ex
 	}
 
 	r.logger.Info("Expense limit created successfully",
-		zap.String("limit_id", limit.ID.String()),
+		zap.String("limit_id", limit.ID),
 		zap.String("limit_type", string(limit.LimitType)),
 		zap.Int("amount", limit.Amount))
 	return nil
 }
 
 // GetByID 上限IDで単一レコードを取得
-func (r *ExpenseLimitRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseLimit, error) {
+func (r *ExpenseLimitRepositoryImpl) GetByID(ctx context.Context, id string) (*model.ExpenseLimit, error) {
 	var limit model.ExpenseLimit
 	err := r.db.WithContext(ctx).
 		Where("id = ?", id).
@@ -108,12 +107,12 @@ func (r *ExpenseLimitRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) 
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			r.logger.Warn("Expense limit not found", zap.String("limit_id", id.String()))
+			r.logger.Warn("Expense limit not found", zap.String("limit_id", id))
 			return nil, err
 		}
 		r.logger.Error("Failed to get expense limit by ID",
 			zap.Error(err),
-			zap.String("limit_id", id.String()))
+			zap.String("limit_id", id))
 		return nil, err
 	}
 
@@ -126,28 +125,28 @@ func (r *ExpenseLimitRepositoryImpl) Update(ctx context.Context, limit *model.Ex
 	if err != nil {
 		r.logger.Error("Failed to update expense limit",
 			zap.Error(err),
-			zap.String("limit_id", limit.ID.String()))
+			zap.String("limit_id", limit.ID))
 		return err
 	}
 
 	r.logger.Info("Expense limit updated successfully",
-		zap.String("limit_id", limit.ID.String()),
+		zap.String("limit_id", limit.ID),
 		zap.String("limit_type", string(limit.LimitType)))
 	return nil
 }
 
 // Delete 上限設定を削除（物理削除）
-func (r *ExpenseLimitRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseLimitRepositoryImpl) Delete(ctx context.Context, id string) error {
 	err := r.db.WithContext(ctx).Delete(&model.ExpenseLimit{}, id).Error
 	if err != nil {
 		r.logger.Error("Failed to delete expense limit",
 			zap.Error(err),
-			zap.String("limit_id", id.String()))
+			zap.String("limit_id", id))
 		return err
 	}
 
 	r.logger.Info("Expense limit deleted successfully",
-		zap.String("limit_id", id.String()))
+		zap.String("limit_id", id))
 	return nil
 }
 
@@ -393,7 +392,7 @@ func (r *ExpenseLimitRepositoryImpl) GetLatestLimitByType(ctx context.Context, l
 // ========================================
 
 // InitializeDefaultLimits デフォルト上限を初期化
-func (r *ExpenseLimitRepositoryImpl) InitializeDefaultLimits(ctx context.Context, createdBy uuid.UUID) error {
+func (r *ExpenseLimitRepositoryImpl) InitializeDefaultLimits(ctx context.Context, createdBy string) error {
 	// 既に上限設定が存在する場合はスキップ
 	count, err := r.CountByType(ctx, model.LimitTypeMonthly)
 	if err != nil {
@@ -411,13 +410,13 @@ func (r *ExpenseLimitRepositoryImpl) InitializeDefaultLimits(ctx context.Context
 			LimitType:     model.LimitTypeMonthly,
 			Amount:        50000, // 月次5万円
 			EffectiveFrom: now,
-			CreatedBy:     createdBy.String(),
+			CreatedBy:     createdBy,
 		},
 		{
 			LimitType:     model.LimitTypeYearly,
 			Amount:        200000, // 年次20万円
 			EffectiveFrom: now,
-			CreatedBy:     createdBy.String(),
+			CreatedBy:     createdBy,
 		},
 	}
 
@@ -434,23 +433,23 @@ func (r *ExpenseLimitRepositoryImpl) InitializeDefaultLimits(ctx context.Context
 	if err != nil {
 		r.logger.Error("Failed to initialize default expense limits",
 			zap.Error(err),
-			zap.String("created_by", createdBy.String()))
+			zap.String("created_by", createdBy))
 		return err
 	}
 
 	r.logger.Info("Default expense limits initialized successfully",
-		zap.String("created_by", createdBy.String()))
+		zap.String("created_by", createdBy))
 	return nil
 }
 
 // UpdateLimitAmount 上限金額を更新（新しいレコードを作成）
-func (r *ExpenseLimitRepositoryImpl) UpdateLimitAmount(ctx context.Context, limitType model.LimitType, newAmount int, createdBy uuid.UUID) error {
+func (r *ExpenseLimitRepositoryImpl) UpdateLimitAmount(ctx context.Context, limitType model.LimitType, newAmount int, createdBy string) error {
 	// 新しい上限レコードを作成（履歴として保持）
 	newLimit := model.ExpenseLimit{
 		LimitType:     limitType,
 		Amount:        newAmount,
 		EffectiveFrom: time.Now(),
-		CreatedBy:     createdBy.String(),
+		CreatedBy:     createdBy,
 	}
 
 	if err := r.Create(ctx, &newLimit); err != nil {
@@ -460,12 +459,12 @@ func (r *ExpenseLimitRepositoryImpl) UpdateLimitAmount(ctx context.Context, limi
 	r.logger.Info("Expense limit amount updated",
 		zap.String("limit_type", string(limitType)),
 		zap.Int("new_amount", newAmount),
-		zap.String("created_by", createdBy.String()))
+		zap.String("created_by", createdBy))
 	return nil
 }
 
 // SetEffectiveDate 有効開始日を設定
-func (r *ExpenseLimitRepositoryImpl) SetEffectiveDate(ctx context.Context, id uuid.UUID, effectiveFrom time.Time) error {
+func (r *ExpenseLimitRepositoryImpl) SetEffectiveDate(ctx context.Context, id string, effectiveFrom time.Time) error {
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseLimit{}).
 		Where("id = ?", id).
@@ -474,13 +473,13 @@ func (r *ExpenseLimitRepositoryImpl) SetEffectiveDate(ctx context.Context, id uu
 	if err != nil {
 		r.logger.Error("Failed to set effective date",
 			zap.Error(err),
-			zap.String("limit_id", id.String()),
+			zap.String("limit_id", id),
 			zap.Time("effective_from", effectiveFrom))
 		return err
 	}
 
 	r.logger.Info("Effective date updated successfully",
-		zap.String("limit_id", id.String()),
+		zap.String("limit_id", id),
 		zap.Time("effective_from", effectiveFrom))
 	return nil
 }
@@ -490,7 +489,7 @@ func (r *ExpenseLimitRepositoryImpl) SetEffectiveDate(ctx context.Context, id uu
 // ========================================
 
 // ExistsByID 上限IDが存在するかチェック
-func (r *ExpenseLimitRepositoryImpl) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (r *ExpenseLimitRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseLimit{}).
@@ -500,7 +499,7 @@ func (r *ExpenseLimitRepositoryImpl) ExistsByID(ctx context.Context, id uuid.UUI
 	if err != nil {
 		r.logger.Error("Failed to check expense limit existence by ID",
 			zap.Error(err),
-			zap.String("limit_id", id.String()))
+			zap.String("limit_id", id))
 		return false, err
 	}
 
@@ -528,7 +527,7 @@ func (r *ExpenseLimitRepositoryImpl) CountByType(ctx context.Context, limitType 
 // CreateLimit 新しい経費申請上限を作成（履歴として保持）
 func (r *ExpenseLimitRepositoryImpl) CreateLimit(ctx context.Context, limit *model.ExpenseLimit) error {
 	r.logger.Info("経費申請上限作成開始",
-		zap.String("limit_id", limit.ID.String()),
+		zap.String("limit_id", limit.ID),
 		zap.String("limit_type", string(limit.LimitType)),
 		zap.Int("amount", limit.Amount))
 
@@ -537,14 +536,14 @@ func (r *ExpenseLimitRepositoryImpl) CreateLimit(ctx context.Context, limit *mod
 	if err != nil {
 		r.logger.Error("Failed to create expense limit",
 			zap.Error(err),
-			zap.String("limit_id", limit.ID.String()),
+			zap.String("limit_id", limit.ID),
 			zap.String("limit_type", string(limit.LimitType)),
 			zap.Int("amount", limit.Amount))
 		return err
 	}
 
 	r.logger.Info("経費申請上限作成成功",
-		zap.String("limit_id", limit.ID.String()),
+		zap.String("limit_id", limit.ID),
 		zap.String("limit_type", string(limit.LimitType)),
 		zap.Int("amount", limit.Amount))
 
@@ -611,7 +610,7 @@ func (r *ExpenseLimitRepositoryImpl) GetLimitsWithScope(ctx context.Context, fil
 }
 
 // GetEffectiveLimitsForUser 指定されたユーザーに適用される有効な制限を取得
-func (r *ExpenseLimitRepositoryImpl) GetEffectiveLimitsForUser(ctx context.Context, userID string, departmentID *uuid.UUID, limitType model.LimitType, targetDate time.Time) (*model.ExpenseLimit, error) {
+func (r *ExpenseLimitRepositoryImpl) GetEffectiveLimitsForUser(ctx context.Context, userID string, departmentID *string, limitType model.LimitType, targetDate time.Time) (*model.ExpenseLimit, error) {
 	// 適用可能な制限を取得（個人 > 部門 > 全社の優先順）
 	var limits []model.ExpenseLimit
 	query := r.db.WithContext(ctx).
@@ -661,7 +660,7 @@ func (r *ExpenseLimitRepositoryImpl) GetEffectiveLimitsForUser(ctx context.Conte
 }
 
 // CheckLimitsForUser 指定されたユーザーの上限チェック（スコープ対応）
-func (r *ExpenseLimitRepositoryImpl) CheckLimitsForUser(ctx context.Context, userID string, departmentID *uuid.UUID, amount int, targetDate time.Time) (*dto.LimitCheckResult, error) {
+func (r *ExpenseLimitRepositoryImpl) CheckLimitsForUser(ctx context.Context, userID string, departmentID *string, amount int, targetDate time.Time) (*dto.LimitCheckResult, error) {
 	result := &dto.LimitCheckResult{
 		WithinMonthlyLimit: true,
 		WithinYearlyLimit:  true,
@@ -745,7 +744,7 @@ func (r *ExpenseLimitRepositoryImpl) CreateWithScope(ctx context.Context, limit 
 	}
 
 	r.logger.Info("Expense limit created successfully with scope",
-		zap.String("limit_id", limit.ID.String()),
+		zap.String("limit_id", limit.ID),
 		zap.String("limit_type", string(limit.LimitType)),
 		zap.String("limit_scope", string(limit.LimitScope)),
 		zap.Int("amount", limit.Amount))
@@ -763,35 +762,35 @@ func (r *ExpenseLimitRepositoryImpl) UpdateWithScope(ctx context.Context, limit 
 	if err != nil {
 		r.logger.Error("Failed to update expense limit with scope",
 			zap.Error(err),
-			zap.String("limit_id", limit.ID.String()))
+			zap.String("limit_id", limit.ID))
 		return err
 	}
 
 	r.logger.Info("Expense limit updated successfully with scope",
-		zap.String("limit_id", limit.ID.String()),
+		zap.String("limit_id", limit.ID),
 		zap.String("limit_type", string(limit.LimitType)),
 		zap.String("limit_scope", string(limit.LimitScope)))
 	return nil
 }
 
 // DeleteWithScope スコープ対応の上限削除
-func (r *ExpenseLimitRepositoryImpl) DeleteWithScope(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseLimitRepositoryImpl) DeleteWithScope(ctx context.Context, id string) error {
 	result := r.db.WithContext(ctx).Delete(&model.ExpenseLimit{}, id)
 	if result.Error != nil {
 		r.logger.Error("Failed to delete expense limit with scope",
 			zap.Error(result.Error),
-			zap.String("limit_id", id.String()))
+			zap.String("limit_id", id))
 		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
 		r.logger.Warn("Expense limit not found for deletion",
-			zap.String("limit_id", id.String()))
+			zap.String("limit_id", id))
 		return gorm.ErrRecordNotFound
 	}
 
 	r.logger.Info("Expense limit deleted successfully with scope",
-		zap.String("limit_id", id.String()))
+		zap.String("limit_id", id))
 	return nil
 }
 

@@ -145,7 +145,7 @@ func (m *MockProjectRepository) Transaction(ctx context.Context, fn func(*gorm.D
 	return args.Error(0)
 }
 
-func (m *MockProjectRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Project, error) {
+func (m *MockProjectRepository) GetByID(ctx context.Context, id string) (*model.Project, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -153,7 +153,7 @@ func (m *MockProjectRepository) GetByID(ctx context.Context, id uuid.UUID) (*mod
 	return args.Get(0).(*model.Project), args.Error(1)
 }
 
-func (m *MockProjectRepository) List(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.Project, error) {
+func (m *MockProjectRepository) List(ctx context.Context, clientID *string, limit, offset int) ([]*model.Project, error) {
 	args := m.Called(ctx, clientID, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -161,7 +161,7 @@ func (m *MockProjectRepository) List(ctx context.Context, clientID *uuid.UUID, l
 	return args.Get(0).([]*model.Project), args.Error(1)
 }
 
-func (m *MockProjectRepository) FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.Project, error) {
+func (m *MockProjectRepository) FindByClientID(ctx context.Context, clientID string) ([]*model.Project, error) {
 	args := m.Called(ctx, clientID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -177,7 +177,7 @@ func (m *MockProjectRepository) FindByStatus(ctx context.Context, status model.P
 	return args.Get(0).([]*model.Project), args.Error(1)
 }
 
-func (m *MockProjectRepository) GetActiveProjectCount(ctx context.Context, clientID *uuid.UUID) (int64, error) {
+func (m *MockProjectRepository) GetActiveProjectCount(ctx context.Context, clientID *string) (int64, error) {
 	args := m.Called(ctx, clientID)
 	return args.Get(0).(int64), args.Error(1)
 }
@@ -249,7 +249,7 @@ func (m *MockInvoiceRepository) FindByInvoiceNumber(ctx context.Context, invoice
 	return args.Get(0).(*model.Invoice), args.Error(1)
 }
 
-func (m *MockInvoiceRepository) FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.Invoice, error) {
+func (m *MockInvoiceRepository) FindByClientID(ctx context.Context, clientID string) ([]*model.Invoice, error) {
 	args := m.Called(ctx, clientID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -273,7 +273,7 @@ func (m *MockInvoiceRepository) FindOverdue(ctx context.Context) ([]*model.Invoi
 	return args.Get(0).([]*model.Invoice), args.Error(1)
 }
 
-func (m *MockInvoiceRepository) GetSummary(ctx context.Context, clientID *uuid.UUID, dateFrom, dateTo *time.Time) (*repository.InvoiceSummary, error) {
+func (m *MockInvoiceRepository) GetSummary(ctx context.Context, clientID *string, dateFrom, dateTo *time.Time) (*repository.InvoiceSummary, error) {
 	args := m.Called(ctx, clientID, dateFrom, dateTo)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -286,7 +286,7 @@ func (m *MockInvoiceRepository) CreateWithDetails(ctx context.Context, invoice *
 	return args.Error(0)
 }
 
-func (m *MockInvoiceRepository) FindByBillingMonth(ctx context.Context, billingMonth string, clientID *uuid.UUID) ([]*model.Invoice, error) {
+func (m *MockInvoiceRepository) FindByBillingMonth(ctx context.Context, billingMonth string, clientID *string) ([]*model.Invoice, error) {
 	args := m.Called(ctx, billingMonth, clientID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -294,7 +294,7 @@ func (m *MockInvoiceRepository) FindByBillingMonth(ctx context.Context, billingM
 	return args.Get(0).([]*model.Invoice), args.Error(1)
 }
 
-func (m *MockInvoiceRepository) FindByProjectGroupID(ctx context.Context, projectGroupID uuid.UUID) ([]*model.Invoice, error) {
+func (m *MockInvoiceRepository) FindByProjectGroupID(ctx context.Context, projectGroupID string) ([]*model.Invoice, error) {
 	args := m.Called(ctx, projectGroupID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -318,12 +318,12 @@ func (m *MockInvoiceRepository) FindNeedingSync(ctx context.Context, limit int) 
 	return args.Get(0).([]*model.Invoice), args.Error(1)
 }
 
-func (m *MockInvoiceRepository) UpdateFreeSyncStatus(ctx context.Context, id uuid.UUID, status model.FreeSyncStatus, freeeInvoiceID *int) error {
+func (m *MockInvoiceRepository) UpdateFreeSyncStatus(ctx context.Context, id string, status model.FreeSyncStatus, freeeInvoiceID *int) error {
 	args := m.Called(ctx, id, status, freeeInvoiceID)
 	return args.Error(0)
 }
 
-func (m *MockInvoiceRepository) GetMonthlyRevenue(ctx context.Context, year, month int, clientID *uuid.UUID) (float64, error) {
+func (m *MockInvoiceRepository) GetMonthlyRevenue(ctx context.Context, year, month int, clientID *string) (float64, error) {
 	args := m.Called(ctx, year, month, clientID)
 	return args.Get(0).(float64), args.Error(1)
 }
@@ -351,7 +351,7 @@ func (m *MockProjectGroupRepository) Create(ctx context.Context, group *model.Pr
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepository) GetByID(ctx context.Context, id string) (*model.ProjectGroup, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -359,7 +359,7 @@ func (m *MockProjectGroupRepository) GetByID(ctx context.Context, id uuid.UUID) 
 	return args.Get(0).(*model.ProjectGroup), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) GetByIDWithDetails(ctx context.Context, id uuid.UUID) (*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepository) GetByIDWithDetails(ctx context.Context, id string) (*model.ProjectGroup, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -372,22 +372,22 @@ func (m *MockProjectGroupRepository) Update(ctx context.Context, group *model.Pr
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockProjectGroupRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepository) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (m *MockProjectGroupRepository) ExistsByID(ctx context.Context, id string) (bool, error) {
 	args := m.Called(ctx, id)
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) ExistsByName(ctx context.Context, name string, clientID uuid.UUID, excludeID *uuid.UUID) (bool, error) {
+func (m *MockProjectGroupRepository) ExistsByName(ctx context.Context, name string, clientID string, excludeID *string) (bool, error) {
 	args := m.Called(ctx, name, clientID, excludeID)
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) ListWithStats(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroupWithProjects, error) {
+func (m *MockProjectGroupRepository) ListWithStats(ctx context.Context, clientID *string, limit, offset int) ([]*model.ProjectGroupWithProjects, error) {
 	args := m.Called(ctx, clientID, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -395,22 +395,22 @@ func (m *MockProjectGroupRepository) ListWithStats(ctx context.Context, clientID
 	return args.Get(0).([]*model.ProjectGroupWithProjects), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) Count(ctx context.Context, clientID *uuid.UUID) (int64, error) {
+func (m *MockProjectGroupRepository) Count(ctx context.Context, clientID *string) (int64, error) {
 	args := m.Called(ctx, clientID)
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) AddProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (m *MockProjectGroupRepository) AddProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	args := m.Called(ctx, groupID, projectIDs)
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepository) RemoveProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (m *MockProjectGroupRepository) RemoveProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	args := m.Called(ctx, groupID, projectIDs)
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepository) GetProjectsByGroupID(ctx context.Context, groupID uuid.UUID) ([]*model.Project, error) {
+func (m *MockProjectGroupRepository) GetProjectsByGroupID(ctx context.Context, groupID string) ([]*model.Project, error) {
 	args := m.Called(ctx, groupID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -418,7 +418,7 @@ func (m *MockProjectGroupRepository) GetProjectsByGroupID(ctx context.Context, g
 	return args.Get(0).([]*model.Project), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) GetGroupsByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepository) GetGroupsByProjectID(ctx context.Context, projectID string) ([]*model.ProjectGroup, error) {
 	args := m.Called(ctx, projectID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -426,7 +426,7 @@ func (m *MockProjectGroupRepository) GetGroupsByProjectID(ctx context.Context, p
 	return args.Get(0).([]*model.ProjectGroup), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) GetStats(ctx context.Context, clientID *uuid.UUID) (*model.ProjectGroupStats, error) {
+func (m *MockProjectGroupRepository) GetStats(ctx context.Context, clientID *string) (*model.ProjectGroupStats, error) {
 	args := m.Called(ctx, clientID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -434,17 +434,17 @@ func (m *MockProjectGroupRepository) GetStats(ctx context.Context, clientID *uui
 	return args.Get(0).(*model.ProjectGroupStats), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) GetGroupRevenue(ctx context.Context, groupID uuid.UUID, startMonth, endMonth string) (float64, error) {
+func (m *MockProjectGroupRepository) GetGroupRevenue(ctx context.Context, groupID string, startMonth, endMonth string) (float64, error) {
 	args := m.Called(ctx, groupID, startMonth, endMonth)
 	return args.Get(0).(float64), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) CanAddProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (m *MockProjectGroupRepository) CanAddProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	args := m.Called(ctx, groupID, projectIDs)
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepository) List(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepository) List(ctx context.Context, clientID *string, limit, offset int) ([]*model.ProjectGroup, error) {
 	args := m.Called(ctx, clientID, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -452,7 +452,7 @@ func (m *MockProjectGroupRepository) List(ctx context.Context, clientID *uuid.UU
 	return args.Get(0).([]*model.ProjectGroup), args.Error(1)
 }
 
-func (m *MockProjectGroupRepository) Search(ctx context.Context, query string, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepository) Search(ctx context.Context, query string, clientID *string, limit, offset int) ([]*model.ProjectGroup, error) {
 	args := m.Called(ctx, query, clientID, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -526,7 +526,7 @@ func (m *MockProjectAssignmentRepository) Transaction(ctx context.Context, fn fu
 	return args.Error(0)
 }
 
-func (m *MockProjectAssignmentRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.ProjectAssignment, error) {
+func (m *MockProjectAssignmentRepository) GetByID(ctx context.Context, id string) (*model.ProjectAssignment, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -534,7 +534,7 @@ func (m *MockProjectAssignmentRepository) GetByID(ctx context.Context, id uuid.U
 	return args.Get(0).(*model.ProjectAssignment), args.Error(1)
 }
 
-func (m *MockProjectAssignmentRepository) FindByUserID(ctx context.Context, userID uuid.UUID) ([]*model.ProjectAssignment, error) {
+func (m *MockProjectAssignmentRepository) FindByUserID(ctx context.Context, userID string) ([]*model.ProjectAssignment, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -542,7 +542,7 @@ func (m *MockProjectAssignmentRepository) FindByUserID(ctx context.Context, user
 	return args.Get(0).([]*model.ProjectAssignment), args.Error(1)
 }
 
-func (m *MockProjectAssignmentRepository) FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.ProjectAssignment, error) {
+func (m *MockProjectAssignmentRepository) FindByProjectID(ctx context.Context, projectID string) ([]*model.ProjectAssignment, error) {
 	args := m.Called(ctx, projectID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -550,7 +550,7 @@ func (m *MockProjectAssignmentRepository) FindByProjectID(ctx context.Context, p
 	return args.Get(0).([]*model.ProjectAssignment), args.Error(1)
 }
 
-func (m *MockProjectAssignmentRepository) FindActiveByUserID(ctx context.Context, userID uuid.UUID, date time.Time) ([]*model.ProjectAssignment, error) {
+func (m *MockProjectAssignmentRepository) FindActiveByUserID(ctx context.Context, userID string, date time.Time) ([]*model.ProjectAssignment, error) {
 	args := m.Called(ctx, userID, date)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -558,7 +558,7 @@ func (m *MockProjectAssignmentRepository) FindActiveByUserID(ctx context.Context
 	return args.Get(0).([]*model.ProjectAssignment), args.Error(1)
 }
 
-func (m *MockProjectAssignmentRepository) FindActiveByProjectID(ctx context.Context, projectID uuid.UUID, date time.Time) ([]*model.ProjectAssignment, error) {
+func (m *MockProjectAssignmentRepository) FindActiveByProjectID(ctx context.Context, projectID string, date time.Time) ([]*model.ProjectAssignment, error) {
 	args := m.Called(ctx, projectID, date)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -566,12 +566,12 @@ func (m *MockProjectAssignmentRepository) FindActiveByProjectID(ctx context.Cont
 	return args.Get(0).([]*model.ProjectAssignment), args.Error(1)
 }
 
-func (m *MockProjectAssignmentRepository) CheckOverlap(ctx context.Context, userID, projectID uuid.UUID, startDate, endDate time.Time, excludeID *uuid.UUID) (bool, error) {
+func (m *MockProjectAssignmentRepository) CheckOverlap(ctx context.Context, userID, projectID string, startDate, endDate time.Time, excludeID *string) (bool, error) {
 	args := m.Called(ctx, userID, projectID, startDate, endDate, excludeID)
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockProjectAssignmentRepository) UpdateEndDate(ctx context.Context, id uuid.UUID, endDate *time.Time) error {
+func (m *MockProjectAssignmentRepository) UpdateEndDate(ctx context.Context, id string, endDate *time.Time) error {
 	args := m.Called(ctx, id, endDate)
 	return args.Error(0)
 }
@@ -584,7 +584,7 @@ func (m *MockProjectAssignmentRepository) FindBetweenDates(ctx context.Context, 
 	return args.Get(0).([]*model.ProjectAssignment), args.Error(1)
 }
 
-func (m *MockProjectAssignmentRepository) GetUserMonthlyAssignments(ctx context.Context, userID uuid.UUID, year, month int) ([]*model.ProjectAssignment, error) {
+func (m *MockProjectAssignmentRepository) GetUserMonthlyAssignments(ctx context.Context, userID string, year, month int) ([]*model.ProjectAssignment, error) {
 	args := m.Called(ctx, userID, year, month)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -598,7 +598,7 @@ type AssignmentSummary struct {
 	ActiveAssignments int
 }
 
-func (m *MockProjectAssignmentRepository) GetAssignmentSummary(ctx context.Context, userID *uuid.UUID, projectID *uuid.UUID) (*AssignmentSummary, error) {
+func (m *MockProjectAssignmentRepository) GetAssignmentSummary(ctx context.Context, userID *string, projectID *string) (*AssignmentSummary, error) {
 	args := m.Called(ctx, userID, projectID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -631,7 +631,7 @@ func TestBillingService_PreviewBilling(t *testing.T) {
 	)
 
 	// Test data
-	clientID := uuid.New()
+	clientID := uuid.New().String()
 	client := &model.Client{
 		ID:          clientID,
 		CompanyName: "テスト会社",
@@ -640,7 +640,7 @@ func TestBillingService_PreviewBilling(t *testing.T) {
 	req := &dto.BillingPreviewRequest{
 		BillingYear:  2024,
 		BillingMonth: 1,
-		ClientIDs:    []uuid.UUID{clientID},
+		ClientIDs:    []string{clientID},
 	}
 
 	// Mock setup
@@ -808,7 +808,7 @@ func TestBillingService_CheckDuplicateBilling(t *testing.T) {
 	}
 
 	// Test data
-	clientID := uuid.New()
+	clientID := uuid.New().String()
 	billingMonth := "2024-01"
 
 	// Test case 1: No duplicate
@@ -818,7 +818,7 @@ func TestBillingService_CheckDuplicateBilling(t *testing.T) {
 	assert.False(t, isDuplicate)
 
 	// Test case 2: Has duplicate
-	existingInvoices := []*model.Invoice{{ID: uuid.New()}}
+	existingInvoices := []*model.Invoice{{ID: uuid.New().String()}}
 	invoiceRepo.On("FindByBillingMonth", ctx, billingMonth, &clientID).Return(existingInvoices, nil).Once()
 	isDuplicate, err = service.CheckDuplicateBilling(ctx, clientID, billingMonth)
 	assert.NoError(t, err)

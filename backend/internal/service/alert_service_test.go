@@ -46,7 +46,7 @@ func TestAlertService_GetAlertSettings(t *testing.T) {
 		service, mockAlertSettingsRepo, _, _, _ := setupAlertTestService(t)
 
 		expectedSettings := &model.AlertSettings{
-			ID:                          uuid.New(),
+			ID:                          uuid.New().String(),
 			WeeklyHoursLimit:            60,
 			WeeklyHoursChangeLimit:      20,
 			ConsecutiveHolidayWorkLimit: 3,
@@ -101,7 +101,7 @@ func TestAlertService_UpdateAlertSettings(t *testing.T) {
 	t.Run("正常にアラート設定を更新できる", func(t *testing.T) {
 		service, mockAlertSettingsRepo, _, _, _ := setupAlertTestService(t)
 
-		settingsID := uuid.New()
+		settingsID := uuid.New().String()
 		updates := map[string]interface{}{
 			"weekly_hours_limit": 70,
 			"updated_by":         "user123",
@@ -118,7 +118,7 @@ func TestAlertService_UpdateAlertSettings(t *testing.T) {
 	t.Run("リポジトリでエラーが発生した場合エラーを返す", func(t *testing.T) {
 		service, mockAlertSettingsRepo, _, _, _ := setupAlertTestService(t)
 
-		settingsID := uuid.New()
+		settingsID := uuid.New().String()
 		updates := map[string]interface{}{
 			"weekly_hours_limit": 70,
 		}
@@ -143,7 +143,7 @@ func (m *MockAlertSettingsRepository) Create(ctx context.Context, alertSettings 
 	return args.Error(0)
 }
 
-func (m *MockAlertSettingsRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.AlertSettings, error) {
+func (m *MockAlertSettingsRepository) GetByID(ctx context.Context, id string) (*model.AlertSettings, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -167,12 +167,12 @@ func (m *MockAlertSettingsRepository) GetSettings(ctx context.Context) (*model.A
 	return args.Get(0).(*model.AlertSettings), args.Error(1)
 }
 
-func (m *MockAlertSettingsRepository) Update(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error {
+func (m *MockAlertSettingsRepository) Update(ctx context.Context, id string, updates map[string]interface{}) error {
 	args := m.Called(ctx, id, updates)
 	return args.Error(0)
 }
 
-func (m *MockAlertSettingsRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockAlertSettingsRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -192,7 +192,7 @@ func (m *MockAlertHistoryRepository) CreateBatch(ctx context.Context, alertHisto
 	return args.Error(0)
 }
 
-func (m *MockAlertHistoryRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.AlertHistory, error) {
+func (m *MockAlertHistoryRepository) GetByID(ctx context.Context, id string) (*model.AlertHistory, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -208,7 +208,7 @@ func (m *MockAlertHistoryRepository) GetList(ctx context.Context, filters map[st
 	return args.Get(0).([]*model.AlertHistory), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockAlertHistoryRepository) GetByUser(ctx context.Context, userID uuid.UUID, filters map[string]interface{}, page, limit int) ([]*model.AlertHistory, int64, error) {
+func (m *MockAlertHistoryRepository) GetByUser(ctx context.Context, userID string, filters map[string]interface{}, page, limit int) ([]*model.AlertHistory, int64, error) {
 	args := m.Called(ctx, userID, filters, page, limit)
 	if args.Get(0) == nil {
 		return nil, 0, args.Error(2)
@@ -216,7 +216,7 @@ func (m *MockAlertHistoryRepository) GetByUser(ctx context.Context, userID uuid.
 	return args.Get(0).([]*model.AlertHistory), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockAlertHistoryRepository) GetByWeeklyReport(ctx context.Context, weeklyReportID uuid.UUID) ([]*model.AlertHistory, error) {
+func (m *MockAlertHistoryRepository) GetByWeeklyReport(ctx context.Context, weeklyReportID string) ([]*model.AlertHistory, error) {
 	args := m.Called(ctx, weeklyReportID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -224,7 +224,7 @@ func (m *MockAlertHistoryRepository) GetByWeeklyReport(ctx context.Context, week
 	return args.Get(0).([]*model.AlertHistory), args.Error(1)
 }
 
-func (m *MockAlertHistoryRepository) GetUnresolvedByUser(ctx context.Context, userID uuid.UUID, page, limit int) ([]*model.AlertHistory, int64, error) {
+func (m *MockAlertHistoryRepository) GetUnresolvedByUser(ctx context.Context, userID string, page, limit int) ([]*model.AlertHistory, int64, error) {
 	args := m.Called(ctx, userID, page, limit)
 	if args.Get(0) == nil {
 		return nil, 0, args.Error(2)
@@ -232,12 +232,12 @@ func (m *MockAlertHistoryRepository) GetUnresolvedByUser(ctx context.Context, us
 	return args.Get(0).([]*model.AlertHistory), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockAlertHistoryRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status model.AlertStatus, resolvedBy *uuid.UUID) error {
+func (m *MockAlertHistoryRepository) UpdateStatus(ctx context.Context, id string, status model.AlertStatus, resolvedBy *string) error {
 	args := m.Called(ctx, id, status, resolvedBy)
 	return args.Error(0)
 }
 
-func (m *MockAlertHistoryRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockAlertHistoryRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -252,7 +252,7 @@ func (m *MockWeeklyReportRepository) Create(ctx context.Context, report *model.W
 	return args.Error(0)
 }
 
-func (m *MockWeeklyReportRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.WeeklyReport, error) {
+func (m *MockWeeklyReportRepository) GetByID(ctx context.Context, id string) (*model.WeeklyReport, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -260,7 +260,7 @@ func (m *MockWeeklyReportRepository) GetByID(ctx context.Context, id uuid.UUID) 
 	return args.Get(0).(*model.WeeklyReport), args.Error(1)
 }
 
-func (m *MockWeeklyReportRepository) GetByUserAndWeek(ctx context.Context, userID uuid.UUID, weekStart time.Time) (*model.WeeklyReport, error) {
+func (m *MockWeeklyReportRepository) GetByUserAndWeek(ctx context.Context, userID string, weekStart time.Time) (*model.WeeklyReport, error) {
 	args := m.Called(ctx, userID, weekStart)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -276,7 +276,7 @@ func (m *MockWeeklyReportRepository) GetByWeek(ctx context.Context, weekStart ti
 	return args.Get(0).([]*model.WeeklyReport), args.Error(1)
 }
 
-func (m *MockWeeklyReportRepository) GetUserReports(ctx context.Context, userID uuid.UUID, filters map[string]interface{}, page, limit int) ([]*model.WeeklyReport, int64, error) {
+func (m *MockWeeklyReportRepository) GetUserReports(ctx context.Context, userID string, filters map[string]interface{}, page, limit int) ([]*model.WeeklyReport, int64, error) {
 	args := m.Called(ctx, userID, filters, page, limit)
 	if args.Get(0) == nil {
 		return nil, 0, args.Error(2)
@@ -292,12 +292,12 @@ func (m *MockWeeklyReportRepository) GetList(ctx context.Context, filters map[st
 	return args.Get(0).([]*model.WeeklyReport), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockWeeklyReportRepository) Update(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error {
+func (m *MockWeeklyReportRepository) Update(ctx context.Context, id string, updates map[string]interface{}) error {
 	args := m.Called(ctx, id, updates)
 	return args.Error(0)
 }
 
-func (m *MockWeeklyReportRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockWeeklyReportRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -317,7 +317,7 @@ func (m *MockNotificationRepository) CreateBatch(ctx context.Context, notificati
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Notification, error) {
+func (m *MockNotificationRepository) GetByID(ctx context.Context, id string) (*model.Notification, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -325,12 +325,12 @@ func (m *MockNotificationRepository) GetByID(ctx context.Context, id uuid.UUID) 
 	return args.Get(0).(*model.Notification), args.Error(1)
 }
 
-func (m *MockNotificationRepository) GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error) {
+func (m *MockNotificationRepository) GetUnreadCount(ctx context.Context, userID string) (int64, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockNotificationRepository) GetList(ctx context.Context, userID uuid.UUID, filters map[string]interface{}, page, limit int) ([]*model.Notification, int64, error) {
+func (m *MockNotificationRepository) GetList(ctx context.Context, userID string, filters map[string]interface{}, page, limit int) ([]*model.Notification, int64, error) {
 	args := m.Called(ctx, userID, filters, page, limit)
 	if args.Get(0) == nil {
 		return nil, 0, args.Error(2)
@@ -338,17 +338,17 @@ func (m *MockNotificationRepository) GetList(ctx context.Context, userID uuid.UU
 	return args.Get(0).([]*model.Notification), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockNotificationRepository) MarkAsRead(ctx context.Context, id uuid.UUID) error {
+func (m *MockNotificationRepository) MarkAsRead(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) MarkAllAsRead(ctx context.Context, userID uuid.UUID) error {
+func (m *MockNotificationRepository) MarkAllAsRead(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockNotificationRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }

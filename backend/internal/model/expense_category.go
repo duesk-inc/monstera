@@ -9,7 +9,7 @@ import (
 
 // ExpenseCategoryMaster 経費カテゴリマスタモデル
 type ExpenseCategoryMaster struct {
-	ID              uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID              string         `gorm:"type:varchar(255);primary_key" json:"id"`
 	Code            string         `gorm:"size:50;not null;unique" json:"code"`   // カテゴリコード（transport, entertainment, etc.）
 	Name            string         `gorm:"size:100;not null" json:"name"`         // カテゴリ名（旅費交通費、交際費、etc.）
 	RequiresDetails bool           `gorm:"default:false" json:"requires_details"` // 詳細入力が必要かどうか
@@ -22,8 +22,8 @@ type ExpenseCategoryMaster struct {
 
 // BeforeCreate UUIDを生成
 func (ec *ExpenseCategoryMaster) BeforeCreate(tx *gorm.DB) error {
-	if ec.ID == uuid.Nil {
-		ec.ID = uuid.New()
+	if ec.ID == "" {
+		ec.ID = uuid.New().String()
 	}
 	return nil
 }

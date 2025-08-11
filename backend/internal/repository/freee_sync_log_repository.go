@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -16,20 +15,20 @@ import (
 type FreeSyncLogRepositoryInterface interface {
 	// 同期ログCRUD
 	Create(ctx context.Context, log *model.FreeSyncLog) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.FreeSyncLog, error)
+	GetByID(ctx context.Context, id string) (*model.FreeSyncLog, error)
 	Update(ctx context.Context, log *model.FreeSyncLog) error
 
 	// 同期ログ検索
 	List(ctx context.Context, syncType *model.FreeSyncType, status *model.FreeSyncStatus, limit, offset int) ([]*model.FreeSyncLog, error)
-	ListByTargetID(ctx context.Context, targetID uuid.UUID, limit, offset int) ([]*model.FreeSyncLog, error)
+	ListByTargetID(ctx context.Context, targetID string, limit, offset int) ([]*model.FreeSyncLog, error)
 	ListByFreeeID(ctx context.Context, freeeID int, syncType model.FreeSyncType) ([]*model.FreeSyncLog, error)
 	ListRecent(ctx context.Context, limit int) ([]*model.FreeSyncLog, error)
 	Count(ctx context.Context, syncType *model.FreeSyncType, status *model.FreeSyncStatus) (int64, error)
 
 	// 同期状態管理
-	GetLatestByTarget(ctx context.Context, targetID uuid.UUID, syncType model.FreeSyncType) (*model.FreeSyncLog, error)
+	GetLatestByTarget(ctx context.Context, targetID string, syncType model.FreeSyncType) (*model.FreeSyncLog, error)
 	GetPendingLogs(ctx context.Context, syncType *model.FreeSyncType, limit int) ([]*model.FreeSyncLog, error)
-	UpdateStatus(ctx context.Context, id uuid.UUID, status model.FreeSyncStatus, errorMessage *string) error
+	UpdateStatus(ctx context.Context, id string, status model.FreeSyncStatus, errorMessage *string) error
 
 	// 統計情報
 	GetSummaryByType(ctx context.Context, startDate, endDate *time.Time) ([]*model.FreeSyncLogSummary, error)
@@ -66,7 +65,7 @@ func (r *freeSyncLogRepository) Create(ctx context.Context, log *model.FreeSyncL
 }
 
 // GetByID IDで同期ログを取得
-func (r *freeSyncLogRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.FreeSyncLog, error) {
+func (r *freeSyncLogRepository) GetByID(ctx context.Context, id string) (*model.FreeSyncLog, error) {
 	var log model.FreeSyncLog
 	err := r.db.WithContext(ctx).
 		Where("id = ?", id).
@@ -76,7 +75,7 @@ func (r *freeSyncLogRepository) GetByID(ctx context.Context, id uuid.UUID) (*mod
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
-		r.logger.Error("Failed to get freee sync log by ID", zap.Error(err), zap.String("id", id.String()))
+		r.logger.Error("Failed to get freee sync log by ID", zap.Error(err), zap.String("id", id))
 		return nil, fmt.Errorf("同期ログの取得に失敗しました: %w", err)
 	}
 
@@ -91,7 +90,7 @@ func (r *freeSyncLogRepository) Update(ctx context.Context, log *model.FreeSyncL
 		Updates(log)
 
 	if result.Error != nil {
-		r.logger.Error("Failed to update freee sync log", zap.Error(result.Error), zap.String("id", log.ID.String()))
+		r.logger.Error("Failed to update freee sync log", zap.Error(result.Error), zap.String("id", log.ID))
 		return fmt.Errorf("同期ログの更新に失敗しました: %w", result.Error)
 	}
 
@@ -129,7 +128,7 @@ func (r *freeSyncLogRepository) List(ctx context.Context, syncType *model.FreeSy
 }
 
 // ListByTargetID ターゲットIDで同期ログを取得
-func (r *freeSyncLogRepository) ListByTargetID(ctx context.Context, targetID uuid.UUID, limit, offset int) ([]*model.FreeSyncLog, error) {
+func (r *freeSyncLogRepository) ListByTargetID(ctx context.Context, targetID string, limit, offset int) ([]*model.FreeSyncLog, error) {
 	var logs []*model.FreeSyncLog
 	err := r.db.WithContext(ctx).
 		Where("target_id = ?", targetID).
@@ -200,7 +199,7 @@ func (r *freeSyncLogRepository) Count(ctx context.Context, syncType *model.FreeS
 }
 
 // GetLatestByTarget ターゲットの最新同期ログを取得
-func (r *freeSyncLogRepository) GetLatestByTarget(ctx context.Context, targetID uuid.UUID, syncType model.FreeSyncType) (*model.FreeSyncLog, error) {
+func (r *freeSyncLogRepository) GetLatestByTarget(ctx context.Context, targetID string, syncType model.FreeSyncType) (*model.FreeSyncLog, error) {
 	var log model.FreeSyncLog
 	err := r.db.WithContext(ctx).
 		Where("target_id = ? AND sync_type = ?", targetID, syncType).
@@ -242,7 +241,7 @@ func (r *freeSyncLogRepository) GetPendingLogs(ctx context.Context, syncType *mo
 }
 
 // UpdateStatus 同期ログのステータスを更新
-func (r *freeSyncLogRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status model.FreeSyncStatus, errorMessage *string) error {
+func (r *freeSyncLogRepository) UpdateStatus(ctx context.Context, id string, status model.FreeSyncStatus, errorMessage *string) error {
 	updates := map[string]interface{}{
 		"status": status,
 	}

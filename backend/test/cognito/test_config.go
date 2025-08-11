@@ -25,7 +25,7 @@ type TestConfig struct {
 
 // TestUser テスト用ユーザーデータ
 type TestUser struct {
-	ID          uuid.UUID
+	ID          string
 	Email       string
 	Password    string
 	FirstName   string
@@ -170,7 +170,7 @@ func (tc *TestConfig) AddCleanupFunc(cleanup func() error) {
 // CreateTestUser テスト用ユーザーを作成
 func (tc *TestConfig) CreateTestUser(email string, role model.Role) *TestUser {
 	return &TestUser{
-		ID:          uuid.New(),
+		ID:          uuid.New().String(),
 		Email:       email,
 		Password:    "Test123!@#",
 		FirstName:   "Test",
@@ -186,7 +186,7 @@ func (tc *TestConfig) CreateTestUser(email string, role model.Role) *TestUser {
 func GetTestUsers() []*TestUser {
 	return []*TestUser{
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			Email:       "admin@test.com",
 			Password:    "Admin123!@#",
 			FirstName:   "Admin",
@@ -197,7 +197,7 @@ func GetTestUsers() []*TestUser {
 			Status:      "active",
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			Email:       "manager@test.com",
 			Password:    "Manager123!@#",
 			FirstName:   "Manager",
@@ -208,7 +208,7 @@ func GetTestUsers() []*TestUser {
 			Status:      "active",
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			Email:       "employee@test.com",
 			Password:    "Employee123!@#",
 			FirstName:   "Employee",

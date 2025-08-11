@@ -45,8 +45,8 @@ func (w *WeeklyReportMetadata) Scan(value interface{}) error {
 // 既存のWeeklyReportモデルとの互換性を保ちながら拡張
 type WeeklyReportRefactored struct {
 	// 基本フィールド（既存との互換性）
-	ID                       uuid.UUID              `gorm:"type:varchar(255);primary_key;default:(UUID())" json:"id"`
-	UserID string              `gorm:"type:varchar(255);not null" json:"user_id"`
+	ID                       string                 `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID                   string                 `gorm:"type:varchar(255);not null" json:"user_id"`
 	StartDate                time.Time              `gorm:"not null" json:"start_date"`
 	EndDate                  time.Time              `gorm:"not null" json:"end_date"`
 	Status                   WeeklyReportStatusEnum `gorm:"type:enum('draft','submitted','approved','rejected');default:'draft';not null" json:"status"`
@@ -59,13 +59,13 @@ type WeeklyReportRefactored struct {
 	ClientWorkHours          float64                `gorm:"type:decimal(5,2);default:0" json:"client_work_hours"`
 	SubmittedAt              *time.Time             `json:"submitted_at,omitempty"`
 	ManagerComment           *string                `gorm:"type:text" json:"manager_comment,omitempty"`
-	CommentedBy              *uuid.UUID             `gorm:"type:varchar(255)" json:"commented_by,omitempty"`
+	CommentedBy              *string                `gorm:"type:varchar(255)" json:"commented_by,omitempty"`
 	CommentedAt              *time.Time             `json:"commented_at,omitempty"`
 
 	// 新規フィールド（リファクタリングで追加）
-	DepartmentID       *uuid.UUID            `gorm:"type:varchar(255)" json:"department_id,omitempty"`
+	DepartmentID       *string               `gorm:"type:varchar(255)" json:"department_id,omitempty"`
 	DepartmentName     *string               `gorm:"type:varchar(100)" json:"department_name,omitempty"`
-	ManagerID          *uuid.UUID            `gorm:"type:varchar(255)" json:"manager_id,omitempty"`
+	ManagerID          *string               `gorm:"type:varchar(255)" json:"manager_id,omitempty"`
 	SubmissionDeadline *time.Time            `gorm:"type:date" json:"submission_deadline,omitempty"`
 	IsLateSubmission   bool                  `gorm:"default:false" json:"is_late_submission"`
 	RevisionCount      int                   `gorm:"default:0" json:"revision_count"`
@@ -87,8 +87,8 @@ type WeeklyReportRefactored struct {
 
 // BeforeCreate IDの自動生成とデフォルト値設定
 func (w *WeeklyReportRefactored) BeforeCreate(tx *gorm.DB) error {
-	if w.ID == uuid.Nil {
-		w.ID = uuid.New()
+	if w.ID == "" {
+		w.ID = uuid.New().String()
 	}
 
 	// 提出期限の自動計算（設定されていない場合）
@@ -172,7 +172,7 @@ func (w *WeeklyReportRefactored) Submit() error {
 }
 
 // AddComment 管理者コメントを追加
-func (w *WeeklyReportRefactored) AddComment(commentedBy uuid.UUID, comment string) {
+func (w *WeeklyReportRefactored) AddComment(commentedBy string, comment string) {
 	w.ManagerComment = &comment
 	w.CommentedBy = &commentedBy
 	now := time.Now()
@@ -206,25 +206,19 @@ func (w *WeeklyReportRefactored) GetTotalWorkDays() int {
 // SetDepartmentInfo 部署情報を設定（提出時に実行）
 func (w *WeeklyReportRefactored) SetDepartmentInfo(user *User) {
 	if user.DepartmentID != nil {
-		// string型のDepartmentIDをuuid.UUIDに変換
-		if deptID, err := uuid.Parse(*user.DepartmentID); err == nil {
-			w.DepartmentID = &deptID
-		}
-		// string型のManagerIDをuuid.UUIDに変換
-		if user.ManagerID != nil {
-			if mgrID, err := uuid.Parse(*user.ManagerID); err == nil {
-				w.ManagerID = &mgrID
-			}
-		}
-
-		// 部署名は別途取得が必要（Departmentリレーションが読み込まれている場合）
+		w.DepartmentID = user.DepartmentID
 	}
+	if user.ManagerID != nil {
+		w.ManagerID = user.ManagerID
+	}
+
+	// 部署名は別途取得が必要（Departmentリレーションが読み込まれている場合）
 }
 
 // WeeklyReportSummary 週報サマリー（一覧表示用）
 type WeeklyReportSummary struct {
-	ID                   uuid.UUID  `json:"id"`
-	UserID string  `json:"user_id"`
+	ID                   string     `json:"id"`
+	UserID               string     `json:"user_id"`
 	UserName             string     `json:"user_name"`
 	DepartmentName       *string    `json:"department_name,omitempty"`
 	WeekRange            string     `json:"week_range"`

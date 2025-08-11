@@ -45,8 +45,8 @@ const (
 
 // ExportJob エクスポートジョブモデル
 type ExportJob struct {
-	ID            uuid.UUID       `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string       `gorm:"type:varchar(255);not null;index" json:"user_id"`
+	ID            string          `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID        string          `gorm:"type:varchar(255);not null;index" json:"user_id"`
 	JobType       ExportJobType   `gorm:"type:varchar(50);not null" json:"job_type"`
 	Format        ExportJobFormat `gorm:"type:varchar(20);not null" json:"format"`
 	Status        ExportJobStatus `gorm:"type:varchar(20);not null;default:'pending'" json:"status"`
@@ -75,8 +75,8 @@ func (ExportJob) TableName() string {
 
 // BeforeCreate UUIDを生成
 func (e *ExportJob) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }

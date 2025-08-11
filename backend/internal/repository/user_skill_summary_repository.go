@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/duesk/monstera/internal/model"
-	"gorm.io/gorm"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // UserSkillSummaryRepository ユーザースキルサマリーリポジトリのインターフェース

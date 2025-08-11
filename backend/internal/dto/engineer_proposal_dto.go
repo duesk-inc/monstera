@@ -2,8 +2,6 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // GetProposalsRequest 提案一覧取得リクエスト
@@ -48,8 +46,8 @@ type ProposalListResponse struct {
 
 // ProposalItemDTO 提案一覧アイテム
 type ProposalItemDTO struct {
-	ID                    uuid.UUID  `json:"id"`
-	ProjectID             uuid.UUID  `json:"project_id"`
+	ID                    string     `json:"id"`
+	ProjectID             string     `json:"project_id"`
 	ProjectName           string     `json:"project_name"`
 	MinPrice              *int       `json:"min_price"`
 	MaxPrice              *int       `json:"max_price"`
@@ -63,8 +61,8 @@ type ProposalItemDTO struct {
 
 // ProposalDetailResponse 提案詳細レスポンス
 type ProposalDetailResponse struct {
-	ID          uuid.UUID             `json:"id"`
-	ProjectID   uuid.UUID             `json:"project_id"`
+	ID          string                `json:"id"`
+	ProjectID   string                `json:"project_id"`
 	Status      string                `json:"status"`
 	RespondedAt *time.Time            `json:"responded_at"`
 	CreatedAt   time.Time             `json:"created_at"`
@@ -75,7 +73,7 @@ type ProposalDetailResponse struct {
 
 // ProjectDetailDTO プロジェクト詳細（monstera-pocデータ統合）
 type ProjectDetailDTO struct {
-	ID              uuid.UUID         `json:"id"`
+	ID              string            `json:"id"`
 	ProjectName     string            `json:"project_name"`
 	Description     string            `json:"description"`
 	MinPrice        *int              `json:"min_price"`
@@ -167,7 +165,7 @@ func (r *GetPendingQuestionsRequest) SetDefaults() {
 
 // ProposalQuestionDTO 質問情報
 type ProposalQuestionDTO struct {
-	ID           uuid.UUID               `json:"id"`
+	ID           string                  `json:"id"`
 	QuestionText string                  `json:"question_text"`
 	ResponseText *string                 `json:"response_text"`
 	IsResponded  bool                    `json:"is_responded"`
@@ -179,10 +177,10 @@ type ProposalQuestionDTO struct {
 
 // ProposalUserSummaryDTO 提案関連ユーザー概要
 type ProposalUserSummaryDTO struct {
-	ID        uuid.UUID `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
+	ID        string `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
 }
 
 // QuestionsListResponse 質問一覧レスポンス
@@ -199,9 +197,9 @@ type PendingQuestionsListResponse struct {
 
 // PendingQuestionDTO 未回答質問情報（営業担当者向け）
 type PendingQuestionDTO struct {
-	ID           uuid.UUID               `json:"id"`
-	ProposalID   uuid.UUID               `json:"proposal_id"`
-	ProjectID    uuid.UUID               `json:"project_id"`
+	ID           string                  `json:"id"`
+	ProposalID   string                  `json:"proposal_id"`
+	ProjectID    string                  `json:"project_id"`
 	ProjectName  string                  `json:"project_name"`
 	QuestionText string                  `json:"question_text"`
 	Engineer     *ProposalUserSummaryDTO `json:"engineer"`
@@ -225,13 +223,13 @@ type AssignQuestionRequest struct {
 
 // NotificationPayloadDTO 通知ペイロード（営業担当者向け）
 type NotificationPayloadDTO struct {
-	ProposalID   uuid.UUID `json:"proposal_id"`
-	ProjectID    uuid.UUID `json:"project_id"`
-	ProjectName  string    `json:"project_name"`
-	EngineerID   uuid.UUID `json:"engineer_id"`
-	EngineerName string    `json:"engineer_name"`
-	Action       string    `json:"action"`           // "responded", "questioned"
-	Status       string    `json:"status,omitempty"` // proceed/declined（respondedの場合のみ）
+	ProposalID   string `json:"proposal_id"`
+	ProjectID    string `json:"project_id"`
+	ProjectName  string `json:"project_name"`
+	EngineerID   string `json:"engineer_id"`
+	EngineerName string `json:"engineer_name"`
+	Action       string `json:"action"`           // "responded", "questioned"
+	Status       string `json:"status,omitempty"` // proceed/declined（respondedの場合のみ）
 }
 
 // GetDefaults デフォルト値取得（設定画面用）

@@ -9,7 +9,6 @@ import (
 	"github.com/duesk/monstera/internal/message"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -50,7 +49,7 @@ type WeeklyReportFilters struct {
 	StartDate string
 	EndDate   string
 	Search    string
-	UserID    uuid.UUID
+	UserID    string
 }
 
 // Create 新しい週報を作成
@@ -102,7 +101,7 @@ func (s *WeeklyReportService) Create(ctx context.Context, report *model.WeeklyRe
 }
 
 // GetByID 指定されたIDの週報を取得（日次勤怠記録も含む）
-func (s *WeeklyReportService) GetByID(ctx context.Context, id uuid.UUID) (*model.WeeklyReport, error) {
+func (s *WeeklyReportService) GetByID(ctx context.Context, id string) (*model.WeeklyReport, error) {
 	// 週報を取得
 	report, err := s.reportRepo.FindByID(ctx, id)
 	if err != nil {
@@ -115,7 +114,7 @@ func (s *WeeklyReportService) GetByID(ctx context.Context, id uuid.UUID) (*model
 	// 日次勤怠記録を取得
 	dailyRecords, err := s.dailyRecordRepo.FindByWeeklyReportID(report.ID)
 	if err != nil {
-		s.logger.Error("Failed to get daily records", zap.Error(err), zap.String("report_id", id.String()))
+		s.logger.Error("Failed to get daily records", zap.Error(err), zap.String("report_id", id))
 	} else {
 		report.DailyRecords = dailyRecords
 	}
@@ -175,7 +174,7 @@ func (s *WeeklyReportService) Update(ctx context.Context, report *model.WeeklyRe
 }
 
 // Delete 週報を削除
-func (s *WeeklyReportService) Delete(ctx context.Context, id uuid.UUID) error {
+func (s *WeeklyReportService) Delete(ctx context.Context, id string) error {
 	// トランザクション開始
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		reportRepo := repository.NewWeeklyReportRepository(tx, s.logger)
@@ -232,7 +231,7 @@ func (s *WeeklyReportService) List(ctx context.Context, filters *WeeklyReportFil
 }
 
 // Submit 週報を提出済みに更新
-func (s *WeeklyReportService) Submit(ctx context.Context, id uuid.UUID) error {
+func (s *WeeklyReportService) Submit(ctx context.Context, id string) error {
 	// IDで週報を取得
 	report, err := s.reportRepo.FindByID(ctx, id)
 	if err != nil {
@@ -256,7 +255,7 @@ func (s *WeeklyReportService) Submit(ctx context.Context, id uuid.UUID) error {
 }
 
 // GetDailyRecords 週報に関連する日次勤怠記録を取得
-func (s *WeeklyReportService) GetDailyRecords(reportID uuid.UUID) ([]*model.DailyRecord, error) {
+func (s *WeeklyReportService) GetDailyRecords(reportID string) ([]*model.DailyRecord, error) {
 	records, err := s.dailyRecordRepo.FindByWeeklyReportID(reportID)
 	if err != nil {
 		return nil, fmt.Errorf(message.MsgDailyRecordGetFailed+": %w", err)
@@ -265,7 +264,7 @@ func (s *WeeklyReportService) GetDailyRecords(reportID uuid.UUID) ([]*model.Dail
 }
 
 // GetWorkHours 週報の作業時間を取得（既存の互換性のため）
-func (s *WeeklyReportService) GetWorkHours(reportID uuid.UUID) (map[string]float64, error) {
+func (s *WeeklyReportService) GetWorkHours(reportID string) (map[string]float64, error) {
 	// 作業時間を取得
 	workHours, err := s.workHoursRepo.FindByReportID(reportID)
 	if err != nil {
@@ -283,7 +282,7 @@ func (s *WeeklyReportService) GetWorkHours(reportID uuid.UUID) (map[string]float
 }
 
 // GetTotalWorkHours 週報の合計作業時間を取得
-func (s *WeeklyReportService) GetTotalWorkHours(reportID uuid.UUID) (float64, error) {
+func (s *WeeklyReportService) GetTotalWorkHours(reportID string) (float64, error) {
 	return s.dailyRecordRepo.CalculateTotalWorkHours(reportID)
 }
 
@@ -347,7 +346,7 @@ func (s *WeeklyReportService) GetByDateRange(ctx context.Context, userID string,
 	// 日次勤怠記録を取得
 	dailyRecords, err := s.dailyRecordRepo.FindByWeeklyReportID(report.ID)
 	if err != nil {
-		s.logger.Error("Failed to get daily records", zap.Error(err), zap.String("report_id", report.ID.String()))
+		s.logger.Error("Failed to get daily records", zap.Error(err), zap.String("report_id", report.ID))
 	} else {
 		report.DailyRecords = dailyRecords
 	}
@@ -358,7 +357,7 @@ func (s *WeeklyReportService) GetByDateRange(ctx context.Context, userID string,
 // Private methods
 
 // updateWorkHours 作業時間を更新（古いAPIとの互換性のため維持）
-func (s *WeeklyReportService) updateWorkHours(reportID uuid.UUID, workHours map[string]float64) error {
+func (s *WeeklyReportService) updateWorkHours(reportID string, workHours map[string]float64) error {
 	// 既存の作業時間を削除
 	if err := s.workHoursRepo.DeleteByReportID(reportID); err != nil {
 		return err
@@ -474,7 +473,7 @@ func (s *WeeklyReportService) SaveReport(ctx context.Context, report *model.Week
 }
 
 // 週報の合計稼働時間を更新（内部利用）
-func (s *WeeklyReportService) updateTotalWorkHours(ctx context.Context, reportID uuid.UUID) error {
+func (s *WeeklyReportService) updateTotalWorkHours(ctx context.Context, reportID string) error {
 	// 自社と客先の合計稼働時間を計算
 	companyTotalHours, clientTotalHours, err := s.dailyRecordRepo.CalculateBothTotalWorkHours(reportID)
 	if err != nil {

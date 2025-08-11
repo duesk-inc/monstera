@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"time"
 
 	"github.com/duesk/monstera/internal/dto"
 )
@@ -72,8 +70,8 @@ func (c *ExpenseCache) SetExpenseList(ctx context.Context, params *dto.ExpenseFi
 }
 
 // GetExpenseDetail 経費申請詳細をキャッシュから取得
-func (c *ExpenseCache) GetExpenseDetail(ctx context.Context, expenseID uuid.UUID) (*dto.ExpenseDetailResponse, error) {
-	key := fmt.Sprintf("%s%s", expenseDetailPrefix, expenseID.String())
+func (c *ExpenseCache) GetExpenseDetail(ctx context.Context, expenseID string) (*dto.ExpenseDetailResponse, error) {
+	key := fmt.Sprintf("%s%s", expenseDetailPrefix, expenseID)
 
 	data, err := c.redis.Get(ctx, key)
 	if err != nil {
@@ -91,8 +89,8 @@ func (c *ExpenseCache) GetExpenseDetail(ctx context.Context, expenseID uuid.UUID
 }
 
 // SetExpenseDetail 経費申請詳細をキャッシュに保存
-func (c *ExpenseCache) SetExpenseDetail(ctx context.Context, expenseID uuid.UUID, detail *dto.ExpenseDetailResponse) error {
-	key := fmt.Sprintf("%s%s", expenseDetailPrefix, expenseID.String())
+func (c *ExpenseCache) SetExpenseDetail(ctx context.Context, expenseID string, detail *dto.ExpenseDetailResponse) error {
+	key := fmt.Sprintf("%s%s", expenseDetailPrefix, expenseID)
 
 	data, err := json.Marshal(detail)
 	if err != nil {
@@ -105,7 +103,7 @@ func (c *ExpenseCache) SetExpenseDetail(ctx context.Context, expenseID uuid.UUID
 }
 
 // GetExpenseSummary 経費申請サマリーをキャッシュから取得
-func (c *ExpenseCache) GetExpenseSummary(ctx context.Context, userID uuid.UUID, fiscalYear int) (*dto.ExpenseSummaryResponse, error) {
+func (c *ExpenseCache) GetExpenseSummary(ctx context.Context, userID string, fiscalYear int) (*dto.ExpenseSummaryResponse, error) {
 	key := c.buildSummaryKey(userID, fiscalYear)
 
 	data, err := c.redis.Get(ctx, key)
@@ -124,7 +122,7 @@ func (c *ExpenseCache) GetExpenseSummary(ctx context.Context, userID uuid.UUID, 
 }
 
 // SetExpenseSummary 経費申請サマリーをキャッシュに保存
-func (c *ExpenseCache) SetExpenseSummary(ctx context.Context, userID uuid.UUID, fiscalYear int, summary *dto.ExpenseSummaryResponse) error {
+func (c *ExpenseCache) SetExpenseSummary(ctx context.Context, userID string, fiscalYear int, summary *dto.ExpenseSummaryResponse) error {
 	key := c.buildSummaryKey(userID, fiscalYear)
 
 	data, err := json.Marshal(summary)
@@ -138,8 +136,8 @@ func (c *ExpenseCache) SetExpenseSummary(ctx context.Context, userID uuid.UUID, 
 }
 
 // GetUserStats ユーザー統計をキャッシュから取得
-func (c *ExpenseCache) GetUserStats(ctx context.Context, userID uuid.UUID) (*dto.ExpenseStatsResponse, error) {
-	key := fmt.Sprintf("%s%s", expenseUserStatsPrefix, userID.String())
+func (c *ExpenseCache) GetUserStats(ctx context.Context, userID string) (*dto.ExpenseStatsResponse, error) {
+	key := fmt.Sprintf("%s%s", expenseUserStatsPrefix, userID)
 
 	data, err := c.redis.Get(ctx, key)
 	if err != nil {
@@ -157,8 +155,8 @@ func (c *ExpenseCache) GetUserStats(ctx context.Context, userID uuid.UUID) (*dto
 }
 
 // SetUserStats ユーザー統計をキャッシュに保存
-func (c *ExpenseCache) SetUserStats(ctx context.Context, userID uuid.UUID, stats *dto.ExpenseStatsResponse) error {
-	key := fmt.Sprintf("%s%s", expenseUserStatsPrefix, userID.String())
+func (c *ExpenseCache) SetUserStats(ctx context.Context, userID string, stats *dto.ExpenseStatsResponse) error {
+	key := fmt.Sprintf("%s%s", expenseUserStatsPrefix, userID)
 
 	data, err := json.Marshal(stats)
 	if err != nil {
@@ -210,16 +208,16 @@ func (c *ExpenseCache) InvalidateExpenseList(ctx context.Context) error {
 }
 
 // InvalidateExpenseDetail 特定の経費申請詳細キャッシュを無効化
-func (c *ExpenseCache) InvalidateExpenseDetail(ctx context.Context, expenseID uuid.UUID) error {
-	key := fmt.Sprintf("%s%s", expenseDetailPrefix, expenseID.String())
+func (c *ExpenseCache) InvalidateExpenseDetail(ctx context.Context, expenseID string) error {
+	key := fmt.Sprintf("%s%s", expenseDetailPrefix, expenseID)
 	return c.redis.Delete(ctx, key)
 }
 
 // InvalidateExpenseSummary 経費申請サマリーのキャッシュを無効化
-func (c *ExpenseCache) InvalidateExpenseSummary(ctx context.Context, userID *uuid.UUID) error {
+func (c *ExpenseCache) InvalidateExpenseSummary(ctx context.Context, userID *string) error {
 	pattern := expenseSummaryPrefix
 	if userID != nil {
-		pattern = fmt.Sprintf("%suser:%s:*", expenseSummaryPrefix, userID.String())
+		pattern = fmt.Sprintf("%suser:%s:*", expenseSummaryPrefix, userID)
 	} else {
 		pattern = expenseSummaryPrefix + "*"
 	}
@@ -227,8 +225,8 @@ func (c *ExpenseCache) InvalidateExpenseSummary(ctx context.Context, userID *uui
 }
 
 // InvalidateUserStats ユーザー統計のキャッシュを無効化
-func (c *ExpenseCache) InvalidateUserStats(ctx context.Context, userID uuid.UUID) error {
-	key := fmt.Sprintf("%s%s", expenseUserStatsPrefix, userID.String())
+func (c *ExpenseCache) InvalidateUserStats(ctx context.Context, userID string) error {
+	key := fmt.Sprintf("%s%s", expenseUserStatsPrefix, userID)
 	return c.redis.Delete(ctx, key)
 }
 
@@ -239,7 +237,7 @@ func (c *ExpenseCache) InvalidatePendingExpenses(ctx context.Context) error {
 }
 
 // InvalidateUserRelatedCaches ユーザー関連の全キャッシュを無効化
-func (c *ExpenseCache) InvalidateUserRelatedCaches(ctx context.Context, userID uuid.UUID) error {
+func (c *ExpenseCache) InvalidateUserRelatedCaches(ctx context.Context, userID string) error {
 	// ユーザーの統計情報を無効化
 	if err := c.InvalidateUserStats(ctx, userID); err != nil {
 		return err
@@ -259,7 +257,7 @@ func (c *ExpenseCache) InvalidateUserRelatedCaches(ctx context.Context, userID u
 }
 
 // InvalidateApprovalRelatedCaches 承認関連の全キャッシュを無効化
-func (c *ExpenseCache) InvalidateApprovalRelatedCaches(ctx context.Context, expenseID uuid.UUID, userID uuid.UUID) error {
+func (c *ExpenseCache) InvalidateApprovalRelatedCaches(ctx context.Context, expenseID string, userID string) error {
 	// 詳細キャッシュを無効化
 	if err := c.InvalidateExpenseDetail(ctx, expenseID); err != nil {
 		return err
@@ -310,7 +308,7 @@ func (c *ExpenseCache) buildListKey(params *dto.ExpenseFilterRequest) string {
 	}
 	categoryID := ""
 	if params.CategoryID != nil {
-		categoryID = params.CategoryID.String()
+		categoryID = *params.CategoryID
 	}
 	startDate := ""
 	if params.StartDate != nil {
@@ -322,7 +320,7 @@ func (c *ExpenseCache) buildListKey(params *dto.ExpenseFilterRequest) string {
 	}
 	userID := ""
 	if params.UserID != nil {
-		userID = params.UserID.String()
+		userID = *params.UserID
 	}
 	sortBy := ""
 	if params.SortBy != nil {
@@ -349,10 +347,10 @@ func (c *ExpenseCache) buildListKey(params *dto.ExpenseFilterRequest) string {
 }
 
 // buildSummaryKey サマリー用のキーを生成
-func (c *ExpenseCache) buildSummaryKey(userID uuid.UUID, fiscalYear int) string {
+func (c *ExpenseCache) buildSummaryKey(userID string, fiscalYear int) string {
 	return fmt.Sprintf("%suser:%s:fy:%d",
 		expenseSummaryPrefix,
-		userID.String(),
+		userID,
 		fiscalYear,
 	)
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -14,9 +13,9 @@ import (
 type AlertHistoryRepository interface {
 	Create(ctx context.Context, alertHistory *model.AlertHistory) error
 	CreateBatch(ctx context.Context, alertHistories []*model.AlertHistory) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.AlertHistory, error)
+	GetByID(ctx context.Context, id string) (*model.AlertHistory, error)
 	GetList(ctx context.Context, filters dto.AlertFilters, page, limit int) ([]*model.AlertHistory, int64, error)
-	UpdateStatus(ctx context.Context, id uuid.UUID, status string, handledBy uuid.UUID, comment string) error
+	UpdateStatus(ctx context.Context, id string, status string, handledBy string, comment string) error
 	GetUnresolvedByUser(ctx context.Context, userID string) ([]*model.AlertHistory, error)
 	GetSummary(ctx context.Context) (*dto.AlertSummaryDTO, error)
 	GetRecentAlerts(ctx context.Context, limit int) ([]*model.AlertHistory, error)
@@ -46,7 +45,7 @@ func (r *alertHistoryRepository) Create(ctx context.Context, alertHistory *model
 	}
 
 	r.logger.Info("Alert history created successfully",
-		zap.String("id", alertHistory.ID.String()),
+		zap.String("id", alertHistory.ID),
 		zap.String("user_id", alertHistory.UserID),
 		zap.String("alert_type", string(alertHistory.AlertType)))
 
@@ -73,7 +72,7 @@ func (r *alertHistoryRepository) CreateBatch(ctx context.Context, alertHistories
 }
 
 // GetByID IDでアラート履歴を取得
-func (r *alertHistoryRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.AlertHistory, error) {
+func (r *alertHistoryRepository) GetByID(ctx context.Context, id string) (*model.AlertHistory, error) {
 	var alertHistory model.AlertHistory
 
 	err := r.db.WithContext(ctx).
@@ -90,7 +89,7 @@ func (r *alertHistoryRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 		}
 		r.logger.Error("Failed to get alert history",
 			zap.Error(err),
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return nil, err
 	}
 
@@ -151,7 +150,7 @@ func (r *alertHistoryRepository) GetList(ctx context.Context, filters dto.AlertF
 }
 
 // UpdateStatus アラートステータスを更新
-func (r *alertHistoryRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status string, handledBy uuid.UUID, comment string) error {
+func (r *alertHistoryRepository) UpdateStatus(ctx context.Context, id string, status string, handledBy string, comment string) error {
 	updates := map[string]interface{}{
 		"status":             status,
 		"handled_by":         handledBy,
@@ -167,7 +166,7 @@ func (r *alertHistoryRepository) UpdateStatus(ctx context.Context, id uuid.UUID,
 	if result.Error != nil {
 		r.logger.Error("Failed to update alert status",
 			zap.Error(result.Error),
-			zap.String("id", id.String()),
+			zap.String("id", id),
 			zap.String("status", status))
 		return result.Error
 	}
@@ -177,9 +176,9 @@ func (r *alertHistoryRepository) UpdateStatus(ctx context.Context, id uuid.UUID,
 	}
 
 	r.logger.Info("Alert status updated successfully",
-		zap.String("id", id.String()),
+		zap.String("id", id),
 		zap.String("status", status),
-		zap.String("handled_by", handledBy.String()))
+		zap.String("handled_by", handledBy))
 
 	return nil
 }

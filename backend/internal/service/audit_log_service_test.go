@@ -28,7 +28,7 @@ func (m *MockAuditLogRepository) Create(ctx context.Context, auditLog *model.Aud
 	return args.Error(0)
 }
 
-func (m *MockAuditLogRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.AuditLog, error) {
+func (m *MockAuditLogRepository) GetByID(ctx context.Context, id string) (*model.AuditLog, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -41,7 +41,7 @@ func (m *MockAuditLogRepository) GetByFilters(ctx context.Context, filters repos
 	return args.Get(0).([]*model.AuditLog), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockAuditLogRepository) GetByUserID(ctx context.Context, userID uuid.UUID, limit int, offset int) ([]*model.AuditLog, error) {
+func (m *MockAuditLogRepository) GetByUserID(ctx context.Context, userID string, limit int, offset int) ([]*model.AuditLog, error) {
 	args := m.Called(ctx, userID, limit, offset)
 	return args.Get(0).([]*model.AuditLog), args.Error(1)
 }
@@ -79,7 +79,7 @@ func TestLogHTTPRequest_Success(t *testing.T) {
 	c.Writer.WriteHeader(http.StatusOK)
 
 	// Setup expectations
-	userID := uuid.New()
+	userID := uuid.New().String()
 	action := model.AuditActionType("NOTIFICATION_VIEW")
 	resourceType := model.ResourceType("NOTIFICATION")
 	duration := 20 * time.Millisecond
@@ -130,7 +130,7 @@ func TestLogHTTPRequest_WithCanceledContext(t *testing.T) {
 	c.Writer.WriteHeader(http.StatusOK)
 
 	// Setup expectations
-	userID := uuid.New()
+	userID := uuid.New().String()
 	action := model.AuditActionType("NOTIFICATION_VIEW")
 	resourceType := model.ResourceType("NOTIFICATION")
 	duration := 20 * time.Millisecond
@@ -166,7 +166,7 @@ func TestLogHTTPRequest_SkipNonAuditableAction(t *testing.T) {
 	c.Request = httptest.NewRequest("GET", "/api/v1/health", nil)
 
 	// Setup expectations with a non-auditable action
-	userID := uuid.New()
+	userID := uuid.New().String()
 	action := model.AuditActionUserView // This action is not auditable according to ShouldAudit()
 	resourceType := model.ResourceType("USER")
 	duration := 5 * time.Millisecond
@@ -204,7 +204,7 @@ func TestLogHTTPRequest_WithRequestBody(t *testing.T) {
 	c.Set("request_body", requestBody)
 
 	// Setup expectations
-	userID := uuid.New()
+	userID := uuid.New().String()
 	action := model.AuditActionType("USER_CREATE")
 	resourceType := model.ResourceType("USER")
 	resourceID := "new-user-id"
@@ -247,7 +247,7 @@ func TestLogHTTPRequest_WithError(t *testing.T) {
 	})
 
 	// Setup expectations
-	userID := uuid.Nil // Failed login
+	userID := "" // Failed login
 	action := model.AuditActionLoginFailed
 	resourceType := model.ResourceType("SESSION")
 	duration := 10 * time.Millisecond

@@ -69,7 +69,7 @@ func (h *AccountingDashboardHandler) GetDashboard(c *gin.Context) {
 		return
 	}
 
-	_, ok := userID.(uuid.UUID)
+	_, ok := userID.(string)
 	if !ok {
 		utils.RespondError(c, http.StatusInternalServerError, "ユーザーID取得エラー")
 		return
@@ -523,12 +523,12 @@ func (h *AccountingDashboardHandler) getRecentActivities(ctx context.Context, ta
 
 	// サンプルデータ
 	activities = append(activities, map[string]interface{}{
-		"id":          uuid.New(),
+		"id":          uuid.New().String(),
 		"type":        "invoice_created",
 		"title":       "請求書作成",
 		"description": "新規請求書が作成されました",
 		"timestamp":   time.Now().Add(-1 * time.Hour),
-		"user_id":     uuid.New(),
+		"user_id":     uuid.New().String(),
 		"user_name":   "システム",
 	})
 

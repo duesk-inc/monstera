@@ -8,10 +8,9 @@ import (
 
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"github.com/jung-kurt/gofpdf"
-	"gorm.io/gorm"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // SkillSheetPDFService スキルシートPDFサービスのインターフェース
@@ -47,13 +46,8 @@ func NewSkillSheetPDFService(
 
 // GenerateSkillSheetPDF スキルシートPDFを生成
 func (s *skillSheetPDFService) GenerateSkillSheetPDF(ctx context.Context, userID string) ([]byte, error) {
-	// userIDをuuid.UUIDに変換
-	parsedUserID, err := uuid.Parse(userID)
-	if err != nil {
-		s.logger.Error("Invalid user ID", zap.Error(err))
-		return nil, fmt.Errorf("無効なユーザーID")
-	}
-	
+	// userIDを取得
+	parsedUserID := userID
 	// ユーザー情報を取得
 	user, err := s.userRepo.FindByID(parsedUserID)
 	if err != nil {

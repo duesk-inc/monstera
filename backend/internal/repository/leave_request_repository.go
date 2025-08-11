@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type LeaveRequestRepository interface {
-	GetByID(ctx context.Context, id uuid.UUID) (*model.LeaveRequest, error)
+	GetByID(ctx context.Context, id string) (*model.LeaveRequest, error)
 	Create(ctx context.Context, request *model.LeaveRequest) error
 	Update(ctx context.Context, request *model.LeaveRequest) error
 }
@@ -27,7 +26,7 @@ func NewLeaveRequestRepository(db *gorm.DB, logger *zap.Logger) LeaveRequestRepo
 	}
 }
 
-func (r *leaveRequestRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.LeaveRequest, error) {
+func (r *leaveRequestRepository) GetByID(ctx context.Context, id string) (*model.LeaveRequest, error) {
 	var request model.LeaveRequest
 	err := r.DB.WithContext(ctx).
 		Preload("User").
@@ -39,7 +38,7 @@ func (r *leaveRequestRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 	if err != nil {
 		r.Logger.Error("Failed to get leave request by ID",
 			zap.Error(err),
-			zap.String("request_id", id.String()))
+			zap.String("request_id", id))
 		return nil, err
 	}
 
@@ -63,7 +62,7 @@ func (r *leaveRequestRepository) Update(ctx context.Context, request *model.Leav
 	if err != nil {
 		r.Logger.Error("Failed to update leave request",
 			zap.Error(err),
-			zap.String("request_id", request.ID.String()))
+			zap.String("request_id", request.ID))
 		return err
 	}
 

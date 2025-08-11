@@ -23,7 +23,7 @@ type AlertRepository interface {
 	CreateBatch(ctx context.Context, alerts []model.AlertHistory) error
 	GetByID(ctx context.Context, id string) (*model.AlertHistory, error)
 	Update(ctx context.Context, alert *model.AlertHistory) error
-	UpdateStatus(ctx context.Context, id string, status model.AlertStatus, resolvedBy *uuid.UUID, comment string) error
+	UpdateStatus(ctx context.Context, id string, status model.AlertStatus, resolvedBy *string, comment string) error
 
 	// 検索・取得系
 	GetAlerts(ctx context.Context, filters AlertFilters, offset, limit int) ([]*model.AlertHistory, int64, error)
@@ -96,8 +96,8 @@ func (r *alertRepository) GetAlertSettings(ctx context.Context) (*model.AlertSet
 
 // CreateAlertSettings アラート設定を作成
 func (r *alertRepository) CreateAlertSettings(ctx context.Context, settings *model.AlertSettings) error {
-	if settings.ID == uuid.Nil {
-		settings.ID = uuid.New()
+	if settings.ID == "" {
+		settings.ID = uuid.New().String()
 	}
 
 	if err := r.db.WithContext(ctx).Create(settings).Error; err != nil {
@@ -124,7 +124,7 @@ func (r *alertRepository) UpdateAlertSettings(ctx context.Context, settings *mod
 
 	if result.Error != nil {
 		r.logger.Error("Failed to update alert settings",
-			zap.String("id", settings.ID.String()),
+			zap.String("id", settings.ID),
 			zap.Error(result.Error))
 		return result.Error
 	}
@@ -138,8 +138,8 @@ func (r *alertRepository) UpdateAlertSettings(ctx context.Context, settings *mod
 
 // Create アラート履歴を作成
 func (r *alertRepository) Create(ctx context.Context, alert *model.AlertHistory) error {
-	if alert.ID == uuid.Nil {
-		alert.ID = uuid.New()
+	if alert.ID == "" {
+		alert.ID = uuid.New().String()
 	}
 
 	// JSON形式のデータを確実に保存
@@ -169,8 +169,8 @@ func (r *alertRepository) CreateBatch(ctx context.Context, alerts []model.AlertH
 
 	// UUIDとデフォルト値を設定
 	for i := range alerts {
-		if alerts[i].ID == uuid.Nil {
-			alerts[i].ID = uuid.New()
+		if alerts[i].ID == "" {
+			alerts[i].ID = uuid.New().String()
 		}
 		if alerts[i].DetectedValue == nil {
 			alerts[i].DetectedValue = json.RawMessage("{}")
@@ -233,7 +233,7 @@ func (r *alertRepository) GetByID(ctx context.Context, id string) (*model.AlertH
 func (r *alertRepository) Update(ctx context.Context, alert *model.AlertHistory) error {
 	if err := r.db.WithContext(ctx).Save(alert).Error; err != nil {
 		r.logger.Error("Failed to update alert history",
-			zap.String("id", alert.ID.String()),
+			zap.String("id", alert.ID),
 			zap.Error(err))
 		return err
 	}
@@ -242,7 +242,7 @@ func (r *alertRepository) Update(ctx context.Context, alert *model.AlertHistory)
 }
 
 // UpdateStatus アラートのステータスを更新
-func (r *alertRepository) UpdateStatus(ctx context.Context, id string, status model.AlertStatus, resolvedBy *uuid.UUID, comment string) error {
+func (r *alertRepository) UpdateStatus(ctx context.Context, id string, status model.AlertStatus, resolvedBy *string, comment string) error {
 	updates := map[string]interface{}{
 		"status": status,
 	}

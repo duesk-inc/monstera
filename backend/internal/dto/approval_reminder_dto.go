@@ -2,8 +2,6 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // ApprovalReminderConfig 承認催促設定
@@ -26,13 +24,13 @@ type ApprovalReminderStatus struct {
 
 // PendingExpenseWithApprover 承認者情報付き承認待ち経費申請
 type PendingExpenseWithApprover struct {
-	ExpenseID      uuid.UUID  `json:"expense_id"`
+	ExpenseID      string     `json:"expense_id"`
 	ExpenseTitle   string     `json:"expense_title"`
 	ExpenseAmount  int        `json:"expense_amount"`
 	SubmitterName  string     `json:"submitter_name"`
 	SubmittedAt    time.Time  `json:"submitted_at"`
 	DaysPending    int        `json:"days_pending"` // 承認待ち日数
-	ApproverID     uuid.UUID  `json:"approver_id"`
+	ApproverID     string     `json:"approver_id"`
 	ApproverName   string     `json:"approver_name"`
 	ApproverEmail  string     `json:"approver_email"`
 	RemindersSent  int        `json:"reminders_sent"`   // 送信済み催促回数
@@ -52,7 +50,7 @@ type ApprovalReminderReport struct {
 
 // ApproverReminderSummary 承認者別催促サマリー
 type ApproverReminderSummary struct {
-	ApproverID     uuid.UUID  `json:"approver_id"`
+	ApproverID     string     `json:"approver_id"`
 	ApproverName   string     `json:"approver_name"`
 	PendingCount   int        `json:"pending_count"`
 	OldestPending  time.Time  `json:"oldest_pending"`

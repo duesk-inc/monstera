@@ -31,9 +31,9 @@ type BatchProcessorServiceInterface interface {
 
 	// バッチジョブ管理
 	CreateBatchJob(ctx context.Context, name string, totalItems int) (*BatchJob, error)
-	UpdateBatchJobProgress(ctx context.Context, jobID uuid.UUID, processedItems int, failedItems int) error
-	CompleteBatchJob(ctx context.Context, jobID uuid.UUID, result *BatchResult) error
-	GetBatchJob(ctx context.Context, jobID uuid.UUID) (*BatchJob, error)
+	UpdateBatchJobProgress(ctx context.Context, jobID string, processedItems int, failedItems int) error
+	CompleteBatchJob(ctx context.Context, jobID string, result *BatchResult) error
+	GetBatchJob(ctx context.Context, jobID string) (*BatchJob, error)
 
 	// エラーハンドリング
 	SetErrorHandler(handler ErrorHandler)
@@ -93,7 +93,7 @@ type BatchError struct {
 
 // BatchJob バッチジョブ
 type BatchJob struct {
-	ID              uuid.UUID
+	ID              string
 	Name            string
 	Status          BatchJobStatus
 	TotalItems      int
@@ -132,7 +132,7 @@ type batchProcessorService struct {
 	logger       *zap.Logger
 	errorHandler ErrorHandler
 	retryPolicy  RetryPolicy
-	jobs         map[uuid.UUID]*BatchJob
+	jobs         map[string]*BatchJob
 	jobsMutex    sync.RWMutex
 }
 
@@ -141,7 +141,7 @@ func NewBatchProcessorService(db *gorm.DB, logger *zap.Logger) BatchProcessorSer
 	return &batchProcessorService{
 		db:     db,
 		logger: logger,
-		jobs:   make(map[uuid.UUID]*BatchJob),
+		jobs:   make(map[string]*BatchJob),
 		errorHandler: func(ctx context.Context, err error, item interface{}, index int) error {
 			return err // デフォルトはエラーをそのまま返す
 		},
@@ -341,7 +341,7 @@ func (s *batchProcessorService) ProcessStream(ctx context.Context, processor Bat
 // CreateBatchJob バッチジョブを作成
 func (s *batchProcessorService) CreateBatchJob(ctx context.Context, name string, totalItems int) (*BatchJob, error) {
 	job := &BatchJob{
-		ID:            uuid.New(),
+		ID:            uuid.New().String(),
 		Name:          name,
 		Status:        BatchJobStatusPending,
 		TotalItems:    totalItems,
@@ -355,7 +355,7 @@ func (s *batchProcessorService) CreateBatchJob(ctx context.Context, name string,
 	s.jobsMutex.Unlock()
 
 	s.logger.Info("Batch job created",
-		zap.String("job_id", job.ID.String()),
+		zap.String("job_id", job.ID),
 		zap.String("name", name),
 		zap.Int("total_items", totalItems))
 
@@ -363,7 +363,7 @@ func (s *batchProcessorService) CreateBatchJob(ctx context.Context, name string,
 }
 
 // UpdateBatchJobProgress バッチジョブの進捗を更新
-func (s *batchProcessorService) UpdateBatchJobProgress(ctx context.Context, jobID uuid.UUID, processedItems int, failedItems int) error {
+func (s *batchProcessorService) UpdateBatchJobProgress(ctx context.Context, jobID string, processedItems int, failedItems int) error {
 	s.jobsMutex.Lock()
 	defer s.jobsMutex.Unlock()
 
@@ -382,7 +382,7 @@ func (s *batchProcessorService) UpdateBatchJobProgress(ctx context.Context, jobI
 }
 
 // CompleteBatchJob バッチジョブを完了
-func (s *batchProcessorService) CompleteBatchJob(ctx context.Context, jobID uuid.UUID, result *BatchResult) error {
+func (s *batchProcessorService) CompleteBatchJob(ctx context.Context, jobID string, result *BatchResult) error {
 	s.jobsMutex.Lock()
 	defer s.jobsMutex.Unlock()
 
@@ -410,7 +410,7 @@ func (s *batchProcessorService) CompleteBatchJob(ctx context.Context, jobID uuid
 	}
 
 	s.logger.Info("Batch job completed",
-		zap.String("job_id", job.ID.String()),
+		zap.String("job_id", job.ID),
 		zap.String("status", string(job.Status)),
 		zap.Int("processed", job.ProcessedItems),
 		zap.Int("successful", job.SuccessfulItems),
@@ -420,7 +420,7 @@ func (s *batchProcessorService) CompleteBatchJob(ctx context.Context, jobID uuid
 }
 
 // GetBatchJob バッチジョブを取得
-func (s *batchProcessorService) GetBatchJob(ctx context.Context, jobID uuid.UUID) (*BatchJob, error) {
+func (s *batchProcessorService) GetBatchJob(ctx context.Context, jobID string) (*BatchJob, error) {
 	s.jobsMutex.RLock()
 	defer s.jobsMutex.RUnlock()
 

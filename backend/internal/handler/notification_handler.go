@@ -209,10 +209,11 @@ func (h *notificationHandler) MarkAsRead(c *gin.Context) {
 	}
 
 	// 通知IDをパース
-	notificationIDs := make([]uuid.UUID, 0, len(request.NotificationIDs))
+	notificationIDs := make([]string, 0, len(request.NotificationIDs))
 	for _, idStr := range request.NotificationIDs {
-		id, err := uuid.Parse(idStr)
-		if err != nil {
+		id := idStr
+		// UUID validation removed after migration
+		if id == "" {
 			h.respondError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidNotificationID, idStr), err)
 			return
 		}
@@ -253,8 +254,9 @@ func (h *notificationHandler) MarkAsReadSingle(c *gin.Context) {
 
 	// パスパラメータから通知IDを取得
 	notificationIDStr := c.Param("id")
-	notificationID, err := uuid.Parse(notificationIDStr)
-	if err != nil {
+	notificationID := notificationIDStr
+	// UUID validation removed after migration
+	if notificationID == "" {
 		h.respondError(c, http.StatusBadRequest, fmt.Sprintf(message.MsgInvalidNotificationID, notificationIDStr), err)
 		return
 	}
@@ -340,13 +342,14 @@ func (h *notificationHandler) CreateNotification(c *gin.Context) {
 	// DTOからモデルへ変換して通知を作成
 	var createdNotifications []string
 	for _, userIDStr := range request.UserIDs {
-		userID, err := uuid.Parse(userIDStr)
-		if err != nil {
+		userID := userIDStr
+		// UUID validation removed after migration
+		if userID == "" {
 			h.respondError(c, http.StatusBadRequest, "Invalid user ID format", err)
 			return
 		}
 
-		var referenceID *uuid.UUID
+		var referenceID *string
 		if request.ReferenceID != nil {
 			refUUID, err := uuid.Parse(*request.ReferenceID)
 			if err == nil {
@@ -355,7 +358,7 @@ func (h *notificationHandler) CreateNotification(c *gin.Context) {
 		}
 
 		notification := &model.Notification{
-			ID:               uuid.New(),
+			ID:               uuid.New().String(),
 			Title:            request.Title,
 			Message:          request.Message,
 			NotificationType: model.NotificationType(request.NotificationType),
@@ -373,7 +376,7 @@ func (h *notificationHandler) CreateNotification(c *gin.Context) {
 			return
 		}
 
-		createdNotifications = append(createdNotifications, notification.ID.String())
+		createdNotifications = append(createdNotifications, notification.ID)
 	}
 
 	// 成功レスポンス
@@ -493,8 +496,9 @@ func (h *notificationHandler) GetAdvancedNotifications(c *gin.Context) {
 
 	// 受信者IDが指定されている場合（特定ユーザーの通知）
 	if recipientIDStr := c.Query("recipient_id"); recipientIDStr != "" {
-		recipientID, err := uuid.Parse(recipientIDStr)
-		if err != nil {
+		recipientID := recipientIDStr
+		// UUID validation removed after migration
+		if recipientID == "" {
 			h.errorHandler.HandleError(c, message.ErrCodeInvalidRequest, "無効な受信者IDです。", nil)
 			return
 		}
@@ -534,8 +538,9 @@ func (h *notificationHandler) GetNotificationByID(c *gin.Context) {
 		return
 	}
 
-	notificationUUID, err := uuid.Parse(notificationID)
-	if err != nil {
+	notificationUUID := notificationID
+	// UUID validation removed after migration
+	if notificationUUID == "" {
 		h.errorHandler.HandleError(c, message.ErrCodeInvalidRequest, "無効な通知IDです。", nil)
 		return
 	}
@@ -557,8 +562,9 @@ func (h *notificationHandler) UpdateNotification(c *gin.Context) {
 		return
 	}
 
-	notificationUUID, err := uuid.Parse(notificationID)
-	if err != nil {
+	notificationUUID := notificationID
+	// UUID validation removed after migration
+	if notificationUUID == "" {
 		h.errorHandler.HandleError(c, message.ErrCodeInvalidRequest, "無効な通知IDです。", nil)
 		return
 	}
@@ -583,7 +589,7 @@ func (h *notificationHandler) UpdateNotification(c *gin.Context) {
 	}
 
 	h.logger.Info("Notification updated",
-		zap.String("notification_id", notificationUUID.String()))
+		zap.String("notification_id", notificationUUID))
 
 	c.JSON(http.StatusOK, gin.H{"message": "Notification updated successfully"})
 }
@@ -596,8 +602,9 @@ func (h *notificationHandler) DeleteNotification(c *gin.Context) {
 		return
 	}
 
-	notificationUUID, err := uuid.Parse(notificationID)
-	if err != nil {
+	notificationUUID := notificationID
+	// UUID validation removed after migration
+	if notificationUUID == "" {
 		h.errorHandler.HandleError(c, message.ErrCodeInvalidRequest, "無効な通知IDです。", nil)
 		return
 	}
@@ -628,8 +635,9 @@ func (h *notificationHandler) HideNotification(c *gin.Context) {
 		return
 	}
 
-	notificationUUID, err := uuid.Parse(notificationID)
-	if err != nil {
+	notificationUUID := notificationID
+	// UUID validation removed after migration
+	if notificationUUID == "" {
 		h.errorHandler.HandleError(c, message.ErrCodeInvalidRequest, "無効な通知IDです。", nil)
 		return
 	}
@@ -708,7 +716,7 @@ func (h *notificationHandler) SendWeeklyReportReminder(c *gin.Context) {
 	}
 
 	h.logger.Info("Weekly report reminder sent",
-		zap.String("recipient_id", req.RecipientID.String()),
+		zap.String("recipient_id", req.RecipientID),
 		zap.String("start_date", req.StartDate.Format("2006-01-02")),
 		zap.String("end_date", req.EndDate.Format("2006-01-02")),
 		zap.String("sent_by", h.getCurrentUserID(c)))
@@ -719,10 +727,10 @@ func (h *notificationHandler) SendWeeklyReportReminder(c *gin.Context) {
 // SendBulkReminder 一括リマインドを送信
 func (h *notificationHandler) SendBulkReminder(c *gin.Context) {
 	var req struct {
-		UserIDs   []uuid.UUID `json:"user_ids" validate:"required,min=1"`
-		StartDate time.Time   `json:"start_date" validate:"required"`
-		EndDate   time.Time   `json:"end_date" validate:"required"`
-		Message   string      `json:"message"`
+		UserIDs   []string  `json:"user_ids" validate:"required,min=1"`
+		StartDate time.Time `json:"start_date" validate:"required"`
+		EndDate   time.Time `json:"end_date" validate:"required"`
+		Message   string    `json:"message"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -756,7 +764,7 @@ func (h *notificationHandler) SendBulkReminder(c *gin.Context) {
 
 		if err := h.notificationService.CreateWeeklyReportReminderNotification(c.Request.Context(), reminderReq); err != nil {
 			h.logger.Warn("Failed to send reminder",
-				zap.String("user_id", userID.String()),
+				zap.String("user_id", userID),
 				zap.Error(err))
 			failureCount++
 		} else {

@@ -29,18 +29,18 @@ func NewWeeklyReportRepository(db *gorm.DB, logger *zap.Logger) *WeeklyReportRep
 // Create 新しい週報を作成
 func (r *WeeklyReportRepository) Create(ctx context.Context, report *model.WeeklyReport) error {
 	// UUIDがnilの場合は新規生成
-	if report.ID == uuid.Nil {
-		report.ID = r.NewID()
+	if report.ID == "" {
+		report.ID = uuid.New().String()
 	}
 
 	return r.WithContext(ctx).Create(report).Error
 }
 
 // FindByID IDで週報を検索
-func (r *WeeklyReportRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.WeeklyReport, error) {
+func (r *WeeklyReportRepository) FindByID(ctx context.Context, id string) (*model.WeeklyReport, error) {
 	// IDの検証
-	if err := r.ValidateID(id); err != nil {
-		return nil, err
+	if id == "" {
+		return nil, fmt.Errorf("invalid ID: empty string")
 	}
 
 	var report model.WeeklyReport
@@ -73,10 +73,10 @@ func (r *WeeklyReportRepository) FindByUserID(ctx context.Context, userID string
 		for i, report := range reports {
 			r.Logger.Debug("Repository: Retrieved report status",
 				zap.Int("index", i),
-				zap.String("report_id", report.ID.String()),
-				zap.String("status", report.Status.String()),
+				zap.String("report_id", report.ID),
+				zap.String("status", string(report.Status)),
 				zap.Any("status_type", fmt.Sprintf("%T", report.Status)),
-				zap.Int("status_length", len(report.Status.String())))
+				zap.Int("status_length", len(report.Status)))
 		}
 
 		// 生SQLで確認（デバッグ用）
@@ -85,7 +85,7 @@ func (r *WeeklyReportRepository) FindByUserID(ctx context.Context, userID string
 			rawErr := r.WithContext(ctx).Raw("SELECT status FROM weekly_reports WHERE id = ? LIMIT 1", reports[0].ID).Scan(&rawStatus).Error
 			if rawErr == nil {
 				r.Logger.Debug("Raw SQL status check",
-					zap.String("report_id", reports[0].ID.String()),
+					zap.String("report_id", reports[0].ID),
 					zap.String("raw_status", rawStatus),
 					zap.Int("raw_status_length", len(rawStatus)))
 			}
@@ -193,10 +193,10 @@ func (r *WeeklyReportRepository) Update(ctx context.Context, report *model.Weekl
 }
 
 // Delete 週報を削除
-func (r *WeeklyReportRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *WeeklyReportRepository) Delete(ctx context.Context, id string) error {
 	// IDの検証
-	if err := r.ValidateID(id); err != nil {
-		return err
+	if id == "" {
+		return fmt.Errorf("invalid ID: empty string")
 	}
 
 	return r.WithContext(ctx).Delete(&model.WeeklyReport{}, "id = ?", id).Error
@@ -261,7 +261,7 @@ func (r *WeeklyReportRepository) UpdateStatus(ctx context.Context, report *model
 }
 
 // UpdateTotalWorkHours 週報の合計稼働時間のみを更新
-func (r *WeeklyReportRepository) UpdateTotalWorkHours(ctx context.Context, reportID uuid.UUID, totalHours float64) error {
+func (r *WeeklyReportRepository) UpdateTotalWorkHours(ctx context.Context, reportID string, totalHours float64) error {
 	// IDの検証
 	if err := r.ValidateID(reportID); err != nil {
 		return err
@@ -273,7 +273,7 @@ func (r *WeeklyReportRepository) UpdateTotalWorkHours(ctx context.Context, repor
 }
 
 // UpdateClientTotalWorkHours 週報の客先勤怠合計稼働時間のみを更新
-func (r *WeeklyReportRepository) UpdateClientTotalWorkHours(ctx context.Context, reportID uuid.UUID, clientTotalHours float64) error {
+func (r *WeeklyReportRepository) UpdateClientTotalWorkHours(ctx context.Context, reportID string, clientTotalHours float64) error {
 	// IDの検証
 	if err := r.ValidateID(reportID); err != nil {
 		return err
@@ -285,7 +285,7 @@ func (r *WeeklyReportRepository) UpdateClientTotalWorkHours(ctx context.Context,
 }
 
 // UpdateBothTotalWorkHours 週報の自社と客先の合計稼働時間を更新
-func (r *WeeklyReportRepository) UpdateBothTotalWorkHours(ctx context.Context, reportID uuid.UUID, totalHours float64, clientTotalHours float64) error {
+func (r *WeeklyReportRepository) UpdateBothTotalWorkHours(ctx context.Context, reportID string, totalHours float64, clientTotalHours float64) error {
 	// IDの検証
 	if err := r.ValidateID(reportID); err != nil {
 		return err
@@ -323,7 +323,6 @@ func (r *WeeklyReportRepository) GetByWeek(ctx context.Context, weekStart, weekE
 func (r *WeeklyReportRepository) GetByUserAndWeek(ctx context.Context, userID string, weekStart, weekEnd time.Time) ([]*model.WeeklyReport, error) {
 	var reports []*model.WeeklyReport
 
-
 	err := r.WithContext(ctx).
 		Preload("DailyRecords").
 		Where("user_id = ? AND start_date = ? AND end_date = ?", userID, weekStart, weekEnd).
@@ -344,7 +343,6 @@ func (r *WeeklyReportRepository) GetByUserAndWeek(ctx context.Context, userID st
 // GetByUserAndMonth 指定されたユーザーと月の週報を取得（月間残業時間チェック用）
 func (r *WeeklyReportRepository) GetByUserAndMonth(ctx context.Context, userID string, monthStart, monthEnd time.Time) ([]*model.WeeklyReport, error) {
 	var reports []*model.WeeklyReport
-
 
 	// 月の期間と重なる週報を取得
 	err := r.WithContext(ctx).
@@ -407,7 +405,7 @@ func (r *WeeklyReportRepository) GetConsecutiveHolidayWorkDays(ctx context.Conte
 }
 
 // GetMonthlyAggregatedData 月次集計データを効率的に取得
-func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, year int, month int, departmentID *uuid.UUID) (*MonthlyAggregatedData, error) {
+func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, year int, month int, departmentID *string) (*MonthlyAggregatedData, error) {
 	// 月の開始日と終了日を計算
 	startDate := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
 	endDate := startDate.AddDate(0, 1, 0).Add(-time.Second)
@@ -434,7 +432,7 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 		Where("((weekly_reports.start_date BETWEEN ? AND ?) OR (weekly_reports.end_date BETWEEN ? AND ?))",
 			startDate, endDate, startDate, endDate)
 
-	if departmentID != nil && *departmentID != uuid.Nil {
+	if departmentID != nil && *departmentID != "" {
 		baseQuery = baseQuery.Where("users.department_id = ?", *departmentID)
 	}
 
@@ -501,9 +499,9 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 	}
 
 	// 4. 部署別統計を取得（部署IDが指定されていない場合のみ）
-	if departmentID == nil || *departmentID == uuid.Nil {
+	if departmentID == nil || *departmentID == "" {
 		var deptStats []struct {
-			DepartmentID   uuid.UUID
+			DepartmentID   string
 			DepartmentName string
 			UserCount      int
 			SubmittedCount int
@@ -552,7 +550,7 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 
 	// 5. トップパフォーマーを取得
 	var topPerformers []struct {
-		UserID         uuid.UUID
+		UserID         string
 		UserName       string
 		DepartmentName string
 		SubmittedCount int
@@ -580,7 +578,7 @@ func (r *WeeklyReportRepository) GetMonthlyAggregatedData(ctx context.Context, y
 		Where("((weekly_reports.start_date BETWEEN ? AND ?) OR (weekly_reports.end_date BETWEEN ? AND ?))",
 			startDate, endDate, startDate, endDate)
 
-	if departmentID != nil && *departmentID != uuid.Nil {
+	if departmentID != nil && *departmentID != "" {
 		topQuery = topQuery.Where("users.department_id = ?", *departmentID)
 	}
 
@@ -641,7 +639,7 @@ type WeeklySummaryData struct {
 
 // DepartmentStatsData 部署別統計データ
 type DepartmentStatsData struct {
-	DepartmentID     uuid.UUID
+	DepartmentID     string
 	DepartmentName   string
 	UserCount        int
 	SubmissionRate   float64
@@ -650,7 +648,7 @@ type DepartmentStatsData struct {
 
 // UserPerformanceData ユーザーパフォーマンスデータ
 type UserPerformanceData struct {
-	UserID           uuid.UUID
+	UserID           string
 	UserName         string
 	DepartmentName   string
 	SubmissionRate   float64
@@ -664,8 +662,8 @@ type WeeklyReportFilter struct {
 	StartDate    string
 	EndDate      string
 	Status       []string
-	UserIDs      []uuid.UUID
-	DepartmentID *uuid.UUID
+	UserIDs      []string
+	DepartmentID *string
 	Limit        int
 	Offset       int
 }
@@ -695,7 +693,7 @@ func (r *WeeklyReportRepository) GetAll(ctx context.Context, filter WeeklyReport
 	}
 
 	// 部署IDフィルタ
-	if filter.DepartmentID != nil && *filter.DepartmentID != uuid.Nil {
+	if filter.DepartmentID != nil && *filter.DepartmentID != "" {
 		query = query.Where("users.department_id = ?", *filter.DepartmentID)
 	}
 
@@ -723,9 +721,5 @@ func (r *WeeklyReportRepository) GetAll(ctx context.Context, filter WeeklyReport
 
 // GetByID IDで週報を取得（新しいシグネチャ）
 func (r *WeeklyReportRepository) GetByID(ctx context.Context, id string) (*model.WeeklyReport, error) {
-	reportID, err := uuid.Parse(id)
-	if err != nil {
-		return nil, err
-	}
-	return r.FindByID(ctx, reportID)
+	return r.FindByID(ctx, id)
 }

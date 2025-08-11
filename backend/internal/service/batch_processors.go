@@ -3,11 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"time"
 
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
@@ -18,7 +16,7 @@ type InvoiceBatchProcessor struct {
 	billingService BillingServiceInterface
 	logger         *zap.Logger
 	targetMonth    string
-	createdBy      uuid.UUID
+	createdBy      string
 }
 
 // NewInvoiceBatchProcessor 請求書バッチプロセッサーのコンストラクタ
@@ -26,7 +24,7 @@ func NewInvoiceBatchProcessor(
 	billingService BillingServiceInterface,
 	logger *zap.Logger,
 	targetMonth string,
-	createdBy uuid.UUID,
+	createdBy string,
 ) BatchProcessor {
 	return &InvoiceBatchProcessor{
 		billingService: billingService,
@@ -44,7 +42,7 @@ func (p *InvoiceBatchProcessor) Process(ctx context.Context, item interface{}) e
 	}
 
 	p.logger.Debug("Processing invoice for client",
-		zap.String("client_id", client.ID.String()),
+		zap.String("client_id", client.ID),
 		zap.String("client_name", client.Name))
 
 	// 請求書を作成 (TODO: ProcessClientメソッドを実装)
@@ -63,7 +61,7 @@ func (p *InvoiceBatchProcessor) Validate(item interface{}) error {
 		return fmt.Errorf("無効なアイテムタイプ")
 	}
 
-	if client.ID == uuid.Nil {
+	if client.ID == "" {
 		return fmt.Errorf("クライアントIDが無効です")
 	}
 
@@ -79,7 +77,7 @@ func (p *InvoiceBatchProcessor) OnError(ctx context.Context, item interface{}, e
 	client, ok := item.(*model.Client)
 	if ok {
 		p.logger.Error("Failed to process invoice",
-			zap.String("client_id", client.ID.String()),
+			zap.String("client_id", client.ID),
 			zap.String("client_name", client.Name),
 			zap.Error(err))
 	}
@@ -91,7 +89,7 @@ func (p *InvoiceBatchProcessor) OnSuccess(ctx context.Context, item interface{})
 	client, ok := item.(*model.Client)
 	if ok {
 		p.logger.Info("Successfully processed invoice",
-			zap.String("client_id", client.ID.String()),
+			zap.String("client_id", client.ID),
 			zap.String("client_name", client.Name))
 	}
 	return nil
@@ -102,7 +100,7 @@ type FreeePartnerSyncProcessor struct {
 	freeeService FreeeServiceInterface
 	clientRepo   ClientRepositoryInterface
 	logger       *zap.Logger
-	userID       uuid.UUID
+	userID       string
 }
 
 // NewFreeePartnerSyncProcessor freee取引先同期プロセッサーのコンストラクタ
@@ -152,7 +150,7 @@ func (p *FreeePartnerSyncProcessor) Validate(item interface{}) error {
 		return fmt.Errorf("無効なアイテムタイプ")
 	}
 
-	if client.ID == uuid.Nil {
+	if client.ID == "" {
 		return fmt.Errorf("クライアントIDが無効です")
 	}
 
@@ -164,7 +162,7 @@ func (p *FreeePartnerSyncProcessor) OnError(ctx context.Context, item interface{
 	client, ok := item.(*model.Client)
 	if ok {
 		p.logger.Error("Failed to sync partner",
-			zap.String("client_id", client.ID.String()),
+			zap.String("client_id", client.ID),
 			zap.String("client_name", client.Name),
 			zap.Error(err))
 	}
@@ -176,7 +174,7 @@ func (p *FreeePartnerSyncProcessor) OnSuccess(ctx context.Context, item interfac
 	client, ok := item.(*model.Client)
 	if ok {
 		p.logger.Info("Successfully synced partner",
-			zap.String("client_id", client.ID.String()),
+			zap.String("client_id", client.ID),
 			zap.String("client_name", client.Name))
 	}
 	return nil
@@ -187,7 +185,7 @@ type InvoiceFreeeUploadProcessor struct {
 	freeeService FreeeServiceInterface
 	invoiceRepo  InvoiceRepositoryInterface
 	logger       *zap.Logger
-	userID       uuid.UUID
+	userID       string
 }
 
 // NewInvoiceFreeeUploadProcessor 請求書freeeアップロードプロセッサーのコンストラクタ
@@ -237,7 +235,7 @@ func (p *InvoiceFreeeUploadProcessor) Validate(item interface{}) error {
 		return fmt.Errorf("無効なアイテムタイプ")
 	}
 
-	if invoice.ID == uuid.Nil {
+	if invoice.ID == "" {
 		return fmt.Errorf("請求書IDが無効です")
 	}
 
@@ -258,7 +256,7 @@ func (p *InvoiceFreeeUploadProcessor) OnError(ctx context.Context, item interfac
 		p.invoiceRepo.Update(ctx, invoice)
 
 		p.logger.Error("Failed to upload invoice to freee",
-			zap.String("invoice_id", invoice.ID.String()),
+			zap.String("invoice_id", invoice.ID),
 			zap.String("invoice_number", invoice.InvoiceNumber),
 			zap.Error(err))
 	}
@@ -270,7 +268,7 @@ func (p *InvoiceFreeeUploadProcessor) OnSuccess(ctx context.Context, item interf
 	invoice, ok := item.(*model.Invoice)
 	if ok {
 		p.logger.Info("Successfully uploaded invoice to freee",
-			zap.String("invoice_id", invoice.ID.String()),
+			zap.String("invoice_id", invoice.ID),
 			zap.String("invoice_number", invoice.InvoiceNumber))
 	}
 	return nil

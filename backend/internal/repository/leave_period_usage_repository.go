@@ -10,11 +10,11 @@ import (
 )
 
 type LeavePeriodUsageRepository interface {
-	GetByPeriodID(ctx context.Context, periodID uuid.UUID) ([]*model.LeavePeriodUsage, error)
-	GetByUserAndPeriod(ctx context.Context, userID, periodID uuid.UUID) (*model.LeavePeriodUsage, error)
+	GetByPeriodID(ctx context.Context, periodID string) ([]*model.LeavePeriodUsage, error)
+	GetByUserAndPeriod(ctx context.Context, userID, periodID string) (*model.LeavePeriodUsage, error)
 	Create(ctx context.Context, usage *model.LeavePeriodUsage) error
 	Update(ctx context.Context, usage *model.LeavePeriodUsage) error
-	UpdateUsedDays(ctx context.Context, userID, periodID uuid.UUID, usedDays float64) error
+	UpdateUsedDays(ctx context.Context, userID, periodID string, usedDays float64) error
 }
 
 type leavePeriodUsageRepository struct {
@@ -29,7 +29,7 @@ func NewLeavePeriodUsageRepository(db *gorm.DB, logger *zap.Logger) LeavePeriodU
 	}
 }
 
-func (r *leavePeriodUsageRepository) GetByPeriodID(ctx context.Context, periodID uuid.UUID) ([]*model.LeavePeriodUsage, error) {
+func (r *leavePeriodUsageRepository) GetByPeriodID(ctx context.Context, periodID string) ([]*model.LeavePeriodUsage, error) {
 	var usages []*model.LeavePeriodUsage
 	err := r.DB.WithContext(ctx).
 		Preload("User").
@@ -40,14 +40,14 @@ func (r *leavePeriodUsageRepository) GetByPeriodID(ctx context.Context, periodID
 	if err != nil {
 		r.Logger.Error("Failed to get leave period usages",
 			zap.Error(err),
-			zap.String("period_id", periodID.String()))
+			zap.String("period_id", periodID))
 		return nil, err
 	}
 
 	return usages, nil
 }
 
-func (r *leavePeriodUsageRepository) GetByUserAndPeriod(ctx context.Context, userID, periodID uuid.UUID) (*model.LeavePeriodUsage, error) {
+func (r *leavePeriodUsageRepository) GetByUserAndPeriod(ctx context.Context, userID, periodID string) (*model.LeavePeriodUsage, error) {
 	var usage model.LeavePeriodUsage
 	err := r.DB.WithContext(ctx).
 		Preload("User").
@@ -61,8 +61,8 @@ func (r *leavePeriodUsageRepository) GetByUserAndPeriod(ctx context.Context, use
 		}
 		r.Logger.Error("Failed to get leave period usage",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
-			zap.String("period_id", periodID.String()))
+			zap.String("user_id", userID),
+			zap.String("period_id", periodID))
 		return nil, err
 	}
 
@@ -75,7 +75,7 @@ func (r *leavePeriodUsageRepository) Create(ctx context.Context, usage *model.Le
 		r.Logger.Error("Failed to create leave period usage",
 			zap.Error(err),
 			zap.String("user_id", usage.UserID),
-			zap.String("period_id", usage.RecommendedLeavePeriodID.String()))
+			zap.String("period_id", usage.RecommendedLeavePeriodID))
 		return err
 	}
 	return nil
@@ -86,13 +86,13 @@ func (r *leavePeriodUsageRepository) Update(ctx context.Context, usage *model.Le
 	if err != nil {
 		r.Logger.Error("Failed to update leave period usage",
 			zap.Error(err),
-			zap.String("usage_id", usage.ID.String()))
+			zap.String("usage_id", usage.ID))
 		return err
 	}
 	return nil
 }
 
-func (r *leavePeriodUsageRepository) UpdateUsedDays(ctx context.Context, userID, periodID uuid.UUID, usedDays float64) error {
+func (r *leavePeriodUsageRepository) UpdateUsedDays(ctx context.Context, userID, periodID string, usedDays float64) error {
 	// 既存のレコードを確認
 	usage, err := r.GetByUserAndPeriod(ctx, userID, periodID)
 	if err != nil {
@@ -102,8 +102,8 @@ func (r *leavePeriodUsageRepository) UpdateUsedDays(ctx context.Context, userID,
 	if usage == nil {
 		// レコードが存在しない場合は新規作成
 		usage = &model.LeavePeriodUsage{
-			ID:                       uuid.New(),
-			UserID:                   userID.String(),
+			ID:                       uuid.New().String(),
+			UserID:                   userID,
 			RecommendedLeavePeriodID: periodID,
 			UsedDays:                 int(usedDays),
 		}

@@ -4,11 +4,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // LeaveType は休暇種別を表すモデルです
 type LeaveType struct {
-	ID                uuid.UUID  `gorm:"primaryKey;type:varchar(36)" json:"id"`
+	ID                string     `gorm:"primaryKey;type:varchar(255)" json:"id"`
 	Code              string     `gorm:"unique;type:varchar(20)" json:"code"`
 	Name              string     `gorm:"type:varchar(50)" json:"name"`
 	Description       string     `gorm:"type:text" json:"description"`
@@ -26,4 +27,12 @@ type LeaveType struct {
 // TableName はテーブル名を指定します
 func (LeaveType) TableName() string {
 	return "leave_types"
+}
+
+// BeforeCreate UUIDを生成
+func (lt *LeaveType) BeforeCreate(tx *gorm.DB) error {
+	if lt.ID == "" {
+		lt.ID = uuid.New().String()
+	}
+	return nil
 }

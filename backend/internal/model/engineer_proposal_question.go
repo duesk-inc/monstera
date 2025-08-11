@@ -9,11 +9,11 @@ import (
 
 // EngineerProposalQuestion エンジニア提案質問モデル
 type EngineerProposalQuestion struct {
-	ID           uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
-	ProposalID   uuid.UUID      `gorm:"type:varchar(36);not null" json:"proposal_id"`
+	ID           string         `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProposalID   string         `gorm:"type:varchar(255);not null" json:"proposal_id"`
 	QuestionText string         `gorm:"type:text;not null" json:"question_text"`
 	ResponseText *string        `gorm:"type:text" json:"response_text"`
-	SalesUserID  *string     `gorm:"type:varchar(255)" json:"sales_user_id"`
+	SalesUserID  *string        `gorm:"type:varchar(255)" json:"sales_user_id"`
 	IsResponded  bool           `gorm:"default:false;not null" json:"is_responded"`
 	RespondedAt  *time.Time     `json:"responded_at"`
 	CreatedAt    time.Time      `json:"created_at"`
@@ -32,8 +32,8 @@ func (EngineerProposalQuestion) TableName() string {
 
 // BeforeCreate UUIDを生成
 func (q *EngineerProposalQuestion) BeforeCreate(tx *gorm.DB) error {
-	if q.ID == uuid.Nil {
-		q.ID = uuid.New()
+	if q.ID == "" {
+		q.ID = uuid.New().String()
 	}
 	return nil
 }

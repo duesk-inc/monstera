@@ -21,15 +21,15 @@ type TransactionManager = transaction.TransactionManager
 // ProjectAssignmentRepository プロジェクトアサインメントリポジトリ（仮定義）
 type ProjectAssignmentRepository interface {
 	repository.CrudRepository[model.ProjectAssignment]
-	FindActiveByProjectID(ctx context.Context, projectID uuid.UUID, date time.Time) ([]*model.ProjectAssignment, error)
+	FindActiveByProjectID(ctx context.Context, projectID string, date time.Time) ([]*model.ProjectAssignment, error)
 }
 
 // BillingServiceInterface 請求サービスインターフェース
 type BillingServiceInterface interface {
 	// 請求プレビュー
 	PreviewBilling(ctx context.Context, req *dto.BillingPreviewRequest) (*dto.BillingPreviewResponse, error)
-	PreviewClientBilling(ctx context.Context, clientID uuid.UUID, billingYear, billingMonth int) (*dto.ClientBillingPreview, error)
-	PreviewGroupBilling(ctx context.Context, groupID uuid.UUID, billingYear, billingMonth int) (*dto.GroupBillingPreview, error)
+	PreviewClientBilling(ctx context.Context, clientID string, billingYear, billingMonth int) (*dto.ClientBillingPreview, error)
+	PreviewGroupBilling(ctx context.Context, groupID string, billingYear, billingMonth int) (*dto.GroupBillingPreview, error)
 
 	// 請求計算
 	CalculateProjectBilling(ctx context.Context, assignment *model.ProjectAssignment, year, month int) (*dto.ProjectBillingDetail, error)
@@ -37,24 +37,24 @@ type BillingServiceInterface interface {
 
 	// 請求履歴
 	GetBillingHistory(ctx context.Context, req *dto.BillingHistoryRequest) (*dto.BillingHistoryResponse, error)
-	GetClientBillingHistory(ctx context.Context, clientID uuid.UUID, limit int) ([]dto.BillingHistoryItemDTO, error)
+	GetClientBillingHistory(ctx context.Context, clientID string, limit int) ([]dto.BillingHistoryItemDTO, error)
 
 	// バリデーション
 	ValidateBillingPeriod(year, month int) error
-	CheckDuplicateBilling(ctx context.Context, clientID uuid.UUID, billingMonth string) (bool, error)
+	CheckDuplicateBilling(ctx context.Context, clientID string, billingMonth string) (bool, error)
 
 	// 請求処理実行
-	ExecuteBilling(ctx context.Context, req *dto.ExecuteBillingRequest, executorID uuid.UUID) (*dto.ExecuteBillingResponse, error)
-	ExecuteClientBilling(ctx context.Context, clientID uuid.UUID, billingYear, billingMonth int, executorID uuid.UUID) (*dto.InvoiceResponse, error)
-	ExecuteBatchBilling(ctx context.Context, req *dto.BatchBillingRequest, executorID uuid.UUID) (*dto.BatchBillingResponse, error)
+	ExecuteBilling(ctx context.Context, req *dto.ExecuteBillingRequest, executorID string) (*dto.ExecuteBillingResponse, error)
+	ExecuteClientBilling(ctx context.Context, clientID string, billingYear, billingMonth int, executorID string) (*dto.InvoiceResponse, error)
+	ExecuteBatchBilling(ctx context.Context, req *dto.BatchBillingRequest, executorID string) (*dto.BatchBillingResponse, error)
 
 	// 請求書操作
-	RegenerateInvoice(ctx context.Context, invoiceID uuid.UUID, executorID uuid.UUID) (*dto.InvoiceResponse, error)
-	CancelInvoice(ctx context.Context, invoiceID uuid.UUID, reason string, executorID uuid.UUID) error
-	UpdateInvoiceStatus(ctx context.Context, invoiceID uuid.UUID, status model.InvoiceStatus, executorID uuid.UUID) error
+	RegenerateInvoice(ctx context.Context, invoiceID string, executorID string) (*dto.InvoiceResponse, error)
+	CancelInvoice(ctx context.Context, invoiceID string, reason string, executorID string) error
+	UpdateInvoiceStatus(ctx context.Context, invoiceID string, status model.InvoiceStatus, executorID string) error
 
 	// 一括操作
-	GenerateMonthlyInvoices(ctx context.Context, year, month int, executorID uuid.UUID) (*dto.MonthlyInvoiceGenerationResult, error)
+	GenerateMonthlyInvoices(ctx context.Context, year, month int, executorID string) (*dto.MonthlyInvoiceGenerationResult, error)
 	RetryFailedBillings(ctx context.Context, billingMonth string) (*dto.RetryBillingResult, error)
 
 	// サマリー取得
@@ -118,7 +118,7 @@ func (s *billingService) PreviewBilling(ctx context.Context, req *dto.BillingPre
 		if err != nil {
 			s.logger.Error("Failed to preview client billing",
 				zap.Error(err),
-				zap.String("client_id", clientID.String()))
+				zap.String("client_id", clientID))
 			// エラーがあってもスキップして続行
 			clientPreview = &dto.ClientBillingPreview{
 				ClientID:   clientID,
@@ -148,7 +148,7 @@ func (s *billingService) PreviewBilling(ctx context.Context, req *dto.BillingPre
 }
 
 // PreviewClientBilling クライアント単位の請求プレビューを生成
-func (s *billingService) PreviewClientBilling(ctx context.Context, clientID uuid.UUID, billingYear, billingMonth int) (*dto.ClientBillingPreview, error) {
+func (s *billingService) PreviewClientBilling(ctx context.Context, clientID string, billingYear, billingMonth int) (*dto.ClientBillingPreview, error) {
 	// クライアント情報を取得
 	client, err := s.clientRepo.FindByID(ctx, clientID)
 	if err != nil {
@@ -235,7 +235,7 @@ func (s *billingService) PreviewClientBilling(ctx context.Context, clientID uuid
 }
 
 // PreviewGroupBilling グループ単位の請求プレビューを生成
-func (s *billingService) PreviewGroupBilling(ctx context.Context, groupID uuid.UUID, billingYear, billingMonth int) (*dto.GroupBillingPreview, error) {
+func (s *billingService) PreviewGroupBilling(ctx context.Context, groupID string, billingYear, billingMonth int) (*dto.GroupBillingPreview, error) {
 	// グループ情報を取得
 	group, err := s.groupRepo.GetByIDWithDetails(ctx, groupID)
 	if err != nil {
@@ -431,7 +431,7 @@ func (s *billingService) GetBillingHistory(ctx context.Context, req *dto.Billing
 }
 
 // GetClientBillingHistory クライアントの請求履歴を取得
-func (s *billingService) GetClientBillingHistory(ctx context.Context, clientID uuid.UUID, limit int) ([]dto.BillingHistoryItemDTO, error) {
+func (s *billingService) GetClientBillingHistory(ctx context.Context, clientID string, limit int) ([]dto.BillingHistoryItemDTO, error) {
 	invoices, err := s.invoiceRepo.FindByClientID(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("請求履歴の取得に失敗しました: %w", err)
@@ -445,7 +445,7 @@ func (s *billingService) GetClientBillingHistory(ctx context.Context, clientID u
 	items := make([]dto.BillingHistoryItemDTO, len(invoices))
 	for i, invoice := range invoices {
 		items[i] = dto.BillingHistoryItemDTO{
-			ExecutionID:   uuid.New(), // 仮のID
+			ExecutionID:   uuid.New().String(), // 仮のID
 			BillingPeriod: invoice.BillingMonth,
 			ClientCount:   1,
 			InvoiceCount:  1,
@@ -480,7 +480,7 @@ func (s *billingService) ValidateBillingPeriod(year, month int) error {
 }
 
 // CheckDuplicateBilling 重複請求のチェック
-func (s *billingService) CheckDuplicateBilling(ctx context.Context, clientID uuid.UUID, billingMonth string) (bool, error) {
+func (s *billingService) CheckDuplicateBilling(ctx context.Context, clientID string, billingMonth string) (bool, error) {
 	invoices, err := s.invoiceRepo.FindByBillingMonth(ctx, billingMonth, &clientID)
 	if err != nil {
 		return false, fmt.Errorf("重複チェックに失敗しました: %w", err)
@@ -517,7 +517,7 @@ func (s *billingService) calculateBillingDeadline(year, month int, closingDay *i
 }
 
 // ExecuteBilling 請求処理を実行
-func (s *billingService) ExecuteBilling(ctx context.Context, req *dto.ExecuteBillingRequest, executorID uuid.UUID) (*dto.ExecuteBillingResponse, error) {
+func (s *billingService) ExecuteBilling(ctx context.Context, req *dto.ExecuteBillingRequest, executorID string) (*dto.ExecuteBillingResponse, error) {
 	// バリデーション
 	if err := s.ValidateBillingPeriod(req.BillingYear, req.BillingMonth); err != nil {
 		return nil, err
@@ -567,7 +567,7 @@ func (s *billingService) ExecuteBilling(ctx context.Context, req *dto.ExecuteBil
 }
 
 // ExecuteClientBilling クライアント単位の請求処理を実行
-func (s *billingService) ExecuteClientBilling(ctx context.Context, clientID uuid.UUID, billingYear, billingMonth int, executorID uuid.UUID) (*dto.InvoiceResponse, error) {
+func (s *billingService) ExecuteClientBilling(ctx context.Context, clientID string, billingYear, billingMonth int, executorID string) (*dto.InvoiceResponse, error) {
 	// TODO: 実装予定
 	return nil, fmt.Errorf("未実装")
 }
@@ -575,27 +575,27 @@ func (s *billingService) ExecuteClientBilling(ctx context.Context, clientID uuid
 // 残りのメソッドは未実装として定義
 
 // ExecuteBatchBilling バッチ請求処理を実行
-func (s *billingService) ExecuteBatchBilling(ctx context.Context, req *dto.BatchBillingRequest, executorID uuid.UUID) (*dto.BatchBillingResponse, error) {
+func (s *billingService) ExecuteBatchBilling(ctx context.Context, req *dto.BatchBillingRequest, executorID string) (*dto.BatchBillingResponse, error) {
 	return nil, fmt.Errorf("未実装")
 }
 
 // RegenerateInvoice 請求書を再生成
-func (s *billingService) RegenerateInvoice(ctx context.Context, invoiceID uuid.UUID, executorID uuid.UUID) (*dto.InvoiceResponse, error) {
+func (s *billingService) RegenerateInvoice(ctx context.Context, invoiceID string, executorID string) (*dto.InvoiceResponse, error) {
 	return nil, fmt.Errorf("未実装")
 }
 
 // CancelInvoice 請求書をキャンセル
-func (s *billingService) CancelInvoice(ctx context.Context, invoiceID uuid.UUID, reason string, executorID uuid.UUID) error {
+func (s *billingService) CancelInvoice(ctx context.Context, invoiceID string, reason string, executorID string) error {
 	return fmt.Errorf("未実装")
 }
 
 // UpdateInvoiceStatus 請求書ステータスを更新
-func (s *billingService) UpdateInvoiceStatus(ctx context.Context, invoiceID uuid.UUID, status model.InvoiceStatus, executorID uuid.UUID) error {
+func (s *billingService) UpdateInvoiceStatus(ctx context.Context, invoiceID string, status model.InvoiceStatus, executorID string) error {
 	return fmt.Errorf("未実装")
 }
 
 // GenerateMonthlyInvoices 月次請求書を一括生成
-func (s *billingService) GenerateMonthlyInvoices(ctx context.Context, year, month int, executorID uuid.UUID) (*dto.MonthlyInvoiceGenerationResult, error) {
+func (s *billingService) GenerateMonthlyInvoices(ctx context.Context, year, month int, executorID string) (*dto.MonthlyInvoiceGenerationResult, error) {
 	return nil, fmt.Errorf("未実装")
 }
 

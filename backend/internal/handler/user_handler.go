@@ -36,7 +36,6 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-
 	// メールアドレス形式チェック
 	if !h.isValidEmail(req.Email) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "メールアドレスの形式が正しくありません"})

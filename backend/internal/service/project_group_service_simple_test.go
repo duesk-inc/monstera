@@ -30,7 +30,7 @@ func (m *MockProjectGroupRepositorySimple) Create(ctx context.Context, group *mo
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepositorySimple) GetByID(ctx context.Context, id uuid.UUID) (*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepositorySimple) GetByID(ctx context.Context, id string) (*model.ProjectGroup, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -38,7 +38,7 @@ func (m *MockProjectGroupRepositorySimple) GetByID(ctx context.Context, id uuid.
 	return args.Get(0).(*model.ProjectGroup), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) GetByIDWithDetails(ctx context.Context, id uuid.UUID) (*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepositorySimple) GetByIDWithDetails(ctx context.Context, id string) (*model.ProjectGroup, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -51,22 +51,22 @@ func (m *MockProjectGroupRepositorySimple) Update(ctx context.Context, group *mo
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepositorySimple) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockProjectGroupRepositorySimple) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepositorySimple) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (m *MockProjectGroupRepositorySimple) ExistsByID(ctx context.Context, id string) (bool, error) {
 	args := m.Called(ctx, id)
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) ExistsByName(ctx context.Context, name string, clientID uuid.UUID, excludeID *uuid.UUID) (bool, error) {
+func (m *MockProjectGroupRepositorySimple) ExistsByName(ctx context.Context, name string, clientID string, excludeID *string) (bool, error) {
 	args := m.Called(ctx, name, clientID, excludeID)
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) ListWithStats(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroupWithProjects, error) {
+func (m *MockProjectGroupRepositorySimple) ListWithStats(ctx context.Context, clientID *string, limit, offset int) ([]*model.ProjectGroupWithProjects, error) {
 	args := m.Called(ctx, clientID, limit, offset)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -74,22 +74,22 @@ func (m *MockProjectGroupRepositorySimple) ListWithStats(ctx context.Context, cl
 	return args.Get(0).([]*model.ProjectGroupWithProjects), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) Count(ctx context.Context, clientID *uuid.UUID) (int64, error) {
+func (m *MockProjectGroupRepositorySimple) Count(ctx context.Context, clientID *string) (int64, error) {
 	args := m.Called(ctx, clientID)
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) AddProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (m *MockProjectGroupRepositorySimple) AddProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	args := m.Called(ctx, groupID, projectIDs)
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepositorySimple) RemoveProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (m *MockProjectGroupRepositorySimple) RemoveProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	args := m.Called(ctx, groupID, projectIDs)
 	return args.Error(0)
 }
 
-func (m *MockProjectGroupRepositorySimple) GetProjectsByGroupID(ctx context.Context, groupID uuid.UUID) ([]*model.Project, error) {
+func (m *MockProjectGroupRepositorySimple) GetProjectsByGroupID(ctx context.Context, groupID string) ([]*model.Project, error) {
 	args := m.Called(ctx, groupID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -97,7 +97,7 @@ func (m *MockProjectGroupRepositorySimple) GetProjectsByGroupID(ctx context.Cont
 	return args.Get(0).([]*model.Project), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) GetGroupsByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepositorySimple) GetGroupsByProjectID(ctx context.Context, projectID string) ([]*model.ProjectGroup, error) {
 	args := m.Called(ctx, projectID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -105,7 +105,7 @@ func (m *MockProjectGroupRepositorySimple) GetGroupsByProjectID(ctx context.Cont
 	return args.Get(0).([]*model.ProjectGroup), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) GetStats(ctx context.Context, clientID *uuid.UUID) (*model.ProjectGroupStats, error) {
+func (m *MockProjectGroupRepositorySimple) GetStats(ctx context.Context, clientID *string) (*model.ProjectGroupStats, error) {
 	args := m.Called(ctx, clientID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -113,22 +113,22 @@ func (m *MockProjectGroupRepositorySimple) GetStats(ctx context.Context, clientI
 	return args.Get(0).(*model.ProjectGroupStats), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) GetGroupRevenue(ctx context.Context, groupID uuid.UUID, startMonth, endMonth string) (float64, error) {
+func (m *MockProjectGroupRepositorySimple) GetGroupRevenue(ctx context.Context, groupID string, startMonth, endMonth string) (float64, error) {
 	args := m.Called(ctx, groupID, startMonth, endMonth)
 	return args.Get(0).(float64), args.Error(1)
 }
 
-func (m *MockProjectGroupRepositorySimple) CanAddProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (m *MockProjectGroupRepositorySimple) CanAddProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	args := m.Called(ctx, groupID, projectIDs)
 	return args.Error(0)
 }
 
 // 未実装メソッド（インターフェース要件を満たすため）
-func (m *MockProjectGroupRepositorySimple) List(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepositorySimple) List(ctx context.Context, clientID *string, limit, offset int) ([]*model.ProjectGroup, error) {
 	return nil, nil
 }
 
-func (m *MockProjectGroupRepositorySimple) Search(ctx context.Context, query string, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroup, error) {
+func (m *MockProjectGroupRepositorySimple) Search(ctx context.Context, query string, clientID *string, limit, offset int) ([]*model.ProjectGroup, error) {
 	return nil, nil
 }
 
@@ -147,8 +147,8 @@ func TestProjectGroupService_GetByID_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
-	clientID := uuid.New()
+	groupID := uuid.New().String()
+	clientID := uuid.New().String()
 
 	expectedGroup := &model.ProjectGroup{
 		ID:          groupID,
@@ -185,7 +185,7 @@ func TestProjectGroupService_GetByID_NotFound(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
+	groupID := uuid.New().String()
 
 	groupRepo.On("GetByIDWithDetails", ctx, groupID).Return((*model.ProjectGroup)(nil), nil)
 
@@ -207,8 +207,8 @@ func TestProjectGroupService_UpdateProjectGroup_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
-	clientID := uuid.New()
+	groupID := uuid.New().String()
+	clientID := uuid.New().String()
 	newName := "更新後のグループ名"
 	newDescription := "更新後の説明"
 
@@ -252,7 +252,7 @@ func TestProjectGroupService_DeleteProjectGroup_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
+	groupID := uuid.New().String()
 
 	groupRepo.On("ExistsByID", ctx, groupID).Return(true, nil)
 	invoiceRepo.On("FindByProjectGroupID", ctx, groupID).Return([]*model.Invoice{}, nil)
@@ -276,11 +276,11 @@ func TestProjectGroupService_DeleteProjectGroup_HasInvoices(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
+	groupID := uuid.New().String()
 
 	invoices := []*model.Invoice{
-		{ID: uuid.New()},
-		{ID: uuid.New()},
+		{ID: uuid.New().String()},
+		{ID: uuid.New().String()},
 	}
 
 	groupRepo.On("ExistsByID", ctx, groupID).Return(true, nil)
@@ -303,8 +303,8 @@ func TestProjectGroupService_AddProjectsToGroup_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
-	projectIDs := []uuid.UUID{uuid.New(), uuid.New()}
+	groupID := uuid.New().String()
+	projectIDs := []string{uuid.New().String(), uuid.New().String()}
 
 	groupRepo.On("CanAddProjects", ctx, groupID, projectIDs).Return(nil)
 	groupRepo.On("AddProjects", ctx, groupID, projectIDs).Return(nil)
@@ -325,8 +325,8 @@ func TestProjectGroupService_RemoveProjectsFromGroup_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
-	projectIDs := []uuid.UUID{uuid.New(), uuid.New()}
+	groupID := uuid.New().String()
+	projectIDs := []string{uuid.New().String(), uuid.New().String()}
 
 	groupRepo.On("ExistsByID", ctx, groupID).Return(true, nil)
 	groupRepo.On("RemoveProjects", ctx, groupID, projectIDs).Return(nil)
@@ -347,7 +347,7 @@ func TestProjectGroupService_GetProjectGroupStats_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	clientID := uuid.New()
+	clientID := uuid.New().String()
 
 	stats := &model.ProjectGroupStats{
 		TotalGroups:    10,
@@ -381,7 +381,7 @@ func TestProjectGroupService_GetGroupRevenue_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
+	groupID := uuid.New().String()
 	startMonth := "2024-01"
 	endMonth := "2024-12"
 	revenue := 12000000.0
@@ -409,8 +409,8 @@ func TestProjectGroupService_ValidateProjectsForGroup_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
-	projectIDs := []uuid.UUID{uuid.New(), uuid.New()}
+	groupID := uuid.New().String()
+	projectIDs := []string{uuid.New().String(), uuid.New().String()}
 
 	groupRepo.On("CanAddProjects", ctx, groupID, projectIDs).Return(nil)
 
@@ -430,8 +430,8 @@ func TestProjectGroupService_ValidateProjectsForGroup_Error(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	groupID := uuid.New()
-	projectIDs := []uuid.UUID{uuid.New()}
+	groupID := uuid.New().String()
+	projectIDs := []string{uuid.New().String()}
 
 	groupRepo.On("CanAddProjects", ctx, groupID, projectIDs).Return(fmt.Errorf("プロジェクトが見つかりません"))
 
@@ -448,7 +448,7 @@ type MockInvoiceRepositoryForTest struct {
 	mock.Mock
 }
 
-func (m *MockInvoiceRepositoryForTest) FindByProjectGroupID(ctx context.Context, groupID uuid.UUID) ([]*model.Invoice, error) {
+func (m *MockInvoiceRepositoryForTest) FindByProjectGroupID(ctx context.Context, groupID string) ([]*model.Invoice, error) {
 	args := m.Called(ctx, groupID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -494,7 +494,7 @@ func (m *MockInvoiceRepositoryForTest) FindByInvoiceNumber(ctx context.Context, 
 	return nil, nil
 }
 
-func (m *MockInvoiceRepositoryForTest) FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.Invoice, error) {
+func (m *MockInvoiceRepositoryForTest) FindByClientID(ctx context.Context, clientID string) ([]*model.Invoice, error) {
 	return nil, nil
 }
 
@@ -506,7 +506,7 @@ func (m *MockInvoiceRepositoryForTest) FindOverdue(ctx context.Context) ([]*mode
 	return nil, nil
 }
 
-func (m *MockInvoiceRepositoryForTest) GetSummary(ctx context.Context, clientID *uuid.UUID, dateFrom, dateTo *time.Time) (*repository.InvoiceSummary, error) {
+func (m *MockInvoiceRepositoryForTest) GetSummary(ctx context.Context, clientID *string, dateFrom, dateTo *time.Time) (*repository.InvoiceSummary, error) {
 	return nil, nil
 }
 
@@ -514,7 +514,7 @@ func (m *MockInvoiceRepositoryForTest) CreateWithDetails(ctx context.Context, in
 	return nil
 }
 
-func (m *MockInvoiceRepositoryForTest) FindByBillingMonth(ctx context.Context, billingMonth string, clientID *uuid.UUID) ([]*model.Invoice, error) {
+func (m *MockInvoiceRepositoryForTest) FindByBillingMonth(ctx context.Context, billingMonth string, clientID *string) ([]*model.Invoice, error) {
 	return nil, nil
 }
 
@@ -526,11 +526,11 @@ func (m *MockInvoiceRepositoryForTest) FindNeedingSync(ctx context.Context, limi
 	return nil, nil
 }
 
-func (m *MockInvoiceRepositoryForTest) UpdateFreeSyncStatus(ctx context.Context, id uuid.UUID, status model.FreeSyncStatus, freeeInvoiceID *int) error {
+func (m *MockInvoiceRepositoryForTest) UpdateFreeSyncStatus(ctx context.Context, id string, status model.FreeSyncStatus, freeeInvoiceID *int) error {
 	return nil
 }
 
-func (m *MockInvoiceRepositoryForTest) GetMonthlyRevenue(ctx context.Context, year, month int, clientID *uuid.UUID) (float64, error) {
+func (m *MockInvoiceRepositoryForTest) GetMonthlyRevenue(ctx context.Context, year, month int, clientID *string) (float64, error) {
 	return 0, nil
 }
 

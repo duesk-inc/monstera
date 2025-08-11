@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/duesk/monstera/internal/message"
@@ -56,8 +55,9 @@ func (w *WeeklyReportAuthMiddleware) RequireWeeklyReportAccess() gin.HandlerFunc
 			return
 		}
 
-		reportUUID, err := uuid.Parse(reportID)
-		if err != nil {
+		reportUUID := reportID
+		// UUID validation removed after migration
+		if reportUUID == "" {
 			w.errorHandler.HandleWeeklyReportError(c, message.ErrCodeWeeklyReportNotFound, nil)
 			c.Abort()
 			return
@@ -91,8 +91,9 @@ func (w *WeeklyReportAuthMiddleware) RequireWeeklyReportEdit() gin.HandlerFunc {
 			return
 		}
 
-		reportUUID, err := uuid.Parse(reportID)
-		if err != nil {
+		reportUUID := reportID
+		// UUID validation removed after migration
+		if reportUUID == "" {
 			w.errorHandler.HandleWeeklyReportError(c, message.ErrCodeWeeklyReportNotFound, nil)
 			c.Abort()
 			return
@@ -139,8 +140,9 @@ func (w *WeeklyReportAuthMiddleware) RequireWeeklyReportApproval() gin.HandlerFu
 			return
 		}
 
-		reportUUID, err := uuid.Parse(reportID)
-		if err != nil {
+		reportUUID := reportID
+		// UUID validation removed after migration
+		if reportUUID == "" {
 			w.errorHandler.HandleWeeklyReportError(c, message.ErrCodeWeeklyReportNotFound, nil)
 			c.Abort()
 			return
@@ -323,7 +325,7 @@ func (w *WeeklyReportAuthMiddleware) ValidateWeekRange() gin.HandlerFunc {
 }
 
 // checkWeeklyReportAccess 週報アクセス権限をチェック
-func (w *WeeklyReportAuthMiddleware) checkWeeklyReportAccess(c *gin.Context, reportID uuid.UUID) (bool, error) {
+func (w *WeeklyReportAuthMiddleware) checkWeeklyReportAccess(c *gin.Context, reportID string) (bool, error) {
 	currentUserID := w.getCurrentUserID(c)
 	if currentUserID == "" {
 		return false, fmt.Errorf("user not authenticated")
@@ -335,39 +337,39 @@ func (w *WeeklyReportAuthMiddleware) checkWeeklyReportAccess(c *gin.Context, rep
 	}
 
 	// 週報を取得
-	report, err := w.weeklyReportRepo.GetByID(c.Request.Context(), reportID.String())
+	report, err := w.weeklyReportRepo.GetByID(c.Request.Context(), reportID)
 	if err != nil {
 		return false, err
 	}
 
 	// 自分の週報かチェック
-	if report.UserID.String() == currentUserID {
+	if report.UserID == currentUserID {
 		return true, nil
 	}
 
 	// マネージャーは部下の週報にアクセス可能
 	if w.isManager(c) {
-		return w.isSubordinate(c.Request.Context(), currentUserID, report.UserID.String())
+		return w.isSubordinate(c.Request.Context(), currentUserID, report.UserID)
 	}
 
 	return false, nil
 }
 
 // checkWeeklyReportEditPermission 週報編集権限をチェック
-func (w *WeeklyReportAuthMiddleware) checkWeeklyReportEditPermission(c *gin.Context, reportID uuid.UUID) (bool, string, error) {
+func (w *WeeklyReportAuthMiddleware) checkWeeklyReportEditPermission(c *gin.Context, reportID string) (bool, string, error) {
 	currentUserID := w.getCurrentUserID(c)
 	if currentUserID == "" {
 		return false, "not_authenticated", fmt.Errorf("user not authenticated")
 	}
 
 	// 週報を取得
-	report, err := w.weeklyReportRepo.GetByID(c.Request.Context(), reportID.String())
+	report, err := w.weeklyReportRepo.GetByID(c.Request.Context(), reportID)
 	if err != nil {
 		return false, "not_found", err
 	}
 
 	// 自分の週報以外は編集不可（管理者でも）
-	if report.UserID.String() != currentUserID {
+	if report.UserID != currentUserID {
 		return false, "not_owner", nil
 	}
 
@@ -386,7 +388,7 @@ func (w *WeeklyReportAuthMiddleware) checkWeeklyReportEditPermission(c *gin.Cont
 }
 
 // checkWeeklyReportApprovalPermission 週報承認権限をチェック
-func (w *WeeklyReportAuthMiddleware) checkWeeklyReportApprovalPermission(c *gin.Context, reportID uuid.UUID) (bool, error) {
+func (w *WeeklyReportAuthMiddleware) checkWeeklyReportApprovalPermission(c *gin.Context, reportID string) (bool, error) {
 	currentUserID := w.getCurrentUserID(c)
 	if currentUserID == "" {
 		return false, fmt.Errorf("user not authenticated")
@@ -399,12 +401,12 @@ func (w *WeeklyReportAuthMiddleware) checkWeeklyReportApprovalPermission(c *gin.
 
 	// マネージャーは部下の週報のみ承認可能
 	if w.isManager(c) {
-		report, err := w.weeklyReportRepo.GetByID(c.Request.Context(), reportID.String())
+		report, err := w.weeklyReportRepo.GetByID(c.Request.Context(), reportID)
 		if err != nil {
 			return false, err
 		}
 
-		return w.isSubordinate(c.Request.Context(), currentUserID, report.UserID.String())
+		return w.isSubordinate(c.Request.Context(), currentUserID, report.UserID)
 	}
 
 	return false, nil
@@ -412,8 +414,9 @@ func (w *WeeklyReportAuthMiddleware) checkWeeklyReportApprovalPermission(c *gin.
 
 // checkDepartmentManagementPermission 部署管理権限をチェック
 func (w *WeeklyReportAuthMiddleware) checkDepartmentManagementPermission(ctx context.Context, userID, departmentID string) (bool, error) {
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
+	userUUID := userID
+	// UUID validation removed after migration
+	if userUUID == "" {
 		return false, err
 	}
 
@@ -423,7 +426,7 @@ func (w *WeeklyReportAuthMiddleware) checkDepartmentManagementPermission(ctx con
 	}
 
 	// ユーザーの所属部署と一致するかチェック
-	if user.DepartmentID != nil && user.DepartmentID.String() == departmentID {
+	if user.DepartmentID != nil && user.DepartmentID == departmentID {
 		return true, nil
 	}
 
@@ -441,8 +444,9 @@ func (w *WeeklyReportAuthMiddleware) checkReminderRateLimit(c *gin.Context, user
 
 // isSubordinate 部下かどうかをチェック
 func (w *WeeklyReportAuthMiddleware) isSubordinate(ctx context.Context, managerID, userID string) (bool, error) {
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
+	userUUID := userID
+	// UUID validation removed after migration
+	if userUUID == "" {
 		return false, err
 	}
 
@@ -451,7 +455,7 @@ func (w *WeeklyReportAuthMiddleware) isSubordinate(ctx context.Context, managerI
 		return false, err
 	}
 
-	return user.ManagerID != nil && user.ManagerID.String() == managerID, nil
+	return user.ManagerID != nil && user.ManagerID == managerID, nil
 }
 
 // Helper methods

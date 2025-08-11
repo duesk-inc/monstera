@@ -41,7 +41,7 @@ func setupGinContext(method, path string, body interface{}) (*gin.Context, *http
 	ctx.Request = req
 
 	// 認証済みユーザーIDを設定
-	userID := uuid.New()
+	userID := uuid.New().String()
 	ctx.Set("user_id", userID)
 
 	return ctx, w
@@ -60,7 +60,7 @@ func TestExpenseHandler_Basic(t *testing.T) {
 		// ユーザーIDが設定されているか確認
 		userID, exists := ctx.Get("user_id")
 		assert.True(t, exists, "ユーザーIDが設定されている")
-		assert.IsType(t, uuid.UUID{}, userID, "ユーザーIDがUUID型である")
+		assert.IsType(t, string{}, userID, "ユーザーIDがUUID型である")
 	})
 
 	t.Run("JSONレスポンスが正常に作成される", func(t *testing.T) {

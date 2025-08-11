@@ -56,12 +56,12 @@ const (
 
 // NotificationMetadata 通知のメタデータ（JSON形式）
 type NotificationMetadata struct {
-	WeeklyReportID    *uuid.UUID             `json:"weekly_report_id,omitempty"`     // 週報ID
-	UserID            *string             `json:"user_id,omitempty"`              // 対象ユーザーID
-	DepartmentID      *uuid.UUID             `json:"department_id,omitempty"`        // 対象部署ID
-	ExportJobID       *uuid.UUID             `json:"export_job_id,omitempty"`        // エクスポートジョブID
-	AlertID           *uuid.UUID             `json:"alert_id,omitempty"`             // アラートID
-	BulkReminderJobID *uuid.UUID             `json:"bulk_reminder_job_id,omitempty"` // 一括リマインドジョブID
+	WeeklyReportID    *string                `json:"weekly_report_id,omitempty"`     // 週報ID
+	UserID            *string                `json:"user_id,omitempty"`              // 対象ユーザーID
+	DepartmentID      *string                `json:"department_id,omitempty"`        // 対象部署ID
+	ExportJobID       *string                `json:"export_job_id,omitempty"`        // エクスポートジョブID
+	AlertID           *string                `json:"alert_id,omitempty"`             // アラートID
+	BulkReminderJobID *string                `json:"bulk_reminder_job_id,omitempty"` // 一括リマインドジョブID
 	StartDate         *time.Time             `json:"start_date,omitempty"`           // 開始日（週報の週など）
 	EndDate           *time.Time             `json:"end_date,omitempty"`             // 終了日
 	TargetUserCount   *int                   `json:"target_user_count,omitempty"`    // 対象ユーザー数
@@ -98,8 +98,8 @@ func (nm NotificationMetadata) Value() (driver.Value, error) {
 
 // Notification は通知マスタテーブルのモデル
 type Notification struct {
-	ID               uuid.UUID             `gorm:"type:varchar(255);primary_key;default:(UUID())" json:"id"`
-	RecipientID      *uuid.UUID            `gorm:"type:varchar(255);index:idx_notifications_recipient" json:"recipient_id"` // 特定のユーザー宛て（nullの場合は全体通知）
+	ID               string                `gorm:"type:varchar(255);primary_key" json:"id"`
+	RecipientID      *string               `gorm:"type:varchar(255);index:idx_notifications_recipient" json:"recipient_id"` // 特定のユーザー宛て（nullの場合は全体通知）
 	Title            string                `gorm:"type:varchar(255);not null" json:"title"`
 	Message          string                `gorm:"type:text;not null" json:"message"`
 	NotificationType NotificationType      `gorm:"type:varchar(50);not null;index:idx_notifications_type" json:"notification_type"`
@@ -109,7 +109,7 @@ type Notification struct {
 	ReadAt           *time.Time            `gorm:"type:datetime" json:"read_at,omitempty"`
 	CreatedAt        time.Time             `gorm:"type:datetime;not null;default:CURRENT_TIMESTAMP;index:idx_notifications_created" json:"created_at"`
 	ExpiresAt        *time.Time            `gorm:"type:datetime;index:idx_notifications_expires" json:"expires_at"`
-	ReferenceID      *uuid.UUID            `gorm:"type:varchar(255)" json:"reference_id"`      // 互換性
+	ReferenceID      *string               `gorm:"type:varchar(255)" json:"reference_id"`  // 互換性
 	ReferenceType    *string               `gorm:"type:varchar(50)" json:"reference_type"` // 互換性
 	UpdatedAt        time.Time             `gorm:"type:datetime;not null;default:CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt        *time.Time            `gorm:"type:datetime" json:"deleted_at"`
@@ -121,9 +121,9 @@ type Notification struct {
 
 // UserNotification はユーザー通知関連テーブルのモデル
 type UserNotification struct {
-	ID             uuid.UUID  `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string  `gorm:"type:varchar(255);not null" json:"user_id"`
-	NotificationID uuid.UUID  `gorm:"type:varchar(255);not null" json:"notification_id"`
+	ID             string     `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID         string     `gorm:"type:varchar(255);not null" json:"user_id"`
+	NotificationID string     `gorm:"type:varchar(255);not null" json:"notification_id"`
 	IsRead         bool       `gorm:"type:boolean;not null;default:false" json:"is_read"`
 	ReadAt         *time.Time `gorm:"type:datetime(3)" json:"read_at"`
 	CreatedAt      time.Time  `gorm:"type:datetime(3);not null;default:CURRENT_TIMESTAMP(3)" json:"created_at"`
@@ -137,8 +137,8 @@ type UserNotification struct {
 
 // NotificationSetting は通知設定テーブルのモデル
 type NotificationSetting struct {
-	ID               uuid.UUID        `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string        `gorm:"type:varchar(255);not null" json:"user_id"`
+	ID               string           `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID           string           `gorm:"type:varchar(255);not null" json:"user_id"`
 	NotificationType NotificationType `gorm:"type:enum('leave','expense','weekly','project','system');not null" json:"notification_type"`
 	IsEnabled        bool             `gorm:"type:boolean;not null;default:true" json:"is_enabled"`
 	EmailEnabled     bool             `gorm:"type:boolean;not null;default:false" json:"email_enabled"`
@@ -163,10 +163,26 @@ func (NotificationSetting) TableName() string {
 	return "notification_settings"
 }
 
+// BeforeCreate 作成前処理 (UserNotification)
+func (un *UserNotification) BeforeCreate(tx *gorm.DB) error {
+	if un.ID == "" {
+		un.ID = uuid.New().String()
+	}
+	return nil
+}
+
+// BeforeCreate 作成前処理 (NotificationSetting)
+func (ns *NotificationSetting) BeforeCreate(tx *gorm.DB) error {
+	if ns.ID == "" {
+		ns.ID = uuid.New().String()
+	}
+	return nil
+}
+
 // BeforeCreate 作成前処理
 func (n *Notification) BeforeCreate(tx *gorm.DB) error {
-	if n.ID == uuid.Nil {
-		n.ID = uuid.New()
+	if n.ID == "" {
+		n.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -267,9 +283,9 @@ func (n *Notification) GetTypeIcon() string {
 
 // NotificationHistory 通知履歴モデル（削除された通知の履歴保持用）
 type NotificationHistory struct {
-	ID          uuid.UUID             `gorm:"type:varchar(255);primary_key;default:(UUID())" json:"id"`
-	OriginalID  uuid.UUID             `gorm:"type:varchar(255);not null;index:idx_notification_histories_original" json:"original_id"` // 元の通知ID
-	RecipientID *uuid.UUID            `gorm:"type:varchar(255);index:idx_notification_histories_recipient" json:"recipient_id"`
+	ID          string                `gorm:"type:varchar(255);primary_key" json:"id"`
+	OriginalID  string                `gorm:"type:varchar(255);not null;index:idx_notification_histories_original" json:"original_id"` // 元の通知ID
+	RecipientID *string               `gorm:"type:varchar(255);index:idx_notification_histories_recipient" json:"recipient_id"`
 	Type        NotificationType      `gorm:"type:varchar(50);not null" json:"type"`
 	Priority    NotificationPriority  `gorm:"type:varchar(20);not null" json:"priority"`
 	Status      NotificationStatus    `gorm:"type:varchar(20);not null" json:"status"`
@@ -290,8 +306,8 @@ func (NotificationHistory) TableName() string {
 
 // BeforeCreate 作成前処理
 func (nh *NotificationHistory) BeforeCreate(tx *gorm.DB) error {
-	if nh.ID == uuid.Nil {
-		nh.ID = uuid.New()
+	if nh.ID == "" {
+		nh.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -315,7 +331,7 @@ func (nh *NotificationHistory) CreateFromNotification(notification *Notification
 
 // NotificationTemplate 通知テンプレート（将来の拡張用）
 type NotificationTemplate struct {
-	ID        uuid.UUID            `gorm:"type:varchar(255);primary_key;default:(UUID())" json:"id"`
+	ID        string               `gorm:"type:varchar(255);primary_key" json:"id"`
 	Type      NotificationType     `gorm:"type:varchar(50);not null;unique" json:"type"`
 	Title     string               `gorm:"type:varchar(255);not null" json:"title"` // テンプレートタイトル（変数使用可能）
 	Message   string               `gorm:"type:text;not null" json:"message"`       // テンプレートメッセージ（変数使用可能）
@@ -332,8 +348,8 @@ func (NotificationTemplate) TableName() string {
 
 // BeforeCreate 作成前処理
 func (nt *NotificationTemplate) BeforeCreate(tx *gorm.DB) error {
-	if nt.ID == uuid.Nil {
-		nt.ID = uuid.New()
+	if nt.ID == "" {
+		nt.ID = uuid.New().String()
 	}
 	return nil
 }

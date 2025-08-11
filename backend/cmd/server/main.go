@@ -15,7 +15,6 @@ import (
 	"github.com/duesk/monstera/internal/common/repository"
 	"github.com/duesk/monstera/internal/config"
 	"github.com/duesk/monstera/internal/handler"
-	adminHandler "github.com/duesk/monstera/internal/handler/admin"
 	"github.com/duesk/monstera/internal/middleware"
 	"github.com/duesk/monstera/internal/model"
 	internalRepo "github.com/duesk/monstera/internal/repository"
@@ -385,7 +384,7 @@ func main() {
 	// リマインドハンドラーを追加
 	reminderHandler := handler.NewReminderHandler(unsubmittedReportService, reminderBatchService, logger)
 	// アラート設定ハンドラー
-	alertSettingsHandler := adminHandler.NewAlertSettingsHandler(alertSettingsRepo, alertHistoryRepo, alertService, logger)
+	alertSettingsHandler := handler.NewAlertSettingsHandler(alertSettingsRepo, alertHistoryRepo, alertService, logger)
 	// アラートハンドラー
 	alertHandler := handler.NewAlertHandler(alertService, logger)
 
@@ -514,7 +513,7 @@ func main() {
 }
 
 // setupRouter ルーターのセットアップ
-func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler, profileHandler *handler.ProfileHandler, skillSheetHandler *handler.SkillSheetHandler, reportHandler *handler.WeeklyReportHandler, leaveHandler handler.LeaveHandler, notificationHandler handler.NotificationHandler, adminWeeklyReportHandler handler.AdminWeeklyReportHandler, adminDashboardHandler handler.AdminDashboardHandler, clientHandler handler.ClientHandler, invoiceHandler handler.InvoiceHandler, salesHandler handler.SalesHandler, skillSheetPDFHandler handler.SkillSheetPDFHandler, userRoleHandler *handler.UserRoleHandler, leaveAdminHandler handler.LeaveAdminHandler, unsubmittedReportHandler handler.UnsubmittedReportHandler, reminderHandler handler.ReminderHandler, alertSettingsHandler *adminHandler.AlertSettingsHandler, alertHandler handler.AlertHandler, auditLogHandler *handler.AuditLogHandler, salesHandlers *routes.SalesHandlers, expenseHandler *handler.ExpenseHandler, expensePDFHandler handler.ExpensePDFHandler, expenseApproverSettingHandler *handler.ExpenseApproverSettingHandler, approvalReminderHandler *handler.ApprovalReminderHandler, workHistoryHandler *handler.WorkHistoryHandler, engineerHandler handler.AdminEngineerHandler, rolePermissionRepo internalRepo.RolePermissionRepository, userRepo internalRepo.UserRepository, departmentRepo internalRepo.DepartmentRepository, reportRepo *internalRepo.WeeklyReportRepository, weeklyReportRefactoredRepo internalRepo.WeeklyReportRefactoredRepository, auditLogService service.AuditLogService) *gin.Engine {
+func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler, profileHandler *handler.ProfileHandler, skillSheetHandler *handler.SkillSheetHandler, reportHandler *handler.WeeklyReportHandler, leaveHandler handler.LeaveHandler, notificationHandler handler.NotificationHandler, adminWeeklyReportHandler handler.AdminWeeklyReportHandler, adminDashboardHandler handler.AdminDashboardHandler, clientHandler handler.ClientHandler, invoiceHandler handler.InvoiceHandler, salesHandler handler.SalesHandler, skillSheetPDFHandler handler.SkillSheetPDFHandler, userRoleHandler *handler.UserRoleHandler, leaveAdminHandler handler.LeaveAdminHandler, unsubmittedReportHandler handler.UnsubmittedReportHandler, reminderHandler handler.ReminderHandler, alertSettingsHandler *handler.AlertSettingsHandler, alertHandler handler.AlertHandler, auditLogHandler *handler.AuditLogHandler, salesHandlers *routes.SalesHandlers, expenseHandler *handler.ExpenseHandler, expensePDFHandler handler.ExpensePDFHandler, expenseApproverSettingHandler *handler.ExpenseApproverSettingHandler, approvalReminderHandler *handler.ApprovalReminderHandler, workHistoryHandler *handler.WorkHistoryHandler, engineerHandler handler.AdminEngineerHandler, rolePermissionRepo internalRepo.RolePermissionRepository, userRepo internalRepo.UserRepository, departmentRepo internalRepo.DepartmentRepository, reportRepo *internalRepo.WeeklyReportRepository, weeklyReportRefactoredRepo internalRepo.WeeklyReportRefactoredRepository, auditLogService service.AuditLogService) *gin.Engine {
 	router := gin.New()
 
 	// DatabaseUtilsの初期化（メトリクスハンドラー用）

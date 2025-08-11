@@ -97,12 +97,8 @@ func NewSalesTeamService(db *gorm.DB, salesRepo repository.SalesTeamRepository, 
 // CreateMember 営業チームメンバーを作成
 func (s *salesTeamService) CreateMember(ctx context.Context, req *CreateSalesTeamMemberRequest) (*model.SalesTeam, error) {
 	// ユーザーの存在確認
-	userUUID, err := uuid.Parse(req.UserID)
-	if err != nil {
-		return nil, fmt.Errorf("無効なユーザーIDです: %w", err)
-	}
-
-	_, err = s.userRepo.FindByID(userUUID)
+	userUUID := req.UserID
+	_, err := s.userRepo.FindByID(userUUID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, fmt.Errorf("ユーザーが見つかりません")
@@ -130,7 +126,7 @@ func (s *salesTeamService) CreateMember(ctx context.Context, req *CreateSalesTea
 	}
 
 	member := &model.SalesTeam{
-		ID:          uuid.New(),
+		ID:          uuid.New().String(),
 		UserID:      userUUID,
 		TeamRole:    req.TeamRole,
 		IsActive:    true,
@@ -148,7 +144,7 @@ func (s *salesTeamService) CreateMember(ctx context.Context, req *CreateSalesTea
 	}
 
 	// 作成されたメンバーを返す前にUserをPreload
-	return s.salesRepo.GetByID(ctx, member.ID.String())
+	return s.salesRepo.GetByID(ctx, member.ID)
 }
 
 // GetMemberByID IDで営業チームメンバーを取得

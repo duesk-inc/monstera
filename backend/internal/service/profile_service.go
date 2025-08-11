@@ -154,7 +154,7 @@ func (s *ProfileService) GetUserProfile(userID string) (*ProfileResponse, error)
 	// デバッグログ: 取得したプロフィール情報
 	s.logger.Info("プロフィール情報取得完了",
 		zap.String("user_id", userID),
-		zap.String("profile_id", profile.ID.String()),
+		zap.String("profile_id", profile.ID),
 		zap.Int("certifications_count", len(profile.Certifications)),
 		zap.Any("certifications_raw", profile.Certifications),
 	)
@@ -206,7 +206,7 @@ func (s *ProfileService) GetUserProfileWithWorkHistory(userID string) (*ProfileR
 		// 技術項目を取得
 		techItems, err := s.workHistoryTechRepo.GetWithCategory(context.Background(), wh.ID)
 		if err != nil {
-			s.logger.Error("技術項目取得エラー", zap.Error(err), zap.String("work_history_id", wh.ID.String()))
+			s.logger.Error("技術項目取得エラー", zap.Error(err), zap.String("work_history_id", wh.ID))
 			techItems = []model.WorkHistoryTechnology{}
 		}
 
@@ -247,7 +247,7 @@ func (s *ProfileService) GetUserProfileWithWorkHistory(userID string) (*ProfileR
 		}
 
 		workHistories[i] = WorkHistoryResponse{
-			ID:                   wh.ID.String(),
+			ID:                   wh.ID,
 			ProjectName:          wh.ProjectName,
 			StartDate:            wh.StartDate.Format("2006-01-02"),
 			EndDate:              endDate,
@@ -298,7 +298,7 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 		}
 
 		languageSkills[i] = LanguageSkillResponse{
-			ID:                ls.ID.String(),
+			ID:                ls.ID,
 			Name:              ls.Name,
 			Level:             ls.Level,
 			YearsOfExperience: years,
@@ -318,7 +318,7 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 		}
 
 		frameworkSkills[i] = FrameworkSkillResponse{
-			ID:                fs.ID.String(),
+			ID:                fs.ID,
 			Name:              fs.Name,
 			Level:             fs.Level,
 			YearsOfExperience: years,
@@ -330,7 +330,7 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 	businessExps := make([]BusinessExpResponse, len(profile.BusinessExps))
 	for i, be := range profile.BusinessExps {
 		businessExps[i] = BusinessExpResponse{
-			ID:                be.ID.String(),
+			ID:                be.ID,
 			Industry:          be.Industry,
 			ExperienceDetail:  be.ExperienceDetail,
 			YearsOfExperience: be.YearsOfExperience,
@@ -340,7 +340,7 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 	// 資格情報をレスポンス形式に変換
 	var certifications []CertificationResponse
 	s.logger.Info("資格情報変換開始",
-		zap.String("profile_id", profile.ID.String()),
+		zap.String("profile_id", profile.ID),
 	)
 
 	// ProfileCertificationを直接取得（取得年月の昇順）
@@ -413,11 +413,11 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 			if pc.CustomName != nil {
 				certResponse.Name = *pc.CustomName
 			}
-			certResponse.ID = profile.ID.String() + "-custom-" + fmt.Sprintf("%d", i) // 仮のID
+			certResponse.ID = profile.ID + "-custom-" + fmt.Sprintf("%d", i) // 仮のID
 		} else {
 			// マスタ資格の場合
 			if pc.Certification != nil {
-				certResponse.ID = pc.Certification.ID.String()
+				certResponse.ID = pc.Certification.ID
 				certResponse.Name = pc.Certification.Name
 			}
 		}
@@ -443,8 +443,8 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 
 	// プロフィールレスポンスを作成
 	return &ProfileResponse{
-		ID:              profile.ID.String(),
-		UserID:          user.ID.String(),
+		ID:              profile.ID,
+		UserID:          user.ID,
 		Email:           user.Email,
 		FirstName:       user.FirstName,
 		LastName:        user.LastName,
@@ -464,7 +464,7 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 		LanguageSkills:  languageSkills,
 		FrameworkSkills: frameworkSkills,
 		BusinessExps:    businessExps,
-		Role:            user.Role.String(),
+		Role: string(user.Role),
 	}
 }
 
@@ -492,10 +492,10 @@ func (s *ProfileService) GetProfileHistoryByVersion(userID string, version int) 
 		}
 
 		workHistories[i] = WorkHistoryHistoryResponse{
-			ID:               wh.ID.String(),
-			HistoryID:        wh.HistoryID.String(),
-			ProfileHistoryID: wh.ProfileHistoryID.String(),
-			UserID:           wh.UserID.String(),
+			ID:               wh.ID,
+			HistoryID:        wh.HistoryID,
+			ProfileHistoryID: wh.ProfileHistoryID,
+			UserID:           wh.UserID,
 			ProjectName:      wh.ProjectName,
 			StartDate:        wh.StartDate.Format("2006-01-02"),
 			EndDate:          endDate,
@@ -509,9 +509,9 @@ func (s *ProfileService) GetProfileHistoryByVersion(userID string, version int) 
 	}
 
 	return &ProfileHistoryResponse{
-		ID:             profileHistory.ID.String(),
-		ProfileID:      profileHistory.ProfileID.String(),
-		UserID:         profileHistory.UserID.String(),
+		ID:             profileHistory.ID,
+		ProfileID:      profileHistory.ProfileID,
+		UserID:         profileHistory.UserID,
 		Education:      profileHistory.Education,
 		NearestStation: profileHistory.NearestStation,
 		CanTravel:      profileHistory.CanTravel,
@@ -546,10 +546,10 @@ func (s *ProfileService) GetLatestProfileHistory(userID string) (*ProfileHistory
 		}
 
 		workHistories[i] = WorkHistoryHistoryResponse{
-			ID:               wh.ID.String(),
-			HistoryID:        wh.HistoryID.String(),
-			ProfileHistoryID: wh.ProfileHistoryID.String(),
-			UserID:           wh.UserID.String(),
+			ID:               wh.ID,
+			HistoryID:        wh.HistoryID,
+			ProfileHistoryID: wh.ProfileHistoryID,
+			UserID:           wh.UserID,
 			ProjectName:      wh.ProjectName,
 			StartDate:        wh.StartDate.Format("2006-01-02"),
 			EndDate:          endDate,
@@ -563,9 +563,9 @@ func (s *ProfileService) GetLatestProfileHistory(userID string) (*ProfileHistory
 	}
 
 	return &ProfileHistoryResponse{
-		ID:             profileHistory.ID.String(),
-		ProfileID:      profileHistory.ProfileID.String(),
-		UserID:         profileHistory.UserID.String(),
+		ID:             profileHistory.ID,
+		ProfileID:      profileHistory.ProfileID,
+		UserID:         profileHistory.UserID,
 		Education:      profileHistory.Education,
 		NearestStation: profileHistory.NearestStation,
 		CanTravel:      profileHistory.CanTravel,
@@ -637,7 +637,7 @@ func (s *ProfileService) UpdateUserProfile(userID string, education, nearestStat
 	err = s.txManager.ExecuteInTransaction(context.Background(), func(tx *gorm.DB) error {
 		// プロフィール情報を保存
 		txProfileRepo := repository.NewProfileRepository(tx)
-		if profile.ID == uuid.Nil {
+		if profile.ID == "" {
 			if err := txProfileRepo.Create(profile); err != nil {
 				return err
 			}
@@ -794,7 +794,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 			s.logger.Info("プロフィールが存在しないため新規作成", zap.String("user_id", userID))
 			// 新規プロフィール作成
 			profile = model.Profile{
-				ID:             uuid.New(),
+				ID: uuid.New().String(),
 				UserID:         userID,
 				Education:      request.Education,
 				NearestStation: request.NearestStation,
@@ -813,14 +813,14 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 				s.logger.Error("プロフィール作成に失敗", zap.Error(err))
 				return err
 			}
-			s.logger.Info("プロフィール新規作成完了", zap.String("profile_id", profile.ID.String()))
+			s.logger.Info("プロフィール新規作成完了", zap.String("profile_id", profile.ID))
 		} else {
 			tx.Rollback()
 			s.logger.Error("プロフィール取得でエラー発生", zap.Error(err))
 			return err
 		}
 	} else {
-		s.logger.Info("既存プロフィール更新", zap.String("profile_id", profile.ID.String()))
+		s.logger.Info("既存プロフィール更新", zap.String("profile_id", profile.ID))
 		// 既存プロフィール更新
 		profile.Education = request.Education
 		profile.NearestStation = request.NearestStation
@@ -841,11 +841,11 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 			s.logger.Error("プロフィール更新に失敗", zap.Error(err))
 			return err
 		}
-		s.logger.Info("プロフィール更新完了", zap.String("profile_id", profile.ID.String()))
+		s.logger.Info("プロフィール更新完了", zap.String("profile_id", profile.ID))
 	}
 
 	// 既存の資格情報を削除
-	s.logger.Info("既存資格情報削除開始", zap.String("profile_id", profile.ID.String()))
+	s.logger.Info("既存資格情報削除開始", zap.String("profile_id", profile.ID))
 	if err := tx.Where("profile_id = ?", profile.ID).Delete(&model.ProfileCertification{}).Error; err != nil {
 		tx.Rollback()
 		s.logger.Error("既存資格情報削除に失敗", zap.Error(err))
@@ -872,7 +872,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 				errorMsg := fmt.Sprintf("資格「%s」が重複しています", existingName)
 				s.logger.Error("マスタ資格の重複エラー",
 					zap.String("certification_name", existingName),
-					zap.String("certification_id", certification.ID.String()),
+					zap.String("certification_id", certification.ID),
 				)
 				return fmt.Errorf(errorMsg)
 			}
@@ -928,14 +928,14 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 		err := tx.Where("name = ? AND is_common = true", certReq.Name).First(&certification).Error
 
 		profileCert := model.ProfileCertification{
-			ID:           uuid.New(),
+			ID: uuid.New().String(),
 			ProfileID:    profile.ID,
 			AcquiredDate: acquiredDate,
 		}
 
 		if err == nil {
 			// よく使う資格マスタに存在する場合
-			s.logger.Info("よく使う資格を使用", zap.String("certification_id", certification.ID.String()))
+			s.logger.Info("よく使う資格を使用", zap.String("certification_id", certification.ID))
 			profileCert.CertificationID = &certification.ID
 			profileCert.IsCustom = false
 		} else {
@@ -949,18 +949,18 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 			tx.Rollback()
 			s.logger.Error("プロフィール資格関連付けに失敗",
 				zap.Error(err),
-				zap.String("profile_id", profile.ID.String()),
+				zap.String("profile_id", profile.ID),
 			)
 			return err
 		}
 		s.logger.Info("プロフィール資格関連付け完了",
-			zap.String("profile_id", profile.ID.String()),
+			zap.String("profile_id", profile.ID),
 			zap.Bool("is_custom", profileCert.IsCustom),
 		)
 	}
 
 	// 既存の職務経歴を削除
-	s.logger.Info("既存職務経歴削除開始", zap.String("profile_id", profile.ID.String()))
+	s.logger.Info("既存職務経歴削除開始", zap.String("profile_id", profile.ID))
 	if err := tx.Where("profile_id = ?", profile.ID).Delete(&model.WorkHistory{}).Error; err != nil {
 		tx.Rollback()
 		s.logger.Error("既存職務経歴削除に失敗", zap.Error(err))
@@ -1040,7 +1040,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 		}
 
 		workHistory := model.WorkHistory{
-			ID:               uuid.New(),
+			ID: uuid.New().String(),
 			ProfileID:        profile.ID,
 			UserID:           userID,
 			ProjectName:      workReq.ProjectName,
@@ -1064,7 +1064,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 			s.logger.Error("職務経歴作成に失敗", zap.Error(err))
 			return err
 		}
-		s.logger.Info("職務経歴作成完了", zap.String("work_history_id", workHistory.ID.String()))
+		s.logger.Info("職務経歴作成完了", zap.String("work_history_id", workHistory.ID))
 
 		// 新しい技術項目の処理
 		allTechItems := []string{}
@@ -1097,7 +1097,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 
 				techItem := model.WorkHistoryTechnology{
 					ID:             uuid.New().String(),
-					WorkHistoryID:  workHistory.ID.String(),
+					WorkHistoryID:  workHistory.ID,
 					CategoryID:     category.ID,
 					TechnologyName: techName,
 					CreatedAt:      time.Now(),
@@ -1108,7 +1108,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 					tx.Rollback()
 					s.logger.Error("技術項目作成に失敗",
 						zap.Error(err),
-						zap.String("work_history_id", workHistory.ID.String()),
+						zap.String("work_history_id", workHistory.ID),
 						zap.String("technology", techName),
 						zap.String("category", categoryName))
 					return err
@@ -1134,7 +1134,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 
 			techItemModel := model.WorkHistoryTechnology{
 				ID:             uuid.New().String(),
-				WorkHistoryID:  workHistory.ID.String(),
+				WorkHistoryID:  workHistory.ID,
 				CategoryID:     category.ID,
 				TechnologyName: techItem.TechnologyName,
 				CreatedAt:      time.Now(),
@@ -1145,7 +1145,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 				tx.Rollback()
 				s.logger.Error("技術項目作成に失敗",
 					zap.Error(err),
-					zap.String("work_history_id", workHistory.ID.String()),
+					zap.String("work_history_id", workHistory.ID),
 					zap.String("technology", techItem.TechnologyName),
 					zap.String("category", techItem.CategoryName))
 				return err
@@ -1155,7 +1155,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 		}
 
 		s.logger.Info("技術項目処理完了",
-			zap.String("work_history_id", workHistory.ID.String()),
+			zap.String("work_history_id", workHistory.ID),
 			zap.Int("tech_items_count", len(allTechItems)))
 	}
 
@@ -1167,7 +1167,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 
 	s.logger.Info("プロフィール更新処理完了",
 		zap.String("user_id", userID),
-		zap.String("profile_id", profile.ID.String()),
+		zap.String("profile_id", profile.ID),
 		zap.Bool("is_temp_save", isTempSave),
 	)
 

@@ -20,7 +20,7 @@ func (m *MockUserRepository) Create(ctx context.Context, user *model.User) error
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
+func (m *MockUserRepository) GetByID(ctx context.Context, id string) (*model.User, error) {
 	args := m.Called(ctx, id)
 	if user, ok := args.Get(0).(*model.User); ok {
 		return user, args.Error(1)
@@ -49,7 +49,7 @@ func (m *MockUserRepository) Update(ctx context.Context, user *model.User) error
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) Delete(id uuid.UUID) error {
+func (m *MockUserRepository) Delete(id string) error {
 	args := m.Called(id)
 	return args.Error(0)
 }
@@ -63,7 +63,7 @@ func (m *MockUserRepository) List(offset, limit int) ([]model.User, int64, error
 }
 
 // インターフェース追加メソッド
-func (m *MockUserRepository) FindByID(id uuid.UUID) (*model.User, error) {
+func (m *MockUserRepository) FindByID(id string) (*model.User, error) {
 	args := m.Called(id)
 	if user, ok := args.Get(0).(*model.User); ok {
 		return user, args.Error(1)
@@ -87,22 +87,22 @@ func (m *MockUserRepository) FindByRole(role model.Role) ([]model.User, error) {
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) AddRole(userID uuid.UUID, role model.Role) error {
+func (m *MockUserRepository) AddRole(userID string, role model.Role) error {
 	args := m.Called(userID, role)
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) RemoveRole(userID uuid.UUID, role model.Role) error {
+func (m *MockUserRepository) RemoveRole(userID string, role model.Role) error {
 	args := m.Called(userID, role)
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) SetRoles(userID uuid.UUID, roles []model.Role) error {
+func (m *MockUserRepository) SetRoles(userID string, roles []model.Role) error {
 	args := m.Called(userID, roles)
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) GetRoles(userID uuid.UUID) ([]model.Role, error) {
+func (m *MockUserRepository) GetRoles(userID string) ([]model.Role, error) {
 	args := m.Called(userID)
 	if roles, ok := args.Get(0).([]model.Role); ok {
 		return roles, args.Error(1)
@@ -110,7 +110,7 @@ func (m *MockUserRepository) GetRoles(userID uuid.UUID) ([]model.Role, error) {
 	return nil, args.Error(1)
 }
 
-func (m *MockUserRepository) UpdateDefaultRole(userID uuid.UUID, defaultRole *model.Role) error {
+func (m *MockUserRepository) UpdateDefaultRole(userID string, defaultRole *model.Role) error {
 	args := m.Called(userID, defaultRole)
 	return args.Error(0)
 }
@@ -119,7 +119,7 @@ func (m *MockUserRepository) SetLogger(logger *zap.Logger) {
 	m.Called(logger)
 }
 
-func (m *MockUserRepository) CountByDepartment(ctx context.Context, departmentID uuid.UUID) (int64, error) {
+func (m *MockUserRepository) CountByDepartment(ctx context.Context, departmentID string) (int64, error) {
 	args := m.Called(ctx, departmentID)
 	return args.Get(0).(int64), args.Error(1)
 }
@@ -170,7 +170,7 @@ func (m *MockSessionRepository) Update(ctx context.Context, session *model.Sessi
 	return args.Error(0)
 }
 
-func (m *MockSessionRepository) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {
+func (m *MockSessionRepository) DeleteSession(ctx context.Context, sessionID string) error {
 	args := m.Called(ctx, sessionID)
 	return args.Error(0)
 }
@@ -185,12 +185,12 @@ func (m *MockSessionRepository) DeleteExpiredSessions(ctx context.Context) (int,
 	return args.Get(0).(int), args.Error(1)
 }
 
-func (m *MockSessionRepository) DeleteUserSessions(ctx context.Context, userID uuid.UUID) error {
+func (m *MockSessionRepository) DeleteUserSessions(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
-func (m *MockSessionRepository) GetUserActiveSessions(ctx context.Context, userID uuid.UUID) ([]model.Session, error) {
+func (m *MockSessionRepository) GetUserActiveSessions(ctx context.Context, userID string) ([]model.Session, error) {
 	args := m.Called(ctx, userID)
 	if sessions, ok := args.Get(0).([]model.Session); ok {
 		return sessions, args.Error(1)
@@ -201,21 +201,20 @@ func (m *MockSessionRepository) GetUserActiveSessions(ctx context.Context, userI
 // モックユーザーデータ作成ヘルパー
 func NewMockUser(email, cognitoSub string, role model.Role) *model.User {
 	return &model.User{
-		ID:          uuid.New(),
+		ID:          cognitoSub,
 		Email:       email,
 		FirstName:   "Test",
 		LastName:    "User",
 		Role:        role,
-		CognitoSub:  cognitoSub,
 		PhoneNumber: "+81901234567",
 		Status:      "active",
 	}
 }
 
 // モックセッションデータ作成ヘルパー
-func NewMockSession(userID uuid.UUID, refreshToken string) *model.Session {
+func NewMockSession(userID string, refreshToken string) *model.Session {
 	return &model.Session{
-		ID:           uuid.New(),
+		ID:           uuid.New().String(),
 		UserID:       userID,
 		RefreshToken: refreshToken,
 	}
@@ -233,20 +232,20 @@ func (m *MockUserRepository) SetupSuccessfulUserRetrieval(user *model.User) {
 	// メールアドレスでの取得
 	m.On("GetByEmail", mock.Anything, user.Email).Return(user, nil)
 	// CognitoSubでの取得
-	m.On("GetByCognitoSub", mock.Anything, user.CognitoSub).Return(user, nil)
+	m.On("GetByCognitoSub", mock.Anything, user.ID).Return(user, nil)
 	// IDでの取得
 	m.On("GetByID", mock.Anything, user.ID).Return(user, nil)
 }
 
 // SetupUserNotFound ユーザーが見つからない場合のモックを設定
-func (m *MockUserRepository) SetupUserNotFound(email, cognitoSub string, userID uuid.UUID) {
+func (m *MockUserRepository) SetupUserNotFound(email, cognitoSub string, userID string) {
 	if email != "" {
 		m.On("GetByEmail", mock.Anything, email).Return(nil, gorm.ErrRecordNotFound)
 	}
 	if cognitoSub != "" {
 		m.On("GetByCognitoSub", mock.Anything, cognitoSub).Return(nil, gorm.ErrRecordNotFound)
 	}
-	if userID != uuid.Nil {
+	if userID != "" {
 		m.On("GetByID", mock.Anything, userID).Return(nil, gorm.ErrRecordNotFound)
 	}
 }
@@ -265,11 +264,11 @@ func (m *MockSessionRepository) SetupSuccessfulSessionRetrieval(session *model.S
 }
 
 // SetupSessionNotFound セッションが見つからない場合のモックを設定
-func (m *MockSessionRepository) SetupSessionNotFound(refreshToken string, userID uuid.UUID) {
+func (m *MockSessionRepository) SetupSessionNotFound(refreshToken string, userID string) {
 	if refreshToken != "" {
 		m.On("GetByRefreshToken", mock.Anything, refreshToken).Return(nil, gorm.ErrRecordNotFound)
 	}
-	if userID != uuid.Nil {
+	if userID != "" {
 		m.On("GetByUserID", mock.Anything, userID).Return([]*model.Session{}, nil)
 	}
 }

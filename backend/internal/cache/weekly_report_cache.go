@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"time"
 
 	"github.com/duesk/monstera/internal/dto"
 )
@@ -70,8 +68,8 @@ func (c *WeeklyReportCache) SetWeeklyReportList(ctx context.Context, params dto.
 }
 
 // GetWeeklyReportDetail 週報詳細をキャッシュから取得
-func (c *WeeklyReportCache) GetWeeklyReportDetail(ctx context.Context, reportID uuid.UUID) (*dto.AdminWeeklyReportDetailDTO, error) {
-	key := fmt.Sprintf("%s%s", weeklyReportDetailPrefix, reportID.String())
+func (c *WeeklyReportCache) GetWeeklyReportDetail(ctx context.Context, reportID string) (*dto.AdminWeeklyReportDetailDTO, error) {
+	key := fmt.Sprintf("%s%s", weeklyReportDetailPrefix, reportID)
 
 	data, err := c.redis.Get(ctx, key)
 	if err != nil {
@@ -89,8 +87,8 @@ func (c *WeeklyReportCache) GetWeeklyReportDetail(ctx context.Context, reportID 
 }
 
 // SetWeeklyReportDetail 週報詳細をキャッシュに保存
-func (c *WeeklyReportCache) SetWeeklyReportDetail(ctx context.Context, reportID uuid.UUID, detail *dto.AdminWeeklyReportDetailDTO) error {
-	key := fmt.Sprintf("%s%s", weeklyReportDetailPrefix, reportID.String())
+func (c *WeeklyReportCache) SetWeeklyReportDetail(ctx context.Context, reportID string, detail *dto.AdminWeeklyReportDetailDTO) error {
+	key := fmt.Sprintf("%s%s", weeklyReportDetailPrefix, reportID)
 
 	data, err := json.Marshal(detail)
 	if err != nil {
@@ -103,7 +101,7 @@ func (c *WeeklyReportCache) SetWeeklyReportDetail(ctx context.Context, reportID 
 }
 
 // GetWeeklyReportSummary 週報サマリーをキャッシュから取得
-func (c *WeeklyReportCache) GetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *uuid.UUID) (*dto.WeeklyReportSummaryStatsDTO, error) {
+func (c *WeeklyReportCache) GetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *string) (*dto.WeeklyReportSummaryStatsDTO, error) {
 	key := c.buildSummaryKey(startDate, endDate, departmentID)
 
 	data, err := c.redis.Get(ctx, key)
@@ -122,7 +120,7 @@ func (c *WeeklyReportCache) GetWeeklyReportSummary(ctx context.Context, startDat
 }
 
 // SetWeeklyReportSummary 週報サマリーをキャッシュに保存
-func (c *WeeklyReportCache) SetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *uuid.UUID, summary *dto.WeeklyReportSummaryStatsDTO) error {
+func (c *WeeklyReportCache) SetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *string, summary *dto.WeeklyReportSummaryStatsDTO) error {
 	key := c.buildSummaryKey(startDate, endDate, departmentID)
 
 	data, err := json.Marshal(summary)
@@ -175,8 +173,8 @@ func (c *WeeklyReportCache) InvalidateWeeklyReportList(ctx context.Context) erro
 }
 
 // InvalidateWeeklyReportDetail 特定の週報詳細キャッシュを無効化
-func (c *WeeklyReportCache) InvalidateWeeklyReportDetail(ctx context.Context, reportID uuid.UUID) error {
-	key := fmt.Sprintf("%s%s", weeklyReportDetailPrefix, reportID.String())
+func (c *WeeklyReportCache) InvalidateWeeklyReportDetail(ctx context.Context, reportID string) error {
+	key := fmt.Sprintf("%s%s", weeklyReportDetailPrefix, reportID)
 	return c.redis.Delete(ctx, key)
 }
 
@@ -225,10 +223,10 @@ func (c *WeeklyReportCache) buildListKey(params dto.WeeklyReportListParams) stri
 }
 
 // buildSummaryKey サマリー用のキーを生成
-func (c *WeeklyReportCache) buildSummaryKey(startDate, endDate time.Time, departmentID *uuid.UUID) string {
+func (c *WeeklyReportCache) buildSummaryKey(startDate, endDate time.Time, departmentID *string) string {
 	deptStr := "all"
 	if departmentID != nil {
-		deptStr = departmentID.String()
+		deptStr = *departmentID
 	}
 
 	return fmt.Sprintf("%sstart:%s:end:%s:dept:%s",

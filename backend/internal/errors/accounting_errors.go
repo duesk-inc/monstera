@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // AccountingErrorCode 経理機能のエラーコード
@@ -75,7 +73,7 @@ type AccountingError struct {
 	Details   map[string]interface{} `json:"details,omitempty"`
 	Timestamp time.Time              `json:"timestamp"`
 	RequestID string                 `json:"request_id,omitempty"`
-	UserID    *uuid.UUID             `json:"user_id,omitempty"`
+	UserID    *string                `json:"user_id,omitempty"`
 	HTTPCode  int                    `json:"-"`
 	Cause     error                  `json:"-"`
 }
@@ -134,7 +132,7 @@ func (e *AccountingError) WithDetail(key string, value interface{}) *AccountingE
 }
 
 // WithUserID ユーザーIDを設定
-func (e *AccountingError) WithUserID(userID uuid.UUID) *AccountingError {
+func (e *AccountingError) WithUserID(userID string) *AccountingError {
 	e.UserID = &userID
 	return e
 }
@@ -176,39 +174,39 @@ func getDefaultHTTPCode(code AccountingErrorCode) int {
 // プロジェクトグループ関連エラー関数
 
 // ErrProjectGroupNotFoundError プロジェクトグループが見つからないエラー
-func ErrProjectGroupNotFoundError(groupID uuid.UUID) *AccountingError {
+func ErrProjectGroupNotFoundError(groupID string) *AccountingError {
 	return NewAccountingError(ErrProjectGroupNotFound, "プロジェクトグループが見つかりません").
-		WithDetail("group_id", groupID.String())
+		WithDetail("group_id", groupID)
 }
 
 // ErrProjectGroupDuplicateError 重複したプロジェクトグループエラー
-func ErrProjectGroupDuplicateError(name string, clientID uuid.UUID) *AccountingError {
+func ErrProjectGroupDuplicateError(name string, clientID string) *AccountingError {
 	return NewAccountingError(ErrProjectGroupDuplicate, "同じ名前のプロジェクトグループが既に存在します").
 		WithDetail("name", name).
-		WithDetail("client_id", clientID.String())
+		WithDetail("client_id", clientID)
 }
 
 // ErrProjectGroupHasProjectsError プロジェクトを含むグループの削除エラー
-func ErrProjectGroupHasProjectsError(groupID uuid.UUID, projectCount int) *AccountingError {
+func ErrProjectGroupHasProjectsError(groupID string, projectCount int) *AccountingError {
 	return NewAccountingError(ErrProjectGroupHasProjects, "プロジェクトが含まれているため削除できません").
-		WithDetail("group_id", groupID.String()).
+		WithDetail("group_id", groupID).
 		WithDetail("project_count", projectCount)
 }
 
 // 請求処理関連エラー関数
 
 // ErrBillingAlreadyProcessedError 既に処理済みの請求エラー
-func ErrBillingAlreadyProcessedError(month string, clientID uuid.UUID) *AccountingError {
+func ErrBillingAlreadyProcessedError(month string, clientID string) *AccountingError {
 	return NewAccountingError(ErrBillingAlreadyProcessed, "指定月の請求は既に処理済みです").
 		WithDetail("month", month).
-		WithDetail("client_id", clientID.String())
+		WithDetail("client_id", clientID)
 }
 
 // ErrBillingNoWorkRecordsError 作業記録がないエラー
-func ErrBillingNoWorkRecordsError(month string, projectID uuid.UUID) *AccountingError {
+func ErrBillingNoWorkRecordsError(month string, projectID string) *AccountingError {
 	return NewAccountingError(ErrBillingNoWorkRecords, "指定月の作業記録が見つかりません").
 		WithDetail("month", month).
-		WithDetail("project_id", projectID.String())
+		WithDetail("project_id", projectID)
 }
 
 // ErrBillingCalculationFailedError 請求額計算失敗エラー
@@ -220,15 +218,15 @@ func ErrBillingCalculationFailedError(reason string) *AccountingError {
 // freee連携関連エラー関数
 
 // ErrFreeeNotConnectedError freee未接続エラー
-func ErrFreeeNotConnectedError(userID uuid.UUID) *AccountingError {
+func ErrFreeeNotConnectedError(userID string) *AccountingError {
 	return NewAccountingError(ErrFreeeNotConnected, "freeeとの連携が設定されていません").
-		WithDetail("user_id", userID.String())
+		WithDetail("user_id", userID)
 }
 
 // ErrFreeeTokenExpiredError freeeトークン期限切れエラー
-func ErrFreeeTokenExpiredError(userID uuid.UUID) *AccountingError {
+func ErrFreeeTokenExpiredError(userID string) *AccountingError {
 	return NewAccountingError(ErrFreeeTokenExpired, "freeeアクセストークンの有効期限が切れています").
-		WithDetail("user_id", userID.String())
+		WithDetail("user_id", userID)
 }
 
 // ErrFreeeAPIError freee APIエラー
@@ -248,23 +246,23 @@ func ErrFreeeRateLimitError(retryAfter int) *AccountingError {
 // バッチ処理関連エラー関数
 
 // ErrBatchJobNotFoundError バッチジョブが見つからないエラー
-func ErrBatchJobNotFoundError(jobID uuid.UUID) *AccountingError {
+func ErrBatchJobNotFoundError(jobID string) *AccountingError {
 	return NewAccountingError(ErrBatchJobNotFound, "バッチジョブが見つかりません").
-		WithDetail("job_id", jobID.String())
+		WithDetail("job_id", jobID)
 }
 
 // ErrBatchJobAlreadyRunningError バッチジョブ実行中エラー
-func ErrBatchJobAlreadyRunningError(jobID uuid.UUID) *AccountingError {
+func ErrBatchJobAlreadyRunningError(jobID string) *AccountingError {
 	return NewAccountingError(ErrBatchJobAlreadyRunning, "バッチジョブは既に実行中です").
-		WithDetail("job_id", jobID.String())
+		WithDetail("job_id", jobID)
 }
 
 // スケジュール関連エラー関数
 
 // ErrScheduleNotFoundError スケジュールが見つからないエラー
-func ErrScheduleNotFoundError(scheduleID uuid.UUID) *AccountingError {
+func ErrScheduleNotFoundError(scheduleID string) *AccountingError {
 	return NewAccountingError(ErrScheduleNotFound, "スケジュールが見つかりません").
-		WithDetail("schedule_id", scheduleID.String())
+		WithDetail("schedule_id", scheduleID)
 }
 
 // ErrScheduleInvalidTimeError 無効なスケジュール時刻エラー

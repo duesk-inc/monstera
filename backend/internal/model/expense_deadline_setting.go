@@ -9,21 +9,21 @@ import (
 
 // ExpenseDeadlineSetting 経費申請期限設定モデル
 type ExpenseDeadlineSetting struct {
-	ID                  uuid.UUID  `gorm:"type:varchar(36);primary_key" json:"id"`
-	Scope               string     `gorm:"size:50;not null;default:'global'" json:"scope"`   // global, department, user
-	ScopeID             *uuid.UUID `gorm:"type:varchar(36)" json:"scope_id"`                 // 部門IDまたはユーザーID
-	DefaultDeadlineDays int        `gorm:"not null;default:30" json:"default_deadline_days"` // デフォルト期限日数
-	ReminderDaysBefore  int        `gorm:"not null;default:3" json:"reminder_days_before"`   // リマインダー送信日数（期限の何日前）
-	AutoExpireEnabled   bool       `gorm:"default:true" json:"auto_expire_enabled"`          // 自動期限切れ有効化
-	CreatedBy           uuid.UUID  `gorm:"type:varchar(36);not null" json:"created_by"`
-	CreatedAt           time.Time  `json:"created_at"`
-	UpdatedAt           time.Time  `json:"updated_at"`
+	ID                  string    `gorm:"type:varchar(255);primary_key" json:"id"`
+	Scope               string    `gorm:"size:50;not null;default:'global'" json:"scope"`   // global, department, user
+	ScopeID             *string   `gorm:"type:varchar(255)" json:"scope_id"`                // 部門IDまたはユーザーID
+	DefaultDeadlineDays int       `gorm:"not null;default:30" json:"default_deadline_days"` // デフォルト期限日数
+	ReminderDaysBefore  int       `gorm:"not null;default:3" json:"reminder_days_before"`   // リマインダー送信日数（期限の何日前）
+	AutoExpireEnabled   bool      `gorm:"default:true" json:"auto_expire_enabled"`          // 自動期限切れ有効化
+	CreatedBy           string    `gorm:"type:varchar(255);not null" json:"created_by"`
+	CreatedAt           time.Time `json:"created_at"`
+	UpdatedAt           time.Time `json:"updated_at"`
 }
 
 // BeforeCreate UUIDを生成
 func (e *ExpenseDeadlineSetting) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }

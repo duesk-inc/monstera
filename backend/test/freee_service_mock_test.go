@@ -16,33 +16,33 @@ type FreeeServiceInterface interface {
 	// OAuth認証
 	GenerateAuthURL(ctx context.Context, redirectURI string) (*FreeeAuthURLResponse, error)
 	ExchangeCodeForToken(ctx context.Context, req *FreeeOAuthRequest) (*FreeeOAuthResponse, error)
-	RefreshAccessToken(ctx context.Context, userID uuid.UUID) error
-	RevokeToken(ctx context.Context, userID uuid.UUID) error
+	RefreshAccessToken(ctx context.Context, userID string) error
+	RevokeToken(ctx context.Context, userID string) error
 
 	// 接続管理
-	GetConnectionStatus(ctx context.Context, userID uuid.UUID) (*FreeeConnectionStatusDTO, error)
-	TestConnection(ctx context.Context, userID uuid.UUID) (*FreeeConnectionTestResult, error)
+	GetConnectionStatus(ctx context.Context, userID string) (*FreeeConnectionStatusDTO, error)
+	TestConnection(ctx context.Context, userID string) (*FreeeConnectionTestResult, error)
 
 	// トークン管理
-	GetValidAccessToken(ctx context.Context, userID uuid.UUID) (string, error)
+	GetValidAccessToken(ctx context.Context, userID string) (string, error)
 	IsTokenExpired(tokenExpiresAt time.Time) bool
-	ScheduleTokenRefresh(ctx context.Context, userID uuid.UUID) error
+	ScheduleTokenRefresh(ctx context.Context, userID string) error
 
 	// 取引先管理
-	GetPartners(ctx context.Context, userID uuid.UUID) ([]*FreeePartnerDTO, error)
-	CreatePartner(ctx context.Context, userID uuid.UUID, req *CreateFreeePartnerRequest) (*FreeePartnerDTO, error)
-	UpdatePartner(ctx context.Context, userID uuid.UUID, partnerID int, req *UpdateFreeePartnerRequest) (*FreeePartnerDTO, error)
-	SyncPartner(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (*FreeePartnerDTO, error)
+	GetPartners(ctx context.Context, userID string) ([]*FreeePartnerDTO, error)
+	CreatePartner(ctx context.Context, userID string, req *CreateFreeePartnerRequest) (*FreeePartnerDTO, error)
+	UpdatePartner(ctx context.Context, userID string, partnerID int, req *UpdateFreeePartnerRequest) (*FreeePartnerDTO, error)
+	SyncPartner(ctx context.Context, userID string, clientID string) (*FreeePartnerDTO, error)
 
 	// 請求書管理
-	GetInvoices(ctx context.Context, userID uuid.UUID, from, to *time.Time) ([]*FreeeInvoiceDTO, error)
-	CreateInvoice(ctx context.Context, userID uuid.UUID, req *CreateFreeeInvoiceRequest) (*FreeeInvoiceDTO, error)
-	SyncInvoice(ctx context.Context, userID uuid.UUID, invoiceID uuid.UUID) (*FreeeInvoiceDTO, error)
+	GetInvoices(ctx context.Context, userID string, from, to *time.Time) ([]*FreeeInvoiceDTO, error)
+	CreateInvoice(ctx context.Context, userID string, req *CreateFreeeInvoiceRequest) (*FreeeInvoiceDTO, error)
+	SyncInvoice(ctx context.Context, userID string, invoiceID string) (*FreeeInvoiceDTO, error)
 
 	// データ同期
-	SyncAllData(ctx context.Context, userID uuid.UUID) (*FreeSyncResult, error)
-	SyncClients(ctx context.Context, userID uuid.UUID) (*FreeSyncResult, error)
-	ProcessBatchSync(ctx context.Context, userIDs []uuid.UUID) ([]*FreeBatchSyncResult, error)
+	SyncAllData(ctx context.Context, userID string) (*FreeSyncResult, error)
+	SyncClients(ctx context.Context, userID string) (*FreeSyncResult, error)
+	ProcessBatchSync(ctx context.Context, userIDs []string) ([]*FreeBatchSyncResult, error)
 }
 
 // DTO定義（テスト用）
@@ -150,7 +150,7 @@ type FreeSyncResult struct {
 }
 
 type FreeBatchSyncResult struct {
-	UserID         uuid.UUID
+	UserID         string
 	Success        bool
 	ProcessedCount int
 	SuccessCount   int
@@ -180,18 +180,18 @@ func (m *MockFreeeService) ExchangeCodeForToken(ctx context.Context, req *FreeeO
 	return args.Get(0).(*FreeeOAuthResponse), args.Error(1)
 }
 
-func (m *MockFreeeService) RefreshAccessToken(ctx context.Context, userID uuid.UUID) error {
+func (m *MockFreeeService) RefreshAccessToken(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
-func (m *MockFreeeService) RevokeToken(ctx context.Context, userID uuid.UUID) error {
+func (m *MockFreeeService) RevokeToken(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
 // 接続管理関連
-func (m *MockFreeeService) GetConnectionStatus(ctx context.Context, userID uuid.UUID) (*FreeeConnectionStatusDTO, error) {
+func (m *MockFreeeService) GetConnectionStatus(ctx context.Context, userID string) (*FreeeConnectionStatusDTO, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -199,7 +199,7 @@ func (m *MockFreeeService) GetConnectionStatus(ctx context.Context, userID uuid.
 	return args.Get(0).(*FreeeConnectionStatusDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) TestConnection(ctx context.Context, userID uuid.UUID) (*FreeeConnectionTestResult, error) {
+func (m *MockFreeeService) TestConnection(ctx context.Context, userID string) (*FreeeConnectionTestResult, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -208,7 +208,7 @@ func (m *MockFreeeService) TestConnection(ctx context.Context, userID uuid.UUID)
 }
 
 // トークン管理関連
-func (m *MockFreeeService) GetValidAccessToken(ctx context.Context, userID uuid.UUID) (string, error) {
+func (m *MockFreeeService) GetValidAccessToken(ctx context.Context, userID string) (string, error) {
 	args := m.Called(ctx, userID)
 	return args.String(0), args.Error(1)
 }
@@ -218,13 +218,13 @@ func (m *MockFreeeService) IsTokenExpired(tokenExpiresAt time.Time) bool {
 	return args.Bool(0)
 }
 
-func (m *MockFreeeService) ScheduleTokenRefresh(ctx context.Context, userID uuid.UUID) error {
+func (m *MockFreeeService) ScheduleTokenRefresh(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
 // 取引先管理関連
-func (m *MockFreeeService) GetPartners(ctx context.Context, userID uuid.UUID) ([]*FreeePartnerDTO, error) {
+func (m *MockFreeeService) GetPartners(ctx context.Context, userID string) ([]*FreeePartnerDTO, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -232,7 +232,7 @@ func (m *MockFreeeService) GetPartners(ctx context.Context, userID uuid.UUID) ([
 	return args.Get(0).([]*FreeePartnerDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) CreatePartner(ctx context.Context, userID uuid.UUID, req *CreateFreeePartnerRequest) (*FreeePartnerDTO, error) {
+func (m *MockFreeeService) CreatePartner(ctx context.Context, userID string, req *CreateFreeePartnerRequest) (*FreeePartnerDTO, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -240,7 +240,7 @@ func (m *MockFreeeService) CreatePartner(ctx context.Context, userID uuid.UUID, 
 	return args.Get(0).(*FreeePartnerDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) UpdatePartner(ctx context.Context, userID uuid.UUID, partnerID int, req *UpdateFreeePartnerRequest) (*FreeePartnerDTO, error) {
+func (m *MockFreeeService) UpdatePartner(ctx context.Context, userID string, partnerID int, req *UpdateFreeePartnerRequest) (*FreeePartnerDTO, error) {
 	args := m.Called(ctx, userID, partnerID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -248,7 +248,7 @@ func (m *MockFreeeService) UpdatePartner(ctx context.Context, userID uuid.UUID, 
 	return args.Get(0).(*FreeePartnerDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncPartner(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (*FreeePartnerDTO, error) {
+func (m *MockFreeeService) SyncPartner(ctx context.Context, userID string, clientID string) (*FreeePartnerDTO, error) {
 	args := m.Called(ctx, userID, clientID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -257,7 +257,7 @@ func (m *MockFreeeService) SyncPartner(ctx context.Context, userID uuid.UUID, cl
 }
 
 // 請求書管理関連
-func (m *MockFreeeService) GetInvoices(ctx context.Context, userID uuid.UUID, from, to *time.Time) ([]*FreeeInvoiceDTO, error) {
+func (m *MockFreeeService) GetInvoices(ctx context.Context, userID string, from, to *time.Time) ([]*FreeeInvoiceDTO, error) {
 	args := m.Called(ctx, userID, from, to)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -265,7 +265,7 @@ func (m *MockFreeeService) GetInvoices(ctx context.Context, userID uuid.UUID, fr
 	return args.Get(0).([]*FreeeInvoiceDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) CreateInvoice(ctx context.Context, userID uuid.UUID, req *CreateFreeeInvoiceRequest) (*FreeeInvoiceDTO, error) {
+func (m *MockFreeeService) CreateInvoice(ctx context.Context, userID string, req *CreateFreeeInvoiceRequest) (*FreeeInvoiceDTO, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -273,7 +273,7 @@ func (m *MockFreeeService) CreateInvoice(ctx context.Context, userID uuid.UUID, 
 	return args.Get(0).(*FreeeInvoiceDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncInvoice(ctx context.Context, userID uuid.UUID, invoiceID uuid.UUID) (*FreeeInvoiceDTO, error) {
+func (m *MockFreeeService) SyncInvoice(ctx context.Context, userID string, invoiceID string) (*FreeeInvoiceDTO, error) {
 	args := m.Called(ctx, userID, invoiceID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -282,7 +282,7 @@ func (m *MockFreeeService) SyncInvoice(ctx context.Context, userID uuid.UUID, in
 }
 
 // データ同期関連
-func (m *MockFreeeService) SyncAllData(ctx context.Context, userID uuid.UUID) (*FreeSyncResult, error) {
+func (m *MockFreeeService) SyncAllData(ctx context.Context, userID string) (*FreeSyncResult, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -290,7 +290,7 @@ func (m *MockFreeeService) SyncAllData(ctx context.Context, userID uuid.UUID) (*
 	return args.Get(0).(*FreeSyncResult), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncClients(ctx context.Context, userID uuid.UUID) (*FreeSyncResult, error) {
+func (m *MockFreeeService) SyncClients(ctx context.Context, userID string) (*FreeSyncResult, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -298,7 +298,7 @@ func (m *MockFreeeService) SyncClients(ctx context.Context, userID uuid.UUID) (*
 	return args.Get(0).(*FreeSyncResult), args.Error(1)
 }
 
-func (m *MockFreeeService) ProcessBatchSync(ctx context.Context, userIDs []uuid.UUID) ([]*FreeBatchSyncResult, error) {
+func (m *MockFreeeService) ProcessBatchSync(ctx context.Context, userIDs []string) ([]*FreeBatchSyncResult, error) {
 	args := m.Called(ctx, userIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -313,7 +313,7 @@ var _ FreeeServiceInterface = (*MockFreeeService)(nil)
 func TestFreeeService_OAuthFlow(t *testing.T) {
 	ctx := context.Background()
 	mockService := &MockFreeeService{}
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	t.Run("OAuth URL生成", func(t *testing.T) {
 		expectedResponse := &FreeeAuthURLResponse{
@@ -378,7 +378,7 @@ func TestFreeeService_OAuthFlow(t *testing.T) {
 func TestFreeeService_ConnectionManagement(t *testing.T) {
 	ctx := context.Background()
 	mockService := &MockFreeeService{}
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	t.Run("接続状態確認", func(t *testing.T) {
 		expectedStatus := &FreeeConnectionStatusDTO{
@@ -429,8 +429,8 @@ func TestFreeeService_ConnectionManagement(t *testing.T) {
 func TestFreeeService_PartnerSync(t *testing.T) {
 	ctx := context.Background()
 	mockService := &MockFreeeService{}
-	userID := uuid.New()
-	clientID := uuid.New()
+	userID := uuid.New().String()
+	clientID := uuid.New().String()
 
 	t.Run("取引先一覧取得", func(t *testing.T) {
 		expectedPartners := []*FreeePartnerDTO{
@@ -528,8 +528,8 @@ func TestFreeeService_PartnerSync(t *testing.T) {
 func TestFreeeService_InvoiceSync(t *testing.T) {
 	ctx := context.Background()
 	mockService := &MockFreeeService{}
-	userID := uuid.New()
-	invoiceID := uuid.New()
+	userID := uuid.New().String()
+	invoiceID := uuid.New().String()
 
 	t.Run("請求書一覧取得", func(t *testing.T) {
 		from := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -632,7 +632,7 @@ func TestFreeeService_InvoiceSync(t *testing.T) {
 func TestFreeeService_BatchSync(t *testing.T) {
 	ctx := context.Background()
 	mockService := &MockFreeeService{}
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	t.Run("全データ同期", func(t *testing.T) {
 		expectedResult := &FreeSyncResult{
@@ -691,7 +691,7 @@ func TestFreeeService_BatchSync(t *testing.T) {
 	})
 
 	t.Run("複数ユーザーのバッチ同期", func(t *testing.T) {
-		userIDs := []uuid.UUID{uuid.New(), uuid.New(), uuid.New()}
+		userIDs := []string{uuid.New().String(), uuid.New().String(), uuid.New().String()}
 
 		expectedResults := []*FreeBatchSyncResult{
 			{
@@ -738,7 +738,7 @@ func TestFreeeService_BatchSync(t *testing.T) {
 func TestFreeeService_TokenManagement(t *testing.T) {
 	ctx := context.Background()
 	mockService := &MockFreeeService{}
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	t.Run("有効なアクセストークン取得", func(t *testing.T) {
 		expectedToken := "valid-access-token"

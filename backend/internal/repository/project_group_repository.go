@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -15,31 +14,31 @@ import (
 type ProjectGroupRepositoryInterface interface {
 	// プロジェクトグループCRUD
 	Create(ctx context.Context, group *model.ProjectGroup) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.ProjectGroup, error)
-	GetByIDWithDetails(ctx context.Context, id uuid.UUID) (*model.ProjectGroup, error)
+	GetByID(ctx context.Context, id string) (*model.ProjectGroup, error)
+	GetByIDWithDetails(ctx context.Context, id string) (*model.ProjectGroup, error)
 	Update(ctx context.Context, group *model.ProjectGroup) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 
 	// プロジェクトグループ検索
-	List(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroup, error)
-	ListWithStats(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroupWithProjects, error)
-	Count(ctx context.Context, clientID *uuid.UUID) (int64, error)
-	Search(ctx context.Context, query string, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroup, error)
+	List(ctx context.Context, clientID *string, limit, offset int) ([]*model.ProjectGroup, error)
+	ListWithStats(ctx context.Context, clientID *string, limit, offset int) ([]*model.ProjectGroupWithProjects, error)
+	Count(ctx context.Context, clientID *string) (int64, error)
+	Search(ctx context.Context, query string, clientID *string, limit, offset int) ([]*model.ProjectGroup, error)
 
 	// プロジェクトマッピング管理
-	AddProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error
-	RemoveProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error
-	GetProjectsByGroupID(ctx context.Context, groupID uuid.UUID) ([]*model.Project, error)
-	GetGroupsByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.ProjectGroup, error)
+	AddProjects(ctx context.Context, groupID string, projectIDs []string) error
+	RemoveProjects(ctx context.Context, groupID string, projectIDs []string) error
+	GetProjectsByGroupID(ctx context.Context, groupID string) ([]*model.Project, error)
+	GetGroupsByProjectID(ctx context.Context, projectID string) ([]*model.ProjectGroup, error)
 
 	// 統計情報
-	GetStats(ctx context.Context, clientID *uuid.UUID) (*model.ProjectGroupStats, error)
-	GetGroupRevenue(ctx context.Context, groupID uuid.UUID, startDate, endDate string) (float64, error)
+	GetStats(ctx context.Context, clientID *string) (*model.ProjectGroupStats, error)
+	GetGroupRevenue(ctx context.Context, groupID string, startDate, endDate string) (float64, error)
 
 	// バリデーション
-	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
-	ExistsByName(ctx context.Context, name string, clientID uuid.UUID, excludeID *uuid.UUID) (bool, error)
-	CanAddProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error
+	ExistsByID(ctx context.Context, id string) (bool, error)
+	ExistsByName(ctx context.Context, name string, clientID string, excludeID *string) (bool, error)
+	CanAddProjects(ctx context.Context, groupID string, projectIDs []string) error
 }
 
 // projectGroupRepository プロジェクトグループリポジトリ実装
@@ -66,7 +65,7 @@ func (r *projectGroupRepository) Create(ctx context.Context, group *model.Projec
 }
 
 // GetByID IDでプロジェクトグループを取得
-func (r *projectGroupRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.ProjectGroup, error) {
+func (r *projectGroupRepository) GetByID(ctx context.Context, id string) (*model.ProjectGroup, error) {
 	var group model.ProjectGroup
 	err := r.db.WithContext(ctx).
 		Where("id = ? AND deleted_at IS NULL", id).
@@ -76,7 +75,7 @@ func (r *projectGroupRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
-		r.logger.Error("Failed to get project group by ID", zap.Error(err), zap.String("id", id.String()))
+		r.logger.Error("Failed to get project group by ID", zap.Error(err), zap.String("id", id))
 		return nil, fmt.Errorf("プロジェクトグループの取得に失敗しました: %w", err)
 	}
 
@@ -84,7 +83,7 @@ func (r *projectGroupRepository) GetByID(ctx context.Context, id uuid.UUID) (*mo
 }
 
 // GetByIDWithDetails 詳細情報付きでプロジェクトグループを取得
-func (r *projectGroupRepository) GetByIDWithDetails(ctx context.Context, id uuid.UUID) (*model.ProjectGroup, error) {
+func (r *projectGroupRepository) GetByIDWithDetails(ctx context.Context, id string) (*model.ProjectGroup, error) {
 	var group model.ProjectGroup
 	err := r.db.WithContext(ctx).
 		Preload("Client").
@@ -99,7 +98,7 @@ func (r *projectGroupRepository) GetByIDWithDetails(ctx context.Context, id uuid
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
-		r.logger.Error("Failed to get project group with details", zap.Error(err), zap.String("id", id.String()))
+		r.logger.Error("Failed to get project group with details", zap.Error(err), zap.String("id", id))
 		return nil, fmt.Errorf("プロジェクトグループの詳細取得に失敗しました: %w", err)
 	}
 
@@ -114,7 +113,7 @@ func (r *projectGroupRepository) Update(ctx context.Context, group *model.Projec
 		Updates(group)
 
 	if result.Error != nil {
-		r.logger.Error("Failed to update project group", zap.Error(result.Error), zap.String("id", group.ID.String()))
+		r.logger.Error("Failed to update project group", zap.Error(result.Error), zap.String("id", group.ID))
 		return fmt.Errorf("プロジェクトグループの更新に失敗しました: %w", result.Error)
 	}
 
@@ -126,13 +125,13 @@ func (r *projectGroupRepository) Update(ctx context.Context, group *model.Projec
 }
 
 // Delete プロジェクトグループを論理削除
-func (r *projectGroupRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *projectGroupRepository) Delete(ctx context.Context, id string) error {
 	result := r.db.WithContext(ctx).
 		Where("id = ?", id).
 		Delete(&model.ProjectGroup{})
 
 	if result.Error != nil {
-		r.logger.Error("Failed to delete project group", zap.Error(result.Error), zap.String("id", id.String()))
+		r.logger.Error("Failed to delete project group", zap.Error(result.Error), zap.String("id", id))
 		return fmt.Errorf("プロジェクトグループの削除に失敗しました: %w", result.Error)
 	}
 
@@ -144,7 +143,7 @@ func (r *projectGroupRepository) Delete(ctx context.Context, id uuid.UUID) error
 }
 
 // List プロジェクトグループ一覧を取得
-func (r *projectGroupRepository) List(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroup, error) {
+func (r *projectGroupRepository) List(ctx context.Context, clientID *string, limit, offset int) ([]*model.ProjectGroup, error) {
 	var groups []*model.ProjectGroup
 	query := r.db.WithContext(ctx).
 		Preload("Client").
@@ -169,7 +168,7 @@ func (r *projectGroupRepository) List(ctx context.Context, clientID *uuid.UUID, 
 }
 
 // ListWithStats 統計情報付きでプロジェクトグループ一覧を取得
-func (r *projectGroupRepository) ListWithStats(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroupWithProjects, error) {
+func (r *projectGroupRepository) ListWithStats(ctx context.Context, clientID *string, limit, offset int) ([]*model.ProjectGroupWithProjects, error) {
 	var groups []*model.ProjectGroup
 	query := r.db.WithContext(ctx).
 		Preload("Client").
@@ -219,7 +218,7 @@ func (r *projectGroupRepository) ListWithStats(ctx context.Context, clientID *uu
 }
 
 // Count プロジェクトグループ数を取得
-func (r *projectGroupRepository) Count(ctx context.Context, clientID *uuid.UUID) (int64, error) {
+func (r *projectGroupRepository) Count(ctx context.Context, clientID *string) (int64, error) {
 	var count int64
 	query := r.db.WithContext(ctx).
 		Model(&model.ProjectGroup{}).
@@ -239,7 +238,7 @@ func (r *projectGroupRepository) Count(ctx context.Context, clientID *uuid.UUID)
 }
 
 // Search プロジェクトグループを検索
-func (r *projectGroupRepository) Search(ctx context.Context, query string, clientID *uuid.UUID, limit, offset int) ([]*model.ProjectGroup, error) {
+func (r *projectGroupRepository) Search(ctx context.Context, query string, clientID *string, limit, offset int) ([]*model.ProjectGroup, error) {
 	var groups []*model.ProjectGroup
 	db := r.db.WithContext(ctx).
 		Preload("Client").
@@ -269,7 +268,7 @@ func (r *projectGroupRepository) Search(ctx context.Context, query string, clien
 }
 
 // AddProjects プロジェクトをグループに追加
-func (r *projectGroupRepository) AddProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (r *projectGroupRepository) AddProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	// トランザクション内で処理
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// グループの存在確認
@@ -312,7 +311,7 @@ func (r *projectGroupRepository) AddProjects(ctx context.Context, groupID uuid.U
 }
 
 // RemoveProjects プロジェクトをグループから削除
-func (r *projectGroupRepository) RemoveProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (r *projectGroupRepository) RemoveProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	result := r.db.WithContext(ctx).
 		Where("project_group_id = ? AND project_id IN ?", groupID, projectIDs).
 		Delete(&model.ProjectGroupMapping{})
@@ -326,7 +325,7 @@ func (r *projectGroupRepository) RemoveProjects(ctx context.Context, groupID uui
 }
 
 // GetProjectsByGroupID グループIDでプロジェクトを取得
-func (r *projectGroupRepository) GetProjectsByGroupID(ctx context.Context, groupID uuid.UUID) ([]*model.Project, error) {
+func (r *projectGroupRepository) GetProjectsByGroupID(ctx context.Context, groupID string) ([]*model.Project, error) {
 	var projects []*model.Project
 	err := r.db.WithContext(ctx).
 		Joins("JOIN project_group_mappings ON projects.id = project_group_mappings.project_id").
@@ -343,7 +342,7 @@ func (r *projectGroupRepository) GetProjectsByGroupID(ctx context.Context, group
 }
 
 // GetGroupsByProjectID プロジェクトIDでグループを取得
-func (r *projectGroupRepository) GetGroupsByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.ProjectGroup, error) {
+func (r *projectGroupRepository) GetGroupsByProjectID(ctx context.Context, projectID string) ([]*model.ProjectGroup, error) {
 	var groups []*model.ProjectGroup
 	err := r.db.WithContext(ctx).
 		Joins("JOIN project_group_mappings ON project_groups.id = project_group_mappings.project_group_id").
@@ -360,7 +359,7 @@ func (r *projectGroupRepository) GetGroupsByProjectID(ctx context.Context, proje
 }
 
 // GetStats 統計情報を取得
-func (r *projectGroupRepository) GetStats(ctx context.Context, clientID *uuid.UUID) (*model.ProjectGroupStats, error) {
+func (r *projectGroupRepository) GetStats(ctx context.Context, clientID *string) (*model.ProjectGroupStats, error) {
 	stats := &model.ProjectGroupStats{}
 
 	// 基本クエリ
@@ -427,7 +426,7 @@ func (r *projectGroupRepository) GetStats(ctx context.Context, clientID *uuid.UU
 }
 
 // GetGroupRevenue グループの収益を取得
-func (r *projectGroupRepository) GetGroupRevenue(ctx context.Context, groupID uuid.UUID, startDate, endDate string) (float64, error) {
+func (r *projectGroupRepository) GetGroupRevenue(ctx context.Context, groupID string, startDate, endDate string) (float64, error) {
 	var revenue float64
 
 	query := r.db.WithContext(ctx).
@@ -449,7 +448,7 @@ func (r *projectGroupRepository) GetGroupRevenue(ctx context.Context, groupID uu
 }
 
 // ExistsByID IDでプロジェクトグループの存在を確認
-func (r *projectGroupRepository) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (r *projectGroupRepository) ExistsByID(ctx context.Context, id string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ProjectGroup{}).
@@ -465,7 +464,7 @@ func (r *projectGroupRepository) ExistsByID(ctx context.Context, id uuid.UUID) (
 }
 
 // ExistsByName 名前でプロジェクトグループの存在を確認
-func (r *projectGroupRepository) ExistsByName(ctx context.Context, name string, clientID uuid.UUID, excludeID *uuid.UUID) (bool, error) {
+func (r *projectGroupRepository) ExistsByName(ctx context.Context, name string, clientID string, excludeID *string) (bool, error) {
 	var count int64
 	query := r.db.WithContext(ctx).
 		Model(&model.ProjectGroup{}).
@@ -485,7 +484,7 @@ func (r *projectGroupRepository) ExistsByName(ctx context.Context, name string, 
 }
 
 // CanAddProjects プロジェクトを追加可能か確認
-func (r *projectGroupRepository) CanAddProjects(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (r *projectGroupRepository) CanAddProjects(ctx context.Context, groupID string, projectIDs []string) error {
 	// グループの存在確認
 	var group model.ProjectGroup
 	err := r.db.WithContext(ctx).

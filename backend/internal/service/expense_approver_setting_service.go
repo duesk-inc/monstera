@@ -7,7 +7,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -18,12 +17,12 @@ type ExpenseApproverSettingService interface {
 	CreateApproverSetting(ctx context.Context, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error)
 	GetApproverSettings(ctx context.Context) (*dto.ExpenseApproverSettingsResponse, error)
 	GetApproverSettingsByType(ctx context.Context, approvalType string) (*dto.ExpenseApproverSettingsResponse, error)
-	UpdateApproverSetting(ctx context.Context, settingID uuid.UUID, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error)
-	DeleteApproverSetting(ctx context.Context, settingID uuid.UUID, userID string) error
+	UpdateApproverSetting(ctx context.Context, settingID string, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error)
+	DeleteApproverSetting(ctx context.Context, settingID string, userID string) error
 
 	// 履歴管理
 	GetApproverSettingHistories(ctx context.Context, page, limit int) (*dto.ExpenseApproverSettingHistoriesResponse, error)
-	GetApproverSettingHistoryByID(ctx context.Context, settingID uuid.UUID) (*dto.ExpenseApproverSettingHistoriesResponse, error)
+	GetApproverSettingHistoryByID(ctx context.Context, settingID string) (*dto.ExpenseApproverSettingHistoriesResponse, error)
 
 	// 承認者取得（承認フロー作成用）
 	GetActiveApprovers(ctx context.Context, approvalType model.ApprovalType) ([]string, error)
@@ -183,7 +182,7 @@ func (s *expenseApproverSettingService) GetApproverSettingsByType(ctx context.Co
 }
 
 // UpdateApproverSetting 承認者設定を更新
-func (s *expenseApproverSettingService) UpdateApproverSetting(ctx context.Context, settingID uuid.UUID, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error) {
+func (s *expenseApproverSettingService) UpdateApproverSetting(ctx context.Context, settingID string, userID string, req *dto.ExpenseApproverSettingRequest) (*model.ExpenseApproverSetting, error) {
 	// 既存の設定を取得
 	setting, err := s.settingRepo.GetByID(ctx, settingID)
 	if err != nil {
@@ -197,7 +196,7 @@ func (s *expenseApproverSettingService) UpdateApproverSetting(ctx context.Contex
 	// 変更前の値を記録
 	oldValue := map[string]interface{}{
 		"approval_type": string(setting.ApprovalType),
-		"approver_id":   setting.ApproverID.String(),
+		"approver_id":   setting.ApproverID,
 		"is_active":     setting.IsActive,
 		"priority":      setting.Priority,
 	}
@@ -260,7 +259,7 @@ func (s *expenseApproverSettingService) UpdateApproverSetting(ctx context.Contex
 			OldValue:     oldValue,
 			NewValue: map[string]interface{}{
 				"approval_type": string(setting.ApprovalType),
-				"approver_id":   setting.ApproverID.String(),
+				"approver_id":   setting.ApproverID,
 				"is_active":     setting.IsActive,
 				"priority":      setting.Priority,
 			},
@@ -289,7 +288,7 @@ func (s *expenseApproverSettingService) UpdateApproverSetting(ctx context.Contex
 }
 
 // DeleteApproverSetting 承認者設定を削除
-func (s *expenseApproverSettingService) DeleteApproverSetting(ctx context.Context, settingID uuid.UUID, userID string) error {
+func (s *expenseApproverSettingService) DeleteApproverSetting(ctx context.Context, settingID string, userID string) error {
 	// 既存の設定を取得
 	setting, err := s.settingRepo.GetByID(ctx, settingID)
 	if err != nil {
@@ -314,7 +313,7 @@ func (s *expenseApproverSettingService) DeleteApproverSetting(ctx context.Contex
 			ChangedBy:    userID,
 			OldValue: map[string]interface{}{
 				"approval_type": string(setting.ApprovalType),
-				"approver_id":   setting.ApproverID.String(),
+				"approver_id":   setting.ApproverID,
 				"is_active":     setting.IsActive,
 				"priority":      setting.Priority,
 			},
@@ -360,7 +359,7 @@ func (s *expenseApproverSettingService) GetApproverSettingHistories(ctx context.
 }
 
 // GetApproverSettingHistoryByID 特定の設定の履歴を取得
-func (s *expenseApproverSettingService) GetApproverSettingHistoryByID(ctx context.Context, settingID uuid.UUID) (*dto.ExpenseApproverSettingHistoriesResponse, error) {
+func (s *expenseApproverSettingService) GetApproverSettingHistoryByID(ctx context.Context, settingID string) (*dto.ExpenseApproverSettingHistoriesResponse, error) {
 	histories, err := s.settingRepo.GetHistories(ctx, settingID)
 	if err != nil {
 		s.logger.Error("Failed to get approver setting history", zap.Error(err))
@@ -399,7 +398,7 @@ func (s *expenseApproverSettingService) GetActiveApprovers(ctx context.Context, 
 		s.logger.Warn("No active approvers found for approval type",
 			zap.String("approval_type", string(approvalType)))
 		// デフォルトの承認者IDを返す（実装に応じて変更）
-		// return []string{uuid.MustParse("00000000-0000-0000-0000-000000000001")}, nil
+		// return []string{"00000000-0000-0000-0000-000000000001"}, nil
 	}
 
 	return approverIDs, nil

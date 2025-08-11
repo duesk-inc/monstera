@@ -4,12 +4,11 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // EngineerSummaryDTO エンジニア一覧表示用DTO
 type EngineerSummaryDTO struct {
-	ID             string `json:"id"`
+	ID             string    `json:"id"`
 	EmployeeNumber string    `json:"employeeNumber"`
 	Email          string    `json:"email"`
 	FullName       string    `json:"fullName"`
@@ -24,7 +23,7 @@ type EngineerSummaryDTO struct {
 
 // EngineerDTO エンジニア基本情報DTO
 type EngineerDTO struct {
-	ID             uuid.UUID  `json:"id"`
+	ID             string     `json:"id"`
 	EmployeeNumber string     `json:"employeeNumber"`
 	Email          string     `json:"email"`
 	FirstName      string     `json:"firstName"`
@@ -41,8 +40,8 @@ type EngineerDTO struct {
 	Education      *string    `json:"education"`
 	PhoneNumber    *string    `json:"phoneNumber"`
 	EngineerStatus string     `json:"engineerStatus"`
-	DepartmentID   *uuid.UUID `json:"departmentId"`
-	ManagerID      *uuid.UUID `json:"managerId"`
+	DepartmentID   *string    `json:"departmentId"`
+	ManagerID      *string    `json:"managerId"`
 	CreatedAt      time.Time  `json:"createdAt"`
 	UpdatedAt      time.Time  `json:"updatedAt"`
 }
@@ -57,21 +56,21 @@ type EngineerDetailDTO struct {
 
 // EngineerStatusHistoryDTO ステータス履歴DTO
 type EngineerStatusHistoryDTO struct {
-	ID             string `json:"id"`
-	UserID string `json:"userId"`
+	ID             string    `json:"id"`
+	UserID         string    `json:"userId"`
 	PreviousStatus *string   `json:"previousStatus"`
 	NewStatus      string    `json:"newStatus"`
 	Reason         string    `json:"reason"`
-	ChangedBy      string `json:"changedBy"`
+	ChangedBy      string    `json:"changedBy"`
 	ChangedAt      time.Time `json:"changedAt"`
 	CreatedAt      time.Time `json:"createdAt"`
 }
 
 // EngineerSkillDTO スキル情報DTO
 type EngineerSkillDTO struct {
-	ID              uuid.UUID                 `json:"id"`
-	UserID string                 `json:"userId"`
-	SkillCategoryID uuid.UUID                 `json:"skillCategoryId"`
+	ID              string                    `json:"id"`
+	UserID          string                    `json:"userId"`
+	SkillCategoryID string                    `json:"skillCategoryId"`
 	SkillName       string                    `json:"skillName"`
 	SkillLevel      int                       `json:"skillLevel"`
 	Experience      *string                   `json:"experience"`
@@ -83,20 +82,20 @@ type EngineerSkillDTO struct {
 
 // EngineerSkillCategoryDTO スキルカテゴリDTO
 type EngineerSkillCategoryDTO struct {
-	ID          uuid.UUID  `json:"id"`
-	Name        string     `json:"name"`
-	Description *string    `json:"description"`
-	ParentID    *uuid.UUID `json:"parentId"`
-	SortOrder   int        `json:"sortOrder"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Description *string   `json:"description"`
+	ParentID    *string   `json:"parentId"`
+	SortOrder   int       `json:"sortOrder"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 // EngineerProjectHistoryDTO プロジェクト履歴DTO
 type EngineerProjectHistoryDTO struct {
-	ID          uuid.UUID  `json:"id"`
-	UserID string  `json:"userId"`
-	ProjectID   uuid.UUID  `json:"projectId"`
+	ID          string     `json:"id"`
+	UserID      string     `json:"userId"`
+	ProjectID   string     `json:"projectId"`
 	Role        string     `json:"role"`
 	StartDate   time.Time  `json:"startDate"`
 	EndDate     *time.Time `json:"endDate"`
@@ -130,8 +129,8 @@ type CreateEngineerRequestDTO struct {
 	HireDate      *time.Time `json:"hireDate"`
 	Education     *string    `json:"education"`
 	PhoneNumber   *string    `json:"phoneNumber"`
-	DepartmentID  *uuid.UUID `json:"departmentId"`
-	ManagerID     *uuid.UUID `json:"managerId"`
+	DepartmentID  *string    `json:"departmentId"`
+	ManagerID     *string    `json:"managerId"`
 }
 
 // UpdateEngineerRequestDTO エンジニア更新リクエストDTO
@@ -150,8 +149,8 @@ type UpdateEngineerRequestDTO struct {
 	Education     *string    `json:"education"`
 	PhoneNumber   *string    `json:"phoneNumber"`
 	Email         *string    `json:"email"`
-	DepartmentID  *uuid.UUID `json:"departmentId"`
-	ManagerID     *uuid.UUID `json:"managerId"`
+	DepartmentID  *string    `json:"departmentId"`
+	ManagerID     *string    `json:"managerId"`
 }
 
 // UpdateEngineerStatusRequestDTO ステータス更新リクエストDTO
@@ -221,7 +220,7 @@ func UserToEngineerDTO(user *model.User) EngineerDTO {
 // StatusHistoryToDTO EngineerStatusHistoryモデルからDTOへ変換
 func StatusHistoryToDTO(history *model.EngineerStatusHistory) EngineerStatusHistoryDTO {
 	return EngineerStatusHistoryDTO{
-		ID:             history.ID.String(),
+		ID:             history.ID,
 		UserID:         history.UserID,
 		PreviousStatus: history.PreviousStatus,
 		NewStatus:      history.NewStatus,
@@ -283,22 +282,16 @@ func ProjectHistoryToDTO(history *model.EngineerProjectHistory) EngineerProjectH
 }
 
 // parseStringToUUID string型のIDをuuid.UUIDポインタに変換するヘルパー関数
-func parseStringToUUID(id *string) *uuid.UUID {
+func parseStringToUUID(id *string) *string {
 	if id == nil || *id == "" {
 		return nil
 	}
-	parsed, err := uuid.Parse(*id)
-	if err != nil {
-		return nil
-	}
+	parsed := *id
 	return &parsed
 }
 
 // parseStringToUUIDS string型のIDをuuid.UUIDに変換するヘルパー関数
-func parseStringToUUIDS(id string) uuid.UUID {
-	parsed, err := uuid.Parse(id)
-	if err != nil {
-		return uuid.Nil
-	}
+func parseStringToUUIDS(id string) string {
+	parsed := id
 	return parsed
 }

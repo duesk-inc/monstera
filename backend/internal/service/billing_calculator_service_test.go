@@ -21,12 +21,12 @@ type MockWorkRecordRepository struct {
 	mock.Mock
 }
 
-func (m *MockWorkRecordRepository) FindByUserAndProject(ctx context.Context, userID, projectID uuid.UUID, startDate, endDate time.Time) ([]*model.WorkRecord, error) {
+func (m *MockWorkRecordRepository) FindByUserAndProject(ctx context.Context, userID, projectID string, startDate, endDate time.Time) ([]*model.WorkRecord, error) {
 	args := m.Called(ctx, userID, projectID, startDate, endDate)
 	return args.Get(0).([]*model.WorkRecord), args.Error(1)
 }
 
-func (m *MockWorkRecordRepository) FindByDate(ctx context.Context, userID, projectID uuid.UUID, date time.Time) (*model.WorkRecord, error) {
+func (m *MockWorkRecordRepository) FindByDate(ctx context.Context, userID, projectID string, date time.Time) (*model.WorkRecord, error) {
 	args := m.Called(ctx, userID, projectID, date)
 	return args.Get(0).(*model.WorkRecord), args.Error(1)
 }
@@ -46,7 +46,7 @@ type MockProjectAssignmentRepositoryForCalculator struct {
 	mock.Mock
 }
 
-func (m *MockProjectAssignmentRepositoryForCalculator) FindByUserAndProject(ctx context.Context, userID, projectID uuid.UUID) (*model.ProjectAssignment, error) {
+func (m *MockProjectAssignmentRepositoryForCalculator) FindByUserAndProject(ctx context.Context, userID, projectID string) (*model.ProjectAssignment, error) {
 	args := m.Called(ctx, userID, projectID)
 	return args.Get(0).(*model.ProjectAssignment), args.Error(1)
 }
@@ -76,8 +76,8 @@ func TestCalculateActualHours_Normal(t *testing.T) {
 	service, workRecordRepo, holidayRepo, _ := setupBillingCalculatorService()
 
 	ctx := context.Background()
-	userID := uuid.New()
-	projectID := uuid.New()
+	userID := uuid.New().String()
+	projectID := uuid.New().String()
 	year, month := 2024, 1
 
 	// テストデータ: 平日8時間勤務x5日
@@ -130,8 +130,8 @@ func TestCalculateActualHours_WithOvertime(t *testing.T) {
 	service, workRecordRepo, holidayRepo, _ := setupBillingCalculatorService()
 
 	ctx := context.Background()
-	userID := uuid.New()
-	projectID := uuid.New()
+	userID := uuid.New().String()
+	projectID := uuid.New().String()
 	year, month := 2024, 1
 
 	// テストデータ: 10時間勤務（残業2時間）
@@ -163,8 +163,8 @@ func TestCalculateActualHours_WeekendAndHoliday(t *testing.T) {
 	service, workRecordRepo, holidayRepo, _ := setupBillingCalculatorService()
 
 	ctx := context.Background()
-	userID := uuid.New()
-	projectID := uuid.New()
+	userID := uuid.New().String()
+	projectID := uuid.New().String()
 	year, month := 2024, 1
 
 	// テストデータ: 土曜日と祝日の勤務
@@ -444,8 +444,8 @@ func TestCalculateActualHours_WorkRecordError(t *testing.T) {
 	service, workRecordRepo, _, _ := setupBillingCalculatorService()
 
 	ctx := context.Background()
-	userID := uuid.New()
-	projectID := uuid.New()
+	userID := uuid.New().String()
+	projectID := uuid.New().String()
 	year, month := 2024, 1
 
 	workRecordRepo.On("FindByUserAndProject", ctx, userID, projectID, mock.AnythingOfType("time.Time"), mock.AnythingOfType("time.Time")).Return([]*model.WorkRecord{}, assert.AnError)
@@ -461,8 +461,8 @@ func TestCalculateDailyHours_Success(t *testing.T) {
 	service, workRecordRepo, _, _ := setupBillingCalculatorService()
 
 	ctx := context.Background()
-	userID := uuid.New()
-	projectID := uuid.New()
+	userID := uuid.New().String()
+	projectID := uuid.New().String()
 	date := time.Date(2024, 1, 8, 0, 0, 0, 0, time.UTC)
 
 	startTime := time.Date(2024, 1, 8, 9, 0, 0, 0, time.UTC)
@@ -487,8 +487,8 @@ func TestCalculateDailyHours_NoRecord(t *testing.T) {
 	service, workRecordRepo, _, _ := setupBillingCalculatorService()
 
 	ctx := context.Background()
-	userID := uuid.New()
-	projectID := uuid.New()
+	userID := uuid.New().String()
+	projectID := uuid.New().String()
 	date := time.Date(2024, 1, 8, 0, 0, 0, 0, time.UTC)
 
 	workRecordRepo.On("FindByDate", ctx, userID, projectID, date).Return((*model.WorkRecord)(nil), nil)
@@ -578,8 +578,8 @@ func BenchmarkCalculateActualHours(b *testing.B) {
 	service, workRecordRepo, holidayRepo, _ := setupBillingCalculatorService()
 
 	ctx := context.Background()
-	userID := uuid.New()
-	projectID := uuid.New()
+	userID := uuid.New().String()
+	projectID := uuid.New().String()
 	year, month := 2024, 1
 
 	// 1ヶ月分のサンプルデータを作成

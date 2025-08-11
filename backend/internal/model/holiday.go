@@ -23,7 +23,7 @@ const (
 
 // Holiday は休日設定を表すモデルです
 type Holiday struct {
-	ID          uuid.UUID   `gorm:"primaryKey;type:varchar(36)" json:"id"`
+	ID          string      `gorm:"primaryKey;type:varchar(36)" json:"id"`
 	Date        time.Time   `gorm:"not null;index:idx_holiday_date" json:"date"` // エイリアスフィールド
 	HolidayDate time.Time   `gorm:"not null;index:idx_holiday_date" json:"holiday_date"`
 	HolidayName string      `gorm:"type:varchar(100);not null" json:"holiday_name"`
@@ -31,7 +31,7 @@ type Holiday struct {
 	Description string      `gorm:"type:text" json:"description"`
 	IsRecurring bool        `gorm:"default:false" json:"is_recurring"`  // 毎年繰り返すかどうか
 	AppliesTo   string      `gorm:"type:varchar(50)" json:"applies_to"` // 適用対象（all, specific_dept, specific_projectなど）
-	CreatedBy   uuid.UUID   `gorm:"type:varchar(36)" json:"created_by"`
+	CreatedBy   string      `gorm:"type:varchar(36)" json:"created_by"`
 	CreatedAt   time.Time   `json:"created_at"`
 	UpdatedAt   time.Time   `json:"updated_at"`
 	DeletedAt   *time.Time  `gorm:"index" json:"deleted_at"`
@@ -44,8 +44,8 @@ func (Holiday) TableName() string {
 
 // BeforeCreate UUIDを生成
 func (h *Holiday) BeforeCreate(tx *gorm.DB) error {
-	if h.ID == uuid.Nil {
-		h.ID = uuid.New()
+	if h.ID == "" {
+		h.ID = uuid.New().String()
 	}
 	return nil
 }

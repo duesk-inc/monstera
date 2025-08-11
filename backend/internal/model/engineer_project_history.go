@@ -10,9 +10,9 @@ import (
 
 // EngineerProjectHistory エンジニアプロジェクト履歴
 type EngineerProjectHistory struct {
-	ID        uuid.UUID  `gorm:"type:varchar(255);primaryKey" json:"id"`
-	UserID string  `gorm:"type:varchar(255);not null" json:"user_id"`
-	ProjectID uuid.UUID  `gorm:"type:varchar(255);not null" json:"project_id"`
+	ID        string     `gorm:"type:varchar(255);primaryKey" json:"id"`
+	UserID    string     `gorm:"type:varchar(255);not null" json:"user_id"`
+	ProjectID string     `gorm:"type:varchar(255);not null" json:"project_id"`
 	Role      string     `gorm:"type:enum('manager','leader','member');not null" json:"role"`
 	StartDate time.Time  `gorm:"type:date;not null" json:"start_date"`
 	EndDate   *time.Time `gorm:"type:date" json:"end_date"`
@@ -32,8 +32,8 @@ func (EngineerProjectHistory) TableName() string {
 
 // BeforeCreate UUID自動生成
 func (e *EngineerProjectHistory) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }

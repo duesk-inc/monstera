@@ -12,7 +12,7 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	
+
 	"go.uber.org/zap"
 )
 
@@ -54,11 +54,11 @@ func NewAdminWeeklyReportHandler(
 
 // GetUserIDFromContext はGinコンテキストからユーザーIDを取得します
 // userutilパッケージの関数をラップしてエラー型で返します
-func GetUserIDFromContext(c *gin.Context) (uuid.UUID, error) {
+func GetUserIDFromContext(c *gin.Context) (string, error) {
 	// ログインハンドラーからloggerを取得できないため、nilを渡す
 	userID, ok := userutil.GetUserIDFromContext(c, nil)
 	if !ok {
-		return uuid.Nil, errors.New("ユーザーIDの取得に失敗しました")
+		return "", errors.New("ユーザーIDの取得に失敗しました")
 	}
 	return userID, nil
 }
@@ -295,7 +295,7 @@ func (h *adminWeeklyReportHandler) GetWeeklyReportSummary(c *gin.Context) {
 	}
 
 	// 部署IDのパース（オプション）
-	var departmentID *uuid.UUID
+	var departmentID *string
 	if departmentIDStr != "" {
 		parsedDepartmentID, err := ParseUUID(c, "department_id", h.Logger)
 		if err != nil {
@@ -351,10 +351,11 @@ func (h *adminWeeklyReportHandler) GetMonthlySummary(c *gin.Context) {
 	}
 
 	// 部署IDのパース（オプション）
-	var departmentID *uuid.UUID
+	var departmentID *string
 	if departmentIDStr != "" {
-		parsedID, err := uuid.Parse(departmentIDStr)
-		if err != nil {
+		parsedID := departmentIDStr
+		// UUID validation removed after migration
+		if parsedID == "" {
 			RespondValidationError(c, map[string]string{
 				"department_id": "部署IDの形式が正しくありません",
 			})
@@ -446,7 +447,7 @@ func (h *adminWeeklyReportHandler) CreateExportJob(c *gin.Context) {
 		bgCtx := context.Background()
 		if err := h.exportService.ProcessExportJob(bgCtx, job.ID); err != nil {
 			h.Logger.Error("Failed to process export job",
-				zap.String("job_id", job.ID.String()),
+				zap.String("job_id", job.ID),
 				zap.Error(err))
 		}
 	}()
@@ -463,8 +464,9 @@ func (h *adminWeeklyReportHandler) GetExportJobStatus(c *gin.Context) {
 
 	// パスパラメータからジョブIDを取得
 	jobIDStr := c.Param("jobId")
-	jobID, err := uuid.Parse(jobIDStr)
-	if err != nil {
+	jobID := jobIDStr
+	// UUID validation removed after migration
+	if jobID == "" {
 		HandleError(c, http.StatusBadRequest, "不正なジョブIDです", h.Logger, err)
 		return
 	}

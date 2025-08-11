@@ -66,7 +66,7 @@ type JobExecutionLog struct {
 
 // ScheduledJob スケジュールジョブモデル
 type ScheduledJob struct {
-	ID             uuid.UUID          `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID             string             `gorm:"type:varchar(36);primary_key" json:"id"`
 	JobName        string             `gorm:"size:255;not null" json:"job_name"`
 	JobType        ScheduledJobType   `gorm:"type:enum('billing','freee_sync','invoice_reminder','payment_sync');not null" json:"job_type"`
 	Description    string             `gorm:"type:text" json:"description"`
@@ -76,7 +76,7 @@ type ScheduledJob struct {
 	LastRunAt      *time.Time         `json:"last_run_at"`
 	Parameters     *JobParameters     `gorm:"type:json" json:"parameters"`
 	ExecutionLog   *JobExecutionLog   `gorm:"type:json" json:"execution_log"`
-	CreatedBy      uuid.UUID          `gorm:"type:varchar(36);not null" json:"created_by"`
+	CreatedBy      string             `gorm:"type:varchar(36);not null" json:"created_by"`
 	CreatedAt      time.Time          `json:"created_at"`
 	UpdatedAt      time.Time          `json:"updated_at"`
 	DeletedAt      gorm.DeletedAt     `gorm:"index" json:"-"`
@@ -87,8 +87,8 @@ type ScheduledJob struct {
 
 // BeforeCreate UUIDを生成
 func (sj *ScheduledJob) BeforeCreate(tx *gorm.DB) error {
-	if sj.ID == uuid.Nil {
-		sj.ID = uuid.New()
+	if sj.ID == "" {
+		sj.ID = uuid.New().String()
 	}
 	if sj.ExecutionLog == nil {
 		sj.ExecutionLog = &JobExecutionLog{

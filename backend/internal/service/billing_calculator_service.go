@@ -3,12 +3,10 @@ package service
 import (
 	"context"
 	"fmt"
-	"math"
-	"time"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"math"
+	"time"
 
 	"github.com/duesk/monstera/internal/model"
 )
@@ -16,8 +14,8 @@ import (
 // BillingCalculatorServiceInterface 精算計算サービスインターフェース
 type BillingCalculatorServiceInterface interface {
 	// 稼働時間計算
-	CalculateActualHours(ctx context.Context, userID, projectID uuid.UUID, year, month int) (*ActualHoursResult, error)
-	CalculateDailyHours(ctx context.Context, userID, projectID uuid.UUID, date time.Time) (float64, error)
+	CalculateActualHours(ctx context.Context, userID, projectID string, year, month int) (*ActualHoursResult, error)
+	CalculateDailyHours(ctx context.Context, userID, projectID string, date time.Time) (float64, error)
 	GetMonthlyWorkDays(year, month int) int
 	GetBusinessDaysInMonth(year, month int) int
 
@@ -116,7 +114,7 @@ func NewBillingCalculatorService(
 }
 
 // CalculateActualHours 実稼働時間を計算
-func (s *billingCalculatorService) CalculateActualHours(ctx context.Context, userID, projectID uuid.UUID, year, month int) (*ActualHoursResult, error) {
+func (s *billingCalculatorService) CalculateActualHours(ctx context.Context, userID, projectID string, year, month int) (*ActualHoursResult, error) {
 	result := &ActualHoursResult{
 		DailyBreakdown: make(map[string]float64),
 	}
@@ -190,7 +188,7 @@ func (s *billingCalculatorService) CalculateActualHours(ctx context.Context, use
 }
 
 // CalculateDailyHours 日次稼働時間を計算
-func (s *billingCalculatorService) CalculateDailyHours(ctx context.Context, userID, projectID uuid.UUID, date time.Time) (float64, error) {
+func (s *billingCalculatorService) CalculateDailyHours(ctx context.Context, userID, projectID string, date time.Time) (float64, error) {
 	record, err := s.workRecordRepo.FindByDate(ctx, userID, projectID, date)
 	if err != nil {
 		return 0, fmt.Errorf("勤務記録の取得に失敗しました: %w", err)
@@ -407,8 +405,8 @@ func (s *billingCalculatorService) calculateDailyHoursFromRecord(record *model.W
 
 // WorkRecordRepositoryInterface 勤務記録リポジトリインターフェース（仮定）
 type WorkRecordRepositoryInterface interface {
-	FindByUserAndProject(ctx context.Context, userID, projectID uuid.UUID, startDate, endDate time.Time) ([]*model.WorkRecord, error)
-	FindByDate(ctx context.Context, userID, projectID uuid.UUID, date time.Time) (*model.WorkRecord, error)
+	FindByUserAndProject(ctx context.Context, userID, projectID string, startDate, endDate time.Time) ([]*model.WorkRecord, error)
+	FindByDate(ctx context.Context, userID, projectID string, date time.Time) (*model.WorkRecord, error)
 }
 
 // HolidayRepositoryInterface 祝日リポジトリインターフェース（仮定）
@@ -418,5 +416,5 @@ type HolidayRepositoryInterface interface {
 
 // ProjectAssignmentRepositoryInterface プロジェクトアサインメントリポジトリインターフェース（仮定）
 type ProjectAssignmentRepositoryInterface interface {
-	FindByUserAndProject(ctx context.Context, userID, projectID uuid.UUID) (*model.ProjectAssignment, error)
+	FindByUserAndProject(ctx context.Context, userID, projectID string) (*model.ProjectAssignment, error)
 }

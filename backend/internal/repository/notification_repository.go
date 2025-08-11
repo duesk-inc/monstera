@@ -17,26 +17,26 @@ import (
 // NotificationRepository は通知関連のデータアクセスを担当するインターフェース
 type NotificationRepository interface {
 	// 基本CRUD操作
-	GetNotificationByID(ctx context.Context, id uuid.UUID) (model.Notification, error)
+	GetNotificationByID(ctx context.Context, id string) (model.Notification, error)
 	CreateNotification(ctx context.Context, notification model.Notification) (model.Notification, error)
 	UpdateNotification(ctx context.Context, notification *model.Notification) error
-	DeleteNotification(ctx context.Context, id uuid.UUID) error
-	SoftDeleteNotification(ctx context.Context, id uuid.UUID) error
+	DeleteNotification(ctx context.Context, id string) error
+	SoftDeleteNotification(ctx context.Context, id string) error
 
 	// 通知一覧取得
-	GetNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID, params *NotificationQueryParams) ([]*model.Notification, *utils.PaginationResult, error)
-	GetUnreadNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID) ([]*model.Notification, error)
-	GetRecentNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID, limit int) ([]*model.Notification, error)
+	GetNotificationsByRecipient(ctx context.Context, recipientID string, params *NotificationQueryParams) ([]*model.Notification, *utils.PaginationResult, error)
+	GetUnreadNotificationsByRecipient(ctx context.Context, recipientID string) ([]*model.Notification, error)
+	GetRecentNotificationsByRecipient(ctx context.Context, recipientID string, limit int) ([]*model.Notification, error)
 
 	// 通知操作
-	MarkNotificationAsRead(ctx context.Context, id uuid.UUID) error
-	MarkNotificationsAsReadByRecipient(ctx context.Context, recipientID uuid.UUID, ids []uuid.UUID) error
-	MarkAllNotificationsAsReadByRecipient(ctx context.Context, recipientID uuid.UUID) error
-	HideNotification(ctx context.Context, id uuid.UUID) error
+	MarkNotificationAsRead(ctx context.Context, id string) error
+	MarkNotificationsAsReadByRecipient(ctx context.Context, recipientID string, ids []string) error
+	MarkAllNotificationsAsReadByRecipient(ctx context.Context, recipientID string) error
+	HideNotification(ctx context.Context, id string) error
 
 	// 集計・統計
-	GetUnreadNotificationCountByRecipient(ctx context.Context, recipientID uuid.UUID) (int64, error)
-	GetNotificationCountByTypeAndRecipient(ctx context.Context, notificationType model.NotificationType, recipientID uuid.UUID) (int64, error)
+	GetUnreadNotificationCountByRecipient(ctx context.Context, recipientID string) (int64, error)
+	GetNotificationCountByTypeAndRecipient(ctx context.Context, notificationType model.NotificationType, recipientID string) (int64, error)
 
 	// バルク操作
 	CreateNotificationsBulk(ctx context.Context, notifications []*model.Notification) error
@@ -50,10 +50,10 @@ type NotificationRepository interface {
 	// 既存インターフェース（互換性維持）
 	CountByTypeAndDateRange(ctx context.Context, userID string, notificationType model.NotificationType, startDate, endDate time.Time) (int64, error)
 	GetUserNotifications(ctx context.Context, userID string, limit, offset int) ([]model.UserNotification, int64, error)
-	GetUserNotificationByID(ctx context.Context, id uuid.UUID) (model.UserNotification, error)
+	GetUserNotificationByID(ctx context.Context, id string) (model.UserNotification, error)
 	CreateUserNotification(ctx context.Context, userNotification model.UserNotification) (model.UserNotification, error)
 	CreateUserNotificationBulk(ctx context.Context, userNotifications []model.UserNotification) error
-	MarkAsRead(ctx context.Context, userID string, notificationIDs []uuid.UUID) error
+	MarkAsRead(ctx context.Context, userID string, notificationIDs []string) error
 	GetUnreadCount(ctx context.Context, userID string) (int64, error)
 
 	// 通知設定関連
@@ -103,7 +103,7 @@ func NewNotificationRepository(db *gorm.DB, logger *zap.Logger) NotificationRepo
 }
 
 // GetNotificationByID は指定IDの通知を取得します
-func (r *notificationRepository) GetNotificationByID(ctx context.Context, id uuid.UUID) (model.Notification, error) {
+func (r *notificationRepository) GetNotificationByID(ctx context.Context, id string) (model.Notification, error) {
 	var notification model.Notification
 	result := r.WithContext(ctx).First(&notification, "id = ?", id)
 	if result.Error != nil {
@@ -114,8 +114,8 @@ func (r *notificationRepository) GetNotificationByID(ctx context.Context, id uui
 
 // CreateNotification は新しい通知を作成します
 func (r *notificationRepository) CreateNotification(ctx context.Context, notification model.Notification) (model.Notification, error) {
-	if notification.ID == uuid.Nil {
-		notification.ID = uuid.New()
+	if notification.ID == "" {
+		notification.ID = uuid.New().String()
 	}
 
 	result := r.WithContext(ctx).Create(&notification)
@@ -159,7 +159,7 @@ func (r *notificationRepository) GetUserNotifications(ctx context.Context, userI
 }
 
 // GetUserNotificationByID は指定IDのユーザー通知を取得します
-func (r *notificationRepository) GetUserNotificationByID(ctx context.Context, id uuid.UUID) (model.UserNotification, error) {
+func (r *notificationRepository) GetUserNotificationByID(ctx context.Context, id string) (model.UserNotification, error) {
 	var userNotification model.UserNotification
 	result := r.WithContext(ctx).
 		Preload("Notification").
@@ -174,8 +174,8 @@ func (r *notificationRepository) GetUserNotificationByID(ctx context.Context, id
 
 // CreateUserNotification は新しいユーザー通知を作成します
 func (r *notificationRepository) CreateUserNotification(ctx context.Context, userNotification model.UserNotification) (model.UserNotification, error) {
-	if userNotification.ID == uuid.Nil {
-		userNotification.ID = uuid.New()
+	if userNotification.ID == "" {
+		userNotification.ID = uuid.New().String()
 	}
 
 	result := r.WithContext(ctx).Create(&userNotification)
@@ -190,8 +190,8 @@ func (r *notificationRepository) CreateUserNotification(ctx context.Context, use
 func (r *notificationRepository) CreateUserNotificationBulk(ctx context.Context, userNotifications []model.UserNotification) error {
 	// IDを生成
 	for i := range userNotifications {
-		if userNotifications[i].ID == uuid.Nil {
-			userNotifications[i].ID = uuid.New()
+		if userNotifications[i].ID == "" {
+			userNotifications[i].ID = uuid.New().String()
 		}
 	}
 
@@ -204,7 +204,7 @@ func (r *notificationRepository) CreateUserNotificationBulk(ctx context.Context,
 }
 
 // MarkAsRead は指定された通知を既読に更新します
-func (r *notificationRepository) MarkAsRead(ctx context.Context, userID string, notificationIDs []uuid.UUID) error {
+func (r *notificationRepository) MarkAsRead(ctx context.Context, userID string, notificationIDs []string) error {
 	now := time.Now()
 
 	result := r.WithContext(ctx).
@@ -267,8 +267,8 @@ func (r *notificationRepository) GetUserNotificationSettingByType(ctx context.Co
 
 // UpsertUserNotificationSetting はユーザーの通知設定を作成/更新します
 func (r *notificationRepository) UpsertUserNotificationSetting(ctx context.Context, setting model.NotificationSetting) (model.NotificationSetting, error) {
-	if setting.ID == uuid.Nil {
-		setting.ID = uuid.New()
+	if setting.ID == "" {
+		setting.ID = uuid.New().String()
 	}
 
 	// 既存の設定を確認
@@ -314,20 +314,20 @@ func (r *notificationRepository) UpdateNotification(ctx context.Context, notific
 }
 
 // DeleteNotification 通知を物理削除
-func (r *notificationRepository) DeleteNotification(ctx context.Context, id uuid.UUID) error {
+func (r *notificationRepository) DeleteNotification(ctx context.Context, id string) error {
 	return r.WithContext(ctx).
 		Unscoped().
 		Delete(&model.Notification{}, "id = ?", id).Error
 }
 
 // SoftDeleteNotification 通知を論理削除
-func (r *notificationRepository) SoftDeleteNotification(ctx context.Context, id uuid.UUID) error {
+func (r *notificationRepository) SoftDeleteNotification(ctx context.Context, id string) error {
 	return r.WithContext(ctx).
 		Delete(&model.Notification{}, "id = ?", id).Error
 }
 
 // GetNotificationsByRecipient 受信者の通知一覧を取得
-func (r *notificationRepository) GetNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID, params *NotificationQueryParams) ([]*model.Notification, *utils.PaginationResult, error) {
+func (r *notificationRepository) GetNotificationsByRecipient(ctx context.Context, recipientID string, params *NotificationQueryParams) ([]*model.Notification, *utils.PaginationResult, error) {
 	var notifications []*model.Notification
 	var total int64
 
@@ -383,7 +383,7 @@ func (r *notificationRepository) GetNotificationsByRecipient(ctx context.Context
 }
 
 // GetUnreadNotificationsByRecipient 受信者の未読通知を取得
-func (r *notificationRepository) GetUnreadNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID) ([]*model.Notification, error) {
+func (r *notificationRepository) GetUnreadNotificationsByRecipient(ctx context.Context, recipientID string) ([]*model.Notification, error) {
 	var notifications []*model.Notification
 
 	err := r.WithContext(ctx).
@@ -397,7 +397,7 @@ func (r *notificationRepository) GetUnreadNotificationsByRecipient(ctx context.C
 }
 
 // GetRecentNotificationsByRecipient 受信者の最近の通知を取得
-func (r *notificationRepository) GetRecentNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID, limit int) ([]*model.Notification, error) {
+func (r *notificationRepository) GetRecentNotificationsByRecipient(ctx context.Context, recipientID string, limit int) ([]*model.Notification, error) {
 	var notifications []*model.Notification
 
 	if limit <= 0 {
@@ -416,7 +416,7 @@ func (r *notificationRepository) GetRecentNotificationsByRecipient(ctx context.C
 }
 
 // MarkNotificationAsRead 通知を既読にする
-func (r *notificationRepository) MarkNotificationAsRead(ctx context.Context, id uuid.UUID) error {
+func (r *notificationRepository) MarkNotificationAsRead(ctx context.Context, id string) error {
 	now := time.Now()
 
 	return r.WithContext(ctx).
@@ -429,7 +429,7 @@ func (r *notificationRepository) MarkNotificationAsRead(ctx context.Context, id 
 }
 
 // MarkNotificationsAsReadByRecipient 特定の受信者の指定された通知を既読にする
-func (r *notificationRepository) MarkNotificationsAsReadByRecipient(ctx context.Context, recipientID uuid.UUID, ids []uuid.UUID) error {
+func (r *notificationRepository) MarkNotificationsAsReadByRecipient(ctx context.Context, recipientID string, ids []string) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -446,7 +446,7 @@ func (r *notificationRepository) MarkNotificationsAsReadByRecipient(ctx context.
 }
 
 // MarkAllNotificationsAsReadByRecipient 受信者の全ての未読通知を既読にする
-func (r *notificationRepository) MarkAllNotificationsAsReadByRecipient(ctx context.Context, recipientID uuid.UUID) error {
+func (r *notificationRepository) MarkAllNotificationsAsReadByRecipient(ctx context.Context, recipientID string) error {
 	now := time.Now()
 
 	return r.WithContext(ctx).
@@ -459,7 +459,7 @@ func (r *notificationRepository) MarkAllNotificationsAsReadByRecipient(ctx conte
 }
 
 // HideNotification 通知を非表示にする
-func (r *notificationRepository) HideNotification(ctx context.Context, id uuid.UUID) error {
+func (r *notificationRepository) HideNotification(ctx context.Context, id string) error {
 	return r.WithContext(ctx).
 		Model(&model.Notification{}).
 		Where("id = ?", id).
@@ -467,7 +467,7 @@ func (r *notificationRepository) HideNotification(ctx context.Context, id uuid.U
 }
 
 // GetUnreadNotificationCountByRecipient 受信者の未読通知数を取得
-func (r *notificationRepository) GetUnreadNotificationCountByRecipient(ctx context.Context, recipientID uuid.UUID) (int64, error) {
+func (r *notificationRepository) GetUnreadNotificationCountByRecipient(ctx context.Context, recipientID string) (int64, error) {
 	var count int64
 
 	err := r.WithContext(ctx).
@@ -480,7 +480,7 @@ func (r *notificationRepository) GetUnreadNotificationCountByRecipient(ctx conte
 }
 
 // GetNotificationCountByTypeAndRecipient タイプ別の通知数を取得
-func (r *notificationRepository) GetNotificationCountByTypeAndRecipient(ctx context.Context, notificationType model.NotificationType, recipientID uuid.UUID) (int64, error) {
+func (r *notificationRepository) GetNotificationCountByTypeAndRecipient(ctx context.Context, notificationType model.NotificationType, recipientID string) (int64, error) {
 	var count int64
 
 	err := r.WithContext(ctx).
@@ -499,8 +499,8 @@ func (r *notificationRepository) CreateNotificationsBulk(ctx context.Context, no
 
 	// UUIDを生成
 	for _, notification := range notifications {
-		if notification.ID == uuid.Nil {
-			notification.ID = uuid.New()
+		if notification.ID == "" {
+			notification.ID = uuid.New().String()
 		}
 	}
 

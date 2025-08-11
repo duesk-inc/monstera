@@ -47,9 +47,9 @@ func (s EngineerProposalStatus) ToJapanese() string {
 
 // EngineerProposal エンジニア向け提案情報モデル
 type EngineerProposal struct {
-	ID          uuid.UUID              `gorm:"type:varchar(255);primary_key" json:"id"`
-	ProjectID   uuid.UUID              `gorm:"type:varchar(255);not null" json:"project_id"`
-	UserID string              `gorm:"type:varchar(255);not null" json:"user_id"`
+	ID          string                 `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProjectID   string                 `gorm:"type:varchar(255);not null" json:"project_id"`
+	UserID      string                 `gorm:"type:varchar(255);not null" json:"user_id"`
 	Status      EngineerProposalStatus `gorm:"type:enum('proposed','proceed','declined');not null;default:'proposed'" json:"status"`
 	RespondedAt *time.Time             `json:"responded_at"`
 	CreatedAt   time.Time              `json:"created_at"`
@@ -68,8 +68,8 @@ func (EngineerProposal) TableName() string {
 
 // BeforeCreate UUIDを生成
 func (p *EngineerProposal) BeforeCreate(tx *gorm.DB) error {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
+	if p.ID == "" {
+		p.ID = uuid.New().String()
 	}
 	return nil
 }

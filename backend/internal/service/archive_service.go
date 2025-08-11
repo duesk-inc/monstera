@@ -13,7 +13,7 @@ import (
 // ArchiveOldReportsParams アーカイブ実行パラメータ
 type ArchiveOldReportsParams struct {
 	RetentionYears int                 `json:"retention_years"`
-	ExecutedBy     uuid.UUID           `json:"executed_by"`
+	ExecutedBy     string              `json:"executed_by"`
 	ArchiveReason  model.ArchiveReason `json:"archive_reason"`
 	DepartmentID   *string             `json:"department_id,omitempty"` // 特定部署のみ対象にする場合
 	MaxRecords     *int                `json:"max_records,omitempty"`   // 処理件数の上限
@@ -29,21 +29,21 @@ type ArchiveOldReportsResult struct {
 	ExecutionTime   time.Duration `json:"execution_time"`
 	ArchiveDate     time.Time     `json:"archive_date"`
 	CutoffDate      time.Time     `json:"cutoff_date"`   // アーカイブ対象の基準日
-	StatisticsID    uuid.UUID     `json:"statistics_id"` // 統計情報ID
+	StatisticsID    string        `json:"statistics_id"` // 統計情報ID
 	IntegrityCheck  bool          `json:"integrity_check"`
 }
 
 // CleanupExpiredArchivesParams 期限切れアーカイブクリーンアップパラメータ
 type CleanupExpiredArchivesParams struct {
-	RetentionYears int       `json:"retention_years"`
-	ExecutedBy     uuid.UUID `json:"executed_by"`
-	DryRun         bool      `json:"dry_run"` // 実行せずに対象件数のみ確認
+	RetentionYears int    `json:"retention_years"`
+	ExecutedBy     string `json:"executed_by"`
+	DryRun         bool   `json:"dry_run"` // 実行せずに対象件数のみ確認
 }
 
 // CleanupExpiredArchivesResult クリーンアップ実行結果
 type CleanupExpiredArchivesResult struct {
 	DeletedCount int       `json:"deleted_count"` // 削除した件数
-	StatisticsID uuid.UUID `json:"statistics_id"` // 統計情報ID
+	StatisticsID string    `json:"statistics_id"` // 統計情報ID
 	CutoffDate   time.Time `json:"cutoff_date"`   // 削除対象の基準日
 }
 
@@ -86,7 +86,7 @@ func (s *archiveService) ArchiveOldReports(ctx context.Context, params ArchiveOl
 		ExecutionTime:   0,
 		ArchiveDate:     time.Now(),
 		CutoffDate:      cutoffDate,
-		StatisticsID:    uuid.New(),
+		StatisticsID:    uuid.New().String(),
 		IntegrityCheck:  true,
 	}, nil
 }
@@ -96,7 +96,7 @@ func (s *archiveService) CleanupExpiredArchives(ctx context.Context, params Clea
 	// TODO: 実際の実装
 	return &CleanupExpiredArchivesResult{
 		DeletedCount: 0,
-		StatisticsID: uuid.New(),
+		StatisticsID: uuid.New().String(),
 		CutoffDate:   time.Now().AddDate(-params.RetentionYears, 0, 0),
 	}, nil
 }

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -33,7 +32,7 @@ func (r *DailyRecordRepository) Create(record *model.DailyRecord) error {
 }
 
 // FindByID IDで日次勤怠記録を検索
-func (r *DailyRecordRepository) FindByID(id uuid.UUID) (*model.DailyRecord, error) {
+func (r *DailyRecordRepository) FindByID(id string) (*model.DailyRecord, error) {
 	var record model.DailyRecord
 	err := r.db.First(&record, "id = ?", id).Error
 	if err != nil {
@@ -43,7 +42,7 @@ func (r *DailyRecordRepository) FindByID(id uuid.UUID) (*model.DailyRecord, erro
 }
 
 // FindByWeeklyReportID 週報IDで日次勤怠記録を検索
-func (r *DailyRecordRepository) FindByWeeklyReportID(weeklyReportID uuid.UUID) ([]*model.DailyRecord, error) {
+func (r *DailyRecordRepository) FindByWeeklyReportID(weeklyReportID string) ([]*model.DailyRecord, error) {
 	var records []*model.DailyRecord
 
 	// 標準のORMクエリで取得
@@ -74,7 +73,7 @@ func (r *DailyRecordRepository) FindByWeeklyReportID(weeklyReportID uuid.UUID) (
 }
 
 // FindByDateRange 日付範囲で日次勤怠記録を検索
-func (r *DailyRecordRepository) FindByDateRange(weeklyReportID uuid.UUID, startDate, endDate time.Time) ([]*model.DailyRecord, error) {
+func (r *DailyRecordRepository) FindByDateRange(weeklyReportID string, startDate, endDate time.Time) ([]*model.DailyRecord, error) {
 	var records []*model.DailyRecord
 
 	// 標準のORMクエリで取得
@@ -110,12 +109,12 @@ func (r *DailyRecordRepository) Update(record *model.DailyRecord) error {
 }
 
 // Delete 日次勤怠記録を削除
-func (r *DailyRecordRepository) Delete(id uuid.UUID) error {
+func (r *DailyRecordRepository) Delete(id string) error {
 	return r.db.Delete(&model.DailyRecord{}, "id = ?", id).Error
 }
 
 // DeleteByWeeklyReportID 週報IDに関連する全ての日次勤怠記録を削除
-func (r *DailyRecordRepository) DeleteByWeeklyReportID(weeklyReportID uuid.UUID) error {
+func (r *DailyRecordRepository) DeleteByWeeklyReportID(weeklyReportID string) error {
 	return r.db.Delete(&model.DailyRecord{}, "weekly_report_id = ?", weeklyReportID).Error
 }
 
@@ -125,7 +124,7 @@ func (r *DailyRecordRepository) BatchCreate(records []*model.DailyRecord) error 
 }
 
 // CalculateTotalWorkHours 週報の合計稼働時間を計算
-func (r *DailyRecordRepository) CalculateTotalWorkHours(weeklyReportID uuid.UUID) (float64, error) {
+func (r *DailyRecordRepository) CalculateTotalWorkHours(weeklyReportID string) (float64, error) {
 	var totalHours float64
 	err := r.db.Model(&model.DailyRecord{}).
 		Select("COALESCE(SUM(work_hours), 0) as total_hours").
@@ -135,7 +134,7 @@ func (r *DailyRecordRepository) CalculateTotalWorkHours(weeklyReportID uuid.UUID
 }
 
 // CalculateClientTotalWorkHours 週報の客先勤怠合計稼働時間を計算
-func (r *DailyRecordRepository) CalculateClientTotalWorkHours(weeklyReportID uuid.UUID) (float64, error) {
+func (r *DailyRecordRepository) CalculateClientTotalWorkHours(weeklyReportID string) (float64, error) {
 	var totalHours float64
 	err := r.db.Model(&model.DailyRecord{}).
 		Select("COALESCE(SUM(client_work_hours), 0) as total_hours").
@@ -145,7 +144,7 @@ func (r *DailyRecordRepository) CalculateClientTotalWorkHours(weeklyReportID uui
 }
 
 // CalculateBothTotalWorkHours 週報の自社・客先両方の合計稼働時間を計算
-func (r *DailyRecordRepository) CalculateBothTotalWorkHours(weeklyReportID uuid.UUID) (float64, float64, error) {
+func (r *DailyRecordRepository) CalculateBothTotalWorkHours(weeklyReportID string) (float64, float64, error) {
 	// 自社勤怠の合計時間
 	companyTotalHours, err := r.CalculateTotalWorkHours(weeklyReportID)
 	if err != nil {

@@ -2,8 +2,6 @@ package model
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // BusinessStatus 取引ステータス
@@ -29,7 +27,7 @@ const (
 // 実際のデータベーススキーマに合わせて、Clientモデルにこれらのフィールドを追加する必要があります
 type ClientSalesExtension struct {
 	// 営業管理情報
-	PrimarySalesRepID *uuid.UUID     `gorm:"type:varchar(36)" json:"primary_sales_rep_id,omitempty"`
+	PrimarySalesRepID *string        `gorm:"type:varchar(255)" json:"primary_sales_rep_id,omitempty"`
 	BusinessStatus    BusinessStatus `gorm:"type:enum('active','inactive','suspended');default:'active'" json:"business_status"`
 	CompanySize       *CompanySize   `gorm:"type:enum('small','medium','large','enterprise')" json:"company_size,omitempty"`
 	IndustryType      *string        `gorm:"size:100" json:"industry_type,omitempty"`

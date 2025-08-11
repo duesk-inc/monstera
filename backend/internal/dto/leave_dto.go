@@ -1,6 +1,5 @@
 package dto
 
-
 // LeaveTypeResponse 休暇種別のレスポンスDTO
 type LeaveTypeResponse struct {
 	ID                string  `json:"id"`
@@ -37,7 +36,7 @@ type LeaveRequestDetailRequest struct {
 
 // LeaveRequestRequest 休暇申請のリクエストDTO
 type LeaveRequestRequest struct {
-	UserID string                   `json:"user_id"`
+	UserID         string                      `json:"user_id"`
 	LeaveTypeID    string                      `json:"leave_type_id" binding:"required"`
 	IsHourlyBased  bool                        `json:"is_hourly_based"`
 	Reason         string                      `json:"reason"`
@@ -57,7 +56,7 @@ type LeaveRequestDetailResponse struct {
 // LeaveRequestResponse 休暇申請のレスポンスDTO
 type LeaveRequestResponse struct {
 	ID            string                       `json:"id"`
-	UserID string                    `json:"user_id"`
+	UserID        string                       `json:"user_id"`
 	LeaveTypeID   string                       `json:"leave_type_id"`
 	LeaveTypeName string                       `json:"leave_type_name"`
 	RequestDate   string                       `json:"request_date"`
@@ -79,26 +78,26 @@ type HolidayResponse struct {
 
 // SubstituteLeaveGrantRequest 振替特別休暇付与のリクエストDTO
 type SubstituteLeaveGrantRequest struct {
-	UserID string `json:"user_id" binding:"required"`
-	GrantDate   string    `json:"grant_date" binding:"required"`
-	GrantedDays float64   `json:"granted_days" binding:"required"`
-	WorkDate    string    `json:"work_date" binding:"required"`
-	Reason      string    `json:"reason" binding:"required"`
-	ExpireDate  string    `json:"expire_date" binding:"required"`
+	UserID      string  `json:"user_id" binding:"required"`
+	GrantDate   string  `json:"grant_date" binding:"required"`
+	GrantedDays float64 `json:"granted_days" binding:"required"`
+	WorkDate    string  `json:"work_date" binding:"required"`
+	Reason      string  `json:"reason" binding:"required"`
+	ExpireDate  string  `json:"expire_date" binding:"required"`
 }
 
 // SubstituteLeaveGrantResponse 振替特別休暇付与のレスポンスDTO
 type SubstituteLeaveGrantResponse struct {
-	ID            string    `json:"id"`
-	UserID string `json:"user_id"`
-	GrantDate     string    `json:"grant_date"`
-	GrantedDays   float64   `json:"granted_days"`
-	UsedDays      float64   `json:"used_days"`
-	RemainingDays float64   `json:"remaining_days"`
-	WorkDate      string    `json:"work_date"`
-	Reason        string    `json:"reason"`
-	ExpireDate    string    `json:"expire_date"`
-	IsExpired     bool      `json:"is_expired"`
+	ID            string  `json:"id"`
+	UserID        string  `json:"user_id"`
+	GrantDate     string  `json:"grant_date"`
+	GrantedDays   float64 `json:"granted_days"`
+	UsedDays      float64 `json:"used_days"`
+	RemainingDays float64 `json:"remaining_days"`
+	WorkDate      string  `json:"work_date"`
+	Reason        string  `json:"reason"`
+	ExpireDate    string  `json:"expire_date"`
+	IsExpired     bool    `json:"is_expired"`
 }
 
 // SubstituteLeaveGrantSummaryResponse 振替特別休暇の合計付与日数レスポンスDTO

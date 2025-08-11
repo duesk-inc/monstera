@@ -7,8 +7,8 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
-	"gorm.io/gorm"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // AdminDashboardService 管理者ダッシュボードサービスのインターフェース
@@ -163,7 +163,7 @@ func (s *adminDashboardService) getAlerts(ctx context.Context, alerts *[]dto.Das
 		for _, assignment := range expiringAssignments {
 			daysUntilEnd := int(assignment.EndDate.Sub(time.Now()).Hours() / 24)
 			alert := dto.DashboardAlertDTO{
-				ID:       assignment.ID.String(),
+				ID:       assignment.ID,
 				Type:     "contract_expiry",
 				Title:    assignment.User.LastName + " " + assignment.User.FirstName + "さん",
 				Message:  "契約終了まで" + fmt.Sprintf("%d", daysUntilEnd) + "日",
@@ -192,7 +192,7 @@ func (s *adminDashboardService) getRecentActivities(ctx context.Context, activit
 
 	for _, report := range recentReports {
 		activity := dto.DashboardActivityDTO{
-			ID:       report.ID.String(),
+			ID:       report.ID,
 			UserName: report.User.LastName + " " + report.User.FirstName,
 			Action:   "週報を提出しました",
 			Time:     s.formatTimeAgo(report.CreatedAt),
@@ -213,7 +213,7 @@ func (s *adminDashboardService) getRecentActivities(ctx context.Context, activit
 	} else {
 		for _, expense := range recentExpenses {
 			activity := dto.DashboardActivityDTO{
-				ID:       expense.ID.String(),
+				ID:       expense.ID,
 				UserName: expense.User.LastName + " " + expense.User.FirstName,
 				Action:   "経費申請を提出しました",
 				Time:     s.formatTimeAgo(expense.CreatedAt),

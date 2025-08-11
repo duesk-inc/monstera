@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -12,11 +11,11 @@ import (
 // AlertSettingsRepository アラート設定リポジトリインターフェース
 type AlertSettingsRepository interface {
 	Create(ctx context.Context, alertSettings *model.AlertSettings) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.AlertSettings, error)
+	GetByID(ctx context.Context, id string) (*model.AlertSettings, error)
 	GetList(ctx context.Context, page, limit int) ([]*model.AlertSettings, int64, error)
 	GetSettings(ctx context.Context) (*model.AlertSettings, error)
-	Update(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Update(ctx context.Context, id string, updates map[string]interface{}) error
+	Delete(ctx context.Context, id string) error
 }
 
 type alertSettingsRepository struct {
@@ -37,18 +36,18 @@ func (r *alertSettingsRepository) Create(ctx context.Context, alertSettings *mod
 	if err := r.db.WithContext(ctx).Create(alertSettings).Error; err != nil {
 		r.logger.Error("Failed to create alert settings",
 			zap.Error(err),
-			zap.String("id", alertSettings.ID.String()))
+			zap.String("id", alertSettings.ID))
 		return err
 	}
 
 	r.logger.Info("Alert settings created successfully",
-		zap.String("id", alertSettings.ID.String()))
+		zap.String("id", alertSettings.ID))
 
 	return nil
 }
 
 // GetByID IDでアラート設定を取得
-func (r *alertSettingsRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.AlertSettings, error) {
+func (r *alertSettingsRepository) GetByID(ctx context.Context, id string) (*model.AlertSettings, error) {
 	var alertSettings model.AlertSettings
 
 	err := r.db.WithContext(ctx).
@@ -63,7 +62,7 @@ func (r *alertSettingsRepository) GetByID(ctx context.Context, id uuid.UUID) (*m
 		}
 		r.logger.Error("Failed to get alert settings",
 			zap.Error(err),
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return nil, err
 	}
 
@@ -121,7 +120,7 @@ func (r *alertSettingsRepository) GetSettings(ctx context.Context) (*model.Alert
 }
 
 // Update アラート設定を更新
-func (r *alertSettingsRepository) Update(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error {
+func (r *alertSettingsRepository) Update(ctx context.Context, id string, updates map[string]interface{}) error {
 	result := r.db.WithContext(ctx).
 		Model(&model.AlertSettings{}).
 		Where("id = ?", id).
@@ -130,7 +129,7 @@ func (r *alertSettingsRepository) Update(ctx context.Context, id uuid.UUID, upda
 	if result.Error != nil {
 		r.logger.Error("Failed to update alert settings",
 			zap.Error(result.Error),
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return result.Error
 	}
 
@@ -139,21 +138,21 @@ func (r *alertSettingsRepository) Update(ctx context.Context, id uuid.UUID, upda
 	}
 
 	r.logger.Info("Alert settings updated successfully",
-		zap.String("id", id.String()),
+		zap.String("id", id),
 		zap.Int64("rows_affected", result.RowsAffected))
 
 	return nil
 }
 
 // Delete アラート設定を削除（論理削除）
-func (r *alertSettingsRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *alertSettingsRepository) Delete(ctx context.Context, id string) error {
 	result := r.db.WithContext(ctx).
 		Delete(&model.AlertSettings{}, id)
 
 	if result.Error != nil {
 		r.logger.Error("Failed to delete alert settings",
 			zap.Error(result.Error),
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return result.Error
 	}
 
@@ -162,7 +161,7 @@ func (r *alertSettingsRepository) Delete(ctx context.Context, id uuid.UUID) erro
 	}
 
 	r.logger.Info("Alert settings deleted successfully",
-		zap.String("id", id.String()))
+		zap.String("id", id))
 
 	return nil
 }

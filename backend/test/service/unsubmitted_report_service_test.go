@@ -43,7 +43,7 @@ func TestUnsubmittedReportService_GetUnsubmittedReports(t *testing.T) {
 
 	// テストデータ作成
 	// 部署作成
-	deptID := uuid.New()
+	deptID := uuid.New().String()
 	dept := &model.Department{
 		ID:   deptID,
 		Name: "開発部",
@@ -53,7 +53,7 @@ func TestUnsubmittedReportService_GetUnsubmittedReports(t *testing.T) {
 	// ユーザー作成
 	users := make([]*model.User, 3)
 	for i := 0; i < 3; i++ {
-		userID := uuid.New()
+		userID := uuid.New().String()
 		user := &model.User{
 			ID:           userID,
 			Email:        fmt.Sprintf("user%d@duesk.co.jp", i+1),
@@ -133,11 +133,11 @@ func TestUnsubmittedReportService_GetDepartmentUnsubmittedStats(t *testing.T) {
 
 	// 部署作成
 	depts := []struct {
-		id   uuid.UUID
+		id   string
 		name string
 	}{
-		{uuid.New(), "開発部"},
-		{uuid.New(), "営業部"},
+		{uuid.New().String(), "開発部"},
+		{uuid.New().String(), "営業部"},
 	}
 
 	for _, d := range depts {
@@ -155,7 +155,7 @@ func TestUnsubmittedReportService_GetDepartmentUnsubmittedStats(t *testing.T) {
 	// 開発部: 3人中2人が未提出
 	for i := 0; i < 3; i++ {
 		user := &model.User{
-			ID:           uuid.New(),
+			ID:           uuid.New().String(),
 			Email:        fmt.Sprintf("dev%d@duesk.co.jp", i+1),
 			FirstName:    fmt.Sprintf("開発者%d", i+1),
 			LastName:     "テスト",
@@ -179,7 +179,7 @@ func TestUnsubmittedReportService_GetDepartmentUnsubmittedStats(t *testing.T) {
 	// 営業部: 2人中1人が未提出
 	for i := 0; i < 2; i++ {
 		user := &model.User{
-			ID:           uuid.New(),
+			ID:           uuid.New().String(),
 			Email:        fmt.Sprintf("sales%d@duesk.co.jp", i+1),
 			FirstName:    fmt.Sprintf("営業%d", i+1),
 			LastName:     "テスト",
@@ -249,10 +249,10 @@ func TestUnsubmittedReportService_SendRemindersToUnsubmitted(t *testing.T) {
 	ctx := context.Background()
 
 	// テスト用ユーザーID
-	userIDs := []uuid.UUID{
-		uuid.New(),
-		uuid.New(),
-		uuid.New(),
+	userIDs := []string{
+		uuid.New().String(),
+		uuid.New().String(),
+		uuid.New().String(),
 	}
 
 	// リマインド送信
@@ -315,7 +315,7 @@ func TestUnsubmittedReportService_AutoReminderSettings(t *testing.T) {
 	assert.True(t, defaultSettings.IncludeManager)
 
 	// 設定を更新
-	updatedBy := uuid.New()
+	updatedBy := uuid.New().String()
 	newSettings := &service.AutoReminderSettings{
 		Enabled:            false,
 		FirstReminderDays:  5,

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/dto"
-	"github.com/google/uuid"
 )
 
 // FreeeServiceInterface freeeサービスインターフェース（一時的な定義）
@@ -35,14 +34,14 @@ type FreeeServiceInterface interface {
 	GetPartners(ctx context.Context, userID string) ([]*dto.FreeePartnerDTO, error)
 	CreatePartner(ctx context.Context, userID string, req *dto.CreateFreeePartnerRequest) (*dto.FreeePartnerDTO, error)
 	UpdatePartner(ctx context.Context, userID string, partnerID int, req *dto.UpdateFreeePartnerRequest) (*dto.FreeePartnerDTO, error)
-	SyncPartner(ctx context.Context, userID string, clientID uuid.UUID) (*dto.FreeePartnerDTO, error)
+	SyncPartner(ctx context.Context, userID string, clientID string) (*dto.FreeePartnerDTO, error)
 
 	// 請求書管理
 	GetInvoices(ctx context.Context, userID string, from, to *time.Time) ([]*dto.FreeeInvoiceDTO, error)
 	CreateInvoice(ctx context.Context, userID string, req *dto.CreateFreeeInvoiceRequest) (*dto.FreeeInvoiceDTO, error)
 	UpdateInvoice(ctx context.Context, userID string, invoiceID int, req *dto.UpdateFreeeInvoiceRequest) (*dto.FreeeInvoiceDTO, error)
 	DeleteInvoice(ctx context.Context, userID string, invoiceID int) error
-	SyncInvoice(ctx context.Context, userID string, invoiceID uuid.UUID) (*dto.FreeeInvoiceDTO, error)
+	SyncInvoice(ctx context.Context, userID string, invoiceID string) (*dto.FreeeInvoiceDTO, error)
 
 	// 支払い情報管理
 	GetPayments(ctx context.Context, userID string, from, to *time.Time) ([]*dto.FreeePaymentDTO, error)

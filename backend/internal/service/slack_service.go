@@ -528,7 +528,7 @@ func (s *slackService) SendExpenseApprovedNotice(ctx context.Context, userID str
 						Text: "詳細を確認",
 					},
 					Value:    "view_expense",
-					URL:      fmt.Sprintf("%s/expenses/%s", s.config.SystemURL, expense.ID.String()),
+					URL:      fmt.Sprintf("%s/expenses/%s", s.config.SystemURL, expense.ID),
 					ActionID: "view_expense",
 					Style:    "primary",
 				},

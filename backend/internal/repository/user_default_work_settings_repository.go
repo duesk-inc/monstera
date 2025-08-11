@@ -49,7 +49,7 @@ func (r *UserDefaultWorkSettingsRepository) Update(settings *model.UserDefaultWo
 }
 
 // Delete はデフォルト勤務時間設定を削除します
-func (r *UserDefaultWorkSettingsRepository) Delete(id uuid.UUID) error {
+func (r *UserDefaultWorkSettingsRepository) Delete(id string) error {
 	return r.db.Delete(&model.UserDefaultWorkSettings{}, id).Error
 }
 
@@ -77,8 +77,8 @@ func (r *UserDefaultWorkSettingsRepository) UpsertSettings(settings *model.UserD
 			}).Error
 	} else if result.Error == gorm.ErrRecordNotFound {
 		// 新規作成の場合はIDを生成
-		if settings.ID == uuid.Nil {
-			settings.ID = uuid.New()
+		if settings.ID == "" {
+			settings.ID = uuid.New().String()
 		}
 		// 作成日時と更新日時を設定
 		now := time.Now()

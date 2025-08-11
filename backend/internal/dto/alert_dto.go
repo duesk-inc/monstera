@@ -9,11 +9,11 @@ import (
 // UserDTO ユーザー情報DTO（簡易版）
 type UserDTO struct {
 	ID         string `json:"id"`
-	Email      string    `json:"email"`
-	FirstName  string    `json:"first_name"`
-	LastName   string    `json:"last_name"`
-	FullName   string    `json:"full_name"`
-	Department string    `json:"department,omitempty"`
+	Email      string `json:"email"`
+	FirstName  string `json:"first_name"`
+	LastName   string `json:"last_name"`
+	FullName   string `json:"full_name"`
+	Department string `json:"department,omitempty"`
 }
 
 // AlertSettingsDTO アラート設定DTO
@@ -114,7 +114,7 @@ func (dto *CreateAlertSettingsRequest) ToAlertSettingsModel(updatedBy string) *m
 // ToAlertSettingsDTO モデルからDTOに変換
 func ToAlertSettingsDTO(alert *model.AlertSettings) *AlertSettingsDTO {
 	dto := &AlertSettingsDTO{
-		ID:                          alert.ID.String(),
+		ID:                          alert.ID,
 		WeeklyHoursLimit:            alert.WeeklyHoursLimit,
 		WeeklyHoursChangeLimit:      alert.WeeklyHoursChangeLimit,
 		ConsecutiveHolidayWorkLimit: alert.ConsecutiveHolidayWorkLimit,
@@ -150,7 +150,7 @@ func ToAlertHistoryDTO(alert *model.AlertHistory) *AlertHistoryDTO {
 	// 実際の実装では適切なパースが必要
 
 	dto := &AlertHistoryDTO{
-		ID:             alert.ID.String(),
+		ID:             alert.ID,
 		UserID:         alert.UserID,
 		AlertType:      string(alert.AlertType),
 		Severity:       string(alert.Severity),
@@ -161,12 +161,12 @@ func ToAlertHistoryDTO(alert *model.AlertHistory) *AlertHistoryDTO {
 	}
 
 	if alert.WeeklyReportID != nil {
-		weeklyReportID := alert.WeeklyReportID.String()
+		weeklyReportID := *alert.WeeklyReportID
 		dto.WeeklyReportID = &weeklyReportID
 	}
 
 	if alert.ResolvedBy != nil {
-		handledBy := alert.ResolvedBy.String()
+		handledBy := *alert.ResolvedBy
 		dto.HandledBy = &handledBy
 		dto.HandledAt = alert.ResolvedAt
 	}

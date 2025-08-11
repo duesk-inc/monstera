@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -15,11 +14,11 @@ import (
 type TechnologyMasterRepository interface {
 	Create(ctx context.Context, tech *model.TechnologyMaster) error
 	Update(ctx context.Context, tech *model.TechnologyMaster) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.TechnologyMaster, error)
+	Delete(ctx context.Context, id string) error
+	GetByID(ctx context.Context, id string) (*model.TechnologyMaster, error)
 	GetByName(ctx context.Context, category model.TechCategory, name string) (*model.TechnologyMaster, error)
 	SearchByPrefix(ctx context.Context, category model.TechCategory, prefix string, limit int) ([]*model.TechnologyMaster, error)
-	IncrementUsageCount(ctx context.Context, id uuid.UUID) error
+	IncrementUsageCount(ctx context.Context, id string) error
 	GetAll(ctx context.Context) ([]*model.TechnologyMaster, error)
 	GetByCategory(ctx context.Context, category model.TechCategory) ([]*model.TechnologyMaster, error)
 }
@@ -57,7 +56,7 @@ func (r *technologyMasterRepository) Update(ctx context.Context, tech *model.Tec
 }
 
 // Delete 技術マスタを削除（論理削除）
-func (r *technologyMasterRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *technologyMasterRepository) Delete(ctx context.Context, id string) error {
 	if err := r.db.WithContext(ctx).Model(&model.TechnologyMaster{}).
 		Where("id = ?", id).
 		Update("is_active", false).Error; err != nil {
@@ -68,7 +67,7 @@ func (r *technologyMasterRepository) Delete(ctx context.Context, id uuid.UUID) e
 }
 
 // GetByID IDで技術マスタを取得
-func (r *technologyMasterRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.TechnologyMaster, error) {
+func (r *technologyMasterRepository) GetByID(ctx context.Context, id string) (*model.TechnologyMaster, error) {
 	var tech model.TechnologyMaster
 	if err := r.db.WithContext(ctx).
 		Where("id = ? AND is_active = ?", id, true).
@@ -120,7 +119,7 @@ func (r *technologyMasterRepository) SearchByPrefix(ctx context.Context, categor
 }
 
 // IncrementUsageCount 使用回数をインクリメント
-func (r *technologyMasterRepository) IncrementUsageCount(ctx context.Context, id uuid.UUID) error {
+func (r *technologyMasterRepository) IncrementUsageCount(ctx context.Context, id string) error {
 	if err := r.db.WithContext(ctx).Model(&model.TechnologyMaster{}).
 		Where("id = ?", id).
 		Update("usage_count", gorm.Expr("usage_count + ?", 1)).Error; err != nil {

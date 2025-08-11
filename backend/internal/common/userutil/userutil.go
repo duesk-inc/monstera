@@ -33,30 +33,32 @@ func GetUserIDFromContext(c *gin.Context, logger *zap.Logger) (string, bool) {
 }
 
 // UserIDToString はuuid.UUIDを文字列に変換します
-func UserIDToString(userID uuid.UUID) string {
-	return userID.String()
+func UserIDToString(userID string) string {
+	return userID
 }
 
 // StringToUserID は文字列をuuid.UUIDに変換します
 // 変換に失敗した場合はエラーを返します
-func StringToUserID(userIDStr string) (uuid.UUID, error) {
-	return uuid.Parse(userIDStr)
+func StringToUserID(userIDStr string) (string, error) {
+	// 文字列型のIDをそのまま返す（UUID型への変換は不要）
+	return userIDStr, nil
 }
 
 // StringToUUID は文字列をuuid.UUIDに変換する汎用関数です
 // 変換に失敗した場合はエラーを返します
-func StringToUUID(idStr string) (uuid.UUID, error) {
-	return uuid.Parse(idStr)
+func StringToUUID(idStr string) (string, error) {
+	// 文字列型のIDをそのまま返す（UUID型への変換は不要）
+	return idStr, nil
 }
 
 // UUIDToString はuuid.UUIDを文字列に変換する汎用関数です
-func UUIDToString(id uuid.UUID) string {
-	return id.String()
+func UUIDToString(id string) string {
+	return id
 }
 
 // GenerateUUID は新しいUUIDを生成します
-func GenerateUUID() uuid.UUID {
-	return uuid.New()
+func GenerateUUID() string {
+	return uuid.New().String()
 }
 
 // IsValidUUID は文字列が有効なUUID形式かどうかを確認します

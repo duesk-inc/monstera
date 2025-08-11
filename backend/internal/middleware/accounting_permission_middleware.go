@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/duesk/monstera/internal/repository"
@@ -28,7 +27,7 @@ func AccountingPermissionRequired(
 			return
 		}
 
-		userUUID, ok := userID.(uuid.UUID)
+		userUUID, ok := userID.(string)
 		if !ok {
 			logger.Error("Invalid user ID type in context",
 				zap.Any("userID", userID))
@@ -41,7 +40,7 @@ func AccountingPermissionRequired(
 		hasPermission, err := checkAccountingPermission(c, userUUID, action, rolePermissionRepo, logger)
 		if err != nil {
 			logger.Error("Failed to check accounting permission",
-				zap.String("userID", userUUID.String()),
+				zap.String("userID", userUUID),
 				zap.String("action", action),
 				zap.Error(err))
 			utils.RespondError(c, http.StatusInternalServerError, "権限チェックエラー")
@@ -51,7 +50,7 @@ func AccountingPermissionRequired(
 
 		if !hasPermission {
 			logger.Warn("User lacks accounting permission",
-				zap.String("userID", userUUID.String()),
+				zap.String("userID", userUUID),
 				zap.String("action", action),
 				zap.String("path", c.Request.URL.Path),
 				zap.String("method", c.Request.Method))
@@ -61,7 +60,7 @@ func AccountingPermissionRequired(
 		}
 
 		logger.Debug("Accounting permission granted",
-			zap.String("userID", userUUID.String()),
+			zap.String("userID", userUUID),
 			zap.String("action", action))
 
 		c.Next()
@@ -108,7 +107,7 @@ func BillingPermissionRequired(
 			return
 		}
 
-		userUUID, ok := userID.(uuid.UUID)
+		userUUID, ok := userID.(string)
 		if !ok {
 			logger.Error("Invalid user ID type in context for billing permission",
 				zap.Any("userID", userID))
@@ -122,7 +121,7 @@ func BillingPermissionRequired(
 		hasPermission, err := checkAccountingPermission(c, userUUID, billingAction, rolePermissionRepo, logger)
 		if err != nil {
 			logger.Error("Failed to check billing permission",
-				zap.String("userID", userUUID.String()),
+				zap.String("userID", userUUID),
 				zap.String("action", billingAction),
 				zap.Error(err))
 			utils.RespondError(c, http.StatusInternalServerError, "権限チェックエラー")
@@ -135,7 +134,7 @@ func BillingPermissionRequired(
 			fallbackPermission, fallbackErr := checkAccountingPermission(c, userUUID, "accounting:write", rolePermissionRepo, logger)
 			if fallbackErr != nil || !fallbackPermission {
 				logger.Warn("User lacks billing permission",
-					zap.String("userID", userUUID.String()),
+					zap.String("userID", userUUID),
 					zap.String("action", billingAction),
 					zap.String("path", c.Request.URL.Path))
 				utils.RespondError(c, http.StatusForbidden, "請求処理の権限がありません")
@@ -145,7 +144,7 @@ func BillingPermissionRequired(
 		}
 
 		logger.Debug("Billing permission granted",
-			zap.String("userID", userUUID.String()),
+			zap.String("userID", userUUID),
 			zap.String("action", billingAction))
 
 		c.Next()
@@ -167,7 +166,7 @@ func FreeePermissionRequired(
 			return
 		}
 
-		userUUID, ok := userID.(uuid.UUID)
+		userUUID, ok := userID.(string)
 		if !ok {
 			logger.Error("Invalid user ID type in context for freee permission",
 				zap.Any("userID", userID))
@@ -181,7 +180,7 @@ func FreeePermissionRequired(
 		hasPermission, err := checkAccountingPermission(c, userUUID, freeeAction, rolePermissionRepo, logger)
 		if err != nil {
 			logger.Error("Failed to check freee permission",
-				zap.String("userID", userUUID.String()),
+				zap.String("userID", userUUID),
 				zap.String("action", freeeAction),
 				zap.Error(err))
 			utils.RespondError(c, http.StatusInternalServerError, "権限チェックエラー")
@@ -199,7 +198,7 @@ func FreeePermissionRequired(
 			fallbackPermission, fallbackErr := checkAccountingPermission(c, userUUID, fallbackAction, rolePermissionRepo, logger)
 			if fallbackErr != nil || !fallbackPermission {
 				logger.Warn("User lacks freee permission",
-					zap.String("userID", userUUID.String()),
+					zap.String("userID", userUUID),
 					zap.String("action", freeeAction),
 					zap.String("path", c.Request.URL.Path))
 				utils.RespondError(c, http.StatusForbidden, "freee連携の権限がありません")
@@ -209,7 +208,7 @@ func FreeePermissionRequired(
 		}
 
 		logger.Debug("Freee permission granted",
-			zap.String("userID", userUUID.String()),
+			zap.String("userID", userUUID),
 			zap.String("action", freeeAction))
 
 		c.Next()
@@ -219,7 +218,7 @@ func FreeePermissionRequired(
 // checkAccountingPermission 経理権限チェックのヘルパー関数
 func checkAccountingPermission(
 	c *gin.Context,
-	userID uuid.UUID,
+	userID string,
 	permission string,
 	rolePermissionRepo repository.RolePermissionRepository,
 	logger *zap.Logger,
@@ -228,7 +227,7 @@ func checkAccountingPermission(
 	isAdmin, exists := c.Get("isAdmin")
 	if exists && isAdmin.(bool) {
 		logger.Debug("Admin user granted permission",
-			zap.String("userID", userID.String()),
+			zap.String("userID", userID),
 			zap.String("permission", permission))
 		return true, nil
 	}
@@ -237,14 +236,14 @@ func checkAccountingPermission(
 	roleValue, exists := c.Get("role")
 	if !exists {
 		logger.Warn("Role not found in context",
-			zap.String("userID", userID.String()))
+			zap.String("userID", userID))
 		return false, nil
 	}
 
 	role, ok := roleValue.(string)
 	if !ok {
 		logger.Error("Invalid role type in context",
-			zap.String("userID", userID.String()),
+			zap.String("userID", userID),
 			zap.Any("role", roleValue))
 		return false, nil
 	}
@@ -327,7 +326,7 @@ func LogAccountingAccess(logger *zap.Logger) gin.HandlerFunc {
 			return
 		}
 
-		userUUID, ok := userID.(uuid.UUID)
+		userUUID, ok := userID.(string)
 		if !ok {
 			c.Next()
 			return
@@ -335,7 +334,7 @@ func LogAccountingAccess(logger *zap.Logger) gin.HandlerFunc {
 
 		// アクセス情報をログに記録
 		logger.Info("Accounting access",
-			zap.String("userID", userUUID.String()),
+			zap.String("userID", userUUID),
 			zap.String("method", c.Request.Method),
 			zap.String("path", c.Request.URL.Path),
 			zap.String("query", c.Request.URL.RawQuery),
@@ -346,7 +345,7 @@ func LogAccountingAccess(logger *zap.Logger) gin.HandlerFunc {
 
 		// レスポンス情報をログに記録
 		logger.Info("Accounting access response",
-			zap.String("userID", userUUID.String()),
+			zap.String("userID", userUUID),
 			zap.String("path", c.Request.URL.Path),
 			zap.Int("status", c.Writer.Status()),
 			zap.Int("size", c.Writer.Size()))

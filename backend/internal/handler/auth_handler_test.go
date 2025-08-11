@@ -41,7 +41,7 @@ func (m *MockAuthService) RefreshToken(ctx context.Context, refreshToken string)
 	return args.Get(0).(*service.AuthResponse), args.Error(1)
 }
 
-func (m *MockAuthService) Logout(ctx context.Context, userID uuid.UUID, refreshToken string) error {
+func (m *MockAuthService) Logout(ctx context.Context, userID string, refreshToken string) error {
 	args := m.Called(ctx, userID, refreshToken)
 	return args.Error(0)
 }
@@ -59,22 +59,22 @@ func (m *MockAuthService) ValidateClaims(claims map[string]interface{}) error {
 	return args.Error(0)
 }
 
-func (m *MockAuthService) ValidateTOTP(ctx context.Context, userID uuid.UUID, code string) error {
+func (m *MockAuthService) ValidateTOTP(ctx context.Context, userID string, code string) error {
 	args := m.Called(ctx, userID, code)
 	return args.Error(0)
 }
 
-func (m *MockAuthService) SendSMSCode(ctx context.Context, userID uuid.UUID) error {
+func (m *MockAuthService) SendSMSCode(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
-func (m *MockAuthService) VerifySMSCode(ctx context.Context, userID uuid.UUID, code string) error {
+func (m *MockAuthService) VerifySMSCode(ctx context.Context, userID string, code string) error {
 	args := m.Called(ctx, userID, code)
 	return args.Error(0)
 }
 
-func (m *MockAuthService) UseBackupCode(ctx context.Context, userID uuid.UUID, code string) error {
+func (m *MockAuthService) UseBackupCode(ctx context.Context, userID string, code string) error {
 	args := m.Called(ctx, userID, code)
 	return args.Error(0)
 }
@@ -112,7 +112,7 @@ func TestAuthHandler_Login(t *testing.T) {
 				Password: "password123",
 			},
 			setupMock: func(m *MockAuthService) {
-				userID := uuid.New()
+				userID := uuid.New().String()
 				adminRole := model.RoleAdmin
 				user := &model.User{
 					ID:          userID,
@@ -214,7 +214,7 @@ func TestAuthHandler_Login(t *testing.T) {
 			// レスポンスボディの確認
 			var response map[string]interface{}
 			json.Unmarshal(w.Body.Bytes(), &response)
-			
+
 			for key, value := range tt.expectedBody {
 				assert.Equal(t, value, response[key])
 			}
@@ -254,7 +254,7 @@ func TestAuthHandler_Logout(t *testing.T) {
 		{
 			name: "ログアウト成功",
 			setupContext: func(c *gin.Context) {
-				userID := uuid.New()
+				userID := uuid.New().String()
 				c.Set("user_id", userID)
 			},
 			setupMock: func(m *MockAuthService) {
@@ -278,7 +278,7 @@ func TestAuthHandler_Logout(t *testing.T) {
 		{
 			name: "ログアウト失敗",
 			setupContext: func(c *gin.Context) {
-				userID := uuid.New()
+				userID := uuid.New().String()
 				c.Set("user_id", userID)
 			},
 			setupMock: func(m *MockAuthService) {
@@ -308,7 +308,7 @@ func TestAuthHandler_Logout(t *testing.T) {
 			// Ginコンテキストのセットアップ
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
-			
+
 			req, _ := http.NewRequest("POST", "/api/v1/auth/logout", nil)
 			c.Request = req
 
@@ -325,7 +325,7 @@ func TestAuthHandler_Logout(t *testing.T) {
 			// レスポンスボディの確認
 			var response map[string]interface{}
 			json.Unmarshal(w.Body.Bytes(), &response)
-			
+
 			for key, value := range tt.expectedBody {
 				assert.Equal(t, value, response[key])
 			}
@@ -359,7 +359,7 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 			name:         "トークンリフレッシュ成功",
 			refreshToken: "valid_refresh_token",
 			setupMock: func(m *MockAuthService) {
-				userID := uuid.New()
+				userID := uuid.New().String()
 				adminRole := model.RoleAdmin
 				user := &model.User{
 					ID:          userID,
@@ -443,7 +443,7 @@ func TestAuthHandler_RefreshToken(t *testing.T) {
 			// レスポンスボディの確認
 			var response map[string]interface{}
 			json.Unmarshal(w.Body.Bytes(), &response)
-			
+
 			for key, value := range tt.expectedBody {
 				assert.Equal(t, value, response[key])
 			}

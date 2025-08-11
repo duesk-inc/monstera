@@ -2,36 +2,32 @@ package validate
 
 import (
 	"fmt"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/duesk/monstera/internal/common/logger"
 )
 
 // ParseUUID はUUID文字列をパースします
-func ParseUUID(id string) (uuid.UUID, error) {
+func ParseUUID(id string) (string, error) {
 	if id == "" {
-		return uuid.Nil, fmt.Errorf("UUIDが空です")
+		return "", fmt.Errorf("UUIDが空です")
 	}
 
-	parsedID, err := uuid.Parse(id)
-	if err != nil {
-		return uuid.Nil, fmt.Errorf("無効なUUID形式: %s: %w", id, err)
-	}
+	parsedID := id
+	// UUID validation removed after migration
 
-	if parsedID == uuid.Nil {
-		return uuid.Nil, fmt.Errorf("Nil UUIDは許可されていません")
+	if parsedID == "" {
+		return "", fmt.Errorf("Nil UUIDは許可されていません")
 	}
 
 	return parsedID, nil
 }
 
 // ParseUUIDWithLogging はUUID文字列をパースし、エラーをログに記録します
-func ParseUUIDWithLogging(loggerInstance *zap.Logger, id string, fieldName string) (uuid.UUID, error) {
+func ParseUUIDWithLogging(loggerInstance *zap.Logger, id string, fieldName string) (string, error) {
 	parsedID, err := ParseUUID(id)
 	if err != nil {
-		return uuid.Nil, logger.LogAndWrapError(loggerInstance, err, fmt.Sprintf("無効な%s", fieldName),
+		return "", logger.LogAndWrapError(loggerInstance, err, fmt.Sprintf("無効な%s", fieldName),
 			zap.String(fieldName, id))
 	}
 	return parsedID, nil

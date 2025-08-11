@@ -27,7 +27,7 @@ type MockProposalService struct {
 	mock.Mock
 }
 
-func (m *MockProposalService) GetProposals(ctx context.Context, userID uuid.UUID, req *dto.GetProposalsRequest) (*dto.ProposalListResponse, error) {
+func (m *MockProposalService) GetProposals(ctx context.Context, userID string, req *dto.GetProposalsRequest) (*dto.ProposalListResponse, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -35,7 +35,7 @@ func (m *MockProposalService) GetProposals(ctx context.Context, userID uuid.UUID
 	return args.Get(0).(*dto.ProposalListResponse), args.Error(1)
 }
 
-func (m *MockProposalService) GetProposalDetail(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*dto.ProposalDetailResponse, error) {
+func (m *MockProposalService) GetProposalDetail(ctx context.Context, id string, userID string) (*dto.ProposalDetailResponse, error) {
 	args := m.Called(ctx, id, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -43,12 +43,12 @@ func (m *MockProposalService) GetProposalDetail(ctx context.Context, id uuid.UUI
 	return args.Get(0).(*dto.ProposalDetailResponse), args.Error(1)
 }
 
-func (m *MockProposalService) UpdateProposalStatus(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.UpdateProposalStatusRequest) error {
+func (m *MockProposalService) UpdateProposalStatus(ctx context.Context, id string, userID string, req *dto.UpdateProposalStatusRequest) error {
 	args := m.Called(ctx, id, userID, req)
 	return args.Error(0)
 }
 
-func (m *MockProposalService) CreateQuestion(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error) {
+func (m *MockProposalService) CreateQuestion(ctx context.Context, proposalID string, userID string, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error) {
 	args := m.Called(ctx, proposalID, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -56,7 +56,7 @@ func (m *MockProposalService) CreateQuestion(ctx context.Context, proposalID uui
 	return args.Get(0).(*dto.ProposalQuestionDTO), args.Error(1)
 }
 
-func (m *MockProposalService) GetQuestions(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error) {
+func (m *MockProposalService) GetQuestions(ctx context.Context, proposalID string, userID string, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error) {
 	args := m.Called(ctx, proposalID, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -64,22 +64,22 @@ func (m *MockProposalService) GetQuestions(ctx context.Context, proposalID uuid.
 	return args.Get(0).(*dto.QuestionsListResponse), args.Error(1)
 }
 
-func (m *MockProposalService) UpdateQuestion(ctx context.Context, questionID uuid.UUID, userID uuid.UUID, req *dto.UpdateQuestionRequest) error {
+func (m *MockProposalService) UpdateQuestion(ctx context.Context, questionID string, userID string, req *dto.UpdateQuestionRequest) error {
 	args := m.Called(ctx, questionID, userID, req)
 	return args.Error(0)
 }
 
-func (m *MockProposalService) DeleteQuestion(ctx context.Context, questionID uuid.UUID, userID uuid.UUID) error {
+func (m *MockProposalService) DeleteQuestion(ctx context.Context, questionID string, userID string) error {
 	args := m.Called(ctx, questionID, userID)
 	return args.Error(0)
 }
 
-func (m *MockProposalService) RespondToQuestion(ctx context.Context, questionID uuid.UUID, salesUserID uuid.UUID, req *dto.RespondQuestionRequest) error {
+func (m *MockProposalService) RespondToQuestion(ctx context.Context, questionID string, salesUserID string, req *dto.RespondQuestionRequest) error {
 	args := m.Called(ctx, questionID, salesUserID, req)
 	return args.Error(0)
 }
 
-func (m *MockProposalService) GetPendingQuestions(ctx context.Context, salesUserID uuid.UUID, req *dto.GetPendingQuestionsRequest) (*dto.PendingQuestionsListResponse, error) {
+func (m *MockProposalService) GetPendingQuestions(ctx context.Context, salesUserID string, req *dto.GetPendingQuestionsRequest) (*dto.PendingQuestionsListResponse, error) {
 	args := m.Called(ctx, salesUserID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -87,12 +87,12 @@ func (m *MockProposalService) GetPendingQuestions(ctx context.Context, salesUser
 	return args.Get(0).(*dto.PendingQuestionsListResponse), args.Error(1)
 }
 
-func (m *MockProposalService) AssignQuestionToSales(ctx context.Context, questionID uuid.UUID, assignerID uuid.UUID, salesUserID uuid.UUID) error {
+func (m *MockProposalService) AssignQuestionToSales(ctx context.Context, questionID string, assignerID string, salesUserID string) error {
 	args := m.Called(ctx, questionID, assignerID, salesUserID)
 	return args.Error(0)
 }
 
-func (m *MockProposalService) GetProposalStats(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error) {
+func (m *MockProposalService) GetProposalStats(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -100,7 +100,7 @@ func (m *MockProposalService) GetProposalStats(ctx context.Context, userID uuid.
 	return args.Get(0).(*dto.ProposalSummaryResponse), args.Error(1)
 }
 
-func (m *MockProposalService) GetProposalDashboard(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error) {
+func (m *MockProposalService) GetProposalDashboard(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -108,7 +108,7 @@ func (m *MockProposalService) GetProposalDashboard(ctx context.Context, userID u
 	return args.Get(0).(*dto.ProposalSummaryResponse), args.Error(1)
 }
 
-func (m *MockProposalService) GetQuestionStatistics(ctx context.Context, userID uuid.UUID) (*dto.ProposalSummaryResponse, error) {
+func (m *MockProposalService) GetQuestionStatistics(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -140,7 +140,7 @@ func (m *MockProposalService) GetUserProposalRanking(ctx context.Context, limit 
 	return args.Get(0).(*dto.ProposalSummaryResponse), args.Error(1)
 }
 
-func (m *MockProposalService) CreateProposal(ctx context.Context, projectID uuid.UUID, userID uuid.UUID) (*model.EngineerProposal, error) {
+func (m *MockProposalService) CreateProposal(ctx context.Context, projectID string, userID string) (*model.EngineerProposal, error) {
 	args := m.Called(ctx, projectID, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -148,12 +148,12 @@ func (m *MockProposalService) CreateProposal(ctx context.Context, projectID uuid
 	return args.Get(0).(*model.EngineerProposal), args.Error(1)
 }
 
-func (m *MockProposalService) CheckProposalPermission(ctx context.Context, proposalID uuid.UUID, userID uuid.UUID) error {
+func (m *MockProposalService) CheckProposalPermission(ctx context.Context, proposalID string, userID string) error {
 	args := m.Called(ctx, proposalID, userID)
 	return args.Error(0)
 }
 
-func (m *MockProposalService) CheckQuestionPermission(ctx context.Context, questionID uuid.UUID, userID uuid.UUID) error {
+func (m *MockProposalService) CheckQuestionPermission(ctx context.Context, questionID string, userID string) error {
 	args := m.Called(ctx, questionID, userID)
 	return args.Error(0)
 }
@@ -189,7 +189,7 @@ func setupTestContext(method, path string, body interface{}) (*gin.Context, *htt
 	c.Request = req
 
 	// テスト用のユーザーIDを設定
-	userID := uuid.New()
+	userID := uuid.New().String()
 	c.Set("user_id", userID)
 
 	return c, w
@@ -203,11 +203,11 @@ func TestProposalHandler_GetProposals(t *testing.T) {
 
 		// テストデータの準備
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 		expectedResponse := &dto.ProposalListResponse{
 			Items: []dto.ProposalItemDTO{
 				{
-					ID:          uuid.New(),
+					ID:          uuid.New().String(),
 					ProjectName: "テストプロジェクト",
 					Status:      "proposed",
 				},
@@ -240,7 +240,7 @@ func TestProposalHandler_GetProposals(t *testing.T) {
 		c, w := setupTestContext("GET", "/api/v1/proposals", nil)
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（エラーを返す）
 		mockService.On("GetProposals", mock.Anything, userUUID, mock.AnythingOfType("*dto.GetProposalsRequest")).
@@ -258,19 +258,19 @@ func TestProposalHandler_GetProposals(t *testing.T) {
 func TestProposalHandler_GetProposalDetail(t *testing.T) {
 	t.Run("正常ケース - 提案詳細取得成功", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		proposalID := uuid.New()
-		c, w := setupTestContext("GET", fmt.Sprintf("/api/v1/proposals/%s", proposalID.String()), nil)
-		c.Params = []gin.Param{{Key: "id", Value: proposalID.String()}}
+		proposalID := uuid.New().String()
+		c, w := setupTestContext("GET", fmt.Sprintf("/api/v1/proposals/%s", proposalID), nil)
+		c.Params = []gin.Param{{Key: "id", Value: proposalID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		expectedResponse := &dto.ProposalDetailResponse{
 			ID:        proposalID,
-			ProjectID: uuid.New(),
+			ProjectID: uuid.New().String(),
 			Status:    "proposed",
 			Project: dto.ProjectDetailDTO{
-				ID:          uuid.New(),
+				ID:          uuid.New().String(),
 				ProjectName: "テストプロジェクト詳細",
 				Description: "プロジェクトの説明",
 			},
@@ -313,17 +313,17 @@ func TestProposalHandler_GetProposalDetail(t *testing.T) {
 func TestProposalHandler_UpdateProposalStatus(t *testing.T) {
 	t.Run("正常ケース - ステータス更新成功", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		proposalID := uuid.New()
+		proposalID := uuid.New().String()
 
 		requestBody := dto.UpdateProposalStatusRequest{
 			Status: "proceed",
 		}
 
-		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/proposals/%s/status", proposalID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "id", Value: proposalID.String()}}
+		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/proposals/%s/status", proposalID), requestBody)
+		c.Params = []gin.Param{{Key: "id", Value: proposalID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定
 		mockService.On("UpdateProposalStatus", mock.Anything, proposalID, userUUID, &requestBody).
@@ -338,10 +338,10 @@ func TestProposalHandler_UpdateProposalStatus(t *testing.T) {
 
 	t.Run("異常ケース - 無効なリクエストボディ", func(t *testing.T) {
 		handler, _ := setupProposalTestHandler(t)
-		proposalID := uuid.New()
+		proposalID := uuid.New().String()
 
-		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/proposals/%s/status", proposalID.String()), "invalid-json")
-		c.Params = []gin.Param{{Key: "id", Value: proposalID.String()}}
+		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/proposals/%s/status", proposalID), "invalid-json")
+		c.Params = []gin.Param{{Key: "id", Value: proposalID}}
 
 		// テスト実行
 		handler.UpdateProposalStatus(c)
@@ -355,20 +355,20 @@ func TestProposalHandler_UpdateProposalStatus(t *testing.T) {
 func TestProposalHandler_CreateQuestion(t *testing.T) {
 	t.Run("正常ケース - 質問作成成功", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		proposalID := uuid.New()
+		proposalID := uuid.New().String()
 
 		requestBody := dto.CreateQuestionRequest{
 			QuestionText: "プロジェクトの開始時期はいつですか？",
 		}
 
-		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID.String()}}
+		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID), requestBody)
+		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		expectedQuestion := &dto.ProposalQuestionDTO{
-			ID:           uuid.New(),
+			ID:           uuid.New().String(),
 			QuestionText: "プロジェクトの開始時期はいつですか？",
 			IsResponded:  false,
 			CreatedAt:    time.Now(),
@@ -393,14 +393,14 @@ func TestProposalHandler_CreateQuestion(t *testing.T) {
 
 	t.Run("異常ケース - 質問文が空", func(t *testing.T) {
 		handler, _ := setupProposalTestHandler(t)
-		proposalID := uuid.New()
+		proposalID := uuid.New().String()
 
 		requestBody := dto.CreateQuestionRequest{
 			QuestionText: "",
 		}
 
-		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID.String()}}
+		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID), requestBody)
+		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID}}
 
 		// テスト実行
 		handler.CreateQuestion(c)
@@ -414,23 +414,23 @@ func TestProposalHandler_CreateQuestion(t *testing.T) {
 func TestProposalHandler_GetQuestions(t *testing.T) {
 	t.Run("正常ケース - 質問一覧取得成功", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		proposalID := uuid.New()
-		c, w := setupTestContext("GET", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID.String()), nil)
-		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID.String()}}
+		proposalID := uuid.New().String()
+		c, w := setupTestContext("GET", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID), nil)
+		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		expectedResponse := &dto.QuestionsListResponse{
 			Items: []dto.ProposalQuestionDTO{
 				{
-					ID:           uuid.New(),
+					ID:           uuid.New().String(),
 					QuestionText: "テスト質問1",
 					IsResponded:  false,
 					CreatedAt:    time.Now(),
 				},
 				{
-					ID:           uuid.New(),
+					ID:           uuid.New().String(),
 					QuestionText: "テスト質問2",
 					IsResponded:  true,
 					ResponseText: func(s string) *string { return &s }("テスト回答2"),
@@ -465,17 +465,17 @@ func TestProposalHandler_GetQuestions(t *testing.T) {
 func TestProposalHandler_UpdateQuestion(t *testing.T) {
 	t.Run("正常ケース - 質問更新成功", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		questionID := uuid.New()
+		questionID := uuid.New().String()
 
 		requestBody := dto.UpdateQuestionRequest{
 			QuestionText: "更新された質問内容",
 		}
 
-		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/questions/%s", questionID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "id", Value: questionID.String()}}
+		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/questions/%s", questionID), requestBody)
+		c.Params = []gin.Param{{Key: "id", Value: questionID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定
 		mockService.On("UpdateQuestion", mock.Anything, questionID, userUUID, &requestBody).
@@ -493,13 +493,13 @@ func TestProposalHandler_UpdateQuestion(t *testing.T) {
 func TestProposalHandler_DeleteQuestion(t *testing.T) {
 	t.Run("正常ケース - 質問削除成功", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		questionID := uuid.New()
+		questionID := uuid.New().String()
 
-		c, w := setupTestContext("DELETE", fmt.Sprintf("/api/v1/questions/%s", questionID.String()), nil)
-		c.Params = []gin.Param{{Key: "id", Value: questionID.String()}}
+		c, w := setupTestContext("DELETE", fmt.Sprintf("/api/v1/questions/%s", questionID), nil)
+		c.Params = []gin.Param{{Key: "id", Value: questionID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定
 		mockService.On("DeleteQuestion", mock.Anything, questionID, userUUID).
@@ -517,17 +517,17 @@ func TestProposalHandler_DeleteQuestion(t *testing.T) {
 func TestProposalHandler_RespondToQuestion(t *testing.T) {
 	t.Run("正常ケース - 質問回答成功", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		questionID := uuid.New()
+		questionID := uuid.New().String()
 
 		requestBody := dto.RespondQuestionRequest{
 			ResponseText: "こちらが回答です",
 		}
 
-		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/questions/%s/response", questionID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "id", Value: questionID.String()}}
+		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/questions/%s/response", questionID), requestBody)
+		c.Params = []gin.Param{{Key: "id", Value: questionID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定
 		mockService.On("RespondToQuestion", mock.Anything, questionID, userUUID, &requestBody).
@@ -548,16 +548,16 @@ func TestProposalHandler_GetPendingQuestions(t *testing.T) {
 		c, w := setupTestContext("GET", "/api/v1/sales/questions/pending", nil)
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		expectedResponse := &dto.PendingQuestionsListResponse{
 			Items: []dto.PendingQuestionDTO{
 				{
-					ID:           uuid.New(),
+					ID:           uuid.New().String(),
 					QuestionText: "未回答の質問1",
 					ProjectName:  "プロジェクトA",
 					Engineer: &dto.ProposalUserSummaryDTO{
-						ID:        uuid.New(),
+						ID:        uuid.New().String(),
 						FirstName: "太郎",
 						LastName:  "山田",
 						Email:     testdata.MockMaleEmail,
@@ -594,7 +594,7 @@ func TestProposalHandler_GetProposalStats(t *testing.T) {
 		c, w := setupTestContext("GET", "/api/v1/proposals/stats", nil)
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		expectedResponse := &dto.ProposalSummaryResponse{
 			TotalProposals:        10,
@@ -630,7 +630,7 @@ func TestProposalHandler_GetProposalStats(t *testing.T) {
 		c, w := setupTestContext("GET", "/api/v1/proposals/stats", nil)
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（エラーを返す）
 		mockService.On("GetProposalStats", mock.Anything, userUUID).
@@ -660,18 +660,18 @@ func TestProposalHandler_GetProposalStats(t *testing.T) {
 func TestProposalHandler_AssignQuestionToSales(t *testing.T) {
 	t.Run("正常ケース - 営業担当者割り当て成功", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		questionID := uuid.New()
-		salesUserID := uuid.New()
+		questionID := uuid.New().String()
+		salesUserID := uuid.New().String()
 
 		requestBody := map[string]interface{}{
-			"sales_user_id": salesUserID.String(),
+			"sales_user_id": salesUserID,
 		}
 
-		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/questions/%s/assign", questionID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "id", Value: questionID.String()}}
+		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/questions/%s/assign", questionID), requestBody)
+		c.Params = []gin.Param{{Key: "id", Value: questionID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定
 		mockService.On("AssignQuestionToSales", mock.Anything, questionID, userUUID, salesUserID).
@@ -686,10 +686,10 @@ func TestProposalHandler_AssignQuestionToSales(t *testing.T) {
 
 	t.Run("異常ケース - 無効な質問ID", func(t *testing.T) {
 		handler, _ := setupProposalTestHandler(t)
-		salesUserID := uuid.New()
+		salesUserID := uuid.New().String()
 
 		requestBody := map[string]interface{}{
-			"sales_user_id": salesUserID.String(),
+			"sales_user_id": salesUserID,
 		}
 
 		c, w := setupTestContext("POST", "/api/v1/questions/invalid-id/assign", requestBody)
@@ -704,10 +704,10 @@ func TestProposalHandler_AssignQuestionToSales(t *testing.T) {
 
 	t.Run("異常ケース - 無効なリクエストボディ", func(t *testing.T) {
 		handler, _ := setupProposalTestHandler(t)
-		questionID := uuid.New()
+		questionID := uuid.New().String()
 
-		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/questions/%s/assign", questionID.String()), "invalid-json")
-		c.Params = []gin.Param{{Key: "id", Value: questionID.String()}}
+		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/questions/%s/assign", questionID), "invalid-json")
+		c.Params = []gin.Param{{Key: "id", Value: questionID}}
 
 		// テスト実行
 		handler.AssignQuestionToSales(c)
@@ -724,7 +724,7 @@ func TestProposalHandler_GetProposalDashboard(t *testing.T) {
 		c, w := setupTestContext("GET", "/api/v1/proposals/dashboard", nil)
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		expectedResponse := &dto.ProposalSummaryResponse{
 			TotalProposals:        15,
@@ -760,7 +760,7 @@ func TestProposalHandler_GetProposalDashboard(t *testing.T) {
 		c, w := setupTestContext("GET", "/api/v1/proposals/dashboard", nil)
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（エラーを返す）
 		mockService.On("GetProposalDashboard", mock.Anything, userUUID).
@@ -778,12 +778,12 @@ func TestProposalHandler_GetProposalDashboard(t *testing.T) {
 func TestProposalHandler_ErrorCases(t *testing.T) {
 	t.Run("GetProposalDetail - 存在しない提案ID", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		proposalID := uuid.New()
-		c, w := setupTestContext("GET", fmt.Sprintf("/api/v1/proposals/%s", proposalID.String()), nil)
-		c.Params = []gin.Param{{Key: "id", Value: proposalID.String()}}
+		proposalID := uuid.New().String()
+		c, w := setupTestContext("GET", fmt.Sprintf("/api/v1/proposals/%s", proposalID), nil)
+		c.Params = []gin.Param{{Key: "id", Value: proposalID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（not foundエラー）
 		mockService.On("GetProposalDetail", mock.Anything, proposalID, userUUID).
@@ -798,17 +798,17 @@ func TestProposalHandler_ErrorCases(t *testing.T) {
 
 	t.Run("CreateQuestion - 質問数上限超過", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		proposalID := uuid.New()
+		proposalID := uuid.New().String()
 
 		requestBody := dto.CreateQuestionRequest{
 			QuestionText: "11個目の質問です",
 		}
 
-		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID.String()}}
+		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID), requestBody)
+		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（質問数上限エラー）
 		mockService.On("CreateQuestion", mock.Anything, proposalID, userUUID, &requestBody).
@@ -823,17 +823,17 @@ func TestProposalHandler_ErrorCases(t *testing.T) {
 
 	t.Run("UpdateQuestion - 24時間経過後の編集試行", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		questionID := uuid.New()
+		questionID := uuid.New().String()
 
 		requestBody := dto.UpdateQuestionRequest{
 			QuestionText: "24時間後の編集試行",
 		}
 
-		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/questions/%s", questionID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "id", Value: questionID.String()}}
+		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/questions/%s", questionID), requestBody)
+		c.Params = []gin.Param{{Key: "id", Value: questionID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（編集期限エラー）
 		mockService.On("UpdateQuestion", mock.Anything, questionID, userUUID, &requestBody).
@@ -848,13 +848,13 @@ func TestProposalHandler_ErrorCases(t *testing.T) {
 
 	t.Run("DeleteQuestion - 回答済み質問の削除試行", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		questionID := uuid.New()
+		questionID := uuid.New().String()
 
-		c, w := setupTestContext("DELETE", fmt.Sprintf("/api/v1/questions/%s", questionID.String()), nil)
-		c.Params = []gin.Param{{Key: "id", Value: questionID.String()}}
+		c, w := setupTestContext("DELETE", fmt.Sprintf("/api/v1/questions/%s", questionID), nil)
+		c.Params = []gin.Param{{Key: "id", Value: questionID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（回答済み質問削除エラー）
 		mockService.On("DeleteQuestion", mock.Anything, questionID, userUUID).
@@ -869,14 +869,14 @@ func TestProposalHandler_ErrorCases(t *testing.T) {
 
 	t.Run("RespondToQuestion - 空の回答テキスト", func(t *testing.T) {
 		handler, _ := setupProposalTestHandler(t)
-		questionID := uuid.New()
+		questionID := uuid.New().String()
 
 		requestBody := dto.RespondQuestionRequest{
 			ResponseText: "",
 		}
 
-		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/questions/%s/response", questionID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "id", Value: questionID.String()}}
+		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/questions/%s/response", questionID), requestBody)
+		c.Params = []gin.Param{{Key: "id", Value: questionID}}
 
 		// テスト実行
 		handler.RespondToQuestion(c)
@@ -890,17 +890,17 @@ func TestProposalHandler_ErrorCases(t *testing.T) {
 func TestProposalHandler_PermissionChecks(t *testing.T) {
 	t.Run("UpdateProposalStatus - 権限不足", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		proposalID := uuid.New()
+		proposalID := uuid.New().String()
 
 		requestBody := dto.UpdateProposalStatusRequest{
 			Status: "proceed",
 		}
 
-		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/proposals/%s/status", proposalID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "id", Value: proposalID.String()}}
+		c, w := setupTestContext("PUT", fmt.Sprintf("/api/v1/proposals/%s/status", proposalID), requestBody)
+		c.Params = []gin.Param{{Key: "id", Value: proposalID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（権限エラー）
 		mockService.On("UpdateProposalStatus", mock.Anything, proposalID, userUUID, &requestBody).
@@ -915,17 +915,17 @@ func TestProposalHandler_PermissionChecks(t *testing.T) {
 
 	t.Run("CreateQuestion - 他人の提案への質問投稿試行", func(t *testing.T) {
 		handler, mockService := setupProposalTestHandler(t)
-		proposalID := uuid.New()
+		proposalID := uuid.New().String()
 
 		requestBody := dto.CreateQuestionRequest{
 			QuestionText: "他人の提案への質問",
 		}
 
-		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID.String()), requestBody)
-		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID.String()}}
+		c, w := setupTestContext("POST", fmt.Sprintf("/api/v1/proposals/%s/questions", proposalID), requestBody)
+		c.Params = []gin.Param{{Key: "proposalId", Value: proposalID}}
 
 		userID := c.GetString("user_id")
-		userUUID, _ := uuid.Parse(userID)
+		userUUID := userID
 
 		// モックの設定（権限エラー）
 		mockService.On("CreateQuestion", mock.Anything, proposalID, userUUID, &requestBody).

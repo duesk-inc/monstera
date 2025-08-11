@@ -20,9 +20,9 @@ type BaseRepository interface {
 	// ExecuteInTransaction はトランザクション内で関数を実行する
 	ExecuteInTransaction(ctx context.Context, fn func(tx *gorm.DB) error) error
 	// ValidateID は渡されたIDが有効かどうかを検証する
-	ValidateID(id uuid.UUID) error
+	ValidateID(id string) error
 	// NewID は新しいUUIDを生成する
-	NewID() uuid.UUID
+	NewID() string
 }
 
 // baseRepository は基本的なリポジトリ実装
@@ -65,14 +65,14 @@ func (r *baseRepository) ExecuteInTransaction(ctx context.Context, fn func(tx *g
 }
 
 // ValidateID は渡されたIDが有効かどうかを検証する
-func (r *baseRepository) ValidateID(id uuid.UUID) error {
-	if id == uuid.Nil {
+func (r *baseRepository) ValidateID(id string) error {
+	if id == "" {
 		return fmt.Errorf("無効なID: 空のUUID")
 	}
 	return nil
 }
 
 // NewID は新しいUUIDを生成する
-func (r *baseRepository) NewID() uuid.UUID {
-	return uuid.New()
+func (r *baseRepository) NewID() string {
+	return uuid.New().String()
 }

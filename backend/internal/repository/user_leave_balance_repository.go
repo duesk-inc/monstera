@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type UserLeaveBalanceRepository interface {
-	GetByUserAndType(ctx context.Context, userID, leaveTypeID uuid.UUID) (*model.UserLeaveBalance, error)
+	GetByUserAndType(ctx context.Context, userID, leaveTypeID string) (*model.UserLeaveBalance, error)
 	Create(ctx context.Context, balance *model.UserLeaveBalance) error
 	Update(ctx context.Context, balance *model.UserLeaveBalance) error
 	GetByUser(ctx context.Context, userID string) ([]*model.UserLeaveBalance, error)
@@ -28,7 +27,7 @@ func NewUserLeaveBalanceRepository(db *gorm.DB, logger *zap.Logger) UserLeaveBal
 	}
 }
 
-func (r *userLeaveBalanceRepository) GetByUserAndType(ctx context.Context, userID, leaveTypeID uuid.UUID) (*model.UserLeaveBalance, error) {
+func (r *userLeaveBalanceRepository) GetByUserAndType(ctx context.Context, userID, leaveTypeID string) (*model.UserLeaveBalance, error) {
 	var balance model.UserLeaveBalance
 	err := r.DB.WithContext(ctx).
 		Preload("LeaveType").
@@ -38,8 +37,8 @@ func (r *userLeaveBalanceRepository) GetByUserAndType(ctx context.Context, userI
 	if err != nil {
 		r.Logger.Error("Failed to get user leave balance",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
-			zap.String("leave_type_id", leaveTypeID.String()))
+			zap.String("user_id", userID),
+			zap.String("leave_type_id", leaveTypeID))
 		return nil, err
 	}
 
@@ -52,7 +51,7 @@ func (r *userLeaveBalanceRepository) Create(ctx context.Context, balance *model.
 		r.Logger.Error("Failed to create user leave balance",
 			zap.Error(err),
 			zap.String("user_id", balance.UserID),
-			zap.String("leave_type_id", balance.LeaveTypeID.String()))
+			zap.String("leave_type_id", balance.LeaveTypeID))
 		return err
 	}
 
@@ -65,7 +64,7 @@ func (r *userLeaveBalanceRepository) Update(ctx context.Context, balance *model.
 		r.Logger.Error("Failed to update user leave balance",
 			zap.Error(err),
 			zap.String("user_id", balance.UserID),
-			zap.String("leave_type_id", balance.LeaveTypeID.String()))
+			zap.String("leave_type_id", balance.LeaveTypeID))
 		return err
 	}
 

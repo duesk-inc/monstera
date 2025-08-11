@@ -8,7 +8,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -16,13 +15,13 @@ import (
 // InvoiceService 請求書サービスのインターフェース
 type InvoiceService interface {
 	GetInvoices(ctx context.Context, req *dto.InvoiceSearchRequest) ([]dto.InvoiceDTO, int64, error)
-	GetInvoiceByID(ctx context.Context, invoiceID uuid.UUID) (*dto.InvoiceDetailDTO, error)
+	GetInvoiceByID(ctx context.Context, invoiceID string) (*dto.InvoiceDetailDTO, error)
 	CreateInvoice(ctx context.Context, req *dto.CreateInvoiceRequest) (*dto.InvoiceDetailDTO, error)
-	UpdateInvoice(ctx context.Context, invoiceID uuid.UUID, req *dto.UpdateInvoiceRequest) (*dto.InvoiceDTO, error)
-	UpdateInvoiceStatus(ctx context.Context, invoiceID uuid.UUID, req *dto.UpdateInvoiceStatusRequest) (*dto.InvoiceDTO, error)
-	DeleteInvoice(ctx context.Context, invoiceID uuid.UUID) error
-	GetInvoiceSummary(ctx context.Context, clientID *uuid.UUID, dateFrom, dateTo *time.Time) (*dto.InvoiceSummaryDTO, error)
-	ExportInvoicePDF(ctx context.Context, invoiceID uuid.UUID) ([]byte, error)
+	UpdateInvoice(ctx context.Context, invoiceID string, req *dto.UpdateInvoiceRequest) (*dto.InvoiceDTO, error)
+	UpdateInvoiceStatus(ctx context.Context, invoiceID string, req *dto.UpdateInvoiceStatusRequest) (*dto.InvoiceDTO, error)
+	DeleteInvoice(ctx context.Context, invoiceID string) error
+	GetInvoiceSummary(ctx context.Context, clientID *string, dateFrom, dateTo *time.Time) (*dto.InvoiceSummaryDTO, error)
+	ExportInvoicePDF(ctx context.Context, invoiceID string) ([]byte, error)
 }
 
 // invoiceService 請求書サービスの実装
@@ -116,7 +115,7 @@ func (s *invoiceService) GetInvoices(ctx context.Context, req *dto.InvoiceSearch
 }
 
 // GetInvoiceByID 請求書詳細を取得
-func (s *invoiceService) GetInvoiceByID(ctx context.Context, invoiceID uuid.UUID) (*dto.InvoiceDetailDTO, error) {
+func (s *invoiceService) GetInvoiceByID(ctx context.Context, invoiceID string) (*dto.InvoiceDetailDTO, error) {
 	var invoice model.Invoice
 	if err := s.db.WithContext(ctx).
 		Preload("Client").
@@ -214,7 +213,7 @@ func (s *invoiceService) CreateInvoice(ctx context.Context, req *dto.CreateInvoi
 }
 
 // UpdateInvoice 請求書を更新
-func (s *invoiceService) UpdateInvoice(ctx context.Context, invoiceID uuid.UUID, req *dto.UpdateInvoiceRequest) (*dto.InvoiceDTO, error) {
+func (s *invoiceService) UpdateInvoice(ctx context.Context, invoiceID string, req *dto.UpdateInvoiceRequest) (*dto.InvoiceDTO, error) {
 	// トランザクション開始
 	tx := s.db.WithContext(ctx).Begin()
 	defer func() {
@@ -277,7 +276,7 @@ func (s *invoiceService) UpdateInvoice(ctx context.Context, invoiceID uuid.UUID,
 }
 
 // UpdateInvoiceStatus 請求書ステータスを更新
-func (s *invoiceService) UpdateInvoiceStatus(ctx context.Context, invoiceID uuid.UUID, req *dto.UpdateInvoiceStatusRequest) (*dto.InvoiceDTO, error) {
+func (s *invoiceService) UpdateInvoiceStatus(ctx context.Context, invoiceID string, req *dto.UpdateInvoiceStatusRequest) (*dto.InvoiceDTO, error) {
 	// トランザクション開始
 	tx := s.db.WithContext(ctx).Begin()
 	defer func() {
@@ -343,7 +342,7 @@ func (s *invoiceService) UpdateInvoiceStatus(ctx context.Context, invoiceID uuid
 }
 
 // DeleteInvoice 請求書を削除
-func (s *invoiceService) DeleteInvoice(ctx context.Context, invoiceID uuid.UUID) error {
+func (s *invoiceService) DeleteInvoice(ctx context.Context, invoiceID string) error {
 	// 既存の請求書を取得
 	invoice, err := s.invoiceRepo.FindByID(ctx, invoiceID)
 	if err != nil {
@@ -368,7 +367,7 @@ func (s *invoiceService) DeleteInvoice(ctx context.Context, invoiceID uuid.UUID)
 }
 
 // GetInvoiceSummary 請求書サマリを取得
-func (s *invoiceService) GetInvoiceSummary(ctx context.Context, clientID *uuid.UUID, dateFrom, dateTo *time.Time) (*dto.InvoiceSummaryDTO, error) {
+func (s *invoiceService) GetInvoiceSummary(ctx context.Context, clientID *string, dateFrom, dateTo *time.Time) (*dto.InvoiceSummaryDTO, error) {
 	summary, err := s.invoiceRepo.GetSummary(ctx, clientID, dateFrom, dateTo)
 	if err != nil {
 		return nil, err
@@ -387,7 +386,7 @@ func (s *invoiceService) GetInvoiceSummary(ctx context.Context, clientID *uuid.U
 }
 
 // ExportInvoicePDF 請求書をPDF形式でエクスポート
-func (s *invoiceService) ExportInvoicePDF(ctx context.Context, invoiceID uuid.UUID) ([]byte, error) {
+func (s *invoiceService) ExportInvoicePDF(ctx context.Context, invoiceID string) ([]byte, error) {
 	// TODO: PDF生成の実装
 	// 現在は仮実装
 	return nil, fmt.Errorf("PDF export not implemented yet")
@@ -412,7 +411,7 @@ func (s *invoiceService) modelToDTO(invoice *model.Invoice) dto.InvoiceDTO {
 	}
 
 	// ClientがPreloadされている場合、会社名を設定
-	if invoice.Client.ID != uuid.Nil {
+	if invoice.Client.ID != "" {
 		dto.ClientName = invoice.Client.CompanyName
 	}
 

@@ -8,7 +8,6 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -18,12 +17,12 @@ type WorkHistoryRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, workHistory *model.WorkHistory) error
 	Update(ctx context.Context, workHistory *model.WorkHistory) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error)
+	Delete(ctx context.Context, id string) error
+	GetByID(ctx context.Context, id string) (*model.WorkHistory, error)
 	GetByUserID(ctx context.Context, userID string) ([]*model.WorkHistory, error)
 
 	// 拡張機能
-	GetWithTechnologies(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error)
+	GetWithTechnologies(ctx context.Context, id string) (*model.WorkHistory, error)
 	GetByUserIDWithTechnologies(ctx context.Context, userID string) ([]*model.WorkHistory, error)
 	GetUserSummary(ctx context.Context, userID string) (*dto.WorkHistorySummaryResponse, error)
 	GetUserTechnologySkills(ctx context.Context, userID string) ([]dto.TechnologySkillExperienceResponse, error)
@@ -43,7 +42,7 @@ type WorkHistoryRepository interface {
 	// 一括操作
 	BulkCreate(ctx context.Context, workHistories []*model.WorkHistory) error
 	BulkUpdate(ctx context.Context, workHistories []*model.WorkHistory) error
-	BulkDelete(ctx context.Context, ids []uuid.UUID) error
+	BulkDelete(ctx context.Context, ids []string) error
 
 	// トランザクション操作
 	CreateWithTechnologies(ctx context.Context, workHistory *model.WorkHistory, technologies []model.WorkHistoryTechnology) error
@@ -83,7 +82,7 @@ func (r *workHistoryRepository) Update(ctx context.Context, workHistory *model.W
 }
 
 // Delete 職務経歴を削除（論理削除）
-func (r *workHistoryRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *workHistoryRepository) Delete(ctx context.Context, id string) error {
 	if err := r.db.WithContext(ctx).Delete(&model.WorkHistory{}, id).Error; err != nil {
 		r.logger.Error("Failed to delete work history", zap.Error(err))
 		return fmt.Errorf("職務経歴の削除に失敗しました: %w", err)
@@ -92,7 +91,7 @@ func (r *workHistoryRepository) Delete(ctx context.Context, id uuid.UUID) error 
 }
 
 // GetByID IDで職務経歴を取得
-func (r *workHistoryRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error) {
+func (r *workHistoryRepository) GetByID(ctx context.Context, id string) (*model.WorkHistory, error) {
 	var workHistory model.WorkHistory
 	if err := r.db.WithContext(ctx).Where("id = ?", id).First(&workHistory).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -118,7 +117,7 @@ func (r *workHistoryRepository) GetByUserID(ctx context.Context, userID string) 
 }
 
 // GetWithTechnologies 技術情報を含めて職務経歴を取得
-func (r *workHistoryRepository) GetWithTechnologies(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error) {
+func (r *workHistoryRepository) GetWithTechnologies(ctx context.Context, id string) (*model.WorkHistory, error) {
 	var workHistory model.WorkHistory
 	if err := r.db.WithContext(ctx).
 		Preload("TechnologyItems").
@@ -301,11 +300,7 @@ func (r *workHistoryRepository) Search(ctx context.Context, req dto.WorkHistoryQ
 
 	// ユーザーフィルタ
 	if req.UserID != nil {
-		userID, err := uuid.Parse(*req.UserID)
-		if err != nil {
-			return nil, 0, fmt.Errorf("無効なユーザーID: %w", err)
-		}
-		query = query.Where("user_id = ?", userID)
+		query = query.Where("user_id = ?", *req.UserID)
 	}
 
 	// プロジェクト名フィルタ
@@ -562,7 +557,7 @@ func (r *workHistoryRepository) BulkUpdate(ctx context.Context, workHistories []
 }
 
 // BulkDelete 職務経歴を一括削除
-func (r *workHistoryRepository) BulkDelete(ctx context.Context, ids []uuid.UUID) error {
+func (r *workHistoryRepository) BulkDelete(ctx context.Context, ids []string) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -586,7 +581,7 @@ func (r *workHistoryRepository) CreateWithTechnologies(ctx context.Context, work
 		if len(technologies) > 0 {
 			// WorkHistoryIDを設定
 			for i := range technologies {
-				technologies[i].WorkHistoryID = workHistory.ID.String()
+				technologies[i].WorkHistoryID = workHistory.ID
 			}
 
 			if err := tx.Create(&technologies).Error; err != nil {
@@ -615,7 +610,7 @@ func (r *workHistoryRepository) UpdateWithTechnologies(ctx context.Context, work
 		if len(technologies) > 0 {
 			// WorkHistoryIDを設定
 			for i := range technologies {
-				technologies[i].WorkHistoryID = workHistory.ID.String()
+				technologies[i].WorkHistoryID = workHistory.ID
 			}
 
 			if err := tx.Create(&technologies).Error; err != nil {

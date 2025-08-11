@@ -6,7 +6,6 @@ import (
 
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -44,7 +43,7 @@ func (h *skillSheetPDFHandler) GenerateSkillSheetPDF(c *gin.Context) {
 		return
 	}
 
-	userID, ok := userIDStr.(uuid.UUID)
+	userID, ok := userIDStr.(string)
 	if !ok {
 		RespondUnauthorized(c)
 		return
@@ -64,7 +63,7 @@ func (h *skillSheetPDFHandler) GenerateSkillSheetPDF(c *gin.Context) {
 	}
 
 	// ファイル名を生成
-	fileName := fmt.Sprintf("skillsheet_%s.pdf", userID.String())
+	fileName := fmt.Sprintf("skillsheet_%s.pdf", userID)
 
 	// PDFレスポンス
 	c.Header("Content-Type", "application/pdf")
@@ -79,8 +78,9 @@ func (h *skillSheetPDFHandler) GenerateUserSkillSheetPDF(c *gin.Context) {
 
 	// パスパラメータからユーザーIDを取得
 	userIDStr := c.Param("id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
+	userID := userIDStr
+	// UUID validation removed after migration
+	if userID == "" {
 		RespondValidationError(c, map[string]string{
 			"id": "無効なユーザーIDです",
 		})

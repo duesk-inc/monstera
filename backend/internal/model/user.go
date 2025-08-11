@@ -33,9 +33,9 @@ type User struct {
 	ManagerID    *string `gorm:"type:varchar(255)" json:"manager_id"` // Cognito Sub
 
 	// ステータス
-	Active           bool   `gorm:"default:true" json:"active"`
-	Status           string `gorm:"size:20;default:'active'" json:"status"`
-	FollowUpRequired bool   `gorm:"default:false" json:"follow_up_required"`
+	Active           bool       `gorm:"default:true" json:"active"`
+	Status           string     `gorm:"size:20;default:'active'" json:"status"`
+	FollowUpRequired bool       `gorm:"default:false" json:"follow_up_required"`
 	FollowUpReason   *string    `gorm:"type:text" json:"follow_up_reason"`
 	LastFollowUpDate *time.Time `json:"last_follow_up_date"`
 

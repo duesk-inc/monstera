@@ -9,7 +9,6 @@ import (
 	"github.com/duesk/monstera/internal/service"
 	"github.com/duesk/monstera/internal/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -127,8 +126,9 @@ func (h *ExpenseApproverSettingHandler) GetApproverSettings(c *gin.Context) {
 func (h *ExpenseApproverSettingHandler) UpdateApproverSetting(c *gin.Context) {
 	// 設定IDを取得
 	settingIDStr := c.Param("id")
-	settingID, err := uuid.Parse(settingIDStr)
-	if err != nil {
+	settingID := settingIDStr
+	// UUID validation removed after migration
+	if settingID == "" {
 		h.logger.Error("Invalid setting ID", zap.Error(err))
 		utils.RespondError(c, http.StatusBadRequest, "設定IDが不正です")
 		return
@@ -181,8 +181,9 @@ func (h *ExpenseApproverSettingHandler) UpdateApproverSetting(c *gin.Context) {
 func (h *ExpenseApproverSettingHandler) DeleteApproverSetting(c *gin.Context) {
 	// 設定IDを取得
 	settingIDStr := c.Param("id")
-	settingID, err := uuid.Parse(settingIDStr)
-	if err != nil {
+	settingID := settingIDStr
+	// UUID validation removed after migration
+	if settingID == "" {
 		h.logger.Error("Invalid setting ID", zap.Error(err))
 		utils.RespondError(c, http.StatusBadRequest, "設定IDが不正です")
 		return
@@ -240,8 +241,9 @@ func (h *ExpenseApproverSettingHandler) GetApproverSettingHistories(c *gin.Conte
 
 	if settingIDStr != "" {
 		// 特定の設定の履歴を取得
-		settingID, err := uuid.Parse(settingIDStr)
-		if err != nil {
+		settingID := settingIDStr
+		// UUID validation removed after migration
+		if settingID == "" {
 			h.logger.Error("Invalid setting ID", zap.Error(err))
 			utils.RespondError(c, http.StatusBadRequest, "設定IDが不正です")
 			return

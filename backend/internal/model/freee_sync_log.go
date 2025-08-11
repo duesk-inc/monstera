@@ -37,9 +37,9 @@ type FreeSyncResponseData map[string]interface{}
 
 // FreeSyncLog freee同期ログモデル
 type FreeSyncLog struct {
-	ID           uuid.UUID             `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID           string                `gorm:"type:varchar(36);primary_key" json:"id"`
 	SyncType     FreeSyncType          `gorm:"type:enum('invoice_create','invoice_update','payment_sync','client_sync');not null" json:"sync_type"`
-	TargetID     *uuid.UUID            `gorm:"type:varchar(36)" json:"target_id"`
+	TargetID     *string               `gorm:"type:varchar(36)" json:"target_id"`
 	FreeeID      *int                  `json:"freee_id"`
 	Status       FreeSyncStatus        `gorm:"type:enum('success','failed','pending');not null" json:"status"`
 	ErrorMessage *string               `gorm:"type:text" json:"error_message"`
@@ -50,8 +50,8 @@ type FreeSyncLog struct {
 
 // BeforeCreate UUIDを生成
 func (fsl *FreeSyncLog) BeforeCreate(tx *gorm.DB) error {
-	if fsl.ID == uuid.Nil {
-		fsl.ID = uuid.New()
+	if fsl.ID == "" {
+		fsl.ID = uuid.New().String()
 	}
 	return nil
 }

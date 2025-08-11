@@ -20,27 +20,27 @@ type ProjectGroupTransactionManager = transaction.TransactionManager
 // ProjectGroupServiceInterface プロジェクトグループサービスインターフェース
 type ProjectGroupServiceInterface interface {
 	// プロジェクトグループ管理
-	CreateProjectGroup(ctx context.Context, req *dto.CreateProjectGroupRequest, creatorID uuid.UUID) (*dto.ProjectGroupDTO, error)
-	GetProjectGroup(ctx context.Context, id uuid.UUID) (*dto.ProjectGroupDetailDTO, error)
-	UpdateProjectGroup(ctx context.Context, id uuid.UUID, req *dto.UpdateProjectGroupRequest) (*dto.ProjectGroupDTO, error)
-	DeleteProjectGroup(ctx context.Context, id uuid.UUID) error
+	CreateProjectGroup(ctx context.Context, req *dto.CreateProjectGroupRequest, creatorID string) (*dto.ProjectGroupDTO, error)
+	GetProjectGroup(ctx context.Context, id string) (*dto.ProjectGroupDetailDTO, error)
+	UpdateProjectGroup(ctx context.Context, id string, req *dto.UpdateProjectGroupRequest) (*dto.ProjectGroupDTO, error)
+	DeleteProjectGroup(ctx context.Context, id string) error
 
 	// プロジェクトグループ検索
 	ListProjectGroups(ctx context.Context, req *dto.ProjectGroupFilterRequest) (*dto.ProjectGroupListResponse, error)
 	SearchProjectGroups(ctx context.Context, req *dto.ProjectGroupFilterRequest) (*dto.ProjectGroupListResponse, error)
 
 	// プロジェクト管理
-	AddProjectsToGroup(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error
-	RemoveProjectsFromGroup(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error
-	GetGroupProjects(ctx context.Context, groupID uuid.UUID) ([]*dto.ProjectSummaryDTO, error)
-	GetAvailableProjects(ctx context.Context, clientID uuid.UUID) ([]*dto.ProjectSummaryDTO, error)
+	AddProjectsToGroup(ctx context.Context, groupID string, projectIDs []string) error
+	RemoveProjectsFromGroup(ctx context.Context, groupID string, projectIDs []string) error
+	GetGroupProjects(ctx context.Context, groupID string) ([]*dto.ProjectSummaryDTO, error)
+	GetAvailableProjects(ctx context.Context, clientID string) ([]*dto.ProjectSummaryDTO, error)
 
 	// 統計情報
-	GetProjectGroupStats(ctx context.Context, clientID *uuid.UUID) (*dto.ProjectGroupStatsDTO, error)
-	GetGroupRevenue(ctx context.Context, groupID uuid.UUID, startMonth, endMonth string) (map[string]interface{}, error)
+	GetProjectGroupStats(ctx context.Context, clientID *string) (*dto.ProjectGroupStatsDTO, error)
+	GetGroupRevenue(ctx context.Context, groupID string, startMonth, endMonth string) (map[string]interface{}, error)
 
 	// バリデーション
-	ValidateProjectsForGroup(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error
+	ValidateProjectsForGroup(ctx context.Context, groupID string, projectIDs []string) error
 }
 
 // projectGroupService プロジェクトグループサービス実装
@@ -73,7 +73,7 @@ func NewProjectGroupService(
 }
 
 // CreateProjectGroup プロジェクトグループを作成
-func (s *projectGroupService) CreateProjectGroup(ctx context.Context, req *dto.CreateProjectGroupRequest, creatorID uuid.UUID) (*dto.ProjectGroupDTO, error) {
+func (s *projectGroupService) CreateProjectGroup(ctx context.Context, req *dto.CreateProjectGroupRequest, creatorID string) (*dto.ProjectGroupDTO, error) {
 	// 名前の重複チェック
 	exists, err := s.groupRepo.ExistsByName(ctx, req.GroupName, req.ClientID, nil)
 	if err != nil {
@@ -124,10 +124,10 @@ func (s *projectGroupService) CreateProjectGroup(ctx context.Context, req *dto.C
 }
 
 // GetProjectGroup プロジェクトグループを取得
-func (s *projectGroupService) GetProjectGroup(ctx context.Context, id uuid.UUID) (*dto.ProjectGroupDetailDTO, error) {
+func (s *projectGroupService) GetProjectGroup(ctx context.Context, id string) (*dto.ProjectGroupDetailDTO, error) {
 	group, err := s.groupRepo.GetByIDWithDetails(ctx, id)
 	if err != nil {
-		s.logger.Error("Failed to get project group", zap.Error(err), zap.String("id", id.String()))
+		s.logger.Error("Failed to get project group", zap.Error(err), zap.String("id", id))
 		return nil, fmt.Errorf("プロジェクトグループの取得に失敗しました")
 	}
 	if group == nil {
@@ -138,7 +138,7 @@ func (s *projectGroupService) GetProjectGroup(ctx context.Context, id uuid.UUID)
 }
 
 // UpdateProjectGroup プロジェクトグループを更新
-func (s *projectGroupService) UpdateProjectGroup(ctx context.Context, id uuid.UUID, req *dto.UpdateProjectGroupRequest) (*dto.ProjectGroupDTO, error) {
+func (s *projectGroupService) UpdateProjectGroup(ctx context.Context, id string, req *dto.UpdateProjectGroupRequest) (*dto.ProjectGroupDTO, error) {
 	// 既存のグループを取得
 	group, err := s.groupRepo.GetByID(ctx, id)
 	if err != nil {
@@ -183,7 +183,7 @@ func (s *projectGroupService) UpdateProjectGroup(ctx context.Context, id uuid.UU
 }
 
 // DeleteProjectGroup プロジェクトグループを削除
-func (s *projectGroupService) DeleteProjectGroup(ctx context.Context, id uuid.UUID) error {
+func (s *projectGroupService) DeleteProjectGroup(ctx context.Context, id string) error {
 	// 既存のグループを確認
 	exists, err := s.groupRepo.ExistsByID(ctx, id)
 	if err != nil {
@@ -291,7 +291,7 @@ func (s *projectGroupService) SearchProjectGroups(ctx context.Context, req *dto.
 }
 
 // AddProjectsToGroup プロジェクトをグループに追加
-func (s *projectGroupService) AddProjectsToGroup(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (s *projectGroupService) AddProjectsToGroup(ctx context.Context, groupID string, projectIDs []string) error {
 	// バリデーション
 	if err := s.groupRepo.CanAddProjects(ctx, groupID, projectIDs); err != nil {
 		return err
@@ -307,7 +307,7 @@ func (s *projectGroupService) AddProjectsToGroup(ctx context.Context, groupID uu
 }
 
 // RemoveProjectsFromGroup プロジェクトをグループから削除
-func (s *projectGroupService) RemoveProjectsFromGroup(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (s *projectGroupService) RemoveProjectsFromGroup(ctx context.Context, groupID string, projectIDs []string) error {
 	// グループの存在確認
 	exists, err := s.groupRepo.ExistsByID(ctx, groupID)
 	if err != nil {
@@ -328,7 +328,7 @@ func (s *projectGroupService) RemoveProjectsFromGroup(ctx context.Context, group
 }
 
 // GetGroupProjects グループのプロジェクト一覧を取得
-func (s *projectGroupService) GetGroupProjects(ctx context.Context, groupID uuid.UUID) ([]*dto.ProjectSummaryDTO, error) {
+func (s *projectGroupService) GetGroupProjects(ctx context.Context, groupID string) ([]*dto.ProjectSummaryDTO, error) {
 	projects, err := s.groupRepo.GetProjectsByGroupID(ctx, groupID)
 	if err != nil {
 		s.logger.Error("Failed to get group projects", zap.Error(err))
@@ -345,7 +345,7 @@ func (s *projectGroupService) GetGroupProjects(ctx context.Context, groupID uuid
 }
 
 // GetAvailableProjects グループに追加可能なプロジェクト一覧を取得
-func (s *projectGroupService) GetAvailableProjects(ctx context.Context, clientID uuid.UUID) ([]*dto.ProjectSummaryDTO, error) {
+func (s *projectGroupService) GetAvailableProjects(ctx context.Context, clientID string) ([]*dto.ProjectSummaryDTO, error) {
 	// クライアントの全プロジェクトを取得
 	projects, err := s.projectRepo.FindByClientID(ctx, clientID)
 	if err != nil {
@@ -358,7 +358,7 @@ func (s *projectGroupService) GetAvailableProjects(ctx context.Context, clientID
 	for _, project := range projects {
 		groups, err := s.groupRepo.GetGroupsByProjectID(ctx, project.ID)
 		if err != nil {
-			s.logger.Warn("Failed to get project groups", zap.Error(err), zap.String("project_id", project.ID.String()))
+			s.logger.Warn("Failed to get project groups", zap.Error(err), zap.String("project_id", project.ID))
 			continue
 		}
 
@@ -372,7 +372,7 @@ func (s *projectGroupService) GetAvailableProjects(ctx context.Context, clientID
 }
 
 // GetProjectGroupStats プロジェクトグループの統計情報を取得
-func (s *projectGroupService) GetProjectGroupStats(ctx context.Context, clientID *uuid.UUID) (*dto.ProjectGroupStatsDTO, error) {
+func (s *projectGroupService) GetProjectGroupStats(ctx context.Context, clientID *string) (*dto.ProjectGroupStatsDTO, error) {
 	stats, err := s.groupRepo.GetStats(ctx, clientID)
 	if err != nil {
 		s.logger.Error("Failed to get project group stats", zap.Error(err))
@@ -389,7 +389,7 @@ func (s *projectGroupService) GetProjectGroupStats(ctx context.Context, clientID
 }
 
 // GetGroupRevenue グループの収益を取得
-func (s *projectGroupService) GetGroupRevenue(ctx context.Context, groupID uuid.UUID, startMonth, endMonth string) (map[string]interface{}, error) {
+func (s *projectGroupService) GetGroupRevenue(ctx context.Context, groupID string, startMonth, endMonth string) (map[string]interface{}, error) {
 	revenue, err := s.groupRepo.GetGroupRevenue(ctx, groupID, startMonth, endMonth)
 	if err != nil {
 		s.logger.Error("Failed to get group revenue", zap.Error(err))
@@ -405,7 +405,7 @@ func (s *projectGroupService) GetGroupRevenue(ctx context.Context, groupID uuid.
 }
 
 // ValidateProjectsForGroup プロジェクトのグループ追加可否を検証
-func (s *projectGroupService) ValidateProjectsForGroup(ctx context.Context, groupID uuid.UUID, projectIDs []uuid.UUID) error {
+func (s *projectGroupService) ValidateProjectsForGroup(ctx context.Context, groupID string, projectIDs []string) error {
 	return s.groupRepo.CanAddProjects(ctx, groupID, projectIDs)
 }
 
@@ -446,7 +446,7 @@ func (s *projectGroupService) convertToDetailResponse(group *model.ProjectGroup)
 	}
 
 	// クライアント名を設定
-	if group.Client.ID != uuid.Nil {
+	if group.Client.ID != "" {
 		response.ProjectGroupDTO.ClientName = group.Client.CompanyName
 	}
 
@@ -469,7 +469,7 @@ func (s *projectGroupService) convertToStatsResponse(stats *model.ProjectGroupWi
 			Description: stats.Description,
 			// BillingNotes: stats.BillingNotes, // TODO: フィールド追加予定
 			// IsActive:     stats.IsActive, // TODO: DeletedAtで管理
-			CreatedBy: uuid.New(), // TODO: 実際のCreatedBy
+			CreatedBy: uuid.New().String(), // TODO: 実際のCreatedBy
 			CreatedAt: stats.CreatedAt,
 			UpdatedAt: stats.UpdatedAt,
 		},
@@ -479,7 +479,7 @@ func (s *projectGroupService) convertToStatsResponse(stats *model.ProjectGroupWi
 	}
 
 	// クライアント名を設定
-	if stats.Client.ID != uuid.Nil {
+	if stats.Client.ID != "" {
 		response.ClientName = stats.Client.CompanyName
 	}
 

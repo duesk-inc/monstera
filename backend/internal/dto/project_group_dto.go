@@ -3,18 +3,16 @@ package dto
 import (
 	"fmt"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // ProjectGroupDTO プロジェクトグループDTO
 type ProjectGroupDTO struct {
-	ID          uuid.UUID `json:"id"`
+	ID          string    `json:"id"`
 	GroupName   string    `json:"group_name"`
-	ClientID    uuid.UUID `json:"client_id"`
+	ClientID    string    `json:"client_id"`
 	ClientName  string    `json:"client_name,omitempty"`
 	Description string    `json:"description"`
-	CreatedBy   uuid.UUID `json:"created_by"`
+	CreatedBy   string    `json:"created_by"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -33,7 +31,7 @@ type ProjectGroupDetailDTO struct {
 
 // ProjectSummaryDTO プロジェクトサマリーDTO
 type ProjectSummaryDTO struct {
-	ID            uuid.UUID  `json:"id"`
+	ID            string     `json:"id"`
 	ProjectName   string     `json:"project_name"`
 	ProjectCode   string     `json:"project_code"`
 	Status        string     `json:"status"`
@@ -46,7 +44,7 @@ type ProjectSummaryDTO struct {
 
 // InvoiceListSummaryDTO 請求書リストサマリーDTO
 type InvoiceListSummaryDTO struct {
-	ID            uuid.UUID `json:"id"`
+	ID            string    `json:"id"`
 	InvoiceNumber string    `json:"invoice_number"`
 	BillingMonth  string    `json:"billing_month"`
 	TotalAmount   float64   `json:"total_amount"`
@@ -57,18 +55,18 @@ type InvoiceListSummaryDTO struct {
 
 // UserSummaryDTO ユーザーサマリーDTO
 type UserSummaryDTO struct {
-	ID       uuid.UUID `json:"id"`
-	Username string    `json:"username"`
-	FullName string    `json:"full_name"`
-	Email    string    `json:"email"`
+	ID       string `json:"id"`
+	Username string `json:"username"`
+	FullName string `json:"full_name"`
+	Email    string `json:"email"`
 }
 
 // CreateProjectGroupRequest プロジェクトグループ作成リクエスト
 type CreateProjectGroupRequest struct {
-	GroupName   string      `json:"group_name" binding:"required,max=255"`
-	ClientID    uuid.UUID   `json:"client_id" binding:"required"`
-	Description string      `json:"description" binding:"max=1000"`
-	ProjectIDs  []uuid.UUID `json:"project_ids" binding:"required,min=1"`
+	GroupName   string   `json:"group_name" binding:"required,max=255"`
+	ClientID    string   `json:"client_id" binding:"required"`
+	Description string   `json:"description" binding:"max=1000"`
+	ProjectIDs  []string `json:"project_ids" binding:"required,min=1"`
 }
 
 // UpdateProjectGroupRequest プロジェクトグループ更新リクエスト
@@ -79,12 +77,12 @@ type UpdateProjectGroupRequest struct {
 
 // AddProjectsToGroupRequest プロジェクトをグループに追加リクエスト
 type AddProjectsToGroupRequest struct {
-	ProjectIDs []uuid.UUID `json:"project_ids" binding:"required,min=1"`
+	ProjectIDs []string `json:"project_ids" binding:"required,min=1"`
 }
 
 // RemoveProjectsFromGroupRequest プロジェクトをグループから削除リクエスト
 type RemoveProjectsFromGroupRequest struct {
-	ProjectIDs []uuid.UUID `json:"project_ids" binding:"required,min=1"`
+	ProjectIDs []string `json:"project_ids" binding:"required,min=1"`
 }
 
 // ProjectGroupWithStatsResponse 統計情報付きプロジェクトグループレスポンス
@@ -131,7 +129,7 @@ type ProjectGroupStatsDTO struct {
 
 // ProjectGroupFilterRequest プロジェクトグループフィルターリクエスト
 type ProjectGroupFilterRequest struct {
-	ClientID      *uuid.UUID `form:"client_id"`
+	ClientID      *string    `form:"client_id"`
 	Status        *string    `form:"status"` // active, inactive
 	HasProjects   *bool      `form:"has_projects"`
 	CreatedAfter  *time.Time `form:"created_after"`
@@ -145,8 +143,8 @@ type ProjectGroupFilterRequest struct {
 
 // BulkProjectGroupOperationRequest 一括操作リクエスト
 type BulkProjectGroupOperationRequest struct {
-	GroupIDs  []uuid.UUID `json:"group_ids" binding:"required,min=1"`
-	Operation string      `json:"operation" binding:"required,oneof=delete activate deactivate"`
+	GroupIDs  []string `json:"group_ids" binding:"required,min=1"`
+	Operation string   `json:"operation" binding:"required,oneof=delete activate deactivate"`
 }
 
 // BulkProjectGroupOperationResponse 一括操作レスポンス
@@ -158,14 +156,14 @@ type BulkProjectGroupOperationResponse struct {
 
 // BulkError 一括操作エラー詳細
 type BulkError struct {
-	GroupID uuid.UUID `json:"group_id"`
-	Error   string    `json:"error"`
+	GroupID string `json:"group_id"`
+	Error   string `json:"error"`
 }
 
 // ProjectGroupValidationRequest プロジェクトグループ検証リクエスト
 type ProjectGroupValidationRequest struct {
-	ClientID   uuid.UUID   `json:"client_id" binding:"required"`
-	ProjectIDs []uuid.UUID `json:"project_ids" binding:"required,min=1"`
+	ClientID   string   `json:"client_id" binding:"required"`
+	ProjectIDs []string `json:"project_ids" binding:"required,min=1"`
 }
 
 // ProjectGroupValidationResponse プロジェクトグループ検証レスポンス
@@ -193,11 +191,11 @@ type ValidationError struct {
 
 // ProjectValidationDetail プロジェクト検証詳細
 type ProjectValidationDetail struct {
-	ProjectID      uuid.UUID  `json:"project_id"`
-	ProjectName    string     `json:"project_name"`
-	IsCompatible   bool       `json:"is_compatible"`
-	CurrentGroupID *uuid.UUID `json:"current_group_id,omitempty"`
-	Issues         []string   `json:"issues,omitempty"`
+	ProjectID      string   `json:"project_id"`
+	ProjectName    string   `json:"project_name"`
+	IsCompatible   bool     `json:"is_compatible"`
+	CurrentGroupID *string  `json:"current_group_id,omitempty"`
+	Issues         []string `json:"issues,omitempty"`
 }
 
 // ProjectGroupRecommendationDTO プロジェクトグループ推奨DTO
@@ -209,11 +207,11 @@ type ProjectGroupRecommendationDTO struct {
 
 // ProjectGroupActivityDTO プロジェクトグループ活動DTO
 type ProjectGroupActivityDTO struct {
-	ID           uuid.UUID              `json:"id"`
-	GroupID      uuid.UUID              `json:"group_id"`
+	ID           string                 `json:"id"`
+	GroupID      string                 `json:"group_id"`
 	ActivityType string                 `json:"activity_type"` // created, updated, project_added, project_removed, billed
 	Description  string                 `json:"description"`
-	PerformedBy  uuid.UUID              `json:"performed_by"`
+	PerformedBy  string                 `json:"performed_by"`
 	PerformedAt  time.Time              `json:"performed_at"`
 	Metadata     map[string]interface{} `json:"metadata,omitempty"`
 }
@@ -249,19 +247,19 @@ func (r *ProjectGroupFilterRequest) SetDefaults() {
 
 // AddProjectsRequest プロジェクト追加リクエスト
 type AddProjectsRequest struct {
-	ProjectIDs []uuid.UUID `json:"project_ids" binding:"required"`
+	ProjectIDs []string `json:"project_ids" binding:"required"`
 }
 
 // RemoveProjectsRequest プロジェクト削除リクエスト
 type RemoveProjectsRequest struct {
-	ProjectIDs []uuid.UUID `json:"project_ids" binding:"required"`
+	ProjectIDs []string `json:"project_ids" binding:"required"`
 }
 
 // ValidateProjectGroupRequest プロジェクトグループ検証リクエスト
 type ValidateProjectGroupRequest struct {
 	Name          string                 `json:"name"`
 	BillingType   string                 `json:"billing_type"`
-	ProjectIDs    []uuid.UUID            `json:"project_ids"`
+	ProjectIDs    []string               `json:"project_ids"`
 	BillingConfig map[string]interface{} `json:"billing_config,omitempty"`
 }
 

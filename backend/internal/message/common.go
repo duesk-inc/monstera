@@ -40,17 +40,17 @@ const (
 	MsgTransactionError    = "トランザクション処理中にエラーが発生しました"
 
 	// 成功メッセージ
-	MsgSuccess       = "正常に処理されました"
-	MsgCreated       = "正常に作成されました"
-	MsgUpdated       = "正常に更新されました"
-	MsgDeleted       = "正常に削除されました"
-	MsgRegistered    = "正常に登録されました"
-	MsgSaved         = "正常に保存されました"
-	MsgApproved      = "正常に承認されました"
-	MsgRejected      = "正常に却下されました"
-	MsgSent          = "正常に送信されました"
-	MsgCompleted     = "正常に完了しました"
-	MsgLoggedOut     = "ログアウトしました"
+	MsgSuccess    = "正常に処理されました"
+	MsgCreated    = "正常に作成されました"
+	MsgUpdated    = "正常に更新されました"
+	MsgDeleted    = "正常に削除されました"
+	MsgRegistered = "正常に登録されました"
+	MsgSaved      = "正常に保存されました"
+	MsgApproved   = "正常に承認されました"
+	MsgRejected   = "正常に却下されました"
+	MsgSent       = "正常に送信されました"
+	MsgCompleted  = "正常に完了しました"
+	MsgLoggedOut  = "ログアウトしました"
 
 	// 一般的な操作メッセージ
 	MsgProcessing    = "処理中です"

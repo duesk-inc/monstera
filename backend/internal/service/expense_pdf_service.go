@@ -8,7 +8,6 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"github.com/jung-kurt/gofpdf"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -16,7 +15,7 @@ import (
 
 // ExpensePDFService 経費申請PDFサービスのインターフェース
 type ExpensePDFService interface {
-	GenerateExpensePDF(ctx context.Context, expenseID uuid.UUID) ([]byte, error)
+	GenerateExpensePDF(ctx context.Context, expenseID string) ([]byte, error)
 	GenerateExpenseListPDF(ctx context.Context, filter *dto.ExpenseFilterRequest) ([]byte, error)
 }
 
@@ -47,18 +46,18 @@ func NewExpensePDFService(
 }
 
 // GenerateExpensePDF 単一の経費申請PDFを生成
-func (s *expensePDFService) GenerateExpensePDF(ctx context.Context, expenseID uuid.UUID) ([]byte, error) {
+func (s *expensePDFService) GenerateExpensePDF(ctx context.Context, expenseID string) ([]byte, error) {
 	// 経費申請情報を取得
 	expense, err := s.expenseRepo.GetByID(ctx, expenseID)
 	if err != nil {
-		s.logger.Error("Failed to find expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		s.logger.Error("Failed to find expense", zap.Error(err), zap.String("expense_id", expenseID))
 		return nil, fmt.Errorf("経費申請が見つかりません")
 	}
 
 	// 申請者情報を取得
 	user, err := s.userRepo.FindByID(expense.UserID)
 	if err != nil {
-		s.logger.Error("Failed to find user", zap.Error(err), zap.String("user_id", expense.UserID.String()))
+		s.logger.Error("Failed to find user", zap.Error(err), zap.String("user_id", expense.UserID))
 		return nil, fmt.Errorf("ユーザーが見つかりません")
 	}
 
@@ -77,7 +76,7 @@ func (s *expensePDFService) GenerateExpensePDF(ctx context.Context, expenseID uu
 	pdf.SetFont("Arial", "", 10)
 	pdf.Cell(40, 8, "Report ID:")
 	pdf.SetFont("Arial", "B", 10)
-	pdf.Cell(0, 8, expense.ID.String())
+	pdf.Cell(0, 8, expense.ID)
 	pdf.Ln(8)
 
 	pdf.SetFont("Arial", "", 10)

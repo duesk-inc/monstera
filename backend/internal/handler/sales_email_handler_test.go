@@ -18,7 +18,7 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/duesk/monstera/internal/testdata"
-	"github.com/duesk/monstera/mocks"
+	mocks "github.com/duesk/monstera/test/cognito/mocks"
 )
 
 // TestSalesEmailHandler SalesEmailHandlerのテストスイート
@@ -70,7 +70,7 @@ func testEmailTemplateHandlers(t *testing.T) {
 			},
 			setupMocks: func(mockEmailSvc *mocks.MockSalesEmailService, mockTeamSvc *mocks.MockSalesTeamService) {
 				expectedTemplate := &model.EmailTemplate{
-					ID:       uuid.New(),
+					ID:       uuid.New().String(),
 					Name:     "テスト提案テンプレート",
 					Subject:  "【提案】{{.EngineerName}}様の案件について",
 					BodyHTML: "<h1>{{.EngineerName}}様</h1><p>{{.ClientName}}からの案件です。</p>",
@@ -124,7 +124,7 @@ func testEmailTemplateHandlers(t *testing.T) {
 			setupMocks: func(mockEmailSvc *mocks.MockSalesEmailService, mockTeamSvc *mocks.MockSalesTeamService) {
 				templateID := "123e4567-e89b-12d3-a456-426614174000"
 				expectedTemplate := &model.EmailTemplate{
-					ID:       uuid.MustParse(templateID),
+					ID:       templateID,
 					Name:     "テストテンプレート",
 					Subject:  "テスト件名",
 					BodyHTML: "<p>テスト本文</p>",
@@ -178,14 +178,14 @@ func testEmailTemplateHandlers(t *testing.T) {
 				expectedResponse := &service.EmailTemplateListResponse{
 					Templates: []*model.EmailTemplate{
 						{
-							ID:       uuid.New(),
+							ID:       uuid.New().String(),
 							Name:     "提案テンプレート1",
 							Subject:  "提案件名1",
 							Category: "proposal",
 							IsActive: true,
 						},
 						{
-							ID:       uuid.New(),
+							ID:       uuid.New().String(),
 							Name:     "提案テンプレート2",
 							Subject:  "提案件名2",
 							Category: "proposal",
@@ -236,7 +236,7 @@ func testEmailTemplateHandlers(t *testing.T) {
 			setupMocks: func(mockEmailSvc *mocks.MockSalesEmailService, mockTeamSvc *mocks.MockSalesTeamService) {
 				templateID := "123e4567-e89b-12d3-a456-426614174000"
 				updatedTemplate := &model.EmailTemplate{
-					ID:       uuid.MustParse(templateID),
+					ID:       templateID,
 					Name:     "更新されたテンプレート",
 					Subject:  "更新された件名",
 					BodyHTML: "<p>更新された本文</p>",
@@ -359,7 +359,7 @@ func testEmailCampaignHandlers(t *testing.T) {
 			},
 			setupMocks: func(mockEmailSvc *mocks.MockSalesEmailService, mockTeamSvc *mocks.MockSalesTeamService) {
 				expectedCampaign := &model.EmailCampaign{
-					ID:     uuid.New(),
+					ID:     uuid.New().String(),
 					Name:   "テストキャンペーン",
 					Status: model.CampaignStatusDraft,
 				}
@@ -394,7 +394,7 @@ func testEmailCampaignHandlers(t *testing.T) {
 			setupMocks: func(mockEmailSvc *mocks.MockSalesEmailService, mockTeamSvc *mocks.MockSalesTeamService) {
 				campaignID := "123e4567-e89b-12d3-a456-426614174000"
 				expectedCampaign := &model.EmailCampaign{
-					ID:     uuid.MustParse(campaignID),
+					ID:     campaignID,
 					Name:   "テストキャンペーン",
 					Status: model.CampaignStatusDraft,
 				}
@@ -674,16 +674,16 @@ func testStatisticsHandlers(t *testing.T) {
 				campaignID := "123e4567-e89b-12d3-a456-426614174000"
 				expectedHistory := []*model.EmailSentHistory{
 					{
-						ID:             uuid.New(),
-						CampaignID:     uuid.MustParse(campaignID),
+						ID:             uuid.New().String(),
+						CampaignID:     campaignID,
 						RecipientEmail: testdata.DefaultTestEmail,
 						RecipientName:  "ユーザー1",
 						SentAt:         time.Now(),
 						DeliveryStatus: model.EmailDeliveryStatusSent,
 					},
 					{
-						ID:             uuid.New(),
-						CampaignID:     uuid.MustParse(campaignID),
+						ID:             uuid.New().String(),
+						CampaignID:     campaignID,
 						RecipientEmail: testdata.DefaultTestEmail + "2",
 						RecipientName:  "ユーザー2",
 						SentAt:         time.Now(),

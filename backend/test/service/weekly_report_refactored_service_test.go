@@ -41,7 +41,7 @@ func TestWeeklyReportRefactoredService_GetUserWeeklyReports(t *testing.T) {
 	ctx := context.Background()
 
 	// テストデータ作成
-	userID := uuid.New()
+	userID := uuid.New().String()
 	user := &model.User{
 		ID:        userID,
 		Email:     "test@duesk.co.jp",
@@ -116,7 +116,7 @@ func TestWeeklyReportRefactoredService_GetUnsubmittedReports(t *testing.T) {
 	ctx := context.Background()
 
 	// 部署作成
-	deptID := uuid.New()
+	deptID := uuid.New().String()
 	dept := &model.Department{
 		ID:   deptID,
 		Name: "開発部",
@@ -124,7 +124,7 @@ func TestWeeklyReportRefactoredService_GetUnsubmittedReports(t *testing.T) {
 	require.NoError(t, departmentRepo.Create(ctx, dept))
 
 	// マネージャー作成
-	managerID := uuid.New()
+	managerID := uuid.New().String()
 	manager := &model.User{
 		ID:           managerID,
 		Email:        "manager@duesk.co.jp",
@@ -136,7 +136,7 @@ func TestWeeklyReportRefactoredService_GetUnsubmittedReports(t *testing.T) {
 	require.NoError(t, userRepo.Create(manager))
 
 	// ユーザー作成
-	userID := uuid.New()
+	userID := uuid.New().String()
 	user := &model.User{
 		ID:           userID,
 		Email:        "user@duesk.co.jp",
@@ -216,7 +216,7 @@ func TestWeeklyReportRefactoredService_BatchOperations(t *testing.T) {
 	ctx := context.Background()
 
 	// ユーザー作成
-	userID := uuid.New()
+	userID := uuid.New().String()
 	user := &model.User{
 		ID:        userID,
 		Email:     "test@duesk.co.jp",
@@ -227,7 +227,7 @@ func TestWeeklyReportRefactoredService_BatchOperations(t *testing.T) {
 	require.NoError(t, userRepo.Create(user))
 
 	// 複数の週報を作成
-	reportIDs := make([]uuid.UUID, 3)
+	reportIDs := make([]string, 3)
 	for i := 0; i < 3; i++ {
 		report := &model.WeeklyReport{
 			UserID:    userID,

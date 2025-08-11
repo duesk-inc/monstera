@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"gorm.io/gorm"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type SubstituteLeaveGrantRepository interface {

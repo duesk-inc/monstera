@@ -1,5 +1,18 @@
 package service
 
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"html/template"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"time"
+
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+)
 
 // WorkHistoryPDFService PDFサービスのインターフェース
 type WorkHistoryPDFService interface {
@@ -155,7 +168,7 @@ func (s *workHistoryPDFService) GeneratePDF(ctx context.Context, userID string, 
 // convertToPDFData WorkHistoryDataをPDFテンプレート用データに変換
 func (s *workHistoryPDFService) convertToPDFData(data *WorkHistoryData, startDate *time.Time) PDFTemplateData {
 	result := PDFTemplateData{
-		UserID:        data.UserID.String(),
+		UserID:        data.UserID,
 		Email:         data.Email,
 		LastName:      data.LastName,
 		FirstName:     data.FirstName,
@@ -177,7 +190,7 @@ func (s *workHistoryPDFService) convertToPDFData(data *WorkHistoryData, startDat
 	// 職務経歴を変換
 	for _, wh := range data.WorkHistories {
 		pdfWH := PDFWorkHistory{
-			ID:               wh.ID.String(),
+			ID:               wh.ID,
 			ProjectName:      wh.ProjectName,
 			StartDate:        wh.StartDate.Format("2006年1月"),
 			Industry:         wh.Industry,

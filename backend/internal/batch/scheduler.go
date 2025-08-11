@@ -329,7 +329,7 @@ func (s *Scheduler) runMonthlyArchiveBatch() {
 	defer cancel()
 
 	// バッチ実行ユーザーIDを生成（システムユーザーとして扱う）
-	batchUserID := uuid.New()
+	batchUserID := uuid.New().String()
 
 	// アーカイブパラメータを設定
 	// 1年以上古い週報データをアーカイブ（本番運用では適切に調整）
@@ -362,7 +362,7 @@ func (s *Scheduler) runMonthlyArchiveBatch() {
 		zap.Int("total_candidates", result.TotalCandidates),
 		zap.Int("archived_count", result.ArchivedCount),
 		zap.Int("failed_count", result.FailedCount),
-		zap.String("statistics_id", result.StatisticsID.String()),
+		zap.String("statistics_id", result.StatisticsID),
 		zap.Time("cutoff_date", result.CutoffDate),
 	)
 
@@ -394,7 +394,7 @@ func (s *Scheduler) runExpenseMonthlyCloseBatch() {
 }
 
 // runArchiveCleanupBatch アーカイブクリーンアップバッチを実行
-func (s *Scheduler) runArchiveCleanupBatch(ctx context.Context, parentJobID string, executedBy uuid.UUID) {
+func (s *Scheduler) runArchiveCleanupBatch(ctx context.Context, parentJobID string, executedBy string) {
 	cleanupJobID := parentJobID + "_cleanup"
 	s.logger.Info("Starting archive cleanup batch", zap.String("job_id", cleanupJobID))
 
@@ -426,7 +426,7 @@ func (s *Scheduler) runArchiveCleanupBatch(ctx context.Context, parentJobID stri
 		zap.String("job_id", cleanupJobID),
 		zap.Duration("duration", duration),
 		zap.Int("deleted_count", cleanupResult.DeletedCount),
-		zap.String("statistics_id", cleanupResult.StatisticsID.String()),
+		zap.String("statistics_id", cleanupResult.StatisticsID),
 		zap.Time("cutoff_date", cleanupResult.CutoffDate),
 	)
 

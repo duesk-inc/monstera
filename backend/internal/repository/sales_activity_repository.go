@@ -6,7 +6,6 @@ import (
 
 	"github.com/duesk/monstera/internal/common/repository"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -14,8 +13,8 @@ import (
 // SalesActivityRepository 営業活動リポジトリのインターフェース
 type SalesActivityRepository interface {
 	CrudRepository[model.SalesActivity]
-	FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.SalesActivity, error)
-	FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.SalesActivity, error)
+	FindByClientID(ctx context.Context, clientID string) ([]*model.SalesActivity, error)
+	FindByProjectID(ctx context.Context, projectID string) ([]*model.SalesActivity, error)
 	FindByUserID(ctx context.Context, userID string) ([]*model.SalesActivity, error)
 	FindUpcoming(ctx context.Context, userID *string, days int) ([]*model.SalesActivity, error)
 	FindOverdue(ctx context.Context, userID *string) ([]*model.SalesActivity, error)
@@ -47,7 +46,7 @@ func NewSalesActivityRepository(base BaseRepository) SalesActivityRepository {
 }
 
 // FindByClientID 取引先IDで検索
-func (r *salesActivityRepository) FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.SalesActivity, error) {
+func (r *salesActivityRepository) FindByClientID(ctx context.Context, clientID string) ([]*model.SalesActivity, error) {
 	var activities []*model.SalesActivity
 	err := r.db.WithContext(ctx).
 		Where("client_id = ? AND deleted_at IS NULL", clientID).
@@ -56,7 +55,7 @@ func (r *salesActivityRepository) FindByClientID(ctx context.Context, clientID u
 
 	if err != nil {
 		r.logger.Error("Failed to find activities by client ID",
-			zap.String("client_id", clientID.String()),
+			zap.String("client_id", clientID),
 			zap.Error(err))
 		return nil, err
 	}
@@ -65,7 +64,7 @@ func (r *salesActivityRepository) FindByClientID(ctx context.Context, clientID u
 }
 
 // FindByProjectID 案件IDで検索
-func (r *salesActivityRepository) FindByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.SalesActivity, error) {
+func (r *salesActivityRepository) FindByProjectID(ctx context.Context, projectID string) ([]*model.SalesActivity, error) {
 	var activities []*model.SalesActivity
 	err := r.db.WithContext(ctx).
 		Where("project_id = ? AND deleted_at IS NULL", projectID).
@@ -74,7 +73,7 @@ func (r *salesActivityRepository) FindByProjectID(ctx context.Context, projectID
 
 	if err != nil {
 		r.logger.Error("Failed to find activities by project ID",
-			zap.String("project_id", projectID.String()),
+			zap.String("project_id", projectID),
 			zap.Error(err))
 		return nil, err
 	}

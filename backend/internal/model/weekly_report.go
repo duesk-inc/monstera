@@ -9,8 +9,8 @@ import (
 
 // WeeklyReport 週報モデル
 type WeeklyReport struct {
-	ID                       uuid.UUID              `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string              `gorm:"type:varchar(255);not null" json:"user_id"`
+	ID                       string                 `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID                   string                 `gorm:"type:varchar(255);not null" json:"user_id"`
 	User                     User                   `gorm:"foreignKey:UserID" json:"user"`
 	StartDate                time.Time              `gorm:"not null" json:"start_date"` // 週の開始日（月曜日）
 	EndDate                  time.Time              `gorm:"not null" json:"end_date"`   // 週の終了日（日曜日）
@@ -25,7 +25,7 @@ type WeeklyReport struct {
 	SubmittedAt              *time.Time             `json:"submitted_at"`
 	SubmissionDeadline       *time.Time             `json:"submission_deadline"`
 	ManagerComment           *string                `gorm:"type:text" json:"manager_comment"`
-	CommentedBy              *uuid.UUID             `gorm:"type:varchar(255)" json:"commented_by"`
+	CommentedBy              *string                `gorm:"type:varchar(255)" json:"commented_by"`
 	CommentedAt              *time.Time             `json:"commented_at"`
 	DailyRecords             []*DailyRecord         `gorm:"foreignKey:WeeklyReportID" json:"daily_records,omitempty"`
 	CreatedAt                time.Time              `json:"created_at"`
@@ -60,8 +60,8 @@ func ConvertLegacyReportStatus(intStatus int) WeeklyReportStatusEnum {
 
 // BeforeCreate UUIDを生成
 func (r *WeeklyReport) BeforeCreate(tx *gorm.DB) error {
-	if r.ID == uuid.Nil {
-		r.ID = uuid.New()
+	if r.ID == "" {
+		r.ID = uuid.New().String()
 	}
 	return nil
 }

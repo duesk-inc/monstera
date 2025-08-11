@@ -8,7 +8,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -16,10 +15,10 @@ import (
 // SalesService 営業サービスのインターフェース
 type SalesService interface {
 	GetSalesActivities(ctx context.Context, req *dto.SalesActivitySearchRequest) ([]dto.SalesActivityDTO, int64, error)
-	GetSalesActivityByID(ctx context.Context, activityID uuid.UUID) (*dto.SalesActivityDTO, error)
+	GetSalesActivityByID(ctx context.Context, activityID string) (*dto.SalesActivityDTO, error)
 	CreateSalesActivity(ctx context.Context, userID string, req *dto.CreateSalesActivityRequest) (*dto.SalesActivityDTO, error)
-	UpdateSalesActivity(ctx context.Context, activityID uuid.UUID, req *dto.UpdateSalesActivityRequest) (*dto.SalesActivityDTO, error)
-	DeleteSalesActivity(ctx context.Context, activityID uuid.UUID) error
+	UpdateSalesActivity(ctx context.Context, activityID string, req *dto.UpdateSalesActivityRequest) (*dto.SalesActivityDTO, error)
+	DeleteSalesActivity(ctx context.Context, activityID string) error
 	GetSalesSummary(ctx context.Context, userID *string, dateFrom, dateTo *time.Time) (*dto.SalesSummaryDTO, error)
 	GetSalesPipeline(ctx context.Context, userID *string) ([]dto.SalesPipelineDTO, error)
 	GetExtensionTargets(ctx context.Context, days int) ([]dto.ExtensionTargetDTO, error)
@@ -131,7 +130,7 @@ func (s *salesService) GetSalesActivities(ctx context.Context, req *dto.SalesAct
 }
 
 // GetSalesActivityByID 営業活動詳細を取得
-func (s *salesService) GetSalesActivityByID(ctx context.Context, activityID uuid.UUID) (*dto.SalesActivityDTO, error) {
+func (s *salesService) GetSalesActivityByID(ctx context.Context, activityID string) (*dto.SalesActivityDTO, error) {
 	var activity model.SalesActivity
 	if err := s.db.WithContext(ctx).
 		Preload("Client").
@@ -208,7 +207,7 @@ func (s *salesService) CreateSalesActivity(ctx context.Context, userID string, r
 }
 
 // UpdateSalesActivity 営業活動を更新
-func (s *salesService) UpdateSalesActivity(ctx context.Context, activityID uuid.UUID, req *dto.UpdateSalesActivityRequest) (*dto.SalesActivityDTO, error) {
+func (s *salesService) UpdateSalesActivity(ctx context.Context, activityID string, req *dto.UpdateSalesActivityRequest) (*dto.SalesActivityDTO, error) {
 	// トランザクション開始
 	tx := s.db.WithContext(ctx).Begin()
 	defer func() {
@@ -266,7 +265,7 @@ func (s *salesService) UpdateSalesActivity(ctx context.Context, activityID uuid.
 }
 
 // DeleteSalesActivity 営業活動を削除
-func (s *salesService) DeleteSalesActivity(ctx context.Context, activityID uuid.UUID) error {
+func (s *salesService) DeleteSalesActivity(ctx context.Context, activityID string) error {
 	// 既存の活動を取得
 	activity, err := s.salesActivityRepo.FindByID(ctx, activityID)
 	if err != nil {
@@ -331,7 +330,7 @@ func (s *salesService) GetSalesPipeline(ctx context.Context, userID *string) ([]
 			First(&lastActivity)
 
 		var lastActivityDate *time.Time
-		if lastActivity.ID != uuid.Nil {
+		if lastActivity.ID != "" {
 			lastActivityDate = &lastActivity.CreatedAt
 		}
 
@@ -382,7 +381,7 @@ func (s *salesService) GetExtensionTargets(ctx context.Context, days int) ([]dto
 			First(&lastActivity)
 
 		var lastContact *time.Time
-		if lastActivity.ID != uuid.Nil {
+		if lastActivity.ID != "" {
 			lastContact = &lastActivity.CreatedAt
 		}
 
@@ -440,11 +439,11 @@ func (s *salesService) activityToDTO(activity *model.SalesActivity) dto.SalesAct
 		ID:        activity.ID,
 		ClientID:  activity.ClientID,
 		ProjectID: activity.ProjectID,
-		UserID: func() uuid.UUID {
+		UserID: func() string {
 			if activity.SalesRepID != nil {
 				return *activity.SalesRepID
 			}
-			return uuid.Nil
+			return ""
 		}(),
 		ActivityType:    string(activity.ActivityType),
 		ActivityDate:    activity.CreatedAt,  // ActivityDateフィールドがないのでCreatedAtを使用
@@ -458,7 +457,7 @@ func (s *salesService) activityToDTO(activity *model.SalesActivity) dto.SalesAct
 	}
 
 	// ClientがPreloadされている場合、会社名を設定
-	if activity.Client.ID != uuid.Nil {
+	if activity.Client.ID != "" {
 		dto.ClientName = activity.Client.CompanyName
 	}
 

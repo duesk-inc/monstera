@@ -82,8 +82,8 @@ func (r *ReminderErrorDetails) Scan(value interface{}) error {
 
 // ReminderHistory リマインド送信履歴モデル
 type ReminderHistory struct {
-	ID              uuid.UUID             `gorm:"type:varchar(36);primary_key;default:(UUID())" json:"id"`
-	SenderID        uuid.UUID             `gorm:"type:varchar(36);not null" json:"sender_id"`
+	ID              string                `gorm:"type:varchar(36);primary_key;default:(UUID())" json:"id"`
+	SenderID        string                `gorm:"type:varchar(36);not null" json:"sender_id"`
 	ReminderType    ReminderType          `gorm:"type:varchar(50);not null" json:"reminder_type"`
 	TargetWeekStart time.Time             `gorm:"type:date;not null" json:"target_week_start"`
 	TargetWeekEnd   time.Time             `gorm:"type:date;not null" json:"target_week_end"`
@@ -104,8 +104,8 @@ type ReminderHistory struct {
 
 // BeforeCreate IDの自動生成
 func (r *ReminderHistory) BeforeCreate(tx *gorm.DB) error {
-	if r.ID == uuid.Nil {
-		r.ID = uuid.New()
+	if r.ID == "" {
+		r.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -142,9 +142,9 @@ func (r *ReminderHistory) GetTargetWeek() string {
 
 // ReminderRecipient リマインド受信者詳細モデル
 type ReminderRecipient struct {
-	ID                uuid.UUID       `gorm:"type:varchar(36);primary_key;default:(UUID())" json:"id"`
-	ReminderHistoryID uuid.UUID       `gorm:"type:varchar(36);not null" json:"reminder_history_id"`
-	RecipientID       uuid.UUID       `gorm:"type:varchar(36);not null" json:"recipient_id"`
+	ID                string          `gorm:"type:varchar(36);primary_key;default:(UUID())" json:"id"`
+	ReminderHistoryID string          `gorm:"type:varchar(36);not null" json:"reminder_history_id"`
+	RecipientID       string          `gorm:"type:varchar(36);not null" json:"recipient_id"`
 	RecipientEmail    string          `gorm:"type:varchar(255);not null" json:"recipient_email"`
 	RecipientName     string          `gorm:"type:varchar(200);not null" json:"recipient_name"`
 	DepartmentName    *string         `gorm:"type:varchar(100)" json:"department_name,omitempty"`
@@ -162,8 +162,8 @@ type ReminderRecipient struct {
 
 // BeforeCreate IDの自動生成
 func (r *ReminderRecipient) BeforeCreate(tx *gorm.DB) error {
-	if r.ID == uuid.Nil {
-		r.ID = uuid.New()
+	if r.ID == "" {
+		r.ID = uuid.New().String()
 	}
 	return nil
 }

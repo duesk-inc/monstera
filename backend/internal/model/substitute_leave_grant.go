@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // SubstituteLeaveGrant は振替特別休暇の付与履歴を表すモデルです
 type SubstituteLeaveGrant struct {
-	ID            uuid.UUID `gorm:"primaryKey;type:varchar(36)" json:"id"`
-	UserID string `gorm:"type:varchar(255)" json:"user_id"`
+	ID            string    `gorm:"primaryKey;type:varchar(255)" json:"id"`
+	UserID        string    `gorm:"type:varchar(255)" json:"user_id"`
 	GrantDate     time.Time `json:"grant_date"`
 	GrantedDays   float64   `gorm:"type:decimal(5,1)" json:"granted_days"`
 	UsedDays      float64   `gorm:"type:decimal(5,1);default:0" json:"used_days"`
@@ -28,4 +29,12 @@ type SubstituteLeaveGrant struct {
 // TableName はテーブル名を指定します
 func (SubstituteLeaveGrant) TableName() string {
 	return "substitute_leave_grants"
+}
+
+// BeforeCreate UUIDを生成
+func (slg *SubstituteLeaveGrant) BeforeCreate(tx *gorm.DB) error {
+	if slg.ID == "" {
+		slg.ID = uuid.New().String()
+	}
+	return nil
 }

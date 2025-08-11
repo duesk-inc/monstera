@@ -45,9 +45,9 @@ func setupProposalRepositoryTest(t *testing.T) (*engineerProposalRepository, *go
 }
 
 // createTestProposal テスト用提案データの作成
-func createTestProposal(userID uuid.UUID, projectID uuid.UUID, status string) *model.EngineerProposal {
+func createTestProposal(userID string, projectID string, status string) *model.EngineerProposal {
 	return &model.EngineerProposal{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		UserID:    userID,
 		ProjectID: projectID,
 		Status:    status,
@@ -62,8 +62,8 @@ func TestEngineerProposalRepository_Create(t *testing.T) {
 
 	t.Run("正常ケース - 提案作成成功", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		proposal := createTestProposal(userID, projectID, "proposed")
 
@@ -72,13 +72,13 @@ func TestEngineerProposalRepository_Create(t *testing.T) {
 
 		// 検証
 		assert.NoError(t, err)
-		assert.NotEqual(t, uuid.Nil, proposal.ID)
+		assert.NotEqual(t, "", proposal.ID)
 	})
 
 	t.Run("異常ケース - 重複作成", func(t *testing.T) {
 		repo, db := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		// 最初の提案を作成
 		proposal1 := createTestProposal(userID, projectID, "proposed")
@@ -112,8 +112,8 @@ func TestEngineerProposalRepository_GetByID(t *testing.T) {
 
 	t.Run("正常ケース - 提案取得成功", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		// テストデータ作成
 		originalProposal := createTestProposal(userID, projectID, "proposed")
@@ -134,7 +134,7 @@ func TestEngineerProposalRepository_GetByID(t *testing.T) {
 
 	t.Run("異常ケース - 存在しないID", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		nonExistentID := uuid.New()
+		nonExistentID := uuid.New().String()
 
 		// テスト実行
 		result, err := repo.GetByID(ctx, nonExistentID)
@@ -151,8 +151,8 @@ func TestEngineerProposalRepository_Update(t *testing.T) {
 
 	t.Run("正常ケース - 提案更新成功", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		// テストデータ作成
 		proposal := createTestProposal(userID, projectID, "proposed")
@@ -179,9 +179,9 @@ func TestEngineerProposalRepository_Update(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
 
 		nonExistentProposal := &model.EngineerProposal{
-			ID:        uuid.New(),
-			UserID:    uuid.New(),
-			ProjectID: uuid.New(),
+			ID:        uuid.New().String(),
+			UserID:    uuid.New().String(),
+			ProjectID: uuid.New().String(),
 			Status:    "proceed",
 			UpdatedAt: time.Now(),
 		}
@@ -203,8 +203,8 @@ func TestEngineerProposalRepository_Delete(t *testing.T) {
 
 	t.Run("正常ケース - 提案削除成功", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		// テストデータ作成
 		proposal := createTestProposal(userID, projectID, "proposed")
@@ -229,8 +229,8 @@ func TestEngineerProposalRepository_UpdateStatus(t *testing.T) {
 
 	t.Run("正常ケース - ステータス更新成功", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		// テストデータ作成
 		proposal := createTestProposal(userID, projectID, "proposed")
@@ -253,8 +253,8 @@ func TestEngineerProposalRepository_UpdateStatus(t *testing.T) {
 
 	t.Run("正常ケース - respondedAtがnilの場合", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		// テストデータ作成
 		proposal := createTestProposal(userID, projectID, "proposed")
@@ -280,10 +280,10 @@ func TestEngineerProposalRepository_GetByUserID(t *testing.T) {
 
 	t.Run("正常ケース - ユーザー別提案取得成功", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID1 := uuid.New()
-		projectID2 := uuid.New()
-		otherUserID := uuid.New()
+		userID := uuid.New().String()
+		projectID1 := uuid.New().String()
+		projectID2 := uuid.New().String()
+		otherUserID := uuid.New().String()
 
 		// テストデータ作成（対象ユーザーの提案）
 		proposal1 := createTestProposal(userID, projectID1, "proposed")
@@ -294,7 +294,7 @@ func TestEngineerProposalRepository_GetByUserID(t *testing.T) {
 		require.NoError(t, err)
 
 		// 他のユーザーの提案（除外される）
-		otherProposal := createTestProposal(otherUserID, uuid.New(), "proposed")
+		otherProposal := createTestProposal(otherUserID, uuid.New().String(), "proposed")
 		err = repo.Create(ctx, otherProposal)
 		require.NoError(t, err)
 
@@ -320,12 +320,12 @@ func TestEngineerProposalRepository_GetByUserID(t *testing.T) {
 
 	t.Run("正常ケース - ステータスフィルター", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		// テストデータ作成
-		proposal1 := createTestProposal(userID, uuid.New(), "proposed")
-		proposal2 := createTestProposal(userID, uuid.New(), "proceed")
-		proposal3 := createTestProposal(userID, uuid.New(), "proposed")
+		proposal1 := createTestProposal(userID, uuid.New().String(), "proposed")
+		proposal2 := createTestProposal(userID, uuid.New().String(), "proceed")
+		proposal3 := createTestProposal(userID, uuid.New().String(), "proposed")
 
 		err := repo.Create(ctx, proposal1)
 		require.NoError(t, err)
@@ -358,11 +358,11 @@ func TestEngineerProposalRepository_GetByUserID(t *testing.T) {
 
 	t.Run("正常ケース - ページネーション", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		// テストデータ作成（5件）
 		for i := 0; i < 5; i++ {
-			proposal := createTestProposal(userID, uuid.New(), "proposed")
+			proposal := createTestProposal(userID, uuid.New().String(), "proposed")
 			err := repo.Create(ctx, proposal)
 			require.NoError(t, err)
 		}
@@ -389,9 +389,9 @@ func TestEngineerProposalRepository_GetByProjectID(t *testing.T) {
 
 	t.Run("正常ケース - プロジェクト別提案取得成功", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		projectID := uuid.New()
-		user1ID := uuid.New()
-		user2ID := uuid.New()
+		projectID := uuid.New().String()
+		user1ID := uuid.New().String()
+		user2ID := uuid.New().String()
 
 		// テストデータ作成（同じプロジェクトに複数ユーザーが提案）
 		proposal1 := createTestProposal(user1ID, projectID, "proposed")
@@ -402,7 +402,7 @@ func TestEngineerProposalRepository_GetByProjectID(t *testing.T) {
 		require.NoError(t, err)
 
 		// 他のプロジェクトの提案（除外される）
-		otherProposal := createTestProposal(user1ID, uuid.New(), "proposed")
+		otherProposal := createTestProposal(user1ID, uuid.New().String(), "proposed")
 		err = repo.Create(ctx, otherProposal)
 		require.NoError(t, err)
 
@@ -421,7 +421,7 @@ func TestEngineerProposalRepository_GetByProjectID(t *testing.T) {
 
 	t.Run("正常ケース - 該当なし", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		nonExistentProjectID := uuid.New()
+		nonExistentProjectID := uuid.New().String()
 
 		// テスト実行
 		results, err := repo.GetByProjectID(ctx, nonExistentProjectID)
@@ -438,8 +438,8 @@ func TestEngineerProposalRepository_CheckDuplicateProposal(t *testing.T) {
 
 	t.Run("正常ケース - 重複あり", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		// テストデータ作成
 		proposal := createTestProposal(userID, projectID, "proposed")
@@ -456,8 +456,8 @@ func TestEngineerProposalRepository_CheckDuplicateProposal(t *testing.T) {
 
 	t.Run("正常ケース - 重複なし", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
 
 		// テスト実行（データなし）
 		exists, err := repo.CheckDuplicateProposal(ctx, projectID, userID)
@@ -469,10 +469,10 @@ func TestEngineerProposalRepository_CheckDuplicateProposal(t *testing.T) {
 
 	t.Run("正常ケース - 異なるユーザー/プロジェクト", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
-		projectID := uuid.New()
-		otherUserID := uuid.New()
-		otherProjectID := uuid.New()
+		userID := uuid.New().String()
+		projectID := uuid.New().String()
+		otherUserID := uuid.New().String()
+		otherProjectID := uuid.New().String()
 
 		// テストデータ作成
 		proposal := createTestProposal(userID, projectID, "proposed")
@@ -497,13 +497,13 @@ func TestEngineerProposalRepository_GetByUserAndStatus(t *testing.T) {
 
 	t.Run("正常ケース - 複数ステータス検索", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		// テストデータ作成
-		proposal1 := createTestProposal(userID, uuid.New(), "proposed")
-		proposal2 := createTestProposal(userID, uuid.New(), "proceed")
-		proposal3 := createTestProposal(userID, uuid.New(), "declined")
-		proposal4 := createTestProposal(userID, uuid.New(), "proposed")
+		proposal1 := createTestProposal(userID, uuid.New().String(), "proposed")
+		proposal2 := createTestProposal(userID, uuid.New().String(), "proceed")
+		proposal3 := createTestProposal(userID, uuid.New().String(), "declined")
+		proposal4 := createTestProposal(userID, uuid.New().String(), "proposed")
 
 		err := repo.Create(ctx, proposal1)
 		require.NoError(t, err)
@@ -530,7 +530,7 @@ func TestEngineerProposalRepository_GetByUserAndStatus(t *testing.T) {
 
 	t.Run("正常ケース - 該当なし", func(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		// テスト実行（存在しないステータス）
 		statuses := []string{"non_existent_status"}
@@ -550,7 +550,7 @@ func TestEngineerProposalRepository_ErrorHandling(t *testing.T) {
 		repo, _ := setupProposalRepositoryTest(t)
 
 		// 無効なUUIDでの取得テスト
-		_, err := repo.GetByID(ctx, uuid.Nil)
+		_, err := repo.GetByID(ctx, "")
 		assert.Error(t, err)
 	})
 
@@ -561,7 +561,7 @@ func TestEngineerProposalRepository_ErrorHandling(t *testing.T) {
 		canceledCtx, cancel := context.WithCancel(ctx)
 		cancel()
 
-		proposal := createTestProposal(uuid.New(), uuid.New(), "proposed")
+		proposal := createTestProposal(uuid.New().String(), uuid.New().String(), "proposed")
 		err := repo.Create(canceledCtx, proposal)
 
 		// コンテキストキャンセルでエラーになる可能性がある

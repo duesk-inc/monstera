@@ -9,7 +9,7 @@ import (
 
 // Certification 資格マスターモデル
 type Certification struct {
-	ID           uuid.UUID      `gorm:"type:varchar(36);primaryKey" json:"id"`
+	ID           string         `gorm:"type:varchar(36);primaryKey" json:"id"`
 	Name         string         `gorm:"type:varchar(255);not null;unique" json:"name"`
 	Issuer       *string        `gorm:"type:varchar(255)" json:"issuer"`
 	Description  *string        `gorm:"type:text" json:"description"`
@@ -23,8 +23,8 @@ type Certification struct {
 
 // BeforeCreate UUIDを生成
 func (c *Certification) BeforeCreate(tx *gorm.DB) error {
-	if c.ID == uuid.Nil {
-		c.ID = uuid.New()
+	if c.ID == "" {
+		c.ID = uuid.New().String()
 	}
 	return nil
 }

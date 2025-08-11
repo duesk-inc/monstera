@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -15,22 +14,22 @@ import (
 type ArchiveRepository interface {
 	// WeeklyReportArchive関連
 	CreateWeeklyReportArchive(ctx context.Context, archive *model.WeeklyReportArchive) error
-	GetWeeklyReportArchive(ctx context.Context, id uuid.UUID) (*model.WeeklyReportArchive, error)
+	GetWeeklyReportArchive(ctx context.Context, id string) (*model.WeeklyReportArchive, error)
 	GetWeeklyReportArchives(ctx context.Context, filter model.ArchiveFilter) ([]model.WeeklyReportArchive, int64, error)
-	GetWeeklyReportArchiveByOriginalID(ctx context.Context, originalID uuid.UUID) (*model.WeeklyReportArchive, error)
+	GetWeeklyReportArchiveByOriginalID(ctx context.Context, originalID string) (*model.WeeklyReportArchive, error)
 
 	// DailyRecordArchive関連
 	CreateDailyRecordArchive(ctx context.Context, archive *model.DailyRecordArchive) error
-	GetDailyRecordArchivesByWeeklyReport(ctx context.Context, weeklyReportArchiveID uuid.UUID) ([]model.DailyRecordArchive, error)
+	GetDailyRecordArchivesByWeeklyReport(ctx context.Context, weeklyReportArchiveID string) ([]model.DailyRecordArchive, error)
 
 	// WorkHourArchive関連
 	CreateWorkHourArchive(ctx context.Context, archive *model.WorkHourArchive) error
-	GetWorkHourArchivesByWeeklyReport(ctx context.Context, weeklyReportArchiveID uuid.UUID) ([]model.WorkHourArchive, error)
+	GetWorkHourArchivesByWeeklyReport(ctx context.Context, weeklyReportArchiveID string) ([]model.WorkHourArchive, error)
 
 	// ArchiveStatistics関連
 	CreateArchiveStatistics(ctx context.Context, stats *model.ArchiveStatistics) error
-	UpdateArchiveStatistics(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error
-	GetArchiveStatistics(ctx context.Context, id uuid.UUID) (*model.ArchiveStatistics, error)
+	UpdateArchiveStatistics(ctx context.Context, id string, updates map[string]interface{}) error
+	GetArchiveStatistics(ctx context.Context, id string) (*model.ArchiveStatistics, error)
 	GetArchiveStatisticsList(ctx context.Context, filter ArchiveStatisticsFilter) ([]model.ArchiveStatistics, int64, error)
 
 	// バルク操作
@@ -41,7 +40,7 @@ type ArchiveRepository interface {
 	// サマリー・統計
 	GetArchiveSummary(ctx context.Context, filter *model.ArchiveFilter) (*model.ArchiveSummary, error)
 	GetArchiveStatsByFiscalYear(ctx context.Context, fiscalYear int) (map[string]interface{}, error)
-	GetArchiveStatsByDepartment(ctx context.Context, departmentID *uuid.UUID) (map[string]interface{}, error)
+	GetArchiveStatsByDepartment(ctx context.Context, departmentID *string) (map[string]interface{}, error)
 
 	// 検索・フィルタリング
 	SearchArchivedReports(ctx context.Context, query string, filter model.ArchiveFilter) ([]model.WeeklyReportArchive, int64, error)
@@ -53,9 +52,9 @@ type ArchiveRepository interface {
 
 	// ストアドプロシージャ呼び出し
 	ExecuteArchiveWeeklyReports(ctx context.Context, params ArchiveWeeklyReportsParams) (*ArchiveWeeklyReportsResult, error)
-	ExecuteCleanupExpiredArchives(ctx context.Context, retentionYears int, executedBy uuid.UUID) (*CleanupExpiredArchivesResult, error)
+	ExecuteCleanupExpiredArchives(ctx context.Context, retentionYears int, executedBy string) (*CleanupExpiredArchivesResult, error)
 	ExecuteArchiveUserWeeklyReports(ctx context.Context, params ArchiveUserWeeklyReportsParams) (*ArchiveUserWeeklyReportsResult, error)
-	ExecuteGenerateArchiveReport(ctx context.Context, fiscalYear *int, departmentID *uuid.UUID) (*ArchiveReportResult, error)
+	ExecuteGenerateArchiveReport(ctx context.Context, fiscalYear *int, departmentID *string) (*ArchiveReportResult, error)
 	ExecuteValidateArchiveIntegrity(ctx context.Context) (*ArchiveIntegrityResult, error)
 }
 
@@ -76,7 +75,7 @@ func NewArchiveRepository(db *gorm.DB, logger *zap.Logger) ArchiveRepository {
 func (r *archiveRepository) CreateWeeklyReportArchive(ctx context.Context, archive *model.WeeklyReportArchive) error {
 	if err := r.db.WithContext(ctx).Create(archive).Error; err != nil {
 		r.logger.Error("Failed to create weekly report archive",
-			zap.String("original_id", archive.OriginalID.String()),
+			zap.String("original_id", archive.OriginalID),
 			zap.Error(err))
 		return err
 	}
@@ -84,7 +83,7 @@ func (r *archiveRepository) CreateWeeklyReportArchive(ctx context.Context, archi
 }
 
 // GetWeeklyReportArchive 週報アーカイブを取得
-func (r *archiveRepository) GetWeeklyReportArchive(ctx context.Context, id uuid.UUID) (*model.WeeklyReportArchive, error) {
+func (r *archiveRepository) GetWeeklyReportArchive(ctx context.Context, id string) (*model.WeeklyReportArchive, error) {
 	var archive model.WeeklyReportArchive
 	err := r.db.WithContext(ctx).
 		Preload("DailyRecords").
@@ -97,7 +96,7 @@ func (r *archiveRepository) GetWeeklyReportArchive(ctx context.Context, id uuid.
 			return nil, err
 		}
 		r.logger.Error("Failed to get weekly report archive",
-			zap.String("id", id.String()),
+			zap.String("id", id),
 			zap.Error(err))
 		return nil, err
 	}
@@ -150,7 +149,7 @@ func (r *archiveRepository) GetWeeklyReportArchives(ctx context.Context, filter 
 }
 
 // GetWeeklyReportArchiveByOriginalID 元IDで週報アーカイブを取得
-func (r *archiveRepository) GetWeeklyReportArchiveByOriginalID(ctx context.Context, originalID uuid.UUID) (*model.WeeklyReportArchive, error) {
+func (r *archiveRepository) GetWeeklyReportArchiveByOriginalID(ctx context.Context, originalID string) (*model.WeeklyReportArchive, error) {
 	var archive model.WeeklyReportArchive
 	err := r.db.WithContext(ctx).
 		Preload("DailyRecords").
@@ -162,7 +161,7 @@ func (r *archiveRepository) GetWeeklyReportArchiveByOriginalID(ctx context.Conte
 			return nil, err
 		}
 		r.logger.Error("Failed to get weekly report archive by original ID",
-			zap.String("original_id", originalID.String()),
+			zap.String("original_id", originalID),
 			zap.Error(err))
 		return nil, err
 	}
@@ -174,7 +173,7 @@ func (r *archiveRepository) GetWeeklyReportArchiveByOriginalID(ctx context.Conte
 func (r *archiveRepository) CreateDailyRecordArchive(ctx context.Context, archive *model.DailyRecordArchive) error {
 	if err := r.db.WithContext(ctx).Create(archive).Error; err != nil {
 		r.logger.Error("Failed to create daily record archive",
-			zap.String("original_id", archive.OriginalID.String()),
+			zap.String("original_id", archive.OriginalID),
 			zap.Error(err))
 		return err
 	}
@@ -182,7 +181,7 @@ func (r *archiveRepository) CreateDailyRecordArchive(ctx context.Context, archiv
 }
 
 // GetDailyRecordArchivesByWeeklyReport 週報IDで日次記録アーカイブを取得
-func (r *archiveRepository) GetDailyRecordArchivesByWeeklyReport(ctx context.Context, weeklyReportArchiveID uuid.UUID) ([]model.DailyRecordArchive, error) {
+func (r *archiveRepository) GetDailyRecordArchivesByWeeklyReport(ctx context.Context, weeklyReportArchiveID string) ([]model.DailyRecordArchive, error) {
 	var archives []model.DailyRecordArchive
 	err := r.db.WithContext(ctx).
 		Where("weekly_report_archive_id = ?", weeklyReportArchiveID).
@@ -191,7 +190,7 @@ func (r *archiveRepository) GetDailyRecordArchivesByWeeklyReport(ctx context.Con
 
 	if err != nil {
 		r.logger.Error("Failed to get daily record archives",
-			zap.String("weekly_report_archive_id", weeklyReportArchiveID.String()),
+			zap.String("weekly_report_archive_id", weeklyReportArchiveID),
 			zap.Error(err))
 		return nil, err
 	}
@@ -203,7 +202,7 @@ func (r *archiveRepository) GetDailyRecordArchivesByWeeklyReport(ctx context.Con
 func (r *archiveRepository) CreateWorkHourArchive(ctx context.Context, archive *model.WorkHourArchive) error {
 	if err := r.db.WithContext(ctx).Create(archive).Error; err != nil {
 		r.logger.Error("Failed to create work hour archive",
-			zap.String("original_id", archive.OriginalID.String()),
+			zap.String("original_id", archive.OriginalID),
 			zap.Error(err))
 		return err
 	}
@@ -211,7 +210,7 @@ func (r *archiveRepository) CreateWorkHourArchive(ctx context.Context, archive *
 }
 
 // GetWorkHourArchivesByWeeklyReport 週報IDで勤怠時間アーカイブを取得
-func (r *archiveRepository) GetWorkHourArchivesByWeeklyReport(ctx context.Context, weeklyReportArchiveID uuid.UUID) ([]model.WorkHourArchive, error) {
+func (r *archiveRepository) GetWorkHourArchivesByWeeklyReport(ctx context.Context, weeklyReportArchiveID string) ([]model.WorkHourArchive, error) {
 	var archives []model.WorkHourArchive
 	err := r.db.WithContext(ctx).
 		Where("weekly_report_archive_id = ?", weeklyReportArchiveID).
@@ -220,7 +219,7 @@ func (r *archiveRepository) GetWorkHourArchivesByWeeklyReport(ctx context.Contex
 
 	if err != nil {
 		r.logger.Error("Failed to get work hour archives",
-			zap.String("weekly_report_archive_id", weeklyReportArchiveID.String()),
+			zap.String("weekly_report_archive_id", weeklyReportArchiveID),
 			zap.Error(err))
 		return nil, err
 	}
@@ -238,7 +237,7 @@ func (r *archiveRepository) CreateArchiveStatistics(ctx context.Context, stats *
 }
 
 // UpdateArchiveStatistics アーカイブ統計を更新
-func (r *archiveRepository) UpdateArchiveStatistics(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error {
+func (r *archiveRepository) UpdateArchiveStatistics(ctx context.Context, id string, updates map[string]interface{}) error {
 	updates["updated_at"] = time.Now()
 
 	result := r.db.WithContext(ctx).
@@ -248,7 +247,7 @@ func (r *archiveRepository) UpdateArchiveStatistics(ctx context.Context, id uuid
 
 	if result.Error != nil {
 		r.logger.Error("Failed to update archive statistics",
-			zap.String("id", id.String()),
+			zap.String("id", id),
 			zap.Error(result.Error))
 		return result.Error
 	}
@@ -261,7 +260,7 @@ func (r *archiveRepository) UpdateArchiveStatistics(ctx context.Context, id uuid
 }
 
 // GetArchiveStatistics アーカイブ統計を取得
-func (r *archiveRepository) GetArchiveStatistics(ctx context.Context, id uuid.UUID) (*model.ArchiveStatistics, error) {
+func (r *archiveRepository) GetArchiveStatistics(ctx context.Context, id string) (*model.ArchiveStatistics, error) {
 	var stats model.ArchiveStatistics
 	err := r.db.WithContext(ctx).
 		Preload("ExecutedByUser").
@@ -272,7 +271,7 @@ func (r *archiveRepository) GetArchiveStatistics(ctx context.Context, id uuid.UU
 			return nil, err
 		}
 		r.logger.Error("Failed to get archive statistics",
-			zap.String("id", id.String()),
+			zap.String("id", id),
 			zap.Error(err))
 		return nil, err
 	}
@@ -284,7 +283,7 @@ func (r *archiveRepository) GetArchiveStatistics(ctx context.Context, id uuid.UU
 type ArchiveStatisticsFilter struct {
 	ArchiveType     *model.ArchiveType
 	FiscalYear      *int
-	ExecutedBy      *uuid.UUID
+	ExecutedBy      *string
 	Status          *model.ArchiveStatus
 	ExecutionMethod *model.ExecutionMethod
 	StartDate       *time.Time
@@ -301,9 +300,9 @@ type ArchiveWeeklyReportsParams struct {
 	EndDate       time.Time
 	FiscalYear    int
 	FiscalQuarter int
-	ArchivedBy    uuid.UUID
+	ArchivedBy    string
 	ArchiveReason model.ArchiveReason
-	DepartmentID  *uuid.UUID
+	DepartmentID  *string
 	MaxRecords    *int
 }
 
@@ -311,15 +310,15 @@ type ArchiveWeeklyReportsParams struct {
 type ArchiveWeeklyReportsResult struct {
 	ArchivedCount int
 	FailedCount   int
-	StatisticsID  uuid.UUID
+	StatisticsID  string
 }
 
 // ArchiveUserWeeklyReportsParams ユーザー週報アーカイブパラメータ
 type ArchiveUserWeeklyReportsParams struct {
-	UserID        uuid.UUID
+	UserID        string
 	StartDate     time.Time
 	EndDate       time.Time
-	ArchivedBy    uuid.UUID
+	ArchivedBy    string
 	ArchiveReason model.ArchiveReason
 }
 
@@ -332,7 +331,7 @@ type ArchiveUserWeeklyReportsResult struct {
 // CleanupExpiredArchivesResult 期限切れアーカイブクリーンアップ結果
 type CleanupExpiredArchivesResult struct {
 	DeletedCount int
-	StatisticsID uuid.UUID
+	StatisticsID string
 }
 
 // ArchiveReportResult アーカイブレポート結果
@@ -367,13 +366,13 @@ type QuarterlySummary struct {
 
 // DepartmentSummary 部署別サマリー
 type DepartmentSummary struct {
-	DepartmentID   *uuid.UUID `json:"department_id"`
-	DepartmentName *string    `json:"department_name"`
-	TotalArchives  int        `json:"total_archives"`
-	TotalWorkHours float64    `json:"total_work_hours"`
-	AvgWorkHours   float64    `json:"avg_work_hours"`
-	UniqueUsers    int        `json:"unique_users"`
-	CoveredYears   int        `json:"covered_years"`
+	DepartmentID   *string `json:"department_id"`
+	DepartmentName *string `json:"department_name"`
+	TotalArchives  int     `json:"total_archives"`
+	TotalWorkHours float64 `json:"total_work_hours"`
+	AvgWorkHours   float64 `json:"avg_work_hours"`
+	UniqueUsers    int     `json:"unique_users"`
+	CoveredYears   int     `json:"covered_years"`
 }
 
 // ReasonSummary アーカイブ理由別サマリー
@@ -394,10 +393,10 @@ type ArchiveIntegrityResult struct {
 
 // ArchiveIntegrityIssue アーカイブ整合性問題詳細
 type ArchiveIntegrityIssue struct {
-	IssueType   string     `json:"issue_type"`
-	RecordID    uuid.UUID  `json:"record_id"`
-	ParentID    *uuid.UUID `json:"parent_id"`
-	Description string     `json:"description"`
+	IssueType   string  `json:"issue_type"`
+	RecordID    string  `json:"record_id"`
+	ParentID    *string `json:"parent_id"`
+	Description string  `json:"description"`
 }
 
 // GetArchiveStatisticsList アーカイブ統計一覧を取得
@@ -656,7 +655,7 @@ func (r *archiveRepository) GetArchiveStatsByFiscalYear(ctx context.Context, fis
 }
 
 // GetArchiveStatsByDepartment 部署別アーカイブ統計を取得
-func (r *archiveRepository) GetArchiveStatsByDepartment(ctx context.Context, departmentID *uuid.UUID) (map[string]interface{}, error) {
+func (r *archiveRepository) GetArchiveStatsByDepartment(ctx context.Context, departmentID *string) (map[string]interface{}, error) {
 	stats := make(map[string]interface{})
 
 	query := r.db.WithContext(ctx).Model(&model.WeeklyReportArchive{})
@@ -666,11 +665,11 @@ func (r *archiveRepository) GetArchiveStatsByDepartment(ctx context.Context, dep
 
 	// 部署別統計
 	var deptStats []struct {
-		DepartmentID   *uuid.UUID `json:"department_id"`
-		DepartmentName *string    `json:"department_name"`
-		Count          int64      `json:"count"`
-		AvgWorkHours   float64    `json:"avg_work_hours"`
-		TotalWorkHours float64    `json:"total_work_hours"`
+		DepartmentID   *string `json:"department_id"`
+		DepartmentName *string `json:"department_name"`
+		Count          int64   `json:"count"`
+		AvgWorkHours   float64 `json:"avg_work_hours"`
+		TotalWorkHours float64 `json:"total_work_hours"`
 	}
 
 	if err := query.Select(`
@@ -758,7 +757,7 @@ func (r *archiveRepository) GetArchivedReportsByDateRange(ctx context.Context, s
 // DeleteExpiredArchives 期限切れアーカイブを削除
 func (r *archiveRepository) DeleteExpiredArchives(ctx context.Context, expirationDate time.Time) (int64, error) {
 	// 関連データを先に削除
-	var archiveIDs []uuid.UUID
+	var archiveIDs []string
 	if err := r.db.WithContext(ctx).
 		Model(&model.WeeklyReportArchive{}).
 		Where("archived_at < ?", expirationDate).
@@ -818,7 +817,7 @@ func (r *archiveRepository) ExecuteArchiveWeeklyReports(ctx context.Context, par
 
 	departmentIDStr := ""
 	if params.DepartmentID != nil {
-		departmentIDStr = params.DepartmentID.String()
+		departmentIDStr = *params.DepartmentID
 	}
 
 	maxRecords := 0
@@ -834,7 +833,7 @@ func (r *archiveRepository) ExecuteArchiveWeeklyReports(ctx context.Context, par
 		params.EndDate,
 		params.FiscalYear,
 		params.FiscalQuarter,
-		params.ArchivedBy.String(),
+		params.ArchivedBy,
 		params.ArchiveReason,
 		departmentIDStr,
 		maxRecords,
@@ -845,26 +844,20 @@ func (r *archiveRepository) ExecuteArchiveWeeklyReports(ctx context.Context, par
 		return nil, err
 	}
 
-	statisticsID, err := uuid.Parse(statisticsIDStr)
-	if err != nil {
-		r.logger.Error("Failed to parse statistics ID", zap.Error(err))
-		return nil, err
-	}
-
 	result.ArchivedCount = archivedCount
 	result.FailedCount = failedCount
-	result.StatisticsID = statisticsID
+	result.StatisticsID = statisticsIDStr
 
 	r.logger.Info("Weekly reports archived successfully",
 		zap.Int("archived_count", archivedCount),
 		zap.Int("failed_count", failedCount),
-		zap.String("statistics_id", statisticsID.String()))
+		zap.String("statistics_id", statisticsIDStr))
 
 	return &result, nil
 }
 
 // ExecuteCleanupExpiredArchives 期限切れアーカイブクリーンアップストアドプロシージャを実行
-func (r *archiveRepository) ExecuteCleanupExpiredArchives(ctx context.Context, retentionYears int, executedBy uuid.UUID) (*CleanupExpiredArchivesResult, error) {
+func (r *archiveRepository) ExecuteCleanupExpiredArchives(ctx context.Context, retentionYears int, executedBy string) (*CleanupExpiredArchivesResult, error) {
 	var result CleanupExpiredArchivesResult
 	var deletedCount int
 	var statisticsIDStr string
@@ -874,7 +867,7 @@ func (r *archiveRepository) ExecuteCleanupExpiredArchives(ctx context.Context, r
 		SELECT @deleted_count, @statistics_id;
 	`,
 		retentionYears,
-		executedBy.String(),
+		executedBy,
 	).Row().Scan(&deletedCount, &statisticsIDStr)
 
 	if err != nil {
@@ -882,18 +875,12 @@ func (r *archiveRepository) ExecuteCleanupExpiredArchives(ctx context.Context, r
 		return nil, err
 	}
 
-	statisticsID, err := uuid.Parse(statisticsIDStr)
-	if err != nil {
-		r.logger.Error("Failed to parse statistics ID", zap.Error(err))
-		return nil, err
-	}
-
 	result.DeletedCount = deletedCount
-	result.StatisticsID = statisticsID
+	result.StatisticsID = statisticsIDStr
 
 	r.logger.Info("Expired archives cleaned up successfully",
 		zap.Int("deleted_count", deletedCount),
-		zap.String("statistics_id", statisticsID.String()))
+		zap.String("statistics_id", statisticsIDStr))
 
 	return &result, nil
 }
@@ -910,7 +897,7 @@ func (r *archiveRepository) ExecuteArchiveUserWeeklyReports(ctx context.Context,
 		params.UserID,
 		params.StartDate,
 		params.EndDate,
-		params.ArchivedBy.String(),
+		params.ArchivedBy,
 		params.ArchiveReason,
 	).Row().Scan(&archivedCount, &failedCount)
 
@@ -923,7 +910,7 @@ func (r *archiveRepository) ExecuteArchiveUserWeeklyReports(ctx context.Context,
 	result.FailedCount = failedCount
 
 	r.logger.Info("User weekly reports archived successfully",
-		zap.String("user_id", params.UserID.String()),
+		zap.String("user_id", params.UserID),
 		zap.Int("archived_count", archivedCount),
 		zap.Int("failed_count", failedCount))
 
@@ -931,7 +918,7 @@ func (r *archiveRepository) ExecuteArchiveUserWeeklyReports(ctx context.Context,
 }
 
 // ExecuteGenerateArchiveReport アーカイブレポート生成ストアドプロシージャを実行
-func (r *archiveRepository) ExecuteGenerateArchiveReport(ctx context.Context, fiscalYear *int, departmentID *uuid.UUID) (*ArchiveReportResult, error) {
+func (r *archiveRepository) ExecuteGenerateArchiveReport(ctx context.Context, fiscalYear *int, departmentID *string) (*ArchiveReportResult, error) {
 	var result ArchiveReportResult
 
 	fiscalYearParam := ""
@@ -941,7 +928,7 @@ func (r *archiveRepository) ExecuteGenerateArchiveReport(ctx context.Context, fi
 
 	departmentIDParam := ""
 	if departmentID != nil {
-		departmentIDParam = departmentID.String()
+		departmentIDParam = *departmentID
 	}
 
 	// ストアドプロシージャを実行して複数の結果セットを取得
@@ -1019,10 +1006,7 @@ func (r *archiveRepository) ExecuteGenerateArchiveReport(ctx context.Context, fi
 		}
 
 		if deptIDStr != nil {
-			deptID, err := uuid.Parse(*deptIDStr)
-			if err == nil {
-				summary.DepartmentID = &deptID
-			}
+			summary.DepartmentID = deptIDStr
 		}
 		summary.DepartmentName = deptNameStr
 
@@ -1097,10 +1081,7 @@ func (r *archiveRepository) ExecuteValidateArchiveIntegrity(ctx context.Context)
 				}
 
 				if parentIDStr != nil {
-					parentID, err := uuid.Parse(*parentIDStr)
-					if err == nil {
-						issue.ParentID = &parentID
-					}
+					issue.ParentID = parentIDStr
 				}
 
 				result.IssueDetails = append(result.IssueDetails, issue)

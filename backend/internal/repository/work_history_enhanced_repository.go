@@ -2,11 +2,11 @@ package repository
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/duesk/monstera/internal/common/repository"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -15,13 +15,13 @@ type WorkHistoryEnhancedRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, workHistory *model.WorkHistory) error
 	Update(ctx context.Context, workHistory *model.WorkHistory) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	FindByID(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error)
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*model.WorkHistory, error)
 	FindByUserID(ctx context.Context, userID string) ([]model.WorkHistory, error)
 
 	// 拡張操作
-	FindWithTechnologies(ctx context.Context, id uuid.UUID) (*model.WorkHistory, []model.WorkHistoryTechnology, error)
-	FindAllWithTechnologies(ctx context.Context, userID string) ([]model.WorkHistory, map[uuid.UUID][]model.WorkHistoryTechnology, error)
+	FindWithTechnologies(ctx context.Context, id string) (*model.WorkHistory, []model.WorkHistoryTechnology, error)
+	FindAllWithTechnologies(ctx context.Context, userID string) ([]model.WorkHistory, map[string][]model.WorkHistoryTechnology, error)
 	Search(ctx context.Context, criteria WorkHistorySearchCriteria) ([]model.WorkHistory, int64, error)
 
 	// 統計・集計
@@ -40,7 +40,7 @@ type WorkHistoryEnhancedRepository interface {
 
 // WorkHistorySearchCriteria 検索条件
 type WorkHistorySearchCriteria struct {
-	UserID         *uuid.UUID
+	UserID         *string
 	ProjectName    *string
 	TechnologyName *string
 	StartDateFrom  *time.Time
@@ -55,7 +55,7 @@ type WorkHistorySearchCriteria struct {
 
 // UserWorkHistorySummary ユーザー職務経歴サマリー
 type UserWorkHistorySummary struct {
-	UserID               uuid.UUID
+	UserID               string
 	TotalProjectCount    int
 	TotalDurationMonths  int
 	DistinctTechnologies int
@@ -105,12 +105,12 @@ func (r *workHistoryEnhancedRepository) Update(ctx context.Context, workHistory 
 }
 
 // Delete 職務経歴を削除
-func (r *workHistoryEnhancedRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *workHistoryEnhancedRepository) Delete(ctx context.Context, id string) error {
 	return r.GetDB().WithContext(ctx).Delete(&model.WorkHistory{}, "id = ?", id).Error
 }
 
 // FindByID IDで職務経歴を取得
-func (r *workHistoryEnhancedRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.WorkHistory, error) {
+func (r *workHistoryEnhancedRepository) FindByID(ctx context.Context, id string) (*model.WorkHistory, error) {
 	var workHistory model.WorkHistory
 	err := r.GetDB().WithContext(ctx).First(&workHistory, "id = ?", id).Error
 	if err != nil {
@@ -130,7 +130,7 @@ func (r *workHistoryEnhancedRepository) FindByUserID(ctx context.Context, userID
 }
 
 // FindWithTechnologies 技術情報付きで職務経歴を取得
-func (r *workHistoryEnhancedRepository) FindWithTechnologies(ctx context.Context, id uuid.UUID) (*model.WorkHistory, []model.WorkHistoryTechnology, error) {
+func (r *workHistoryEnhancedRepository) FindWithTechnologies(ctx context.Context, id string) (*model.WorkHistory, []model.WorkHistoryTechnology, error) {
 	var workHistory model.WorkHistory
 	if err := r.GetDB().WithContext(ctx).First(&workHistory, "id = ?", id).Error; err != nil {
 		return nil, nil, err
@@ -146,7 +146,7 @@ func (r *workHistoryEnhancedRepository) FindWithTechnologies(ctx context.Context
 }
 
 // FindAllWithTechnologies 全職務経歴を技術情報付きで取得
-func (r *workHistoryEnhancedRepository) FindAllWithTechnologies(ctx context.Context, userID string) ([]model.WorkHistory, map[uuid.UUID][]model.WorkHistoryTechnology, error) {
+func (r *workHistoryEnhancedRepository) FindAllWithTechnologies(ctx context.Context, userID string) ([]model.WorkHistory, map[string][]model.WorkHistoryTechnology, error) {
 	var workHistories []model.WorkHistory
 	if err := r.GetDB().WithContext(ctx).
 		Where("user_id = ?", userID).
@@ -156,7 +156,7 @@ func (r *workHistoryEnhancedRepository) FindAllWithTechnologies(ctx context.Cont
 	}
 
 	// 職務経歴IDのリストを作成
-	var workHistoryIDs []uuid.UUID
+	var workHistoryIDs []string
 	for _, wh := range workHistories {
 		workHistoryIDs = append(workHistoryIDs, wh.ID)
 	}
@@ -171,14 +171,9 @@ func (r *workHistoryEnhancedRepository) FindAllWithTechnologies(ctx context.Cont
 	}
 
 	// 職務経歴IDごとにグループ化
-	techMap := make(map[uuid.UUID][]model.WorkHistoryTechnology)
+	techMap := make(map[string][]model.WorkHistoryTechnology)
 	for _, tech := range technologies {
-		// WorkHistoryIDはstring型なのでUUIDに変換
-		whID, err := uuid.Parse(tech.WorkHistoryID)
-		if err != nil {
-			continue
-		}
-		techMap[whID] = append(techMap[whID], tech)
+		techMap[tech.WorkHistoryID] = append(techMap[tech.WorkHistoryID], tech)
 	}
 
 	return workHistories, techMap, nil
@@ -252,11 +247,12 @@ func (r *workHistoryEnhancedRepository) Search(ctx context.Context, criteria Wor
 
 // GetUserSummary ユーザーの職務経歴サマリーを取得
 func (r *workHistoryEnhancedRepository) GetUserSummary(ctx context.Context, userID string) (*UserWorkHistorySummary, error) {
-	parsedUserID, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, err
+	parsedUserID := userID
+	// UUID validation removed after migration
+	if parsedUserID == "" {
+		return nil, fmt.Errorf("user ID cannot be empty")
 	}
-	
+
 	var summary UserWorkHistorySummary
 	summary.UserID = parsedUserID
 
@@ -311,7 +307,7 @@ func (r *workHistoryEnhancedRepository) GetUserSummary(ctx context.Context, user
 
 	// 最終プロジェクト終了日を取得
 	var lastEndDate *time.Time
-	err = r.GetDB().WithContext(ctx).
+	err := r.GetDB().WithContext(ctx).
 		Model(&model.WorkHistory{}).
 		Where("user_id = ? AND end_date IS NOT NULL", userID).
 		Select("MAX(end_date)").

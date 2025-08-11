@@ -31,10 +31,10 @@ const (
 
 // ExpenseApproval 経費承認履歴モデル
 type ExpenseApproval struct {
-	ID            uuid.UUID      `gorm:"type:varchar(36);primary_key" json:"id"`
-	ExpenseID     uuid.UUID      `gorm:"type:varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"expense_id"`
+	ID            string         `gorm:"type:varchar(255);primary_key" json:"id"`
+	ExpenseID     string         `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"expense_id"`
 	Expense       Expense        `gorm:"foreignKey:ExpenseID" json:"expense"`
-	ApproverID    uuid.UUID      `gorm:"type:varchar(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"approver_id"`
+	ApproverID    string         `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"approver_id"`
 	Approver      User           `gorm:"foreignKey:ApproverID" json:"approver"`
 	ApprovalType  ApprovalType   `gorm:"type:enum('manager','executive');not null" json:"approval_type"`
 	ApprovalOrder int            `gorm:"not null;default:1" json:"approval_order"` // 承認順序（1段階目、2段階目）
@@ -47,8 +47,8 @@ type ExpenseApproval struct {
 
 // BeforeCreate UUIDを生成
 func (ea *ExpenseApproval) BeforeCreate(tx *gorm.DB) error {
-	if ea.ID == uuid.Nil {
-		ea.ID = uuid.New()
+	if ea.ID == "" {
+		ea.ID = uuid.New().String()
 	}
 	return nil
 }

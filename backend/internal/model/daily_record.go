@@ -142,8 +142,8 @@ func parseTimeString(timeStr string) (time.Time, error) {
 
 // DailyRecord 日次勤怠記録モデル
 type DailyRecord struct {
-	ID              uuid.UUID    `gorm:"type:varchar(36);primary_key" json:"id"`
-	WeeklyReportID  uuid.UUID    `gorm:"type:varchar(36);not null" json:"weekly_report_id"`
+	ID              string       `gorm:"type:varchar(255);primary_key" json:"id"`
+	WeeklyReportID  string       `gorm:"type:varchar(255);not null" json:"weekly_report_id"`
 	WeeklyReport    WeeklyReport `gorm:"foreignKey:WeeklyReportID" json:"-"`
 	Date            time.Time    `gorm:"not null" json:"date"`
 	StartTime       string       `json:"start_time" gorm:"column:start_time;type:varchar(10)"`
@@ -163,8 +163,8 @@ type DailyRecord struct {
 
 // BeforeCreate UUIDを生成
 func (dr *DailyRecord) BeforeCreate(tx *gorm.DB) error {
-	if dr.ID == uuid.Nil {
-		dr.ID = uuid.New()
+	if dr.ID == "" {
+		dr.ID = uuid.New().String()
 	}
 	return nil
 }

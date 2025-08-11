@@ -49,7 +49,7 @@ type EmailRecipient struct {
 
 // EmailTemplate メールテンプレート
 type EmailTemplate struct {
-	ID        uuid.UUID  `gorm:"type:varchar(36);primaryKey" json:"id"`
+	ID        string     `gorm:"type:varchar(255);primaryKey" json:"id"`
 	Name      string     `gorm:"size:100;not null" json:"name"`
 	Subject   string     `gorm:"size:200;not null" json:"subject"`
 	BodyHTML  string     `gorm:"type:text" json:"body_html"`
@@ -71,8 +71,8 @@ func (EmailTemplate) TableName() string {
 
 // BeforeCreate UUIDを自動生成
 func (e *EmailTemplate) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -105,9 +105,9 @@ func (e *EmailTemplate) SetVariables(vars []TemplateVariable) error {
 
 // EmailCampaign メールキャンペーン
 type EmailCampaign struct {
-	ID               uuid.UUID      `gorm:"type:varchar(36);primaryKey" json:"id"`
+	ID               string         `gorm:"type:varchar(255);primaryKey" json:"id"`
 	Name             string         `gorm:"size:100;not null" json:"name"`
-	TemplateID       uuid.UUID      `gorm:"type:varchar(36);not null" json:"template_id"`
+	TemplateID       string         `gorm:"type:varchar(255);not null" json:"template_id"`
 	Template         *EmailTemplate `gorm:"foreignKey:TemplateID" json:"template,omitempty"`
 	Status           CampaignStatus `gorm:"type:enum('draft','scheduled','sending','completed','failed','cancelled');default:'draft'" json:"status"`
 	ScheduledAt      time.Time      `json:"scheduled_at"`
@@ -136,8 +136,8 @@ func (EmailCampaign) TableName() string {
 
 // BeforeCreate UUIDを自動生成
 func (e *EmailCampaign) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -196,8 +196,8 @@ func (e *EmailCampaign) SetCustomConditions(conditions map[string]interface{}) e
 
 // EmailSentHistory メール送信履歴
 type EmailSentHistory struct {
-	ID             uuid.UUID           `gorm:"type:varchar(36);primaryKey" json:"id"`
-	CampaignID     uuid.UUID           `gorm:"type:varchar(36);not null" json:"campaign_id"`
+	ID             string              `gorm:"type:varchar(255);primaryKey" json:"id"`
+	CampaignID     string              `gorm:"type:varchar(255);not null" json:"campaign_id"`
 	Campaign       *EmailCampaign      `gorm:"foreignKey:CampaignID" json:"campaign,omitempty"`
 	RecipientEmail string              `gorm:"size:255;not null" json:"recipient_email"`
 	RecipientName  string              `gorm:"size:100" json:"recipient_name"`
@@ -217,8 +217,8 @@ func (EmailSentHistory) TableName() string {
 
 // BeforeCreate UUIDを自動生成
 func (e *EmailSentHistory) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }

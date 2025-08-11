@@ -12,7 +12,6 @@ import (
 	"github.com/duesk/monstera/internal/message"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -21,19 +20,19 @@ import (
 type ProposalService interface {
 	// 提案情報管理
 	GetProposals(ctx context.Context, userID string, req *dto.GetProposalsRequest) (*dto.ProposalListResponse, error)
-	GetProposalDetail(ctx context.Context, id uuid.UUID, userID string) (*dto.ProposalDetailResponse, error)
-	UpdateProposalStatus(ctx context.Context, id uuid.UUID, userID string, req *dto.UpdateProposalStatusRequest) error
+	GetProposalDetail(ctx context.Context, id string, userID string) (*dto.ProposalDetailResponse, error)
+	UpdateProposalStatus(ctx context.Context, id string, userID string, req *dto.UpdateProposalStatusRequest) error
 
 	// 質問機能
-	CreateQuestion(ctx context.Context, proposalID uuid.UUID, userID string, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error)
-	GetQuestions(ctx context.Context, proposalID uuid.UUID, userID string, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error)
-	UpdateQuestion(ctx context.Context, questionID uuid.UUID, userID string, req *dto.UpdateQuestionRequest) error
-	DeleteQuestion(ctx context.Context, questionID uuid.UUID, userID string) error
+	CreateQuestion(ctx context.Context, proposalID string, userID string, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error)
+	GetQuestions(ctx context.Context, proposalID string, userID string, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error)
+	UpdateQuestion(ctx context.Context, questionID string, userID string, req *dto.UpdateQuestionRequest) error
+	DeleteQuestion(ctx context.Context, questionID string, userID string) error
 
 	// 営業担当者向け機能
-	RespondToQuestion(ctx context.Context, questionID uuid.UUID, salesUserID uuid.UUID, req *dto.RespondQuestionRequest) error
-	GetPendingQuestions(ctx context.Context, salesUserID uuid.UUID, req *dto.GetPendingQuestionsRequest) (*dto.PendingQuestionsListResponse, error)
-	AssignQuestionToSales(ctx context.Context, questionID uuid.UUID, assignerID uuid.UUID, salesUserID uuid.UUID) error
+	RespondToQuestion(ctx context.Context, questionID string, salesUserID string, req *dto.RespondQuestionRequest) error
+	GetPendingQuestions(ctx context.Context, salesUserID string, req *dto.GetPendingQuestionsRequest) (*dto.PendingQuestionsListResponse, error)
+	AssignQuestionToSales(ctx context.Context, questionID string, assignerID string, salesUserID string) error
 
 	// 統計・分析機能
 	GetProposalStats(ctx context.Context, userID string) (*dto.ProposalSummaryResponse, error)
@@ -46,10 +45,10 @@ type ProposalService interface {
 	GetUserProposalRanking(ctx context.Context, limit int) (*dto.ProposalSummaryResponse, error)
 
 	// 内部処理
-	CreateProposal(ctx context.Context, projectID uuid.UUID, userID string) (*model.EngineerProposal, error)
-	CheckProposalPermission(ctx context.Context, proposalID uuid.UUID, userID string) error
-	CheckQuestionPermission(ctx context.Context, questionID uuid.UUID, userID string) error
-	GetSalesUserForProject(ctx context.Context, projectID uuid.UUID) (*model.User, error)
+	CreateProposal(ctx context.Context, projectID string, userID string) (*model.EngineerProposal, error)
+	CheckProposalPermission(ctx context.Context, proposalID string, userID string) error
+	CheckQuestionPermission(ctx context.Context, questionID string, userID string) error
+	GetSalesUserForProject(ctx context.Context, projectID string) (*model.User, error)
 
 	// バッチ処理・メンテナンス
 	ExpireOldProposals(ctx context.Context, expireDays int) error
@@ -133,7 +132,7 @@ func (s *proposalService) GetProposals(ctx context.Context, userID string, req *
 	for i, proposal := range proposals {
 		item, err := s.convertToProposalItemDTO(ctx, proposal)
 		if err != nil {
-			s.logger.Error("提案アイテムDTO変換に失敗", zap.Error(err), zap.String("proposal_id", proposal.ID.String()))
+			s.logger.Error("提案アイテムDTO変換に失敗", zap.Error(err), zap.String("proposal_id", proposal.ID))
 			continue
 		}
 		items[i] = *item
@@ -151,8 +150,8 @@ func (s *proposalService) GetProposals(ctx context.Context, userID string, req *
 }
 
 // GetProposalDetail 提案詳細を取得
-func (s *proposalService) GetProposalDetail(ctx context.Context, id uuid.UUID, userID string) (*dto.ProposalDetailResponse, error) {
-	logger.LogInfo(s.logger, "提案詳細取得開始", zap.String("proposal_id", id.String()), zap.String("user_id", userID))
+func (s *proposalService) GetProposalDetail(ctx context.Context, id string, userID string) (*dto.ProposalDetailResponse, error) {
+	logger.LogInfo(s.logger, "提案詳細取得開始", zap.String("proposal_id", id), zap.String("user_id", userID))
 
 	// 権限チェック
 	if err := s.CheckProposalPermission(ctx, id, userID); err != nil {
@@ -193,14 +192,14 @@ func (s *proposalService) GetProposalDetail(ctx context.Context, id uuid.UUID, u
 		Questions:   s.convertToProposalQuestionDTOs(questions),
 	}
 
-	logger.LogInfo(s.logger, "提案詳細取得完了", zap.String("proposal_id", id.String()))
+	logger.LogInfo(s.logger, "提案詳細取得完了", zap.String("proposal_id", id))
 	return response, nil
 }
 
 // UpdateProposalStatus 提案ステータスを更新
-func (s *proposalService) UpdateProposalStatus(ctx context.Context, id uuid.UUID, userID string, req *dto.UpdateProposalStatusRequest) error {
+func (s *proposalService) UpdateProposalStatus(ctx context.Context, id string, userID string, req *dto.UpdateProposalStatusRequest) error {
 	logger.LogInfo(s.logger, "提案ステータス更新開始",
-		zap.String("proposal_id", id.String()),
+		zap.String("proposal_id", id),
 		zap.String("user_id", userID),
 		zap.String("new_status", req.Status))
 
@@ -241,12 +240,12 @@ func (s *proposalService) UpdateProposalStatus(ctx context.Context, id uuid.UUID
 
 		go func() {
 			if err := s.SendProposalStatusNotification(context.Background(), &updatedProposal, previousStatus); err != nil {
-				s.logger.Error("通知送信に失敗", zap.Error(err), zap.String("proposal_id", id.String()))
+				s.logger.Error("通知送信に失敗", zap.Error(err), zap.String("proposal_id", id))
 			}
 		}()
 
 		logger.LogInfo(s.logger, "提案ステータス更新完了",
-			zap.String("proposal_id", id.String()),
+			zap.String("proposal_id", id),
 			zap.String("old_status", previousStatus),
 			zap.String("new_status", req.Status))
 
@@ -259,7 +258,7 @@ func (s *proposalService) UpdateProposalStatus(ctx context.Context, id uuid.UUID
 // ==========================================
 
 // CheckProposalPermission 提案に対する権限をチェック
-func (s *proposalService) CheckProposalPermission(ctx context.Context, proposalID uuid.UUID, userID string) error {
+func (s *proposalService) CheckProposalPermission(ctx context.Context, proposalID string, userID string) error {
 	// 提案がユーザーのものかチェック
 	proposal, err := s.proposalRepo.GetByID(ctx, proposalID)
 	if err != nil {
@@ -310,13 +309,13 @@ func (s *proposalService) convertToProposalItemDTO(ctx context.Context, proposal
 	}
 
 	if project == nil {
-		return nil, fmt.Errorf("プロジェクトが見つかりません: %s", proposal.ProjectID.String())
+		return nil, fmt.Errorf("プロジェクトが見つかりません: %s", proposal.ProjectID)
 	}
 
 	// 未回答質問数を取得
 	pendingCount, err := s.questionRepo.CountPendingQuestionsByProposal(ctx, proposal.ID)
 	if err != nil {
-		s.logger.Warn("未回答質問数の取得に失敗", zap.Error(err), zap.String("proposal_id", proposal.ID.String()))
+		s.logger.Warn("未回答質問数の取得に失敗", zap.Error(err), zap.String("proposal_id", proposal.ID))
 		pendingCount = 0
 	}
 
@@ -421,9 +420,9 @@ func (s *proposalService) convertToProposalUserSummaryDTO(user *model.User) *dto
 // ==========================================
 
 // CreateQuestion 質問を作成
-func (s *proposalService) CreateQuestion(ctx context.Context, proposalID uuid.UUID, userID string, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error) {
+func (s *proposalService) CreateQuestion(ctx context.Context, proposalID string, userID string, req *dto.CreateQuestionRequest) (*dto.ProposalQuestionDTO, error) {
 	logger.LogInfo(s.logger, "質問作成開始",
-		zap.String("proposal_id", proposalID.String()),
+		zap.String("proposal_id", proposalID),
 		zap.String("user_id", userID))
 
 	// 権限チェック
@@ -458,13 +457,13 @@ func (s *proposalService) CreateQuestion(ctx context.Context, proposalID uuid.UU
 		}
 
 		// 営業担当者を自動割り当て
-		var salesUserID *uuid.UUID
+		var salesUserID *string
 		salesUser, err := s.GetSalesUserForProject(ctx, proposal.ProjectID)
 		if err != nil {
 			// エラーがあってもログを記録して続行
 			s.logger.Warn("営業担当者の自動割り当てに失敗しました",
 				zap.Error(err),
-				zap.String("project_id", proposal.ProjectID.String()))
+				zap.String("project_id", proposal.ProjectID))
 		} else if salesUser != nil {
 			salesUserID = &salesUser.ID
 		}
@@ -487,7 +486,7 @@ func (s *proposalService) CreateQuestion(ctx context.Context, proposalID uuid.UU
 		// 通知送信（非同期）
 		go func() {
 			if err := s.SendQuestionNotification(context.Background(), question); err != nil {
-				s.logger.Error("質問通知送信に失敗", zap.Error(err), zap.String("question_id", question.ID.String()))
+				s.logger.Error("質問通知送信に失敗", zap.Error(err), zap.String("question_id", question.ID))
 			}
 		}()
 
@@ -510,14 +509,14 @@ func (s *proposalService) CreateQuestion(ctx context.Context, proposalID uuid.UU
 		SalesUser:    nil,
 	}
 
-	logger.LogInfo(s.logger, "質問作成完了", zap.String("question_id", createdQuestion.ID.String()))
+	logger.LogInfo(s.logger, "質問作成完了", zap.String("question_id", createdQuestion.ID))
 	return dto, nil
 }
 
 // GetQuestions 質問一覧を取得
-func (s *proposalService) GetQuestions(ctx context.Context, proposalID uuid.UUID, userID string, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error) {
+func (s *proposalService) GetQuestions(ctx context.Context, proposalID string, userID string, req *dto.GetQuestionsRequest) (*dto.QuestionsListResponse, error) {
 	logger.LogInfo(s.logger, "質問一覧取得開始",
-		zap.String("proposal_id", proposalID.String()),
+		zap.String("proposal_id", proposalID),
 		zap.String("user_id", userID))
 
 	// 権限チェック
@@ -551,15 +550,15 @@ func (s *proposalService) GetQuestions(ctx context.Context, proposalID uuid.UUID
 	}
 
 	logger.LogInfo(s.logger, "質問一覧取得完了",
-		zap.String("proposal_id", proposalID.String()),
+		zap.String("proposal_id", proposalID),
 		zap.Int("count", len(items)))
 	return response, nil
 }
 
 // UpdateQuestion 質問を更新
-func (s *proposalService) UpdateQuestion(ctx context.Context, questionID uuid.UUID, userID string, req *dto.UpdateQuestionRequest) error {
+func (s *proposalService) UpdateQuestion(ctx context.Context, questionID string, userID string, req *dto.UpdateQuestionRequest) error {
 	logger.LogInfo(s.logger, "質問更新開始",
-		zap.String("question_id", questionID.String()),
+		zap.String("question_id", questionID),
 		zap.String("user_id", userID))
 
 	// 権限チェック
@@ -597,15 +596,15 @@ func (s *proposalService) UpdateQuestion(ctx context.Context, questionID uuid.UU
 			return logger.LogAndWrapError(s.logger, err, "質問の更新に失敗しました")
 		}
 
-		logger.LogInfo(s.logger, "質問更新完了", zap.String("question_id", questionID.String()))
+		logger.LogInfo(s.logger, "質問更新完了", zap.String("question_id", questionID))
 		return nil
 	})
 }
 
 // DeleteQuestion 質問を削除
-func (s *proposalService) DeleteQuestion(ctx context.Context, questionID uuid.UUID, userID string) error {
+func (s *proposalService) DeleteQuestion(ctx context.Context, questionID string, userID string) error {
 	logger.LogInfo(s.logger, "質問削除開始",
-		zap.String("question_id", questionID.String()),
+		zap.String("question_id", questionID),
 		zap.String("user_id", userID))
 
 	// 権限チェック
@@ -640,16 +639,16 @@ func (s *proposalService) DeleteQuestion(ctx context.Context, questionID uuid.UU
 			return logger.LogAndWrapError(s.logger, err, "質問の削除に失敗しました")
 		}
 
-		logger.LogInfo(s.logger, "質問削除完了", zap.String("question_id", questionID.String()))
+		logger.LogInfo(s.logger, "質問削除完了", zap.String("question_id", questionID))
 		return nil
 	})
 }
 
 // RespondToQuestion 質問に回答（営業担当者用）
-func (s *proposalService) RespondToQuestion(ctx context.Context, questionID uuid.UUID, salesUserID uuid.UUID, req *dto.RespondQuestionRequest) error {
+func (s *proposalService) RespondToQuestion(ctx context.Context, questionID string, salesUserID string, req *dto.RespondQuestionRequest) error {
 	logger.LogInfo(s.logger, "質問回答開始",
-		zap.String("question_id", questionID.String()),
-		zap.String("sales_user_id", salesUserID.String()))
+		zap.String("question_id", questionID),
+		zap.String("sales_user_id", salesUserID))
 
 	// トランザクション内で実行
 	return s.executeInTransaction(ctx, func(tx *gorm.DB) error {
@@ -669,7 +668,7 @@ func (s *proposalService) RespondToQuestion(ctx context.Context, questionID uuid
 
 		// 営業担当者権限チェック（service_005で実装予定のロジックを使用）
 		// 現時点では営業チームメンバーかどうかのチェックのみ
-		salesMember, err := s.salesRepo.GetByUserID(ctx, salesUserID.String())
+		salesMember, err := s.salesRepo.GetByUserID(ctx, salesUserID)
 		if err != nil {
 			return logger.LogAndWrapError(s.logger, err, "営業担当者情報の取得に失敗しました")
 		}
@@ -689,22 +688,22 @@ func (s *proposalService) RespondToQuestion(ctx context.Context, questionID uuid
 			updatedQuestion, _ := s.questionRepo.GetByID(context.Background(), questionID)
 			if updatedQuestion != nil {
 				if err := s.SendResponseNotification(context.Background(), updatedQuestion); err != nil {
-					s.logger.Error("回答通知送信に失敗", zap.Error(err), zap.String("question_id", questionID.String()))
+					s.logger.Error("回答通知送信に失敗", zap.Error(err), zap.String("question_id", questionID))
 				}
 			}
 		}()
 
-		logger.LogInfo(s.logger, "質問回答完了", zap.String("question_id", questionID.String()))
+		logger.LogInfo(s.logger, "質問回答完了", zap.String("question_id", questionID))
 		return nil
 	})
 }
 
 // GetPendingQuestions 未回答質問一覧を取得（営業担当者用）
-func (s *proposalService) GetPendingQuestions(ctx context.Context, salesUserID uuid.UUID, req *dto.GetPendingQuestionsRequest) (*dto.PendingQuestionsListResponse, error) {
-	logger.LogInfo(s.logger, "未回答質問一覧取得開始", zap.String("sales_user_id", salesUserID.String()))
+func (s *proposalService) GetPendingQuestions(ctx context.Context, salesUserID string, req *dto.GetPendingQuestionsRequest) (*dto.PendingQuestionsListResponse, error) {
+	logger.LogInfo(s.logger, "未回答質問一覧取得開始", zap.String("sales_user_id", salesUserID))
 
 	// 営業担当者権限チェック
-	salesMember, err := s.salesRepo.GetByUserID(ctx, salesUserID.String())
+	salesMember, err := s.salesRepo.GetByUserID(ctx, salesUserID)
 	if err != nil {
 		return nil, logger.LogAndWrapError(s.logger, err, "営業担当者情報の取得に失敗しました")
 	}
@@ -736,21 +735,21 @@ func (s *proposalService) GetPendingQuestions(ctx context.Context, salesUserID u
 		// 提案情報を取得
 		proposal, err := s.proposalRepo.GetByID(ctx, q.ProposalID)
 		if err != nil || proposal == nil {
-			s.logger.Warn("提案情報の取得に失敗", zap.Error(err), zap.String("proposal_id", q.ProposalID.String()))
+			s.logger.Warn("提案情報の取得に失敗", zap.Error(err), zap.String("proposal_id", q.ProposalID))
 			continue
 		}
 
 		// プロジェクト情報を取得
 		project, err := s.pocProjectRepo.GetByID(ctx, proposal.ProjectID)
 		if err != nil || project == nil {
-			s.logger.Warn("プロジェクト情報の取得に失敗", zap.Error(err), zap.String("project_id", proposal.ProjectID.String()))
+			s.logger.Warn("プロジェクト情報の取得に失敗", zap.Error(err), zap.String("project_id", proposal.ProjectID))
 			continue
 		}
 
 		// エンジニア情報を取得
 		engineer, err := s.userRepo.GetByID(ctx, proposal.UserID)
 		if err != nil || engineer == nil {
-			s.logger.Warn("エンジニア情報の取得に失敗", zap.Error(err), zap.String("user_id", proposal.UserID.String()))
+			s.logger.Warn("エンジニア情報の取得に失敗", zap.Error(err), zap.String("user_id", proposal.UserID))
 			continue
 		}
 
@@ -772,17 +771,17 @@ func (s *proposalService) GetPendingQuestions(ctx context.Context, salesUserID u
 	}
 
 	logger.LogInfo(s.logger, "未回答質問一覧取得完了",
-		zap.String("sales_user_id", salesUserID.String()),
+		zap.String("sales_user_id", salesUserID),
 		zap.Int("count", len(items)))
 	return response, nil
 }
 
 // AssignQuestionToSales 質問を営業担当者に割り当て
-func (s *proposalService) AssignQuestionToSales(ctx context.Context, questionID uuid.UUID, assignerID uuid.UUID, salesUserID uuid.UUID) error {
+func (s *proposalService) AssignQuestionToSales(ctx context.Context, questionID string, assignerID string, salesUserID string) error {
 	logger.LogInfo(s.logger, "質問割り当て開始",
-		zap.String("question_id", questionID.String()),
-		zap.String("assigner_id", assignerID.String()),
-		zap.String("sales_user_id", salesUserID.String()))
+		zap.String("question_id", questionID),
+		zap.String("assigner_id", assignerID),
+		zap.String("sales_user_id", salesUserID))
 
 	// 割り当て者の権限チェック（管理者またはマネージャー）
 	assigner, err := s.userRepo.GetByID(ctx, assignerID)
@@ -794,7 +793,7 @@ func (s *proposalService) AssignQuestionToSales(ctx context.Context, questionID 
 	}
 
 	// 営業担当者の確認
-	salesMember, err := s.salesRepo.GetByUserID(ctx, salesUserID.String())
+	salesMember, err := s.salesRepo.GetByUserID(ctx, salesUserID)
 	if err != nil {
 		return logger.LogAndWrapError(s.logger, err, "営業担当者情報の取得に失敗しました")
 	}
@@ -827,7 +826,7 @@ func (s *proposalService) AssignQuestionToSales(ctx context.Context, questionID 
 			return logger.LogAndWrapError(s.logger, err, "営業担当者の割り当てに失敗しました")
 		}
 
-		logger.LogInfo(s.logger, "質問割り当て完了", zap.String("question_id", questionID.String()))
+		logger.LogInfo(s.logger, "質問割り当て完了", zap.String("question_id", questionID))
 		return nil
 	})
 }
@@ -881,8 +880,8 @@ func (s *proposalService) GetUserProposalRanking(ctx context.Context, limit int)
 }
 
 // CreateProposal 提案を作成（内部処理）
-func (s *proposalService) CreateProposal(ctx context.Context, projectID uuid.UUID, userID string) (*model.EngineerProposal, error) {
-	logger.LogInfo(s.logger, "提案作成開始", zap.String("project_id", projectID.String()), zap.String("user_id", userID))
+func (s *proposalService) CreateProposal(ctx context.Context, projectID string, userID string) (*model.EngineerProposal, error) {
+	logger.LogInfo(s.logger, "提案作成開始", zap.String("project_id", projectID), zap.String("user_id", userID))
 
 	// 重複チェック
 	exists, err := s.proposalRepo.CheckDuplicateProposal(ctx, projectID, userID)
@@ -906,12 +905,12 @@ func (s *proposalService) CreateProposal(ctx context.Context, projectID uuid.UUI
 		return nil, logger.LogAndWrapError(s.logger, err, "提案の作成に失敗しました")
 	}
 
-	logger.LogInfo(s.logger, "提案作成完了", zap.String("proposal_id", proposal.ID.String()))
+	logger.LogInfo(s.logger, "提案作成完了", zap.String("proposal_id", proposal.ID))
 	return proposal, nil
 }
 
 // CheckQuestionPermission 質問に対する権限をチェック
-func (s *proposalService) CheckQuestionPermission(ctx context.Context, questionID uuid.UUID, userID string) error {
+func (s *proposalService) CheckQuestionPermission(ctx context.Context, questionID string, userID string) error {
 	// 質問を取得
 	question, err := s.questionRepo.GetByID(ctx, questionID)
 	if err != nil {
@@ -939,8 +938,8 @@ func (s *proposalService) CheckQuestionPermission(ctx context.Context, questionI
 }
 
 // GetSalesUserForProject プロジェクトの営業担当者を取得
-func (s *proposalService) GetSalesUserForProject(ctx context.Context, projectID uuid.UUID) (*model.User, error) {
-	logger.LogInfo(s.logger, "営業担当者特定開始", zap.String("project_id", projectID.String()))
+func (s *proposalService) GetSalesUserForProject(ctx context.Context, projectID string) (*model.User, error) {
+	logger.LogInfo(s.logger, "営業担当者特定開始", zap.String("project_id", projectID))
 
 	// 営業チームのアクティブなメンバーを取得
 	activeMembers, err := s.salesRepo.GetActiveMembers(ctx)
@@ -990,8 +989,8 @@ func (s *proposalService) GetSalesUserForProject(ctx context.Context, projectID 
 	}
 
 	logger.LogInfo(s.logger, "営業担当者特定完了",
-		zap.String("project_id", projectID.String()),
-		zap.String("sales_user_id", user.ID.String()),
+		zap.String("project_id", projectID),
+		zap.String("sales_user_id", user.ID),
 		zap.String("sales_user_name", fmt.Sprintf("%s %s", user.LastName, user.FirstName)))
 
 	return user, nil
@@ -1013,7 +1012,7 @@ func (s *proposalService) CleanupOldQuestions(ctx context.Context, retentionDays
 // 通知連携（service_004で実装）
 func (s *proposalService) SendProposalStatusNotification(ctx context.Context, proposal *model.EngineerProposal, previousStatus string) error {
 	logger.LogInfo(s.logger, "提案ステータス変更通知送信開始",
-		zap.String("proposal_id", proposal.ID.String()),
+		zap.String("proposal_id", proposal.ID),
 		zap.String("previous_status", previousStatus),
 		zap.String("new_status", string(proposal.Status)))
 
@@ -1044,12 +1043,12 @@ func (s *proposalService) SendProposalStatusNotification(ctx context.Context, pr
 		return logger.LogAndWrapError(s.logger, err, "通知の送信に失敗しました")
 	}
 
-	logger.LogInfo(s.logger, "提案ステータス変更通知送信完了", zap.String("proposal_id", proposal.ID.String()))
+	logger.LogInfo(s.logger, "提案ステータス変更通知送信完了", zap.String("proposal_id", proposal.ID))
 	return nil
 }
 
 func (s *proposalService) SendQuestionNotification(ctx context.Context, question *model.EngineerProposalQuestion) error {
-	logger.LogInfo(s.logger, "質問通知送信開始", zap.String("question_id", question.ID.String()))
+	logger.LogInfo(s.logger, "質問通知送信開始", zap.String("question_id", question.ID))
 
 	// 提案情報を取得
 	proposal, err := s.proposalRepo.GetByID(ctx, question.ProposalID)
@@ -1073,7 +1072,7 @@ func (s *proposalService) SendQuestionNotification(ctx context.Context, question
 	salesUser, err := s.GetSalesUserForProject(ctx, proposal.ProjectID)
 	if err != nil {
 		// 営業担当者が見つからない場合でも通知自体は続行（全体通知として処理）
-		s.logger.Warn("営業担当者の特定に失敗しました", zap.Error(err), zap.String("project_id", proposal.ProjectID.String()))
+		s.logger.Warn("営業担当者の特定に失敗しました", zap.Error(err), zap.String("project_id", proposal.ProjectID))
 	}
 
 	// 通知を送信
@@ -1105,29 +1104,29 @@ func (s *proposalService) SendQuestionNotification(ctx context.Context, question
 			ReferenceType:    proposalStringPtr("question"),
 			Metadata: &model.NotificationMetadata{
 				AdditionalData: map[string]interface{}{
-					"question_id":   question.ID.String(),
-					"proposal_id":   question.ProposalID.String(),
-					"project_id":    proposal.ProjectID.String(),
+					"question_id":   question.ID,
+					"proposal_id":   question.ProposalID,
+					"project_id":    proposal.ProjectID,
 					"project_name":  project.ProjectName,
 					"question_text": question.QuestionText,
-					"engineer_id":   proposal.UserID.String(),
+					"engineer_id":   proposal.UserID,
 					"engineer_name": fmt.Sprintf("%s %s", engineer.LastName, engineer.FirstName),
 				},
 			},
 		}
 
 		if err := s.notificationService.CreateNotification(ctx, notification); err != nil {
-			s.logger.Error("営業担当者への個別通知送信に失敗", zap.Error(err), zap.String("sales_user_id", salesUser.ID.String()))
+			s.logger.Error("営業担当者への個別通知送信に失敗", zap.Error(err), zap.String("sales_user_id", salesUser.ID))
 			// エラーがあっても処理は続行
 		}
 	}
 
-	logger.LogInfo(s.logger, "質問通知送信完了", zap.String("question_id", question.ID.String()))
+	logger.LogInfo(s.logger, "質問通知送信完了", zap.String("question_id", question.ID))
 	return nil
 }
 
 func (s *proposalService) SendResponseNotification(ctx context.Context, question *model.EngineerProposalQuestion) error {
-	logger.LogInfo(s.logger, "回答通知送信開始", zap.String("question_id", question.ID.String()))
+	logger.LogInfo(s.logger, "回答通知送信開始", zap.String("question_id", question.ID))
 
 	// 回答者（営業担当者）情報を取得
 	if question.SalesUserID == nil {
@@ -1163,7 +1162,7 @@ func (s *proposalService) SendResponseNotification(ctx context.Context, question
 		return logger.LogAndWrapError(s.logger, err, "通知の送信に失敗しました")
 	}
 
-	logger.LogInfo(s.logger, "回答通知送信完了", zap.String("question_id", question.ID.String()))
+	logger.LogInfo(s.logger, "回答通知送信完了", zap.String("question_id", question.ID))
 	return nil
 }
 

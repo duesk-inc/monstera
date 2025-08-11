@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -155,9 +154,9 @@ func NewBatchProposalLoader(db *gorm.DB, logger *zap.Logger) *BatchProposalLoade
 // LoadProposalsWithDetails 提案と関連詳細を効率的にロード
 func (l *BatchProposalLoader) LoadProposalsWithDetails(
 	ctx context.Context,
-	proposalIDs []uuid.UUID,
-) (map[uuid.UUID]*ProposalWithDetails, error) {
-	result := make(map[uuid.UUID]*ProposalWithDetails)
+	proposalIDs []string,
+) (map[string]*ProposalWithDetails, error) {
+	result := make(map[string]*ProposalWithDetails)
 
 	// 提案を一括取得
 	var proposals []*model.EngineerProposal
@@ -169,7 +168,7 @@ func (l *BatchProposalLoader) LoadProposalsWithDetails(
 	}
 
 	// プロジェクトIDを収集
-	projectIDs := make([]uuid.UUID, 0, len(proposals))
+	projectIDs := make([]string, 0, len(proposals))
 	for _, p := range proposals {
 		projectIDs = append(projectIDs, p.ProjectID)
 		result[p.ID] = &ProposalWithDetails{
@@ -179,7 +178,7 @@ func (l *BatchProposalLoader) LoadProposalsWithDetails(
 
 	// プロジェクト情報を一括取得（クロススキーマクエリ）
 	var projects []struct {
-		ID          uuid.UUID
+		ID          string
 		ProjectName string
 		ClientName  string
 		MinPrice    int
@@ -195,7 +194,7 @@ func (l *BatchProposalLoader) LoadProposalsWithDetails(
 		// エラーでも処理を継続
 	} else {
 		// プロジェクト情報をマッピング
-		projectMap := make(map[uuid.UUID]struct {
+		projectMap := make(map[string]struct {
 			ProjectName string
 			ClientName  string
 			MinPrice    int
@@ -228,7 +227,7 @@ func (l *BatchProposalLoader) LoadProposalsWithDetails(
 
 	// 質問数を一括取得
 	var questionCounts []struct {
-		ProposalID   uuid.UUID
+		ProposalID   string
 		TotalCount   int64
 		PendingCount int64
 	}

@@ -45,9 +45,9 @@ func setupQuestionRepositoryTest(t *testing.T) (*engineerProposalQuestionReposit
 }
 
 // createTestQuestion テスト用質問データの作成
-func createTestQuestion(proposalID uuid.UUID, userID uuid.UUID, questionText string, isResponded bool) *model.EngineerProposalQuestion {
+func createTestQuestion(proposalID string, userID string, questionText string, isResponded bool) *model.EngineerProposalQuestion {
 	question := &model.EngineerProposalQuestion{
-		ID:           uuid.New(),
+		ID:           uuid.New().String(),
 		ProposalID:   proposalID,
 		UserID:       userID,
 		QuestionText: questionText,
@@ -73,8 +73,8 @@ func TestEngineerProposalQuestionRepository_Create(t *testing.T) {
 
 	t.Run("正常ケース - 質問作成成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		question := createTestQuestion(proposalID, userID, "テスト質問", false)
 
@@ -83,13 +83,13 @@ func TestEngineerProposalQuestionRepository_Create(t *testing.T) {
 
 		// 検証
 		assert.NoError(t, err)
-		assert.NotEqual(t, uuid.Nil, question.ID)
+		assert.NotEqual(t, "", question.ID)
 	})
 
 	t.Run("正常ケース - 質問文の長さ制限", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// 長い質問文でテスト
 		longQuestion := ""
@@ -117,8 +117,8 @@ func TestEngineerProposalQuestionRepository_GetByID(t *testing.T) {
 
 	t.Run("正常ケース - 質問取得成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// テストデータ作成
 		originalQuestion := createTestQuestion(proposalID, userID, "取得テスト質問", false)
@@ -140,7 +140,7 @@ func TestEngineerProposalQuestionRepository_GetByID(t *testing.T) {
 
 	t.Run("異常ケース - 存在しないID", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		nonExistentID := uuid.New()
+		nonExistentID := uuid.New().String()
 
 		// テスト実行
 		result, err := repo.GetByID(ctx, nonExistentID)
@@ -157,8 +157,8 @@ func TestEngineerProposalQuestionRepository_Update(t *testing.T) {
 
 	t.Run("正常ケース - 質問更新成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// テストデータ作成
 		question := createTestQuestion(proposalID, userID, "更新前質問", false)
@@ -183,9 +183,9 @@ func TestEngineerProposalQuestionRepository_Update(t *testing.T) {
 
 	t.Run("正常ケース - 回答データの更新", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
-		salesUserID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
+		salesUserID := uuid.New().String()
 
 		// テストデータ作成（未回答質問）
 		question := createTestQuestion(proposalID, userID, "回答待ち質問", false)
@@ -225,8 +225,8 @@ func TestEngineerProposalQuestionRepository_Delete(t *testing.T) {
 
 	t.Run("正常ケース - 質問削除成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// テストデータ作成
 		question := createTestQuestion(proposalID, userID, "削除テスト質問", false)
@@ -251,9 +251,9 @@ func TestEngineerProposalQuestionRepository_GetByProposalID(t *testing.T) {
 
 	t.Run("正常ケース - 提案別質問取得成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		otherProposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		otherProposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// テストデータ作成（同じ提案に複数質問）
 		question1 := createTestQuestion(proposalID, userID, "質問1", false)
@@ -294,8 +294,8 @@ func TestEngineerProposalQuestionRepository_GetByProposalID(t *testing.T) {
 
 	t.Run("正常ケース - 回答状況フィルター", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// テストデータ作成
 		question1 := createTestQuestion(proposalID, userID, "未回答質問1", false)
@@ -333,8 +333,8 @@ func TestEngineerProposalQuestionRepository_GetByProposalID(t *testing.T) {
 
 	t.Run("正常ケース - ページネーション", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// テストデータ作成（5件）
 		for i := 0; i < 5; i++ {
@@ -365,8 +365,8 @@ func TestEngineerProposalQuestionRepository_CountByProposalID(t *testing.T) {
 
 	t.Run("正常ケース - 質問数カウント成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// テストデータ作成（3件）
 		for i := 0; i < 3; i++ {
@@ -376,7 +376,7 @@ func TestEngineerProposalQuestionRepository_CountByProposalID(t *testing.T) {
 		}
 
 		// 他の提案の質問（カウントされない）
-		otherQuestion := createTestQuestion(uuid.New(), userID, "他の質問", false)
+		otherQuestion := createTestQuestion(uuid.New().String(), userID, "他の質問", false)
 		err := repo.Create(ctx, otherQuestion)
 		require.NoError(t, err)
 
@@ -390,7 +390,7 @@ func TestEngineerProposalQuestionRepository_CountByProposalID(t *testing.T) {
 
 	t.Run("正常ケース - 質問が0件", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
+		proposalID := uuid.New().String()
 
 		// テスト実行（質問なし）
 		count, err := repo.CountByProposalID(ctx, proposalID)
@@ -407,10 +407,10 @@ func TestEngineerProposalQuestionRepository_GetPendingQuestions(t *testing.T) {
 
 	t.Run("正常ケース - 未回答質問取得成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		salesUserID := uuid.New()
-		userID := uuid.New()
-		proposalID1 := uuid.New()
-		proposalID2 := uuid.New()
+		salesUserID := uuid.New().String()
+		userID := uuid.New().String()
+		proposalID1 := uuid.New().String()
+		proposalID2 := uuid.New().String()
 
 		// テストデータ作成
 		// 未回答質問（取得対象）
@@ -449,10 +449,10 @@ func TestEngineerProposalQuestionRepository_GetPendingQuestions(t *testing.T) {
 
 	t.Run("正常ケース - 担当者フィルター", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		salesUserID := uuid.New()
-		otherSalesUserID := uuid.New()
-		userID := uuid.New()
-		proposalID := uuid.New()
+		salesUserID := uuid.New().String()
+		otherSalesUserID := uuid.New().String()
+		userID := uuid.New().String()
+		proposalID := uuid.New().String()
 
 		// テストデータ作成
 		// 担当者なしの未回答質問
@@ -492,9 +492,9 @@ func TestEngineerProposalQuestionRepository_GetQuestionsByUserID(t *testing.T) {
 
 	t.Run("正常ケース - ユーザー別質問取得成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		userID := uuid.New()
-		otherUserID := uuid.New()
-		proposalID := uuid.New()
+		userID := uuid.New().String()
+		otherUserID := uuid.New().String()
+		proposalID := uuid.New().String()
 
 		// テストデータ作成
 		question1 := createTestQuestion(proposalID, userID, "ユーザー質問1", false)
@@ -537,9 +537,9 @@ func TestEngineerProposalQuestionRepository_AssignToSales(t *testing.T) {
 
 	t.Run("正常ケース - 営業担当者割り当て成功", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
-		salesUserID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
+		salesUserID := uuid.New().String()
 
 		// テストデータ作成（担当者なしの質問）
 		question := createTestQuestion(proposalID, userID, "担当者割り当てテスト質問", false)
@@ -561,10 +561,10 @@ func TestEngineerProposalQuestionRepository_AssignToSales(t *testing.T) {
 
 	t.Run("正常ケース - 担当者変更", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
-		salesUserID1 := uuid.New()
-		salesUserID2 := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
+		salesUserID1 := uuid.New().String()
+		salesUserID2 := uuid.New().String()
 
 		// テストデータ作成（既に担当者ありの質問）
 		question := createTestQuestion(proposalID, userID, "担当者変更テスト質問", false)
@@ -587,8 +587,8 @@ func TestEngineerProposalQuestionRepository_AssignToSales(t *testing.T) {
 
 	t.Run("異常ケース - 存在しない質問ID", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		nonExistentID := uuid.New()
-		salesUserID := uuid.New()
+		nonExistentID := uuid.New().String()
+		salesUserID := uuid.New().String()
 
 		// テスト実行
 		err := repo.AssignToSales(ctx, nonExistentID, salesUserID)
@@ -608,14 +608,14 @@ func TestEngineerProposalQuestionRepository_ErrorHandling(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
 
 		// 無効なUUIDでの取得テスト
-		_, err := repo.GetByID(ctx, uuid.Nil)
+		_, err := repo.GetByID(ctx, "")
 		assert.Error(t, err)
 	})
 
 	t.Run("空の質問文", func(t *testing.T) {
 		repo, _ := setupQuestionRepositoryTest(t)
-		proposalID := uuid.New()
-		userID := uuid.New()
+		proposalID := uuid.New().String()
+		userID := uuid.New().String()
 
 		// 空の質問文でテスト
 		question := createTestQuestion(proposalID, userID, "", false)
@@ -637,7 +637,7 @@ func TestEngineerProposalQuestionRepository_ErrorHandling(t *testing.T) {
 		canceledCtx, cancel := context.WithCancel(ctx)
 		cancel()
 
-		question := createTestQuestion(uuid.New(), uuid.New(), "キャンセルテスト", false)
+		question := createTestQuestion(uuid.New().String(), uuid.New().String(), "キャンセルテスト", false)
 		err := repo.Create(canceledCtx, question)
 
 		// コンテキストキャンセルでエラーになる可能性がある

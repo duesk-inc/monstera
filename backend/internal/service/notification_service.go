@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -19,10 +18,10 @@ type UpdateAdvancedNotificationRequest struct {
 
 // WeeklyReportReminderRequest 週報リマインダーリクエスト（仮定義）
 type WeeklyReportReminderRequest struct {
-	UserIDs     []string   `json:"user_ids"`
-	RecipientID *uuid.UUID `json:"recipient_id"`
-	StartDate   time.Time  `json:"start_date"`
-	EndDate     time.Time  `json:"end_date"`
+	UserIDs     []string  `json:"user_ids"`
+	RecipientID *string   `json:"recipient_id"`
+	StartDate   time.Time `json:"start_date"`
+	EndDate     time.Time `json:"end_date"`
 }
 
 // BulkReminderCompleteRequest 一括リマインダー完了リクエスト（仮定義）
@@ -43,8 +42,8 @@ type NotificationService interface {
 
 	// 提案関連通知メソッド
 	NotifyProposalStatusChange(ctx context.Context, proposalID, projectID, userID string, projectName, previousStatus, newStatus string) error
-	NotifyNewQuestion(ctx context.Context, questionID, proposalID, projectID uuid.UUID, projectName, questionText string, engineerID uuid.UUID, engineerName string) error
-	NotifyQuestionAnswered(ctx context.Context, questionID, proposalID, engineerID uuid.UUID, questionText, responseText string, salesUserName string) error
+	NotifyNewQuestion(ctx context.Context, questionID, proposalID, projectID string, projectName, questionText string, engineerID string, engineerName string) error
+	NotifyQuestionAnswered(ctx context.Context, questionID, proposalID, engineerID string, questionText, responseText string, salesUserName string) error
 
 	// 経費申請関連通知メソッド
 	NotifyExpenseSubmitted(ctx context.Context, expense *model.Expense, approverIDs []string) error
@@ -52,21 +51,21 @@ type NotificationService interface {
 	NotifyExpenseRejected(ctx context.Context, expense *model.Expense, rejectorName string, reason string) error
 	NotifyExpenseLimitExceeded(ctx context.Context, userID string, expense *model.Expense, limitType string, exceededAmount int) error
 	NotifyExpenseLimitWarning(ctx context.Context, userID string, limitType string, usageRate float64) error
-	NotifyExpenseApprovalReminder(ctx context.Context, approverID uuid.UUID, pendingExpenses []model.Expense) error
+	NotifyExpenseApprovalReminder(ctx context.Context, approverID string, pendingExpenses []model.Expense) error
 
 	// ハンドラー用メソッド
 	GetUserNotifications(ctx context.Context, userID string, limit, offset int) (interface{}, error)
 	GetNotificationsByRecipient(ctx context.Context, userID string) (interface{}, error)
 	GetUnreadNotificationCount(ctx context.Context, userID string) (int, error)
-	MarkAsRead(ctx context.Context, userID, notificationID uuid.UUID) error
+	MarkAsRead(ctx context.Context, userID, notificationID string) error
 	MarkAllAsRead(ctx context.Context, userID string) error
 	GetUserNotificationSettings(ctx context.Context, userID string) (interface{}, error)
 	UpdateNotificationSetting(ctx context.Context, userID string, request interface{}) error
 	GetAllNotifications(ctx context.Context, params interface{}) (interface{}, interface{}, error)
-	GetAdvancedNotificationByID(ctx context.Context, id uuid.UUID) (interface{}, error)
-	UpdateAdvancedNotification(ctx context.Context, id uuid.UUID, request interface{}) error
-	DeleteAdvancedNotification(ctx context.Context, id uuid.UUID) error
-	HideNotification(ctx context.Context, userID, notificationID uuid.UUID) error
+	GetAdvancedNotificationByID(ctx context.Context, id string) (interface{}, error)
+	UpdateAdvancedNotification(ctx context.Context, id string, request interface{}) error
+	DeleteAdvancedNotification(ctx context.Context, id string) error
+	HideNotification(ctx context.Context, userID, notificationID string) error
 	GetNotificationStats(ctx context.Context) (interface{}, error)
 	CreateWeeklyReportReminderNotification(ctx context.Context, request interface{}) error
 	CreateBulkReminderCompleteNotification(ctx context.Context, request interface{}) error
@@ -152,8 +151,8 @@ func (s *notificationService) NotifyProposalStatusChange(ctx context.Context, pr
 		ReferenceType:    stringPtr("proposal"),
 		Metadata: &model.NotificationMetadata{
 			AdditionalData: map[string]interface{}{
-				"proposal_id":     proposalID.String(),
-				"project_id":      projectID.String(),
+				"proposal_id":     proposalID,
+				"project_id":      projectID,
 				"project_name":    projectName,
 				"previous_status": previousStatus,
 				"new_status":      newStatus,
@@ -165,7 +164,7 @@ func (s *notificationService) NotifyProposalStatusChange(ctx context.Context, pr
 }
 
 // NotifyNewQuestion 新規質問通知（営業担当者向け）
-func (s *notificationService) NotifyNewQuestion(ctx context.Context, questionID, proposalID, projectID uuid.UUID, projectName, questionText string, engineerID uuid.UUID, engineerName string) error {
+func (s *notificationService) NotifyNewQuestion(ctx context.Context, questionID, proposalID, projectID string, projectName, questionText string, engineerID string, engineerName string) error {
 	title := "新しい質問が投稿されました"
 	message := fmt.Sprintf("%sさんから案件「%s」について質問がありました。", engineerName, projectName)
 
@@ -181,12 +180,12 @@ func (s *notificationService) NotifyNewQuestion(ctx context.Context, questionID,
 		ReferenceType:    stringPtr("question"),
 		Metadata: &model.NotificationMetadata{
 			AdditionalData: map[string]interface{}{
-				"question_id":   questionID.String(),
-				"proposal_id":   proposalID.String(),
-				"project_id":    projectID.String(),
+				"question_id":   questionID,
+				"proposal_id":   proposalID,
+				"project_id":    projectID,
 				"project_name":  projectName,
 				"question_text": questionText,
-				"engineer_id":   engineerID.String(),
+				"engineer_id":   engineerID,
 				"engineer_name": engineerName,
 			},
 		},
@@ -196,7 +195,7 @@ func (s *notificationService) NotifyNewQuestion(ctx context.Context, questionID,
 }
 
 // NotifyQuestionAnswered 質問回答通知（エンジニア向け）
-func (s *notificationService) NotifyQuestionAnswered(ctx context.Context, questionID, proposalID, engineerID uuid.UUID, questionText, responseText string, salesUserName string) error {
+func (s *notificationService) NotifyQuestionAnswered(ctx context.Context, questionID, proposalID, engineerID string, questionText, responseText string, salesUserName string) error {
 	title := "質問に回答がありました"
 	message := fmt.Sprintf("営業担当の%sさんから質問への回答がありました。", salesUserName)
 
@@ -211,8 +210,8 @@ func (s *notificationService) NotifyQuestionAnswered(ctx context.Context, questi
 		ReferenceType:    stringPtr("question_response"),
 		Metadata: &model.NotificationMetadata{
 			AdditionalData: map[string]interface{}{
-				"question_id":     questionID.String(),
-				"proposal_id":     proposalID.String(),
+				"question_id":     questionID,
+				"proposal_id":     proposalID,
 				"question_text":   questionText,
 				"response_text":   responseText,
 				"sales_user_name": salesUserName,
@@ -247,7 +246,7 @@ func (s *notificationService) NotifyExpenseSubmitted(ctx context.Context, expens
 			ReferenceType:    stringPtr("expense_submission"),
 			Metadata: &model.NotificationMetadata{
 				AdditionalData: map[string]interface{}{
-					"expense_id":     expense.ID.String(),
+					"expense_id":     expense.ID,
 					"expense_title":  expense.Title,
 					"expense_amount": expense.Amount,
 					"submitter_name": expense.User.Name,
@@ -285,7 +284,7 @@ func (s *notificationService) NotifyExpenseApproved(ctx context.Context, expense
 		ReferenceType:    stringPtr("expense_approval"),
 		Metadata: &model.NotificationMetadata{
 			AdditionalData: map[string]interface{}{
-				"expense_id":        expense.ID.String(),
+				"expense_id":        expense.ID,
 				"expense_title":     expense.Title,
 				"expense_amount":    expense.Amount,
 				"approver_name":     approverName,
@@ -314,7 +313,7 @@ func (s *notificationService) NotifyExpenseRejected(ctx context.Context, expense
 		ReferenceType:    stringPtr("expense_rejection"),
 		Metadata: &model.NotificationMetadata{
 			AdditionalData: map[string]interface{}{
-				"expense_id":     expense.ID.String(),
+				"expense_id":     expense.ID,
 				"expense_title":  expense.Title,
 				"expense_amount": expense.Amount,
 				"rejector_name":  rejectorName,
@@ -343,7 +342,7 @@ func (s *notificationService) NotifyExpenseLimitExceeded(ctx context.Context, us
 		ReferenceType:    stringPtr("expense_limit_exceeded"),
 		Metadata: &model.NotificationMetadata{
 			AdditionalData: map[string]interface{}{
-				"expense_id":      expense.ID.String(),
+				"expense_id":      expense.ID,
 				"expense_title":   expense.Title,
 				"expense_amount":  expense.Amount,
 				"limit_type":      limitType,
@@ -382,14 +381,14 @@ func (s *notificationService) NotifyExpenseLimitWarning(ctx context.Context, use
 }
 
 // NotifyExpenseApprovalReminder 経費申請承認催促通知
-func (s *notificationService) NotifyExpenseApprovalReminder(ctx context.Context, approverID uuid.UUID, pendingExpenses []model.Expense) error {
+func (s *notificationService) NotifyExpenseApprovalReminder(ctx context.Context, approverID string, pendingExpenses []model.Expense) error {
 	title := fmt.Sprintf("%d件の経費申請が承認待ちです", len(pendingExpenses))
 	message := "承認待ちの経費申請があります。確認をお願いします。"
 
 	expenseList := make([]map[string]interface{}, 0, len(pendingExpenses))
 	for _, expense := range pendingExpenses {
 		expenseList = append(expenseList, map[string]interface{}{
-			"expense_id":     expense.ID.String(),
+			"expense_id":     expense.ID,
 			"expense_title":  expense.Title,
 			"expense_amount": expense.Amount,
 			"submitter_name": expense.User.Name,
@@ -456,11 +455,11 @@ func (s *notificationService) GetUnreadNotificationCount(ctx context.Context, us
 }
 
 // MarkAsRead 通知を既読にする
-func (s *notificationService) MarkAsRead(ctx context.Context, userID, notificationID uuid.UUID) error {
+func (s *notificationService) MarkAsRead(ctx context.Context, userID, notificationID string) error {
 	// TODO: 実装が必要
 	s.logger.Info("Marking notification as read",
 		zap.String("user_id", userID),
-		zap.String("notification_id", notificationID.String()))
+		zap.String("notification_id", notificationID))
 	return nil
 }
 
@@ -498,28 +497,28 @@ func (s *notificationService) GetAllNotifications(ctx context.Context, params in
 }
 
 // GetAdvancedNotificationByID 高度な通知詳細を取得
-func (s *notificationService) GetAdvancedNotificationByID(ctx context.Context, id uuid.UUID) (interface{}, error) {
-	s.logger.Info("Getting advanced notification by ID", zap.String("id", id.String()))
-	return map[string]interface{}{"id": id.String()}, nil
+func (s *notificationService) GetAdvancedNotificationByID(ctx context.Context, id string) (interface{}, error) {
+	s.logger.Info("Getting advanced notification by ID", zap.String("id", id))
+	return map[string]interface{}{"id": id}, nil
 }
 
 // UpdateAdvancedNotification 高度な通知を更新
-func (s *notificationService) UpdateAdvancedNotification(ctx context.Context, id uuid.UUID, request interface{}) error {
-	s.logger.Info("Updating advanced notification", zap.String("id", id.String()))
+func (s *notificationService) UpdateAdvancedNotification(ctx context.Context, id string, request interface{}) error {
+	s.logger.Info("Updating advanced notification", zap.String("id", id))
 	return nil
 }
 
 // DeleteAdvancedNotification 高度な通知を削除
-func (s *notificationService) DeleteAdvancedNotification(ctx context.Context, id uuid.UUID) error {
-	s.logger.Info("Deleting advanced notification", zap.String("id", id.String()))
+func (s *notificationService) DeleteAdvancedNotification(ctx context.Context, id string) error {
+	s.logger.Info("Deleting advanced notification", zap.String("id", id))
 	return nil
 }
 
 // HideNotification 通知を非表示にする
-func (s *notificationService) HideNotification(ctx context.Context, userID, notificationID uuid.UUID) error {
+func (s *notificationService) HideNotification(ctx context.Context, userID, notificationID string) error {
 	s.logger.Info("Hiding notification",
 		zap.String("user_id", userID),
-		zap.String("notification_id", notificationID.String()))
+		zap.String("notification_id", notificationID))
 	return nil
 }
 

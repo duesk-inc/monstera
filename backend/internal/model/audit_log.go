@@ -9,8 +9,8 @@ import (
 
 // AuditLog 監査ログ
 type AuditLog struct {
-	ID           uuid.UUID `json:"id" gorm:"type:varchar(255);primaryKey;default:(UUID())"`
-	UserID string `json:"user_id" gorm:"type:varchar(255);not null;index"`
+	ID           string    `json:"id" gorm:"type:varchar(255);primaryKey"`
+	UserID       string    `json:"user_id" gorm:"type:varchar(255);not null;index"`
 	Action       string    `json:"action" gorm:"type:varchar(100);not null;index"`
 	ResourceType string    `json:"resource_type" gorm:"type:varchar(50);not null;index"`
 	ResourceID   *string   `json:"resource_id" gorm:"type:varchar(100);index"`
@@ -36,8 +36,8 @@ func (AuditLog) TableName() string {
 
 // BeforeCreate GORM作成前フック
 func (a *AuditLog) BeforeCreate(tx *gorm.DB) error {
-	if a.ID == uuid.Nil {
-		a.ID = uuid.New()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
 	}
 	return nil
 }

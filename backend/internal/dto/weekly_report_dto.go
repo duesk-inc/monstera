@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // DailyRecordRequest 日次勤怠記録リクエスト
@@ -25,25 +24,25 @@ type DailyRecordRequest struct {
 
 // DailyRecordResponse 日次勤怠記録レスポンス
 type DailyRecordResponse struct {
-	ID              uuid.UUID `json:"id"`
-	Date            string    `json:"date"`
-	StartTime       string    `json:"start_time"`
-	EndTime         string    `json:"end_time"`
-	BreakTime       float64   `json:"break_time"`
-	WorkHours       float64   `json:"work_hours"`
-	ClientStartTime string    `json:"client_start_time"`
-	ClientEndTime   string    `json:"client_end_time"`
-	ClientBreakTime float64   `json:"client_break_time"`
-	ClientWorkHours float64   `json:"client_work_hours"`
-	HasClientWork   bool      `json:"has_client_work"`
-	Remarks         string    `json:"remarks"`
-	IsHolidayWork   bool      `json:"is_holiday_work"`
+	ID              string  `json:"id"`
+	Date            string  `json:"date"`
+	StartTime       string  `json:"start_time"`
+	EndTime         string  `json:"end_time"`
+	BreakTime       float64 `json:"break_time"`
+	WorkHours       float64 `json:"work_hours"`
+	ClientStartTime string  `json:"client_start_time"`
+	ClientEndTime   string  `json:"client_end_time"`
+	ClientBreakTime float64 `json:"client_break_time"`
+	ClientWorkHours float64 `json:"client_work_hours"`
+	HasClientWork   bool    `json:"has_client_work"`
+	Remarks         string  `json:"remarks"`
+	IsHolidayWork   bool    `json:"is_holiday_work"`
 }
 
 // WeeklyReportResponse 週報レスポンス
 type WeeklyReportResponse struct {
-	ID                       uuid.UUID             `json:"id"`
-	UserID string             `json:"user_id"`
+	ID                       string                `json:"id"`
+	UserID                   string                `json:"user_id"`
 	StartDate                time.Time             `json:"start_date"`
 	EndDate                  time.Time             `json:"end_date"`
 	Status                   string                `json:"status"`
@@ -130,8 +129,8 @@ func ConvertLegacyIntStatusToString(intStatus int) string {
 
 // WeeklyReportDTO ユーザー向け週報DTO
 type WeeklyReportDTO struct {
-	ID                       uuid.UUID  `json:"id"`
-	UserID string  `json:"user_id"`
+	ID                       string     `json:"id"`
+	UserID                   string     `json:"user_id"`
 	StartDate                time.Time  `json:"start_date"`
 	EndDate                  time.Time  `json:"end_date"`
 	Status                   string     `json:"status"`
@@ -156,13 +155,13 @@ type WeeklyReportDetailDTO struct {
 
 // UnsubmittedReportDTO 未提出週報DTO
 type UnsubmittedReportDTO struct {
-	ID                 uuid.UUID  `json:"id"`
-	UserID string  `json:"user_id"`
+	ID                 string     `json:"id"`
+	UserID             string     `json:"user_id"`
 	UserName           string     `json:"user_name"`
 	UserEmail          string     `json:"user_email"`
-	DepartmentID       *uuid.UUID `json:"department_id"`
+	DepartmentID       *string    `json:"department_id"`
 	DepartmentName     string     `json:"department_name"`
-	ManagerID          *uuid.UUID `json:"manager_id"`
+	ManagerID          *string    `json:"manager_id"`
 	ManagerName        string     `json:"manager_name"`
 	StartDate          time.Time  `json:"start_date"`
 	EndDate            time.Time  `json:"end_date"`
@@ -180,7 +179,7 @@ func ConvertToWeeklyReportDTO(report *model.WeeklyReport) WeeklyReportDTO {
 		UserID:                   report.UserID,
 		StartDate:                report.StartDate,
 		EndDate:                  report.EndDate,
-		Status:                   report.Status.String(),
+		Status:                   string(report.Status),
 		WeeklyRemarks:            report.WeeklyRemarks,
 		WorkplaceName:            report.WorkplaceName,
 		WorkplaceHours:           report.WorkplaceHours,

@@ -22,7 +22,7 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) GetByID(userID uuid.UUID) (*model.User, error) {
+func (m *MockUserRepository) GetByID(userID string) (*model.User, error) {
 	args := m.Called(userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -48,7 +48,7 @@ func (m *MockUserRepository) Update(user *model.User) error {
 	return args.Error(0)
 }
 
-func (m *MockUserRepository) Delete(userID uuid.UUID) error {
+func (m *MockUserRepository) Delete(userID string) error {
 	args := m.Called(userID)
 	return args.Error(0)
 }
@@ -87,7 +87,7 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 	t.Run("Valid token with UUID user_id", func(t *testing.T) {
 		// モックリポジトリの設定
 		mockRepo := new(MockUserRepository)
-		userID := uuid.New()
+		userID := uuid.New().String()
 		employeeRole := model.RoleEmployee
 		testUser := &model.User{
 			ID:          userID,
@@ -135,11 +135,11 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 		c.Set("role", *testUser.DefaultRole)
 		c.Set("roles", testUser.Roles)
 		c.Set("cognito_sub", "test-cognito-sub")
-		
+
 		// 検証内容
 		userIDValue, exists := c.Get("user_id")
 		assert.True(t, exists, "user_id should exist in context")
-		assert.IsType(t, uuid.UUID{}, userIDValue, "user_id should be UUID type")
+		assert.IsType(t, string{}, userIDValue, "user_id should be UUID type")
 		assert.Equal(t, userID, userIDValue, "user_id should match the expected value")
 
 		// その他の値も確認
@@ -158,7 +158,7 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 		cognitoSub, exists := c.Get("cognito_sub")
 		assert.True(t, exists, "cognito_sub should exist in context")
 		assert.Equal(t, "test-cognito-sub", cognitoSub)
-		
+
 		handlerCalled = true
 
 		assert.True(t, handlerCalled, "Handler should be called")

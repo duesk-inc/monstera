@@ -23,10 +23,10 @@ import (
 
 // AuthResponse 認証レスポンス
 type AuthResponse struct {
-	AccessToken  string       `json:"access_token"`
-	RefreshToken string       `json:"refresh_token"`
-	ExpiresAt    time.Time    `json:"expires_at"`
-	User         *model.User  `json:"user"`
+	AccessToken  string      `json:"access_token"`
+	RefreshToken string      `json:"refresh_token"`
+	ExpiresAt    time.Time   `json:"expires_at"`
+	User         *model.User `json:"user"`
 }
 
 // RegisterUserRequest ユーザー登録リクエスト
@@ -237,7 +237,7 @@ func (s *CognitoAuthService) processAuthResult(ctx context.Context, authResult *
 
 	// セッション作成（リフレッシュトークンを保存）
 	session := &model.Session{
-		ID:           uuid.New(),
+		ID:           uuid.New().String(),
 		UserID:       user.ID,
 		RefreshToken: refreshToken,
 		UserAgent:    userAgent,
@@ -336,13 +336,12 @@ func (s *CognitoAuthService) RegisterUser(ctx context.Context, req *RegisterUser
 
 	// DBにユーザーを作成
 	user := &model.User{
-		ID:          uuid.New(),
+		ID:          cognitoSub,
 		Email:       email,
 		FirstName:   firstName,
 		LastName:    lastName,
 		PhoneNumber: phoneNumber,
 		Role:        role,
-		CognitoSub:  cognitoSub,
 		Status:      "active",
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
@@ -512,7 +511,6 @@ func (s *CognitoAuthService) syncUserWithDB(ctx context.Context, cognitoUser map
 				Name:           name, // Nameフィールドを追加
 				PhoneNumber:    cognitoUser["phone_number"],
 				Role:           model.Role(role),
-				CognitoSub:     cognitoSub,
 				Status:         "active",
 				Active:         true,
 				EngineerStatus: "active", // EngineerStatus を追加
@@ -525,7 +523,7 @@ func (s *CognitoAuthService) syncUserWithDB(ctx context.Context, cognitoUser map
 			}
 		} else {
 			// 既存ユーザーのCognitoサブIDを更新
-			user.CognitoSub = cognitoSub
+			user.ID = cognitoSub
 			if err := s.userRepo.Update(ctx, user); err != nil {
 				s.logger.Error("CognitoサブID更新エラー", zap.Error(err))
 			}

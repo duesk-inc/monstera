@@ -8,7 +8,6 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -145,7 +144,7 @@ func (h *UserRoleHandler) GetRoles(c *gin.Context) {
 	// 文字列配列に変換
 	roleStrings := make([]string, len(roles))
 	for i, role := range roles {
-		roleStrings[i] = role.String()
+		roleStrings[i] = role
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -162,7 +161,7 @@ func (h *UserRoleHandler) UpdateDefaultRole(c *gin.Context) {
 		return
 	}
 
-	userID, ok := userIDInterface.(uuid.UUID)
+	userID, ok := userIDInterface.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userIDInterface))
 		RespondError(c, http.StatusInternalServerError, "ユーザーIDの取得に失敗しました")

@@ -10,7 +10,6 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -497,10 +496,11 @@ func (h *weeklyReportRefactoredHandler) BatchSubmitReports(c *gin.Context) {
 	}
 
 	// UUIDに変換
-	reportIDs := make([]uuid.UUID, 0, len(req.ReportIDs))
+	reportIDs := make([]string, 0, len(req.ReportIDs))
 	for _, idStr := range req.ReportIDs {
-		id, err := uuid.Parse(idStr)
-		if err != nil {
+		id := idStr
+		// UUID validation removed after migration
+		if id == "" {
 			RespondValidationError(c, map[string]string{
 				"report_ids": "無効な週報IDが含まれています: " + idStr,
 			})
@@ -544,10 +544,11 @@ func (h *weeklyReportRefactoredHandler) BatchUpdateDeadlines(c *gin.Context) {
 	}
 
 	// UUIDに変換
-	reportIDs := make([]uuid.UUID, 0, len(req.ReportIDs))
+	reportIDs := make([]string, 0, len(req.ReportIDs))
 	for _, idStr := range req.ReportIDs {
-		id, err := uuid.Parse(idStr)
-		if err != nil {
+		id := idStr
+		// UUID validation removed after migration
+		if id == "" {
 			RespondValidationError(c, map[string]string{
 				"report_ids": "無効な週報IDが含まれています: " + idStr,
 			})

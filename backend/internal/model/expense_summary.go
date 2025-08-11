@@ -9,8 +9,8 @@ import (
 
 // ExpenseSummary 経費集計モデル
 type ExpenseSummary struct {
-	ID             uuid.UUID `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"user_id"`
+	ID             string    `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID         string    `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"user_id"`
 	User           User      `gorm:"foreignKey:UserID" json:"user"`
 	Year           int       `gorm:"not null" json:"year"`                      // 集計年
 	Month          int       `gorm:"not null" json:"month"`                     // 集計月
@@ -24,8 +24,8 @@ type ExpenseSummary struct {
 
 // BeforeCreate UUIDを生成
 func (es *ExpenseSummary) BeforeCreate(tx *gorm.DB) error {
-	if es.ID == uuid.Nil {
-		es.ID = uuid.New()
+	if es.ID == "" {
+		es.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ func (es *ExpenseSummary) GetRemainingMonthlyLimit(monthlyLimit int) int {
 
 // ExpenseSummaryQuery 集計クエリ用の構造体
 type ExpenseSummaryQuery struct {
-	UserID string
+	UserID    string
 	Year      int
 	Month     int
 	StartDate *time.Time

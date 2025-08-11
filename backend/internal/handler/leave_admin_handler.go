@@ -96,8 +96,9 @@ func (h *leaveAdminHandler) GetLeaveRequests(c *gin.Context) {
 func (h *leaveAdminHandler) ApproveLeaveRequest(c *gin.Context) {
 	// リクエストID取得
 	requestIDStr := c.Param("id")
-	requestID, err := uuid.Parse(requestIDStr)
-	if err != nil {
+	requestID := requestIDStr
+	// UUID validation removed after migration
+	if requestID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "無効なリクエストIDです")
 		return
 	}
@@ -108,7 +109,7 @@ func (h *leaveAdminHandler) ApproveLeaveRequest(c *gin.Context) {
 		utils.RespondError(c, http.StatusUnauthorized, "認証情報が見つかりません")
 		return
 	}
-	approverID := userID.(uuid.UUID)
+	approverID := userID.(string)
 
 	// 承認処理
 	if err := h.leaveAdminService.ApproveLeaveRequest(c.Request.Context(), requestID, approverID); err != nil {
@@ -126,8 +127,9 @@ func (h *leaveAdminHandler) ApproveLeaveRequest(c *gin.Context) {
 func (h *leaveAdminHandler) RejectLeaveRequest(c *gin.Context) {
 	// リクエストID取得
 	requestIDStr := c.Param("id")
-	requestID, err := uuid.Parse(requestIDStr)
-	if err != nil {
+	requestID := requestIDStr
+	// UUID validation removed after migration
+	if requestID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "無効なリクエストIDです")
 		return
 	}
@@ -147,7 +149,7 @@ func (h *leaveAdminHandler) RejectLeaveRequest(c *gin.Context) {
 		utils.RespondError(c, http.StatusUnauthorized, "認証情報が見つかりません")
 		return
 	}
-	approverID := userID.(uuid.UUID)
+	approverID := userID.(string)
 
 	// 却下処理
 	if err := h.leaveAdminService.RejectLeaveRequest(c.Request.Context(), requestID, approverID, req.Reason); err != nil {
@@ -173,10 +175,11 @@ func (h *leaveAdminHandler) BulkApproveLeaveRequests(c *gin.Context) {
 	}
 
 	// UUID変換
-	requestIDs := make([]uuid.UUID, 0, len(req.RequestIDs))
+	requestIDs := make([]string, 0, len(req.RequestIDs))
 	for _, idStr := range req.RequestIDs {
-		id, err := uuid.Parse(idStr)
-		if err != nil {
+		id := idStr
+		// UUID validation removed after migration
+		if id == "" {
 			utils.RespondError(c, http.StatusBadRequest, "無効なリクエストIDが含まれています")
 			return
 		}
@@ -189,7 +192,7 @@ func (h *leaveAdminHandler) BulkApproveLeaveRequests(c *gin.Context) {
 		utils.RespondError(c, http.StatusUnauthorized, "認証情報が見つかりません")
 		return
 	}
-	approverID := userID.(uuid.UUID)
+	approverID := userID.(string)
 
 	// 一括承認処理
 	results, err := h.leaveAdminService.BulkApproveLeaveRequests(c.Request.Context(), requestIDs, approverID)
@@ -261,8 +264,9 @@ func (h *leaveAdminHandler) GetLeaveStatistics(c *gin.Context) {
 func (h *leaveAdminHandler) GetUserLeaveStatistics(c *gin.Context) {
 	// ユーザーID取得
 	userIDStr := c.Param("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
+	userID := userIDStr
+	// UUID validation removed after migration
+	if userID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "無効なユーザーIDです")
 		return
 	}

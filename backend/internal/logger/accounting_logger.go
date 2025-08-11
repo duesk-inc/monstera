@@ -16,7 +16,7 @@ import (
 type AccountingLogger struct {
 	logger    *zap.Logger
 	requestID string
-	userID    *uuid.UUID
+	userID    *string
 	category  string
 }
 
@@ -62,7 +62,7 @@ const (
 // LogContext ログコンテキスト
 type LogContext struct {
 	RequestID string                 `json:"request_id,omitempty"`
-	UserID    *uuid.UUID             `json:"user_id,omitempty"`
+	UserID    *string                `json:"user_id,omitempty"`
 	Category  AccountingLogCategory  `json:"category"`
 	Operation string                 `json:"operation,omitempty"`
 	Resource  string                 `json:"resource,omitempty"`
@@ -101,7 +101,7 @@ func NewAccountingLoggerFromGin(c *gin.Context, baseLogger *zap.Logger, category
 
 	// ユーザーIDを取得
 	if userID, exists := c.Get("userID"); exists {
-		if uid, ok := userID.(uuid.UUID); ok {
+		if uid, ok := userID.(string); ok {
 			accountingLogger.userID = &uid
 		}
 	}
@@ -117,7 +117,7 @@ func (al *AccountingLogger) WithRequestID(requestID string) *AccountingLogger {
 }
 
 // WithUserID ユーザーIDを設定
-func (al *AccountingLogger) WithUserID(userID uuid.UUID) *AccountingLogger {
+func (al *AccountingLogger) WithUserID(userID string) *AccountingLogger {
 	newLogger := *al
 	newLogger.userID = &userID
 	return &newLogger
@@ -160,7 +160,7 @@ func (al *AccountingLogger) getZapFields(ctx *LogContext) []zap.Field {
 	}
 
 	if ctx.UserID != nil {
-		fields = append(fields, zap.String("user_id", ctx.UserID.String()))
+		fields = append(fields, zap.String("user_id", *ctx.UserID))
 	}
 
 	if ctx.Operation != "" {
@@ -232,7 +232,7 @@ func (al *AccountingLogger) Error(message string, err error, details map[string]
 			}
 
 			if accErr.UserID != nil {
-				fields = append(fields, zap.String("error_user_id", accErr.UserID.String()))
+				fields = append(fields, zap.String("error_user_id", *accErr.UserID))
 			}
 		}
 	}
@@ -294,14 +294,14 @@ func (al *AccountingLogger) LogAPIResponse(method, path string, statusCode int, 
 }
 
 // LogBillingOperation 請求処理操作をログ出力
-func (al *AccountingLogger) LogBillingOperation(operation string, clientID *uuid.UUID, month string, amount *float64, details map[string]interface{}) {
+func (al *AccountingLogger) LogBillingOperation(operation string, clientID *string, month string, amount *float64, details map[string]interface{}) {
 	logDetails := map[string]interface{}{
 		"operation": operation,
 		"month":     month,
 	}
 
 	if clientID != nil {
-		logDetails["client_id"] = clientID.String()
+		logDetails["client_id"] = clientID
 	}
 
 	if amount != nil {
@@ -317,14 +317,14 @@ func (al *AccountingLogger) LogBillingOperation(operation string, clientID *uuid
 }
 
 // LogProjectGroupOperation プロジェクトグループ操作をログ出力
-func (al *AccountingLogger) LogProjectGroupOperation(operation string, groupID *uuid.UUID, groupName string, details map[string]interface{}) {
+func (al *AccountingLogger) LogProjectGroupOperation(operation string, groupID *string, groupName string, details map[string]interface{}) {
 	logDetails := map[string]interface{}{
 		"operation":  operation,
 		"group_name": groupName,
 	}
 
 	if groupID != nil {
-		logDetails["group_id"] = groupID.String()
+		logDetails["group_id"] = groupID
 	}
 
 	// 追加詳細情報をマージ
@@ -358,9 +358,9 @@ func (al *AccountingLogger) LogFreeeOperation(operation string, endpoint string,
 }
 
 // LogBatchOperation バッチ処理操作をログ出力
-func (al *AccountingLogger) LogBatchOperation(jobID uuid.UUID, operation string, status string, progress int, details map[string]interface{}) {
+func (al *AccountingLogger) LogBatchOperation(jobID string, operation string, status string, progress int, details map[string]interface{}) {
 	logDetails := map[string]interface{}{
-		"job_id":    jobID.String(),
+		"job_id":    jobID,
 		"operation": operation,
 		"status":    status,
 		"progress":  progress,
@@ -376,9 +376,9 @@ func (al *AccountingLogger) LogBatchOperation(jobID uuid.UUID, operation string,
 }
 
 // LogScheduleOperation スケジュール操作をログ出力
-func (al *AccountingLogger) LogScheduleOperation(scheduleID uuid.UUID, operation string, nextRun *time.Time, details map[string]interface{}) {
+func (al *AccountingLogger) LogScheduleOperation(scheduleID string, operation string, nextRun *time.Time, details map[string]interface{}) {
 	logDetails := map[string]interface{}{
-		"schedule_id": scheduleID.String(),
+		"schedule_id": scheduleID,
 		"operation":   operation,
 	}
 
@@ -396,14 +396,14 @@ func (al *AccountingLogger) LogScheduleOperation(scheduleID uuid.UUID, operation
 }
 
 // LogAuditEvent 監査イベントをログ出力
-func (al *AccountingLogger) LogAuditEvent(action string, resource string, resourceID *uuid.UUID, oldValue, newValue interface{}) {
+func (al *AccountingLogger) LogAuditEvent(action string, resource string, resourceID *string, oldValue, newValue interface{}) {
 	details := map[string]interface{}{
 		"action":   action,
 		"resource": resource,
 	}
 
 	if resourceID != nil {
-		details["resource_id"] = resourceID.String()
+		details["resource_id"] = resourceID
 	}
 
 	if oldValue != nil {
@@ -622,7 +622,7 @@ func (al *AccountingLogger) LogWithContext(ctx context.Context, level Accounting
 		}
 
 		if userID := ctx.Value("user_id"); userID != nil {
-			if uid, ok := userID.(uuid.UUID); ok {
+			if uid, ok := userID.(string); ok {
 				al = al.WithUserID(uid)
 			}
 		}

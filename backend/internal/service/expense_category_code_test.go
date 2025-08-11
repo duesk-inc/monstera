@@ -24,7 +24,7 @@ func (m *MockCategoryRepository) Create(ctx context.Context, category *model.Exp
 	return args.Error(0)
 }
 
-func (m *MockCategoryRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseCategoryMaster, error) {
+func (m *MockCategoryRepository) GetByID(ctx context.Context, id string) (*model.ExpenseCategoryMaster, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) != nil {
 		return args.Get(0).(*model.ExpenseCategoryMaster), args.Error(1)
@@ -45,7 +45,7 @@ func (m *MockCategoryRepository) Update(ctx context.Context, category *model.Exp
 	return args.Error(0)
 }
 
-func (m *MockCategoryRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockCategoryRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -74,7 +74,7 @@ func (m *MockCategoryRepository) GetActiveOrderByDisplayOrder(ctx context.Contex
 	return nil, args.Error(1)
 }
 
-func (m *MockCategoryRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) ([]model.ExpenseCategoryMaster, error) {
+func (m *MockCategoryRepository) GetByIDs(ctx context.Context, ids []string) ([]model.ExpenseCategoryMaster, error) {
 	args := m.Called(ctx, ids)
 	if args.Get(0) != nil {
 		return args.Get(0).([]model.ExpenseCategoryMaster), args.Error(1)
@@ -98,12 +98,12 @@ func (m *MockCategoryRepository) GetCategoriesWithFilter(ctx context.Context, fi
 	return nil, 0, args.Error(2)
 }
 
-func (m *MockCategoryRepository) UpdateDisplayOrder(ctx context.Context, id uuid.UUID, newOrder int) error {
+func (m *MockCategoryRepository) UpdateDisplayOrder(ctx context.Context, id string, newOrder int) error {
 	args := m.Called(ctx, id, newOrder)
 	return args.Error(0)
 }
 
-func (m *MockCategoryRepository) ReorderCategories(ctx context.Context, categoryOrders map[uuid.UUID]int) error {
+func (m *MockCategoryRepository) ReorderCategories(ctx context.Context, categoryOrders map[string]int) error {
 	args := m.Called(ctx, categoryOrders)
 	return args.Error(0)
 }
@@ -113,7 +113,7 @@ func (m *MockCategoryRepository) GetMaxDisplayOrder(ctx context.Context) (int, e
 	return args.Int(0), args.Error(1)
 }
 
-func (m *MockCategoryRepository) SetActive(ctx context.Context, id uuid.UUID, isActive bool) error {
+func (m *MockCategoryRepository) SetActive(ctx context.Context, id string, isActive bool) error {
 	args := m.Called(ctx, id, isActive)
 	return args.Error(0)
 }
@@ -133,12 +133,12 @@ func (m *MockCategoryRepository) CreateBatch(ctx context.Context, categories []m
 	return args.Error(0)
 }
 
-func (m *MockCategoryRepository) BulkUpdateActive(ctx context.Context, ids []uuid.UUID, isActive bool) error {
+func (m *MockCategoryRepository) BulkUpdateActive(ctx context.Context, ids []string, isActive bool) error {
 	args := m.Called(ctx, ids, isActive)
 	return args.Error(0)
 }
 
-func (m *MockCategoryRepository) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (m *MockCategoryRepository) ExistsByID(ctx context.Context, id string) (bool, error) {
 	args := m.Called(ctx, id)
 	return args.Bool(0), args.Error(1)
 }
@@ -148,7 +148,7 @@ func (m *MockCategoryRepository) ExistsByCode(ctx context.Context, code string) 
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockCategoryRepository) IsCodeUnique(ctx context.Context, code string, excludeID *uuid.UUID) (bool, error) {
+func (m *MockCategoryRepository) IsCodeUnique(ctx context.Context, code string, excludeID *string) (bool, error) {
 	args := m.Called(ctx, code, excludeID)
 	return args.Bool(0), args.Error(1)
 }
@@ -182,7 +182,7 @@ func (m *MockExpenseRepository) Create(ctx context.Context, expense *model.Expen
 	return args.Error(0)
 }
 
-func (m *MockExpenseRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Expense, error) {
+func (m *MockExpenseRepository) GetByID(ctx context.Context, id string) (*model.Expense, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) != nil {
 		return args.Get(0).(*model.Expense), args.Error(1)
@@ -195,7 +195,7 @@ func (m *MockExpenseRepository) Update(ctx context.Context, expense *model.Expen
 	return args.Error(0)
 }
 
-func (m *MockExpenseRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockExpenseRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -211,7 +211,7 @@ func TestCreateExpenseWithCategoryCode(t *testing.T) {
 
 	// Create test category
 	testCategory := &model.ExpenseCategoryMaster{
-		ID:           uuid.New(),
+		ID:           uuid.New().String(),
 		Code:         "transport",
 		Name:         "旅費交通費",
 		IsActive:     true,
@@ -232,7 +232,7 @@ func TestCreateExpenseWithCategoryCode(t *testing.T) {
 	}
 
 	// Test data
-	userID := uuid.New()
+	userID := uuid.New().String()
 	req := &dto.CreateExpenseRequest{
 		Title:       "Test Expense",
 		Category:    "transport", // Using category code
@@ -265,7 +265,7 @@ func TestCreateExpenseWithCategoryID(t *testing.T) {
 	mockExpenseRepo := new(MockExpenseRepository)
 
 	// Create test category
-	testCategoryID := uuid.New()
+	testCategoryID := uuid.New().String()
 	testCategory := &model.ExpenseCategoryMaster{
 		ID:           testCategoryID,
 		Code:         "transport",
@@ -288,7 +288,7 @@ func TestCreateExpenseWithCategoryID(t *testing.T) {
 	}
 
 	// Test data
-	userID := uuid.New()
+	userID := uuid.New().String()
 	req := &dto.CreateExpenseRequest{
 		Title:       "Test Expense",
 		Category:    "",              // Not using category code
@@ -333,7 +333,7 @@ func TestCreateExpenseWithInvalidCategoryCode(t *testing.T) {
 	}
 
 	// Test data
-	userID := uuid.New()
+	userID := uuid.New().String()
 	req := &dto.CreateExpenseRequest{
 		Title:       "Test Expense",
 		Category:    "invalid_code", // Invalid category code

@@ -3,16 +3,14 @@ package dto
 import (
 	"fmt"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // BillingPreviewRequest 請求プレビューリクエスト
 type BillingPreviewRequest struct {
-	ClientIDs    []uuid.UUID `json:"client_ids" binding:"required,min=1"`
-	BillingYear  int         `json:"billing_year" binding:"required,min=2020,max=2050"`
-	BillingMonth int         `json:"billing_month" binding:"required,min=1,max=12"`
-	IsPreview    bool        `json:"is_preview"` // true: プレビューのみ, false: 実際の請求書作成
+	ClientIDs    []string `json:"client_ids" binding:"required,min=1"`
+	BillingYear  int      `json:"billing_year" binding:"required,min=2020,max=2050"`
+	BillingMonth int      `json:"billing_month" binding:"required,min=1,max=12"`
+	IsPreview    bool     `json:"is_preview"` // true: プレビューのみ, false: 実際の請求書作成
 }
 
 // BillingPreviewResponse 請求プレビューレスポンス
@@ -47,7 +45,7 @@ type BillingSummaryDTO struct {
 
 // ClientBillingDTO 取引先別請求DTO
 type ClientBillingDTO struct {
-	ClientID           uuid.UUID                `json:"client_id"`
+	ClientID           string                   `json:"client_id"`
 	ClientName         string                   `json:"client_name"`
 	BillingClosingDay  int                      `json:"billing_closing_day"`
 	IsBillable         bool                     `json:"is_billable"`
@@ -66,7 +64,7 @@ type ClientBillingDTO struct {
 
 // ProjectGroupBillingDTO プロジェクトグループ請求DTO
 type ProjectGroupBillingDTO struct {
-	GroupID     uuid.UUID           `json:"group_id"`
+	GroupID     string              `json:"group_id"`
 	GroupName   string              `json:"group_name"`
 	Projects    []ProjectBillingDTO `json:"projects"`
 	GroupTotal  float64             `json:"group_total"`
@@ -75,7 +73,7 @@ type ProjectGroupBillingDTO struct {
 
 // ProjectBillingDTO プロジェクト請求DTO
 type ProjectBillingDTO struct {
-	ProjectID    uuid.UUID              `json:"project_id"`
+	ProjectID    string                 `json:"project_id"`
 	ProjectName  string                 `json:"project_name"`
 	ProjectCode  string                 `json:"project_code"`
 	Assignments  []AssignmentBillingDTO `json:"assignments"`
@@ -86,8 +84,8 @@ type ProjectBillingDTO struct {
 
 // AssignmentBillingDTO アサイン請求DTO
 type AssignmentBillingDTO struct {
-	AssignmentID     uuid.UUID             `json:"assignment_id"`
-	UserID string             `json:"user_id"`
+	AssignmentID     string                `json:"assignment_id"`
+	UserID           string                `json:"user_id"`
 	UserName         string                `json:"user_name"`
 	Role             string                `json:"role"`
 	BillingType      string                `json:"billing_type"` // "fixed", "variable_upper_lower", "variable_middle"
@@ -103,7 +101,7 @@ type AssignmentBillingDTO struct {
 
 // ClientBillingPreview 取引先請求プレビュー
 type ClientBillingPreview struct {
-	ClientID     uuid.UUID               `json:"client_id"`
+	ClientID     string                  `json:"client_id"`
 	ClientName   string                  `json:"client_name"`
 	Amount       float64                 `json:"amount"`
 	TotalAmount  float64                 `json:"total_amount"`
@@ -137,45 +135,45 @@ type BillingPeriodDTO struct {
 
 // BillingWarningDTO 請求警告DTO
 type BillingWarningDTO struct {
-	Type        string     `json:"type"` // "missing_hours", "low_utilization", "rate_mismatch"
-	ClientID    uuid.UUID  `json:"client_id"`
-	ClientName  string     `json:"client_name"`
-	ProjectID   *uuid.UUID `json:"project_id,omitempty"`
-	ProjectName *string    `json:"project_name,omitempty"`
-	UserID      *uuid.UUID `json:"user_id,omitempty"`
-	UserName    *string    `json:"user_name,omitempty"`
-	Message     string     `json:"message"`
-	Severity    string     `json:"severity"` // "low", "medium", "high"
-	Suggestion  string     `json:"suggestion,omitempty"`
+	Type        string  `json:"type"` // "missing_hours", "low_utilization", "rate_mismatch"
+	ClientID    string  `json:"client_id"`
+	ClientName  string  `json:"client_name"`
+	ProjectID   *string `json:"project_id,omitempty"`
+	ProjectName *string `json:"project_name,omitempty"`
+	UserID      *string `json:"user_id,omitempty"`
+	UserName    *string `json:"user_name,omitempty"`
+	Message     string  `json:"message"`
+	Severity    string  `json:"severity"` // "low", "medium", "high"
+	Suggestion  string  `json:"suggestion,omitempty"`
 }
 
 // BillingErrorDTO 請求エラーDTO
 type BillingErrorDTO struct {
-	Type        string     `json:"type"` // "no_assignments", "invalid_rate", "missing_client"
-	ClientID    uuid.UUID  `json:"client_id"`
-	ClientName  string     `json:"client_name"`
-	ProjectID   *uuid.UUID `json:"project_id,omitempty"`
-	ProjectName *string    `json:"project_name,omitempty"`
-	Message     string     `json:"message"`
-	Code        string     `json:"code"`
-	Resolution  string     `json:"resolution,omitempty"`
+	Type        string  `json:"type"` // "no_assignments", "invalid_rate", "missing_client"
+	ClientID    string  `json:"client_id"`
+	ClientName  string  `json:"client_name"`
+	ProjectID   *string `json:"project_id,omitempty"`
+	ProjectName *string `json:"project_name,omitempty"`
+	Message     string  `json:"message"`
+	Code        string  `json:"code"`
+	Resolution  string  `json:"resolution,omitempty"`
 }
 
 // BillingExecutionRequest 請求実行リクエスト
 type BillingExecutionRequest struct {
-	ClientIDs         []uuid.UUID `json:"client_ids" binding:"required,min=1"`
-	BillingYear       int         `json:"billing_year" binding:"required,min=2020,max=2050"`
-	BillingMonth      int         `json:"billing_month" binding:"required,min=1,max=12"`
-	CreateInvoices    bool        `json:"create_invoices"`    // 請求書を作成するか
-	SyncToFreee       bool        `json:"sync_to_freee"`      // freeeに同期するか
-	SendNotifications bool        `json:"send_notifications"` // 通知を送信するか
-	ExecuteScheduled  bool        `json:"execute_scheduled"`  // スケジュール実行かどうか
-	BatchSize         int         `json:"batch_size"`         // バッチサイズ（デフォルト: 10）
+	ClientIDs         []string `json:"client_ids" binding:"required,min=1"`
+	BillingYear       int      `json:"billing_year" binding:"required,min=2020,max=2050"`
+	BillingMonth      int      `json:"billing_month" binding:"required,min=1,max=12"`
+	CreateInvoices    bool     `json:"create_invoices"`    // 請求書を作成するか
+	SyncToFreee       bool     `json:"sync_to_freee"`      // freeeに同期するか
+	SendNotifications bool     `json:"send_notifications"` // 通知を送信するか
+	ExecuteScheduled  bool     `json:"execute_scheduled"`  // スケジュール実行かどうか
+	BatchSize         int      `json:"batch_size"`         // バッチサイズ（デフォルト: 10）
 }
 
 // BillingExecutionResponse 請求実行レスポンス
 type BillingExecutionResponse struct {
-	ExecutionID   uuid.UUID                  `json:"execution_id"`
+	ExecutionID   string                     `json:"execution_id"`
 	Summary       BillingExecutionSummaryDTO `json:"summary"`
 	Results       []ClientBillingResultDTO   `json:"results"`
 	FreeeSync     *FreeSyncResultDTO         `json:"freee_sync,omitempty"`
@@ -198,13 +196,13 @@ type ExecuteBillingResponse struct {
 
 // ProcessedClientResult 処理済みクライアント結果
 type ProcessedClientResult struct {
-	ClientID      uuid.UUID  `json:"client_id"`
-	ClientName    string     `json:"client_name"`
-	Status        string     `json:"status"`
-	InvoiceID     *uuid.UUID `json:"invoice_id,omitempty"`
-	InvoiceNumber *string    `json:"invoice_number,omitempty"`
-	TotalAmount   *float64   `json:"total_amount,omitempty"`
-	Errors        []string   `json:"errors,omitempty"`
+	ClientID      string   `json:"client_id"`
+	ClientName    string   `json:"client_name"`
+	Status        string   `json:"status"`
+	InvoiceID     *string  `json:"invoice_id,omitempty"`
+	InvoiceNumber *string  `json:"invoice_number,omitempty"`
+	TotalAmount   *float64 `json:"total_amount,omitempty"`
+	Errors        []string `json:"errors,omitempty"`
 }
 
 // BillingExecutionSummaryDTO 請求実行サマリーDTO
@@ -220,10 +218,10 @@ type BillingExecutionSummaryDTO struct {
 
 // ClientBillingResultDTO 取引先別請求結果DTO
 type ClientBillingResultDTO struct {
-	ClientID       uuid.UUID               `json:"client_id"`
+	ClientID       string                  `json:"client_id"`
 	ClientName     string                  `json:"client_name"`
 	Status         string                  `json:"status"` // "success", "failed", "skipped"
-	InvoiceID      *uuid.UUID              `json:"invoice_id,omitempty"`
+	InvoiceID      *string                 `json:"invoice_id,omitempty"`
 	InvoiceNumber  *string                 `json:"invoice_number,omitempty"`
 	Amount         float64                 `json:"amount"`
 	ProcessingTime int64                   `json:"processing_time_ms"`
@@ -243,21 +241,21 @@ type ClientBillingDetailDTO struct {
 
 // ProjectBillingDetail プロジェクト請求詳細
 type ProjectBillingDetail struct {
-	ProjectID     uuid.UUID `json:"project_id"`
-	ProjectName   string    `json:"project_name"`
-	AssignmentID  uuid.UUID `json:"assignment_id"`
-	UserID string `json:"user_id"`
-	UserName      string    `json:"user_name"`
-	BillingType   string    `json:"billing_type"`
-	MonthlyRate   float64   `json:"monthly_rate"`
-	ActualHours   *float64  `json:"actual_hours,omitempty"`
-	BillingAmount float64   `json:"billing_amount"`
-	Notes         string    `json:"notes,omitempty"`
+	ProjectID     string   `json:"project_id"`
+	ProjectName   string   `json:"project_name"`
+	AssignmentID  string   `json:"assignment_id"`
+	UserID        string   `json:"user_id"`
+	UserName      string   `json:"user_name"`
+	BillingType   string   `json:"billing_type"`
+	MonthlyRate   float64  `json:"monthly_rate"`
+	ActualHours   *float64 `json:"actual_hours,omitempty"`
+	BillingAmount float64  `json:"billing_amount"`
+	Notes         string   `json:"notes,omitempty"`
 }
 
 // GroupBillingPreview グループ請求プレビュー
 type GroupBillingPreview struct {
-	GroupID      uuid.UUID               `json:"group_id"`
+	GroupID      string                  `json:"group_id"`
 	GroupName    string                  `json:"group_name"`
 	Projects     []*ProjectBillingDetail `json:"projects"`
 	TotalAmount  float64                 `json:"total_amount"`
@@ -266,12 +264,12 @@ type GroupBillingPreview struct {
 
 // ProjectBillingResultDTO プロジェクト請求結果DTO
 type ProjectBillingResultDTO struct {
-	ProjectID     uuid.UUID `json:"project_id"`
-	ProjectName   string    `json:"project_name"`
-	Amount        float64   `json:"amount"`
-	Assignments   int       `json:"assignments"`
-	WorkHours     float64   `json:"work_hours"`
-	BillableHours float64   `json:"billable_hours"`
+	ProjectID     string  `json:"project_id"`
+	ProjectName   string  `json:"project_name"`
+	Amount        float64 `json:"amount"`
+	Assignments   int     `json:"assignments"`
+	WorkHours     float64 `json:"work_hours"`
+	BillableHours float64 `json:"billable_hours"`
 }
 
 // FreeSyncResultDTO freee同期結果DTO
@@ -285,7 +283,7 @@ type FreeSyncResultDTO struct {
 
 // FreeSyncDetailDTO freee同期詳細DTO
 type FreeSyncDetailDTO struct {
-	InvoiceID      uuid.UUID `json:"invoice_id"`
+	InvoiceID      string    `json:"invoice_id"`
 	ClientName     string    `json:"client_name"`
 	Status         string    `json:"status"` // "success", "failed"
 	FreeeInvoiceID *int      `json:"freee_invoice_id,omitempty"`
@@ -312,19 +310,19 @@ type NotificationDetailDTO struct {
 
 // BillingScheduleRequest 請求スケジュールリクエスト
 type BillingScheduleRequest struct {
-	JobName            string      `json:"job_name" binding:"required,max=255"`
-	Description        string      `json:"description" binding:"max=1000"`
-	CronExpression     string      `json:"cron_expression" binding:"required"`
-	ClientIDs          []uuid.UUID `json:"client_ids" binding:"required,min=1"`
-	AutoCreateInvoices bool        `json:"auto_create_invoices"`
-	AutoSyncToFreee    bool        `json:"auto_sync_to_freee"`
-	SendNotifications  bool        `json:"send_notifications"`
-	IsActive           bool        `json:"is_active"`
+	JobName            string   `json:"job_name" binding:"required,max=255"`
+	Description        string   `json:"description" binding:"max=1000"`
+	CronExpression     string   `json:"cron_expression" binding:"required"`
+	ClientIDs          []string `json:"client_ids" binding:"required,min=1"`
+	AutoCreateInvoices bool     `json:"auto_create_invoices"`
+	AutoSyncToFreee    bool     `json:"auto_sync_to_freee"`
+	SendNotifications  bool     `json:"send_notifications"`
+	IsActive           bool     `json:"is_active"`
 }
 
 // BillingScheduleResponse 請求スケジュールレスポンス
 type BillingScheduleResponse struct {
-	JobID          uuid.UUID  `json:"job_id"`
+	JobID          string     `json:"job_id"`
 	JobName        string     `json:"job_name"`
 	CronExpression string     `json:"cron_expression"`
 	NextRunAt      *time.Time `json:"next_run_at"`
@@ -334,7 +332,7 @@ type BillingScheduleResponse struct {
 
 // BillingHistoryRequest 請求履歴リクエスト
 type BillingHistoryRequest struct {
-	ClientID      *uuid.UUID `form:"client_id"`
+	ClientID      *string    `form:"client_id"`
 	StartDate     *time.Time `form:"start_date"`
 	EndDate       *time.Time `form:"end_date"`
 	Status        *string    `form:"status"`         // "success", "failed", "scheduled"
@@ -353,14 +351,14 @@ type BillingHistoryResponse struct {
 
 // BillingHistoryItemDTO 請求履歴項目DTO
 type BillingHistoryItemDTO struct {
-	ExecutionID   uuid.UUID                   `json:"execution_id"`
+	ExecutionID   string                      `json:"execution_id"`
 	BillingPeriod string                      `json:"billing_period"`
 	ClientCount   int                         `json:"client_count"`
 	InvoiceCount  int                         `json:"invoice_count"`
 	TotalAmount   float64                     `json:"total_amount"`
 	Status        string                      `json:"status"`
 	ExecutionType string                      `json:"execution_type"`
-	ExecutedBy    *uuid.UUID                  `json:"executed_by,omitempty"`
+	ExecutedBy    *string                     `json:"executed_by,omitempty"`
 	ExecutedAt    time.Time                   `json:"executed_at"`
 	ExecutionTime int64                       `json:"execution_time_ms"`
 	Summary       *BillingExecutionSummaryDTO `json:"summary,omitempty"`
@@ -371,7 +369,7 @@ type BillingStatsRequest struct {
 	Period    string     `form:"period" binding:"oneof=month quarter year"` // "month", "quarter", "year"
 	StartDate *time.Time `form:"start_date"`
 	EndDate   *time.Time `form:"end_date"`
-	ClientID  *uuid.UUID `form:"client_id"`
+	ClientID  *string    `form:"client_id"`
 }
 
 // BillingStatsResponse 請求統計レスポンス
@@ -399,7 +397,7 @@ type MonthlyTrendDTO struct {
 
 // ClientStatsDTO 取引先統計DTO
 type ClientStatsDTO struct {
-	ClientID      uuid.UUID  `json:"client_id"`
+	ClientID      string     `json:"client_id"`
 	ClientName    string     `json:"client_name"`
 	InvoiceCount  int        `json:"invoice_count"`
 	TotalAmount   float64    `json:"total_amount"`
@@ -409,7 +407,7 @@ type ClientStatsDTO struct {
 
 // ProjectStatsDTO プロジェクト統計DTO
 type ProjectStatsDTO struct {
-	ProjectID    uuid.UUID  `json:"project_id"`
+	ProjectID    string     `json:"project_id"`
 	ProjectName  string     `json:"project_name"`
 	ClientName   string     `json:"client_name"`
 	TotalAmount  float64    `json:"total_amount"`

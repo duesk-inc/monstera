@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 
 	"github.com/duesk/monstera/internal/dto"
@@ -67,7 +66,7 @@ func (h *ProjectGroupHandler) CreateProjectGroup(c *gin.Context) {
 		return
 	}
 
-	createdBy, ok := userID.(uuid.UUID)
+	createdBy, ok := userID.(string)
 	if !ok {
 		utils.RespondError(c, http.StatusInternalServerError, "ユーザーID取得エラー")
 		return
@@ -97,8 +96,9 @@ func (h *ProjectGroupHandler) CreateProjectGroup(c *gin.Context) {
 // @Router /api/v1/project-groups/{id} [get]
 func (h *ProjectGroupHandler) GetProjectGroup(c *gin.Context) {
 	groupIDStr := c.Param("id")
-	groupID, err := uuid.Parse(groupIDStr)
-	if err != nil {
+	groupID := groupIDStr
+	// UUID validation removed after migration
+	if groupID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "無効なプロジェクトグループIDです")
 		return
 	}
@@ -128,8 +128,9 @@ func (h *ProjectGroupHandler) GetProjectGroup(c *gin.Context) {
 // @Router /api/v1/project-groups/{id} [put]
 func (h *ProjectGroupHandler) UpdateProjectGroup(c *gin.Context) {
 	groupIDStr := c.Param("id")
-	groupID, err := uuid.Parse(groupIDStr)
-	if err != nil {
+	groupID := groupIDStr
+	// UUID validation removed after migration
+	if groupID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "無効なプロジェクトグループIDです")
 		return
 	}
@@ -165,8 +166,9 @@ func (h *ProjectGroupHandler) UpdateProjectGroup(c *gin.Context) {
 // @Router /api/v1/project-groups/{id} [delete]
 func (h *ProjectGroupHandler) DeleteProjectGroup(c *gin.Context) {
 	groupIDStr := c.Param("id")
-	groupID, err := uuid.Parse(groupIDStr)
-	if err != nil {
+	groupID := groupIDStr
+	// UUID validation removed after migration
+	if groupID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "無効なプロジェクトグループIDです")
 		return
 	}
@@ -199,8 +201,9 @@ func (h *ProjectGroupHandler) ListProjectGroups(c *gin.Context) {
 
 	// クライアントIDフィルター
 	if clientIDStr := c.Query("client_id"); clientIDStr != "" {
-		clientID, err := uuid.Parse(clientIDStr)
-		if err != nil {
+		clientID := clientIDStr
+		// UUID validation removed after migration
+		if clientID == "" {
 			utils.RespondError(c, http.StatusBadRequest, "無効なクライアントIDです")
 			return
 		}
@@ -260,8 +263,9 @@ func (h *ProjectGroupHandler) ListProjectGroups(c *gin.Context) {
 // @Router /api/v1/project-groups/{id}/projects [post]
 func (h *ProjectGroupHandler) AddProjectsToGroup(c *gin.Context) {
 	groupIDStr := c.Param("id")
-	groupID, err := uuid.Parse(groupIDStr)
-	if err != nil {
+	groupID := groupIDStr
+	// UUID validation removed after migration
+	if groupID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "無効なプロジェクトグループIDです")
 		return
 	}
@@ -312,8 +316,9 @@ func (h *ProjectGroupHandler) AddProjectsToGroup(c *gin.Context) {
 // @Router /api/v1/project-groups/{id}/projects [delete]
 func (h *ProjectGroupHandler) RemoveProjectsFromGroup(c *gin.Context) {
 	groupIDStr := c.Param("id")
-	groupID, err := uuid.Parse(groupIDStr)
-	if err != nil {
+	groupID := groupIDStr
+	// UUID validation removed after migration
+	if groupID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "無効なプロジェクトグループIDです")
 		return
 	}
@@ -402,7 +407,7 @@ func (h *ProjectGroupHandler) ValidateProjectGroup(c *gin.Context) {
 	}
 
 	// 重複チェック
-	projectMap := make(map[uuid.UUID]bool)
+	projectMap := make(map[string]bool)
 	for _, projectID := range req.ProjectIDs {
 		if projectMap[projectID] {
 			result.IsValid = false

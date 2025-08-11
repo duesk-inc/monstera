@@ -65,7 +65,7 @@ func (h *SkillSheetHandler) GetSkillSheet(c *gin.Context) {
 	}
 
 	// ユーザーIDがuuid.UUID型であることを確認
-	userIDValue, ok := userID.(uuid.UUID)
+	userIDValue, ok := userID.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userID))
 		h.debugLogger.RequestError(
@@ -86,7 +86,7 @@ func (h *SkillSheetHandler) GetSkillSheet(c *gin.Context) {
 	// スキルシート情報を取得
 	skillSheet, err := h.skillSheetService.GetUserSkillSheet(userIDValue)
 	if err != nil {
-		h.logger.Error("Failed to get skill sheet", zap.Error(err), zap.String("user_id", userIDValue.String()))
+		h.logger.Error("Failed to get skill sheet", zap.Error(err), zap.String("user_id", userIDValue))
 		h.debugLogger.RequestError(
 			debug.DebugLogConfig{
 				Category:    debug.CategoryService,
@@ -112,7 +112,7 @@ func (h *SkillSheetHandler) GetSkillSheet(c *gin.Context) {
 		debug.ResponseDebugData{
 			StatusCode: http.StatusOK,
 			Metadata: map[string]interface{}{
-				"user_id":              userIDValue.String(),
+				"user_id":              userIDValue,
 				"work_histories_count": len(skillSheet.WorkHistories),
 			},
 		},
@@ -155,7 +155,7 @@ func (h *SkillSheetHandler) SaveSkillSheet(c *gin.Context) {
 	}
 
 	// ユーザーIDがuuid.UUID型であることを確認
-	userIDValue, ok := userID.(uuid.UUID)
+	userIDValue, ok := userID.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userID))
 		h.debugLogger.RequestError(
@@ -202,7 +202,7 @@ func (h *SkillSheetHandler) SaveSkillSheet(c *gin.Context) {
 		debug.DataProcessDebugData{
 			ProcessType: "SkillSheetSaveRequest",
 			InputData: map[string]interface{}{
-				"user_id":        userIDValue.String(),
+				"user_id":        userIDValue,
 				"work_histories": len(request.WorkHistory),
 			},
 		},
@@ -211,7 +211,7 @@ func (h *SkillSheetHandler) SaveSkillSheet(c *gin.Context) {
 	// スキルシート情報を更新
 	err := h.skillSheetService.UpdateUserSkillSheetWithDTO(userIDValue, request, false)
 	if err != nil {
-		h.logger.Error("Failed to update skill sheet", zap.Error(err), zap.String("user_id", userIDValue.String()))
+		h.logger.Error("Failed to update skill sheet", zap.Error(err), zap.String("user_id", userIDValue))
 		h.debugLogger.RequestError(
 			debug.DebugLogConfig{
 				Category:    debug.CategoryService,
@@ -236,7 +236,7 @@ func (h *SkillSheetHandler) SaveSkillSheet(c *gin.Context) {
 		debug.ResponseDebugData{
 			StatusCode: http.StatusOK,
 			Metadata: map[string]interface{}{
-				"user_id": userIDValue.String(),
+				"user_id": userIDValue,
 				"message": "スキルシート情報を更新しました",
 			},
 		},
@@ -279,7 +279,7 @@ func (h *SkillSheetHandler) TempSaveSkillSheet(c *gin.Context) {
 	}
 
 	// ユーザーIDがuuid.UUID型であることを確認
-	userIDValue, ok := userID.(uuid.UUID)
+	userIDValue, ok := userID.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userID))
 		h.debugLogger.RequestError(
@@ -326,7 +326,7 @@ func (h *SkillSheetHandler) TempSaveSkillSheet(c *gin.Context) {
 		debug.DataProcessDebugData{
 			ProcessType: "SkillSheetTempSaveRequest",
 			InputData: map[string]interface{}{
-				"user_id":        userIDValue.String(),
+				"user_id":        userIDValue,
 				"work_histories": len(request.WorkHistory),
 			},
 		},
@@ -338,7 +338,7 @@ func (h *SkillSheetHandler) TempSaveSkillSheet(c *gin.Context) {
 	}
 	err := h.skillSheetService.UpdateUserSkillSheetWithDTO(userIDValue, saveRequest, true)
 	if err != nil {
-		h.logger.Error("Failed to temp save skill sheet", zap.Error(err), zap.String("user_id", userIDValue.String()))
+		h.logger.Error("Failed to temp save skill sheet", zap.Error(err), zap.String("user_id", userIDValue))
 		h.debugLogger.RequestError(
 			debug.DebugLogConfig{
 				Category:    debug.CategoryService,
@@ -363,7 +363,7 @@ func (h *SkillSheetHandler) TempSaveSkillSheet(c *gin.Context) {
 		debug.ResponseDebugData{
 			StatusCode: http.StatusOK,
 			Metadata: map[string]interface{}{
-				"user_id": userIDValue.String(),
+				"user_id": userIDValue,
 				"message": "スキルシート情報を一時保存しました",
 			},
 		},

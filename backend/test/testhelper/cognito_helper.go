@@ -69,7 +69,7 @@ func CreateTestEngineer(employeeNumber string) *model.User {
 		"山田",
 		model.RoleEmployee,
 	)
-	
+
 	// エンジニア固有のフィールドを設定
 	user.Sei = "山田"
 	user.Mei = "太郎"
@@ -79,10 +79,10 @@ func CreateTestEngineer(employeeNumber string) *model.User {
 	user.Department = "開発部"
 	user.Position = "エンジニア"
 	user.EngineerStatus = "active"
-	
+
 	hireDate := time.Now().AddDate(-2, 0, 0) // 2年前
 	user.HireDate = &hireDate
-	
+
 	return user
 }
 
@@ -94,11 +94,11 @@ func CreateTestManager(departmentID string) *model.User {
 		"太郎",
 		model.RoleManager,
 	)
-	
+
 	if departmentID != "" {
 		user.DepartmentID = &departmentID
 	}
-	
+
 	return user
 }
 
@@ -133,9 +133,8 @@ func CreateTestUserWithDepartment(role model.Role) *TestUserWithDepartment {
 	dept := &model.Department{
 		ID:   generateUUIDString(),
 		Name: "テスト部署",
-		Code: "TEST001",
 	}
-	
+
 	user := CreateTestUser(
 		"user-with-dept@example.com",
 		"部署",
@@ -143,7 +142,7 @@ func CreateTestUserWithDepartment(role model.Role) *TestUserWithDepartment {
 		role,
 	)
 	user.DepartmentID = &dept.ID
-	
+
 	return &TestUserWithDepartment{
 		User:       user,
 		Department: dept,
@@ -153,7 +152,7 @@ func CreateTestUserWithDepartment(role model.Role) *TestUserWithDepartment {
 // CreateTestUserWithManager マネージャー付きのテストユーザーを作成
 func CreateTestUserWithManager() (*model.User, *model.User) {
 	manager := CreateTestManager("")
-	
+
 	user := CreateTestUser(
 		"user-with-manager@example.com",
 		"部下",
@@ -161,6 +160,6 @@ func CreateTestUserWithManager() (*model.User, *model.User) {
 		model.RoleEmployee,
 	)
 	user.ManagerID = &manager.ID
-	
+
 	return user, manager
 }

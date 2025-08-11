@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"time"
 
 	"github.com/duesk/monstera/internal/dto"
 )
@@ -101,8 +99,8 @@ func (c *CategoryCache) SetActiveCategories(ctx context.Context, categories []*d
 }
 
 // GetCategoryDetail カテゴリ詳細をキャッシュから取得
-func (c *CategoryCache) GetCategoryDetail(ctx context.Context, categoryID uuid.UUID) (*dto.ExpenseCategoryResponse, error) {
-	key := fmt.Sprintf("%s%s", categoryDetailPrefix, categoryID.String())
+func (c *CategoryCache) GetCategoryDetail(ctx context.Context, categoryID string) (*dto.ExpenseCategoryResponse, error) {
+	key := fmt.Sprintf("%s%s", categoryDetailPrefix, categoryID)
 
 	data, err := c.redis.Get(ctx, key)
 	if err != nil {
@@ -120,8 +118,8 @@ func (c *CategoryCache) GetCategoryDetail(ctx context.Context, categoryID uuid.U
 }
 
 // SetCategoryDetail カテゴリ詳細をキャッシュに保存
-func (c *CategoryCache) SetCategoryDetail(ctx context.Context, categoryID uuid.UUID, category *dto.ExpenseCategoryResponse) error {
-	key := fmt.Sprintf("%s%s", categoryDetailPrefix, categoryID.String())
+func (c *CategoryCache) SetCategoryDetail(ctx context.Context, categoryID string, category *dto.ExpenseCategoryResponse) error {
+	key := fmt.Sprintf("%s%s", categoryDetailPrefix, categoryID)
 
 	data, err := json.Marshal(category)
 	if err != nil {
@@ -145,13 +143,13 @@ func (c *CategoryCache) InvalidateCategoryList(ctx context.Context) error {
 }
 
 // InvalidateCategoryDetail 特定のカテゴリ詳細キャッシュを無効化
-func (c *CategoryCache) InvalidateCategoryDetail(ctx context.Context, categoryID uuid.UUID) error {
-	key := fmt.Sprintf("%s%s", categoryDetailPrefix, categoryID.String())
+func (c *CategoryCache) InvalidateCategoryDetail(ctx context.Context, categoryID string) error {
+	key := fmt.Sprintf("%s%s", categoryDetailPrefix, categoryID)
 	return c.redis.Delete(ctx, key)
 }
 
 // InvalidateCategory カテゴリ関連の全キャッシュを無効化（カテゴリ更新時に使用）
-func (c *CategoryCache) InvalidateCategory(ctx context.Context, categoryID uuid.UUID) error {
+func (c *CategoryCache) InvalidateCategory(ctx context.Context, categoryID string) error {
 	// カテゴリ詳細を無効化
 	if err := c.InvalidateCategoryDetail(ctx, categoryID); err != nil {
 		return err

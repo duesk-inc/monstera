@@ -11,7 +11,7 @@ import (
 
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/service"
-	"github.com/duesk/monstera/mocks"
+	mocks "github.com/duesk/monstera/test/cognito/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
@@ -96,7 +96,7 @@ func testSyncOperations(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, http.StatusInternalServerError, w.Code)
-			assert.Contains(t, w.Body.String(), "プロジェクトの同期に失敗しました")
+			assert.Contains(t, w.Body, "プロジェクトの同期に失敗しました")
 		})
 	})
 
@@ -123,7 +123,7 @@ func testSyncOperations(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, http.StatusOK, w.Code)
-			assert.Contains(t, w.Body.String(), "同期が完了しました")
+			assert.Contains(t, w.Body, "同期が完了しました")
 		})
 
 		t.Run("IDが指定されていない場合", func(t *testing.T) {
@@ -178,7 +178,7 @@ func testSyncOperations(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, http.StatusOK, w.Code)
-			assert.Contains(t, w.Body.String(), "強制同期が完了しました")
+			assert.Contains(t, w.Body, "強制同期が完了しました")
 		})
 	})
 
@@ -275,14 +275,14 @@ func testStatusAndHistory(t *testing.T) {
 		t.Run("正常に未同期プロジェクトを取得", func(t *testing.T) {
 			projects := []*model.PocProject{
 				{
-					ID:         uuid.New(),
+					ID:         uuid.New().String(),
 					ExternalID: "POC001",
 					Name:       "未同期プロジェクト1",
 					Status:     "active",
 					SyncStatus: model.PocSyncStatusPending,
 				},
 				{
-					ID:         uuid.New(),
+					ID:         uuid.New().String(),
 					ExternalID: "POC002",
 					Name:       "未同期プロジェクト2",
 					Status:     "active",
@@ -322,7 +322,7 @@ func testStatusAndHistory(t *testing.T) {
 		t.Run("正常に同期履歴を取得", func(t *testing.T) {
 			history := []*service.SyncHistoryEntry{
 				{
-					ID:           uuid.New(),
+					ID:           uuid.New().String(),
 					PocProjectID: uuid.New().String(),
 					ProjectName:  "プロジェクトA",
 					SyncType:     "create",
@@ -385,7 +385,7 @@ func testStatusAndHistory(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
-			assert.Contains(t, w.Body.String(), "開始日時の形式が不正です")
+			assert.Contains(t, w.Body, "開始日時の形式が不正です")
 		})
 	})
 }
@@ -402,7 +402,7 @@ func testProjectManagement(t *testing.T) {
 
 		t.Run("正常にプロジェクトを作成", func(t *testing.T) {
 			pocProjectID := uuid.New().String()
-			projectID := uuid.New()
+			projectID := uuid.New().String()
 			now := time.Now()
 
 			project := &model.Project{
@@ -453,7 +453,7 @@ func testProjectManagement(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
-			assert.Contains(t, w.Body.String(), "リクエストが不正です")
+			assert.Contains(t, w.Body, "リクエストが不正です")
 		})
 	})
 
@@ -471,7 +471,7 @@ func testProjectManagement(t *testing.T) {
 			now := time.Now()
 
 			project := &model.Project{
-				ID:          uuid.MustParse(projectID),
+				ID:          projectID,
 				ProjectName: "更新されたプロジェクト",
 				Status:      model.ProjectStatusActive,
 				StartDate:   &now,
@@ -579,7 +579,7 @@ func testSettings(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, http.StatusOK, w.Code)
-			assert.Contains(t, w.Body.String(), "同期設定を更新しました")
+			assert.Contains(t, w.Body, "同期設定を更新しました")
 		})
 
 		t.Run("不正なリクエストボディ", func(t *testing.T) {
@@ -592,7 +592,7 @@ func testSettings(t *testing.T) {
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, http.StatusBadRequest, w.Code)
-			assert.Contains(t, w.Body.String(), "リクエストが不正です")
+			assert.Contains(t, w.Body, "リクエストが不正です")
 		})
 	})
 }

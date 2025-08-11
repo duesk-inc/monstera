@@ -2,14 +2,12 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // InvoiceDTO 請求書DTO
 type InvoiceDTO struct {
-	ID            uuid.UUID  `json:"id"`
-	ClientID      uuid.UUID  `json:"client_id"`
+	ID            string     `json:"id"`
+	ClientID      string     `json:"client_id"`
 	ClientName    string     `json:"client_name"`
 	InvoiceNumber string     `json:"invoice_number"`
 	InvoiceDate   time.Time  `json:"invoice_date"`
@@ -32,22 +30,22 @@ type InvoiceDetailDTO struct {
 
 // InvoiceItemDTO 請求明細DTO
 type InvoiceItemDTO struct {
-	ID          uuid.UUID  `json:"id"`
-	InvoiceID   uuid.UUID  `json:"invoice_id"`
-	ProjectID   *uuid.UUID `json:"project_id"`
-	ProjectName string     `json:"project_name,omitempty"`
-	UserID      *uuid.UUID `json:"user_id"`
-	UserName    string     `json:"user_name,omitempty"`
-	Description string     `json:"description"`
-	Quantity    float64    `json:"quantity"`
-	UnitPrice   float64    `json:"unit_price"`
-	Amount      float64    `json:"amount"`
-	OrderIndex  int        `json:"order_index"`
+	ID          string  `json:"id"`
+	InvoiceID   string  `json:"invoice_id"`
+	ProjectID   *string `json:"project_id"`
+	ProjectName string  `json:"project_name,omitempty"`
+	UserID      *string `json:"user_id"`
+	UserName    string  `json:"user_name,omitempty"`
+	Description string  `json:"description"`
+	Quantity    float64 `json:"quantity"`
+	UnitPrice   float64 `json:"unit_price"`
+	Amount      float64 `json:"amount"`
+	OrderIndex  int     `json:"order_index"`
 }
 
 // CreateInvoiceRequest 請求書作成リクエスト
 type CreateInvoiceRequest struct {
-	ClientID      uuid.UUID                  `json:"client_id" binding:"required"`
+	ClientID      string                     `json:"client_id" binding:"required"`
 	InvoiceNumber string                     `json:"invoice_number" binding:"required,max=50"`
 	InvoiceDate   time.Time                  `json:"invoice_date" binding:"required"`
 	DueDate       time.Time                  `json:"due_date" binding:"required"`
@@ -57,11 +55,11 @@ type CreateInvoiceRequest struct {
 
 // CreateInvoiceItemRequest 請求明細作成リクエスト
 type CreateInvoiceItemRequest struct {
-	ProjectID   *uuid.UUID `json:"project_id"`
-	UserID      *uuid.UUID `json:"user_id"`
-	Description string     `json:"description" binding:"required,max=200"`
-	Quantity    float64    `json:"quantity" binding:"required,min=0"`
-	UnitPrice   float64    `json:"unit_price" binding:"required,min=0"`
+	ProjectID   *string `json:"project_id"`
+	UserID      *string `json:"user_id"`
+	Description string  `json:"description" binding:"required,max=200"`
+	Quantity    float64 `json:"quantity" binding:"required,min=0"`
+	UnitPrice   float64 `json:"unit_price" binding:"required,min=0"`
 }
 
 // UpdateInvoiceRequest 請求書更新リクエスト
@@ -79,7 +77,7 @@ type UpdateInvoiceStatusRequest struct {
 
 // InvoiceSearchRequest 請求書検索リクエスト
 type InvoiceSearchRequest struct {
-	ClientID *uuid.UUID `form:"client_id"`
+	ClientID *string    `form:"client_id"`
 	Status   string     `form:"status"`
 	DateFrom *time.Time `form:"date_from"`
 	DateTo   *time.Time `form:"date_to"`

@@ -6,7 +6,6 @@ import (
 	"github.com/duesk/monstera/internal/message"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -44,8 +43,8 @@ func NewReminderHandler(
 
 // SendManualReminderRequest 手動リマインド送信リクエスト
 type SendManualReminderRequest struct {
-	UserIDs []uuid.UUID `json:"user_ids" binding:"required,min=1"`
-	Message string      `json:"message" binding:"required,min=1,max=1000"`
+	UserIDs []string `json:"user_ids" binding:"required,min=1"`
+	Message string   `json:"message" binding:"required,min=1,max=1000"`
 }
 
 // SendManualReminder 手動リマインド送信

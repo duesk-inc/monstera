@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -21,7 +20,7 @@ func (m *MockExpenseDeadlineSettingRepository) Create(ctx context.Context, setti
 	return args.Error(0)
 }
 
-func (m *MockExpenseDeadlineSettingRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseDeadlineSetting, error) {
+func (m *MockExpenseDeadlineSettingRepository) GetByID(ctx context.Context, id string) (*model.ExpenseDeadlineSetting, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -34,7 +33,7 @@ func (m *MockExpenseDeadlineSettingRepository) Update(ctx context.Context, setti
 	return args.Error(0)
 }
 
-func (m *MockExpenseDeadlineSettingRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockExpenseDeadlineSettingRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -47,7 +46,7 @@ func (m *MockExpenseDeadlineSettingRepository) List(ctx context.Context) ([]*mod
 	return args.Get(0).([]*model.ExpenseDeadlineSetting), args.Error(1)
 }
 
-func (m *MockExpenseDeadlineSettingRepository) GetEffectiveSetting(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID) (*model.ExpenseDeadlineSetting, error) {
+func (m *MockExpenseDeadlineSettingRepository) GetEffectiveSetting(ctx context.Context, userID string, departmentID *string) (*model.ExpenseDeadlineSetting, error) {
 	args := m.Called(ctx, userID, departmentID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

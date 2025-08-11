@@ -21,7 +21,7 @@ func (m *mockAlertSettingsRepoSimple) Create(ctx context.Context, alertSettings 
 	return nil
 }
 
-func (m *mockAlertSettingsRepoSimple) GetByID(ctx context.Context, id uuid.UUID) (*model.AlertSettings, error) {
+func (m *mockAlertSettingsRepoSimple) GetByID(ctx context.Context, id string) (*model.AlertSettings, error) {
 	return m.settings, m.err
 }
 
@@ -33,11 +33,11 @@ func (m *mockAlertSettingsRepoSimple) GetSettings(ctx context.Context) (*model.A
 	return m.settings, m.err
 }
 
-func (m *mockAlertSettingsRepoSimple) Update(ctx context.Context, id uuid.UUID, updates map[string]interface{}) error {
+func (m *mockAlertSettingsRepoSimple) Update(ctx context.Context, id string, updates map[string]interface{}) error {
 	return nil
 }
 
-func (m *mockAlertSettingsRepoSimple) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *mockAlertSettingsRepoSimple) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
@@ -46,7 +46,7 @@ func TestAlertService_GetSettings_Simple(t *testing.T) {
 
 	t.Run("正常にアラート設定を取得", func(t *testing.T) {
 		expectedSettings := &model.AlertSettings{
-			ID:                          uuid.New(),
+			ID:                          uuid.New().String(),
 			WeeklyHoursLimit:            60,
 			WeeklyHoursChangeLimit:      20,
 			ConsecutiveHolidayWorkLimit: 3,

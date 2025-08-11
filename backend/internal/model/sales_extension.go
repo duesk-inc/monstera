@@ -61,12 +61,12 @@ const (
 
 // Proposal 提案
 type Proposal struct {
-	ID               uuid.UUID      `gorm:"type:varchar(255);primaryKey" json:"id"`
-	EngineerID       uuid.UUID      `gorm:"type:varchar(255);not null" json:"engineer_id"`
+	ID               string         `gorm:"type:varchar(255);primaryKey" json:"id"`
+	EngineerID       string         `gorm:"type:varchar(255);not null" json:"engineer_id"`
 	Engineer         *User          `gorm:"foreignKey:EngineerID" json:"engineer,omitempty"`
-	ClientID         uuid.UUID      `gorm:"type:varchar(255);not null" json:"client_id"`
+	ClientID         string         `gorm:"type:varchar(255);not null" json:"client_id"`
 	Client           *Client        `gorm:"foreignKey:ClientID" json:"client,omitempty"`
-	ProjectID        *uuid.UUID     `gorm:"type:varchar(255)" json:"project_id,omitempty"`
+	ProjectID        *string        `gorm:"type:varchar(255)" json:"project_id,omitempty"`
 	Project          *Project       `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
 	Status           ProposalStatus `gorm:"type:enum('draft','submitted','accepted','rejected','expired');default:'draft'" json:"status"`
 	ProposalAmount   int            `json:"proposal_amount"`
@@ -91,18 +91,18 @@ func (Proposal) TableName() string {
 
 // BeforeCreate UUIDを自動生成
 func (p *Proposal) BeforeCreate(tx *gorm.DB) error {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
+	if p.ID == "" {
+		p.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // ContractExtension 契約延長確認
 type ContractExtension struct {
-	ID                     uuid.UUID               `gorm:"type:varchar(255);primaryKey" json:"id"`
-	EngineerID             uuid.UUID               `gorm:"type:varchar(255);not null" json:"engineer_id"`
+	ID                     string                  `gorm:"type:varchar(255);primaryKey" json:"id"`
+	EngineerID             string                  `gorm:"type:varchar(255);not null" json:"engineer_id"`
 	Engineer               *User                   `gorm:"foreignKey:EngineerID" json:"engineer,omitempty"`
-	ProjectID              uuid.UUID               `gorm:"type:varchar(255);not null" json:"project_id"`
+	ProjectID              string                  `gorm:"type:varchar(255);not null" json:"project_id"`
 	Project                *Project                `gorm:"foreignKey:ProjectID" json:"project,omitempty"`
 	Status                 ContractExtensionStatus `gorm:"type:enum('pending','extended','declined','completed');default:'pending'" json:"status"`
 	CurrentContractEndDate time.Time               `json:"current_contract_end_date"`
@@ -128,16 +128,16 @@ func (ContractExtension) TableName() string {
 
 // BeforeCreate UUIDを自動生成
 func (c *ContractExtension) BeforeCreate(tx *gorm.DB) error {
-	if c.ID == uuid.Nil {
-		c.ID = uuid.New()
+	if c.ID == "" {
+		c.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // InterviewSchedule 面談スケジュール
 type InterviewSchedule struct {
-	ID                uuid.UUID       `gorm:"type:varchar(255);primaryKey" json:"id"`
-	ProposalID        uuid.UUID       `gorm:"type:varchar(255);not null" json:"proposal_id"`
+	ID                string          `gorm:"type:varchar(255);primaryKey" json:"id"`
+	ProposalID        string          `gorm:"type:varchar(255);not null" json:"proposal_id"`
 	Proposal          *Proposal       `gorm:"foreignKey:ProposalID" json:"proposal,omitempty"`
 	Status            InterviewStatus `gorm:"type:enum('scheduled','completed','cancelled','rescheduled');default:'scheduled'" json:"status"`
 	ScheduledDate     time.Time       `json:"scheduled_date"`
@@ -164,8 +164,8 @@ func (InterviewSchedule) TableName() string {
 
 // BeforeCreate UUIDを自動生成
 func (i *InterviewSchedule) BeforeCreate(tx *gorm.DB) error {
-	if i.ID == uuid.Nil {
-		i.ID = uuid.New()
+	if i.ID == "" {
+		i.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -196,7 +196,7 @@ func (i *InterviewSchedule) GetEngineerAttendees() ([]map[string]string, error) 
 
 // PocProject POCプロジェクト
 type PocProject struct {
-	ID           uuid.UUID     `gorm:"type:varchar(255);primaryKey" json:"id"`
+	ID           string        `gorm:"type:varchar(255);primaryKey" json:"id"`
 	ExternalID   string        `gorm:"size:100;unique" json:"external_id"`
 	Name         string        `gorm:"size:200;not null" json:"name"`
 	ClientName   string        `gorm:"size:200" json:"client_name"`
@@ -218,16 +218,16 @@ func (PocProject) TableName() string {
 
 // BeforeCreate UUIDを自動生成
 func (p *PocProject) BeforeCreate(tx *gorm.DB) error {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
+	if p.ID == "" {
+		p.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // SalesTeam 営業チーム
 type SalesTeam struct {
-	ID          uuid.UUID  `gorm:"type:varchar(255);primaryKey" json:"id"`
-	UserID string  `gorm:"type:varchar(255);not null;unique" json:"user_id"`
+	ID          string     `gorm:"type:varchar(255);primaryKey" json:"id"`
+	UserID      string     `gorm:"type:varchar(255);not null;unique" json:"user_id"`
 	User        *User      `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	TeamRole    string     `gorm:"size:50;not null" json:"team_role"` // leader, member
 	IsActive    bool       `gorm:"default:true" json:"is_active"`
@@ -248,8 +248,8 @@ func (SalesTeam) TableName() string {
 
 // BeforeCreate UUIDを自動生成
 func (s *SalesTeam) BeforeCreate(tx *gorm.DB) error {
-	if s.ID == uuid.Nil {
-		s.ID = uuid.New()
+	if s.ID == "" {
+		s.ID = uuid.New().String()
 	}
 	return nil
 }

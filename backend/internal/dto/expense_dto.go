@@ -6,27 +6,26 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // CreateExpenseRequest 経費申請作成リクエスト
 type CreateExpenseRequest struct {
-	Title         string     `json:"title" binding:"required,min=1,max=255"`                                                 // 件名
-	Category      string     `json:"category" binding:"required,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
-	CategoryID    *uuid.UUID `json:"category_id" binding:"omitempty"`                                                        // カテゴリID (後方互換性のためオプショナルに)
-	Amount        int        `json:"amount" binding:"required,min=1,max=10000000"`                                           // 金額（1円〜1000万円）
-	ExpenseDate   time.Time  `json:"expense_date" binding:"required"`                                                        // 使用日
-	Description   string     `json:"description" binding:"required,min=10,max=1000"`                                         // 使用理由（10文字以上）
-	ReceiptURL    string     `json:"receipt_url" binding:"omitempty,url"`                                                    // 領収書URL
-	ReceiptURLs   []string   `json:"receipt_urls" binding:"omitempty,dive,url"`                                              // 領収書URL（複数）
-	OtherCategory string     `json:"other_category,omitempty" binding:"omitempty,max=100"`                                   // その他カテゴリの詳細
+	Title         string    `json:"title" binding:"required,min=1,max=255"`                                                 // 件名
+	Category      string    `json:"category" binding:"required,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
+	CategoryID    *string   `json:"category_id" binding:"omitempty"`                                                        // カテゴリID (後方互換性のためオプショナルに)
+	Amount        int       `json:"amount" binding:"required,min=1,max=10000000"`                                           // 金額（1円〜1000万円）
+	ExpenseDate   time.Time `json:"expense_date" binding:"required"`                                                        // 使用日
+	Description   string    `json:"description" binding:"required,min=10,max=1000"`                                         // 使用理由（10文字以上）
+	ReceiptURL    string    `json:"receipt_url" binding:"omitempty,url"`                                                    // 領収書URL
+	ReceiptURLs   []string  `json:"receipt_urls" binding:"omitempty,dive,url"`                                              // 領収書URL（複数）
+	OtherCategory string    `json:"other_category,omitempty" binding:"omitempty,max=100"`                                   // その他カテゴリの詳細
 }
 
 // UpdateExpenseRequest 経費申請更新リクエスト
 type UpdateExpenseRequest struct {
 	Title         *string    `json:"title,omitempty" binding:"omitempty,min=1,max=255"`
 	Category      *string    `json:"category,omitempty" binding:"omitempty,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
-	CategoryID    *uuid.UUID `json:"category_id,omitempty" binding:"omitempty"`
+	CategoryID    *string    `json:"category_id,omitempty" binding:"omitempty"`
 	Amount        *int       `json:"amount,omitempty" binding:"omitempty,min=1,max=10000000"`
 	ExpenseDate   *time.Time `json:"expense_date,omitempty" binding:"omitempty"`
 	Description   *string    `json:"description,omitempty" binding:"omitempty,min=10,max=1000"`
@@ -48,8 +47,8 @@ type CancelExpenseRequest struct {
 
 // ExpenseResponse 経費申請レスポンス
 type ExpenseResponse struct {
-	ID          uuid.UUID  `json:"id"`
-	UserID string  `json:"user_id"`
+	ID          string     `json:"id"`
+	UserID      string     `json:"user_id"`
 	Title       string     `json:"title"`
 	Category    string     `json:"category"`
 	Amount      int        `json:"amount"`
@@ -57,7 +56,7 @@ type ExpenseResponse struct {
 	Status      string     `json:"status"`
 	Description string     `json:"description"`
 	ReceiptURL  string     `json:"receipt_url"`
-	ApproverID  *uuid.UUID `json:"approver_id,omitempty"`
+	ApproverID  *string    `json:"approver_id,omitempty"`
 	ApprovedAt  *time.Time `json:"approved_at,omitempty"`
 	PaidAt      *time.Time `json:"paid_at,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
@@ -87,9 +86,9 @@ type ExpenseDetailResponse struct {
 
 // ApprovalResponse 承認情報レスポンス
 type ApprovalResponse struct {
-	ID            uuid.UUID  `json:"id"`
-	ExpenseID     uuid.UUID  `json:"expense_id"`
-	ApproverID    uuid.UUID  `json:"approver_id"`
+	ID            string     `json:"id"`
+	ExpenseID     string     `json:"expense_id"`
+	ApproverID    string     `json:"approver_id"`
 	ApprovalType  string     `json:"approval_type"` // manager, executive
 	ApprovalOrder int        `json:"approval_order"`
 	Status        string     `json:"status"` // pending, approved, rejected
@@ -102,23 +101,23 @@ type ApprovalResponse struct {
 
 // CategoryMasterResponse カテゴリマスタレスポンス
 type CategoryMasterResponse struct {
-	ID              uuid.UUID `json:"id"`
-	Code            string    `json:"code"`
-	Name            string    `json:"name"`
-	RequiresDetails bool      `json:"requires_details"`
-	IsActive        bool      `json:"is_active"`
-	DisplayOrder    int       `json:"display_order"`
+	ID              string `json:"id"`
+	Code            string `json:"code"`
+	Name            string `json:"name"`
+	RequiresDetails bool   `json:"requires_details"`
+	IsActive        bool   `json:"is_active"`
+	DisplayOrder    int    `json:"display_order"`
 }
 
 // SummaryResponse 集計レスポンス
 type SummaryResponse struct {
-	ID             uuid.UUID `json:"id"`
-	UserID string `json:"user_id"`
-	Year           int       `json:"year"`
-	Month          int       `json:"month"`
-	TotalAmount    int       `json:"total_amount"`
-	ApprovedAmount int       `json:"approved_amount"`
-	PendingAmount  int       `json:"pending_amount"`
+	ID             string `json:"id"`
+	UserID         string `json:"user_id"`
+	Year           int    `json:"year"`
+	Month          int    `json:"month"`
+	TotalAmount    int    `json:"total_amount"`
+	ApprovedAmount int    `json:"approved_amount"`
+	PendingAmount  int    `json:"pending_amount"`
 }
 
 // LimitsResponse 制限レスポンス
@@ -129,21 +128,21 @@ type LimitsResponse struct {
 
 // LimitResponse 制限情報レスポンス
 type LimitResponse struct {
-	ID            string `json:"id"`
+	ID            string    `json:"id"`
 	LimitType     string    `json:"limit_type"` // monthly, yearly
 	Amount        int       `json:"amount"`
 	EffectiveFrom time.Time `json:"effective_from"`
-	CreatedBy     string `json:"created_by"`
+	CreatedBy     string    `json:"created_by"`
 	CreatedAt     time.Time `json:"created_at"`
 }
 
 // UserSummary ユーザー概要情報
 type UserSummary struct {
 	ID        string `json:"id"`
-	Email     string    `json:"email"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Name      string    `json:"name"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Name      string `json:"name"`
 }
 
 // ExpenseListResponse 経費申請一覧レスポンス
@@ -170,8 +169,8 @@ type ExpenseFilterRequest struct {
 	Limit      int        `form:"limit" binding:"omitempty,min=1,max=100"`
 	SortBy     *string    `form:"sort_by" binding:"omitempty,oneof=expense_date amount created_at"`
 	SortOrder  *string    `form:"sort_order" binding:"omitempty,oneof=asc desc"`
-	UserID     *uuid.UUID `form:"user_id" binding:"omitempty"`     // 内部使用用
-	CategoryID *uuid.UUID `form:"category_id" binding:"omitempty"` // 内部使用用
+	UserID     *string    `form:"user_id" binding:"omitempty"`     // 内部使用用
+	CategoryID *string    `form:"category_id" binding:"omitempty"` // 内部使用用
 }
 
 // DefaultValues フィルターのデフォルト値
@@ -389,7 +388,7 @@ func (r *ExpenseDetailResponse) FromExpenseWithDetails(expenseWithDetails model.
 		r.CurrentLimits = &LimitsResponse{}
 		if expenseWithDetails.CurrentLimits.MonthlyLimit != nil {
 			r.CurrentLimits.MonthlyLimit = &LimitResponse{
-				ID:            expenseWithDetails.CurrentLimits.MonthlyLimit.ID.String(),
+				ID:            expenseWithDetails.CurrentLimits.MonthlyLimit.ID,
 				LimitType:     string(expenseWithDetails.CurrentLimits.MonthlyLimit.LimitType),
 				Amount:        expenseWithDetails.CurrentLimits.MonthlyLimit.Amount,
 				EffectiveFrom: expenseWithDetails.CurrentLimits.MonthlyLimit.EffectiveFrom,
@@ -399,7 +398,7 @@ func (r *ExpenseDetailResponse) FromExpenseWithDetails(expenseWithDetails model.
 		}
 		if expenseWithDetails.CurrentLimits.YearlyLimit != nil {
 			r.CurrentLimits.YearlyLimit = &LimitResponse{
-				ID:            expenseWithDetails.CurrentLimits.YearlyLimit.ID.String(),
+				ID:            expenseWithDetails.CurrentLimits.YearlyLimit.ID,
 				LimitType:     string(expenseWithDetails.CurrentLimits.YearlyLimit.LimitType),
 				Amount:        expenseWithDetails.CurrentLimits.YearlyLimit.Amount,
 				EffectiveFrom: expenseWithDetails.CurrentLimits.YearlyLimit.EffectiveFrom,
@@ -446,8 +445,8 @@ type ExpenseApprovalRequest struct {
 
 // ExpenseApprovalActionResponse 承認処理レスポンス
 type ExpenseApprovalActionResponse struct {
-	ID         uuid.UUID    `json:"id"`
-	ExpenseID  uuid.UUID    `json:"expense_id"`
+	ID         string       `json:"id"`
+	ExpenseID  string       `json:"expense_id"`
 	Status     string       `json:"status"`
 	ApprovedAt time.Time    `json:"approved_at"`
 	Comment    string       `json:"comment,omitempty"`
@@ -705,12 +704,12 @@ type RejectExpenseRequest struct {
 type ApprovalFilterRequest struct {
 	Status       *string    `json:"status,omitempty" binding:"omitempty,oneof=pending approved rejected"`
 	ApprovalType *string    `json:"approval_type,omitempty" binding:"omitempty,oneof=manager executive"`
-	UserID       *uuid.UUID `json:"user_id,omitempty"`                                                // 申請者ID
+	UserID       *string    `json:"user_id,omitempty"`                                                // 申請者ID
 	DateFrom     *time.Time `json:"date_from,omitempty"`                                              // 申請日From
 	DateTo       *time.Time `json:"date_to,omitempty"`                                                // 申請日To
 	AmountMin    *int       `json:"amount_min,omitempty" binding:"omitempty,min=0"`                   // 金額下限
 	AmountMax    *int       `json:"amount_max,omitempty" binding:"omitempty,min=0"`                   // 金額上限
-	CategoryID   *uuid.UUID `json:"category_id,omitempty"`                                            // カテゴリID
+	CategoryID   *string    `json:"category_id,omitempty"`                                            // カテゴリID
 	Keyword      *string    `json:"keyword,omitempty" binding:"omitempty,max=100"`                    // キーワード検索
 	Page         int        `json:"page" binding:"required,min=1"`                                    // ページ番号
 	Limit        int        `json:"limit" binding:"required,min=1,max=100"`                           // 1ページあたりの件数
@@ -729,8 +728,8 @@ type ApprovalListResponse struct {
 
 // ApprovalItemResponse 承認待ち項目レスポンス
 type ApprovalItemResponse struct {
-	ApprovalID    uuid.UUID    `json:"approval_id"`    // 承認ID
-	ExpenseID     uuid.UUID    `json:"expense_id"`     // 経費申請ID
+	ApprovalID    string       `json:"approval_id"`    // 承認ID
+	ExpenseID     string       `json:"expense_id"`     // 経費申請ID
 	Title         string       `json:"title"`          // 件名
 	Amount        int          `json:"amount"`         // 金額
 	ExpenseDate   time.Time    `json:"expense_date"`   // 使用日
@@ -881,7 +880,7 @@ func (r *CompleteUploadRequest) ToReceiptURL(baseURL string) string {
 
 // ExpenseYearlySummaryResponse 年次集計レスポンス
 type ExpenseYearlySummaryResponse struct {
-	UserID string          `json:"user_id"`
+	UserID           string             `json:"user_id"`
 	Year             int                `json:"year"`
 	IsFiscalYear     bool               `json:"is_fiscal_year"` // 会計年度かどうか（true=会計年度、false=カレンダー年度）
 	TotalAmount      int                `json:"total_amount"`
@@ -1036,11 +1035,11 @@ const (
 
 // ExpenseLimitSettingResponse 経費申請上限設定レスポンス
 type ExpenseLimitSettingResponse struct {
-	ID            uuid.UUID `json:"id"`             // 上限ID
+	ID            string    `json:"id"`             // 上限ID
 	LimitType     string    `json:"limit_type"`     // 制限種別（monthly/yearly）
 	Amount        int       `json:"amount"`         // 上限金額（円）
 	EffectiveFrom time.Time `json:"effective_from"` // 適用開始日時
-	CreatedBy     uuid.UUID `json:"created_by"`     // 作成者ID
+	CreatedBy     string    `json:"created_by"`     // 作成者ID
 	CreatedAt     time.Time `json:"created_at"`     // 作成日時
 	UpdatedAt     time.Time `json:"updated_at"`     // 更新日時
 }
@@ -1054,46 +1053,46 @@ type UpdateExpenseLimitRequest struct {
 
 // CreateExpenseLimitRequest 経費申請上限作成リクエスト（新しいスコープ対応版）
 type CreateExpenseLimitRequest struct {
-	LimitType     string     `json:"limit_type" binding:"required,oneof=monthly yearly"`           // 制限種別（monthly/yearly）
-	LimitScope    string     `json:"limit_scope" binding:"required,oneof=company department user"` // 制限適用範囲
-	Amount        int        `json:"amount" binding:"required,min=1,max=100000000"`                // 上限金額（1円〜1億円）
-	UserID        *string `json:"user_id,omitempty" binding:"omitempty"`                   // 個人制限の場合のユーザーID
-	DepartmentID  *uuid.UUID `json:"department_id,omitempty" binding:"omitempty,uuid"`             // 部門制限の場合の部門ID
-	EffectiveFrom time.Time  `json:"effective_from" binding:"required"`                            // 適用開始日時
+	LimitType     string    `json:"limit_type" binding:"required,oneof=monthly yearly"`           // 制限種別（monthly/yearly）
+	LimitScope    string    `json:"limit_scope" binding:"required,oneof=company department user"` // 制限適用範囲
+	Amount        int       `json:"amount" binding:"required,min=1,max=100000000"`                // 上限金額（1円〜1億円）
+	UserID        *string   `json:"user_id,omitempty" binding:"omitempty"`                        // 個人制限の場合のユーザーID
+	DepartmentID  *string   `json:"department_id,omitempty" binding:"omitempty,uuid"`             // 部門制限の場合の部門ID
+	EffectiveFrom time.Time `json:"effective_from" binding:"required"`                            // 適用開始日時
 }
 
 // UpdateExpenseLimitV2Request 経費申請上限更新リクエスト（新しいスコープ対応版）
 type UpdateExpenseLimitV2Request struct {
-	LimitType     string     `json:"limit_type" binding:"required,oneof=monthly yearly"`           // 制限種別（monthly/yearly）
-	LimitScope    string     `json:"limit_scope" binding:"required,oneof=company department user"` // 制限適用範囲
-	Amount        int        `json:"amount" binding:"required,min=1,max=100000000"`                // 上限金額（1円〜1億円）
-	UserID        *string `json:"user_id,omitempty" binding:"omitempty"`                   // 個人制限の場合のユーザーID
-	DepartmentID  *uuid.UUID `json:"department_id,omitempty" binding:"omitempty,uuid"`             // 部門制限の場合の部門ID
-	EffectiveFrom time.Time  `json:"effective_from" binding:"required"`                            // 適用開始日時
+	LimitType     string    `json:"limit_type" binding:"required,oneof=monthly yearly"`           // 制限種別（monthly/yearly）
+	LimitScope    string    `json:"limit_scope" binding:"required,oneof=company department user"` // 制限適用範囲
+	Amount        int       `json:"amount" binding:"required,min=1,max=100000000"`                // 上限金額（1円〜1億円）
+	UserID        *string   `json:"user_id,omitempty" binding:"omitempty"`                        // 個人制限の場合のユーザーID
+	DepartmentID  *string   `json:"department_id,omitempty" binding:"omitempty,uuid"`             // 部門制限の場合の部門ID
+	EffectiveFrom time.Time `json:"effective_from" binding:"required"`                            // 適用開始日時
 }
 
 // ExpenseLimitListRequest 経費申請上限一覧取得リクエスト
 type ExpenseLimitListRequest struct {
-	LimitType    *string    `form:"limit_type" binding:"omitempty,oneof=monthly yearly"`           // 制限種別フィルター
-	LimitScope   *string    `form:"limit_scope" binding:"omitempty,oneof=company department user"` // 制限適用範囲フィルター
-	UserID       *uuid.UUID `form:"user_id" binding:"omitempty,uuid"`                              // ユーザーIDフィルター
-	DepartmentID *uuid.UUID `form:"department_id" binding:"omitempty,uuid"`                        // 部門IDフィルター
-	Page         int        `form:"page" binding:"omitempty,min=1"`                                // ページ番号（デフォルト1）
-	Limit        int        `form:"limit" binding:"omitempty,min=1,max=100"`                       // 1ページあたりの件数（デフォルト10）
+	LimitType    *string `form:"limit_type" binding:"omitempty,oneof=monthly yearly"`           // 制限種別フィルター
+	LimitScope   *string `form:"limit_scope" binding:"omitempty,oneof=company department user"` // 制限適用範囲フィルター
+	UserID       *string `form:"user_id" binding:"omitempty,uuid"`                              // ユーザーIDフィルター
+	DepartmentID *string `form:"department_id" binding:"omitempty,uuid"`                        // 部門IDフィルター
+	Page         int     `form:"page" binding:"omitempty,min=1"`                                // ページ番号（デフォルト1）
+	Limit        int     `form:"limit" binding:"omitempty,min=1,max=100"`                       // 1ページあたりの件数（デフォルト10）
 }
 
 // ExpenseLimitDetailResponse 経費申請上限詳細レスポンス
 type ExpenseLimitDetailResponse struct {
-	ID            string  `json:"id"`
-	LimitType     string     `json:"limit_type"`              // monthly/yearly
-	LimitScope    string     `json:"limit_scope"`             // company/department/user
-	Amount        int        `json:"amount"`                  // 上限金額
-	UserID        *string `json:"user_id,omitempty"`       // 個人制限の場合のユーザーID
-	DepartmentID  *uuid.UUID `json:"department_id,omitempty"` // 部門制限の場合の部門ID
-	EffectiveFrom time.Time  `json:"effective_from"`          // 適用開始日時
-	CreatedBy     string  `json:"created_by"`              // 設定者ID
-	CreatedAt     time.Time  `json:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at"`
+	ID            string    `json:"id"`
+	LimitType     string    `json:"limit_type"`              // monthly/yearly
+	LimitScope    string    `json:"limit_scope"`             // company/department/user
+	Amount        int       `json:"amount"`                  // 上限金額
+	UserID        *string   `json:"user_id,omitempty"`       // 個人制限の場合のユーザーID
+	DepartmentID  *string   `json:"department_id,omitempty"` // 部門制限の場合の部門ID
+	EffectiveFrom time.Time `json:"effective_from"`          // 適用開始日時
+	CreatedBy     string    `json:"created_by"`              // 設定者ID
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
 	// リレーション情報
 	Creator *UserSummary `json:"creator,omitempty"` // 設定者情報
 	User    *UserSummary `json:"user,omitempty"`    // 対象ユーザー情報（個人制限の場合）
@@ -1178,7 +1177,7 @@ func (r *CreateExpenseLimitRequest) ToModel(createdBy string) *model.ExpenseLimi
 
 // FromModel ExpenseLimitモデルからExpenseLimitDetailResponseに変換
 func (r *ExpenseLimitDetailResponse) FromModel(limit *model.ExpenseLimit) {
-	r.ID = limit.ID.String()
+	r.ID = limit.ID
 	r.LimitType = string(limit.LimitType)
 	r.LimitScope = string(limit.LimitScope)
 	r.Amount = limit.Amount
@@ -1207,8 +1206,8 @@ func (r *ExpenseLimitDetailResponse) FromModel(limit *model.ExpenseLimit) {
 type ExpenseLimitHistoryRequest struct {
 	LimitType    *string    `json:"limit_type,omitempty" binding:"omitempty,oneof=monthly yearly"`           // 制限種別フィルター
 	LimitScope   *string    `json:"limit_scope,omitempty" binding:"omitempty,oneof=company department user"` // 制限スコープフィルター
-	UserID       *uuid.UUID `json:"user_id,omitempty"`                                                       // ユーザーIDフィルター
-	DepartmentID *uuid.UUID `json:"department_id,omitempty"`                                                 // 部門IDフィルター
+	UserID       *string    `json:"user_id,omitempty"`                                                       // ユーザーIDフィルター
+	DepartmentID *string    `json:"department_id,omitempty"`                                                 // 部門IDフィルター
 	DateFrom     *time.Time `json:"date_from,omitempty"`                                                     // 期間From（effective_from基準）
 	DateTo       *time.Time `json:"date_to,omitempty"`                                                       // 期間To（effective_from基準）
 	Page         int        `json:"page" binding:"required,min=1"`                                           // ページ番号
@@ -1228,15 +1227,15 @@ type ExpenseLimitHistoryResponse struct {
 
 // ExpenseLimitHistoryItem 経費申請上限履歴項目
 type ExpenseLimitHistoryItem struct {
-	ID                uuid.UUID    `json:"id"`                        // 上限ID
+	ID                string       `json:"id"`                        // 上限ID
 	LimitType         string       `json:"limit_type"`                // 制限種別（monthly/yearly）
 	LimitScope        string       `json:"limit_scope"`               // 制限スコープ（company/department/user）
 	Amount            int          `json:"amount"`                    // 上限金額
 	PreviousAmount    *int         `json:"previous_amount,omitempty"` // 変更前金額（履歴の場合）
-	UserID            *uuid.UUID   `json:"user_id,omitempty"`         // ユーザーID（個人制限の場合）
-	DepartmentID      *uuid.UUID   `json:"department_id,omitempty"`   // 部門ID（部門制限の場合）
+	UserID            *string      `json:"user_id,omitempty"`         // ユーザーID（個人制限の場合）
+	DepartmentID      *string      `json:"department_id,omitempty"`   // 部門ID（部門制限の場合）
 	EffectiveFrom     time.Time    `json:"effective_from"`            // 有効開始日
-	CreatedBy         uuid.UUID    `json:"created_by"`                // 作成者ID
+	CreatedBy         string       `json:"created_by"`                // 作成者ID
 	CreatedAt         time.Time    `json:"created_at"`                // 作成日時
 	TypeDescription   string       `json:"type_description"`          // 制限種別説明
 	ScopeDescription  string       `json:"scope_description"`         // 制限スコープ説明
@@ -1270,7 +1269,7 @@ type UpdateExpenseCategoryRequest struct {
 
 // ExpenseCategoryResponse 経費カテゴリレスポンス
 type ExpenseCategoryResponse struct {
-	ID              uuid.UUID `json:"id"`               // カテゴリID
+	ID              string    `json:"id"`               // カテゴリID
 	Code            string    `json:"code"`             // カテゴリコード
 	Name            string    `json:"name"`             // カテゴリ名
 	RequiresDetails bool      `json:"requires_details"` // 詳細入力が必要かどうか
@@ -1307,13 +1306,13 @@ type ReorderCategoriesRequest struct {
 
 // CategoryOrderItem カテゴリ順序項目
 type CategoryOrderItem struct {
-	ID           uuid.UUID `json:"id" binding:"required"`                  // カテゴリID
-	DisplayOrder int       `json:"display_order" binding:"required,min=1"` // 新しい表示順序
+	ID           string `json:"id" binding:"required"`                  // カテゴリID
+	DisplayOrder int    `json:"display_order" binding:"required,min=1"` // 新しい表示順序
 }
 
 // BulkUpdateCategoriesRequest カテゴリ一括更新リクエスト
 type BulkUpdateCategoriesRequest struct {
-	CategoryIDs []uuid.UUID               `json:"category_ids" binding:"required,min=1"`                      // 対象カテゴリID
+	CategoryIDs []string                  `json:"category_ids" binding:"required,min=1"`                      // 対象カテゴリID
 	Action      string                    `json:"action" binding:"required,oneof=activate deactivate delete"` // 操作種別
 	Updates     *BulkCategoryUpdateFields `json:"updates,omitempty"`                                          // 更新フィールド（activate/deactivate以外の場合）
 }

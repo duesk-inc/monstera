@@ -35,7 +35,7 @@ func (m *MockBillingService) PreviewBilling(ctx context.Context, req *dto.Billin
 }
 
 // PreviewClientBilling クライアント請求プレビュー
-func (m *MockBillingService) PreviewClientBilling(ctx context.Context, clientID uuid.UUID, billingYear, billingMonth int) (*dto.ClientBillingPreview, error) {
+func (m *MockBillingService) PreviewClientBilling(ctx context.Context, clientID string, billingYear, billingMonth int) (*dto.ClientBillingPreview, error) {
 	args := m.Called(ctx, clientID, billingYear, billingMonth)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -44,7 +44,7 @@ func (m *MockBillingService) PreviewClientBilling(ctx context.Context, clientID 
 }
 
 // PreviewGroupBilling グループ請求プレビュー
-func (m *MockBillingService) PreviewGroupBilling(ctx context.Context, groupID uuid.UUID, billingYear, billingMonth int) (*dto.GroupBillingPreview, error) {
+func (m *MockBillingService) PreviewGroupBilling(ctx context.Context, groupID string, billingYear, billingMonth int) (*dto.GroupBillingPreview, error) {
 	args := m.Called(ctx, groupID, billingYear, billingMonth)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -77,7 +77,7 @@ func (m *MockBillingService) GetBillingHistory(ctx context.Context, req *dto.Bil
 }
 
 // GetClientBillingHistory クライアント請求履歴取得
-func (m *MockBillingService) GetClientBillingHistory(ctx context.Context, clientID uuid.UUID, limit int) ([]dto.BillingHistoryItemDTO, error) {
+func (m *MockBillingService) GetClientBillingHistory(ctx context.Context, clientID string, limit int) ([]dto.BillingHistoryItemDTO, error) {
 	args := m.Called(ctx, clientID, limit)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -92,13 +92,13 @@ func (m *MockBillingService) ValidateBillingPeriod(year, month int) error {
 }
 
 // CheckDuplicateBilling 重複請求チェック
-func (m *MockBillingService) CheckDuplicateBilling(ctx context.Context, clientID uuid.UUID, billingMonth string) (bool, error) {
+func (m *MockBillingService) CheckDuplicateBilling(ctx context.Context, clientID string, billingMonth string) (bool, error) {
 	args := m.Called(ctx, clientID, billingMonth)
 	return args.Bool(0), args.Error(1)
 }
 
 // ExecuteBilling 請求処理実行
-func (m *MockBillingService) ExecuteBilling(ctx context.Context, req *dto.ExecuteBillingRequest, executorID uuid.UUID) (*dto.ExecuteBillingResponse, error) {
+func (m *MockBillingService) ExecuteBilling(ctx context.Context, req *dto.ExecuteBillingRequest, executorID string) (*dto.ExecuteBillingResponse, error) {
 	args := m.Called(ctx, req, executorID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -107,7 +107,7 @@ func (m *MockBillingService) ExecuteBilling(ctx context.Context, req *dto.Execut
 }
 
 // ExecuteClientBilling クライアント請求実行
-func (m *MockBillingService) ExecuteClientBilling(ctx context.Context, clientID uuid.UUID, billingYear, billingMonth int, executorID uuid.UUID) (*dto.InvoiceResponse, error) {
+func (m *MockBillingService) ExecuteClientBilling(ctx context.Context, clientID string, billingYear, billingMonth int, executorID string) (*dto.InvoiceResponse, error) {
 	args := m.Called(ctx, clientID, billingYear, billingMonth, executorID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -116,7 +116,7 @@ func (m *MockBillingService) ExecuteClientBilling(ctx context.Context, clientID 
 }
 
 // ExecuteBatchBilling バッチ請求実行
-func (m *MockBillingService) ExecuteBatchBilling(ctx context.Context, req *dto.BatchBillingRequest, executorID uuid.UUID) (*dto.BatchBillingResponse, error) {
+func (m *MockBillingService) ExecuteBatchBilling(ctx context.Context, req *dto.BatchBillingRequest, executorID string) (*dto.BatchBillingResponse, error) {
 	args := m.Called(ctx, req, executorID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -125,7 +125,7 @@ func (m *MockBillingService) ExecuteBatchBilling(ctx context.Context, req *dto.B
 }
 
 // RegenerateInvoice 請求書再生成
-func (m *MockBillingService) RegenerateInvoice(ctx context.Context, invoiceID uuid.UUID, executorID uuid.UUID) (*dto.InvoiceResponse, error) {
+func (m *MockBillingService) RegenerateInvoice(ctx context.Context, invoiceID string, executorID string) (*dto.InvoiceResponse, error) {
 	args := m.Called(ctx, invoiceID, executorID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -134,19 +134,19 @@ func (m *MockBillingService) RegenerateInvoice(ctx context.Context, invoiceID uu
 }
 
 // CancelInvoice 請求書キャンセル
-func (m *MockBillingService) CancelInvoice(ctx context.Context, invoiceID uuid.UUID, reason string, executorID uuid.UUID) error {
+func (m *MockBillingService) CancelInvoice(ctx context.Context, invoiceID string, reason string, executorID string) error {
 	args := m.Called(ctx, invoiceID, reason, executorID)
 	return args.Error(0)
 }
 
 // UpdateInvoiceStatus 請求書ステータス更新
-func (m *MockBillingService) UpdateInvoiceStatus(ctx context.Context, invoiceID uuid.UUID, status model.InvoiceStatus, executorID uuid.UUID) error {
+func (m *MockBillingService) UpdateInvoiceStatus(ctx context.Context, invoiceID string, status model.InvoiceStatus, executorID string) error {
 	args := m.Called(ctx, invoiceID, status, executorID)
 	return args.Error(0)
 }
 
 // GenerateMonthlyInvoices 月次請求書生成
-func (m *MockBillingService) GenerateMonthlyInvoices(ctx context.Context, year, month int, executorID uuid.UUID) (*dto.MonthlyInvoiceGenerationResult, error) {
+func (m *MockBillingService) GenerateMonthlyInvoices(ctx context.Context, year, month int, executorID string) (*dto.MonthlyInvoiceGenerationResult, error) {
 	args := m.Called(ctx, year, month, executorID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -206,10 +206,10 @@ func TestBillingHandler_PreviewBilling(t *testing.T) {
 	router.POST("/api/v1/billing/preview", handler.PreviewBilling)
 
 	// Test data
-	clientID := uuid.New()
+	clientID := uuid.New().String()
 
 	req := dto.BillingPreviewRequest{
-		ClientIDs:    []uuid.UUID{clientID},
+		ClientIDs:    []string{clientID},
 		BillingYear:  2024,
 		BillingMonth: 1,
 		IsPreview:    true,
@@ -282,7 +282,7 @@ func TestBillingHandler_PreviewBilling_InvalidRequest(t *testing.T) {
 		{
 			name: "Empty ClientIDs",
 			request: dto.BillingPreviewRequest{
-				ClientIDs:    []uuid.UUID{},
+				ClientIDs:    []string{},
 				BillingYear:  2024,
 				BillingMonth: 1,
 			},
@@ -291,7 +291,7 @@ func TestBillingHandler_PreviewBilling_InvalidRequest(t *testing.T) {
 		{
 			name: "Invalid Year (too early)",
 			request: dto.BillingPreviewRequest{
-				ClientIDs:    []uuid.UUID{uuid.New()},
+				ClientIDs:    []string{uuid.New().String()},
 				BillingYear:  2019,
 				BillingMonth: 1,
 			},
@@ -300,7 +300,7 @@ func TestBillingHandler_PreviewBilling_InvalidRequest(t *testing.T) {
 		{
 			name: "Invalid Year (too late)",
 			request: dto.BillingPreviewRequest{
-				ClientIDs:    []uuid.UUID{uuid.New()},
+				ClientIDs:    []string{uuid.New().String()},
 				BillingYear:  2051,
 				BillingMonth: 1,
 			},
@@ -309,7 +309,7 @@ func TestBillingHandler_PreviewBilling_InvalidRequest(t *testing.T) {
 		{
 			name: "Invalid Month (0)",
 			request: dto.BillingPreviewRequest{
-				ClientIDs:    []uuid.UUID{uuid.New()},
+				ClientIDs:    []string{uuid.New().String()},
 				BillingYear:  2024,
 				BillingMonth: 0,
 			},
@@ -318,7 +318,7 @@ func TestBillingHandler_PreviewBilling_InvalidRequest(t *testing.T) {
 		{
 			name: "Invalid Month (13)",
 			request: dto.BillingPreviewRequest{
-				ClientIDs:    []uuid.UUID{uuid.New()},
+				ClientIDs:    []string{uuid.New().String()},
 				BillingYear:  2024,
 				BillingMonth: 13,
 			},
@@ -344,9 +344,9 @@ func TestBillingHandler_PreviewBilling_ServiceError(t *testing.T) {
 	router.POST("/api/v1/billing/preview", handler.PreviewBilling)
 
 	// Test data
-	clientID := uuid.New()
+	clientID := uuid.New().String()
 	req := dto.BillingPreviewRequest{
-		ClientIDs:    []uuid.UUID{clientID},
+		ClientIDs:    []string{clientID},
 		BillingYear:  2024,
 		BillingMonth: 1,
 		IsPreview:    true,
@@ -378,12 +378,12 @@ func TestBillingHandler_PreviewBilling_MultipleClients(t *testing.T) {
 	router.POST("/api/v1/billing/preview", handler.PreviewBilling)
 
 	// Test data - 複数クライアント
-	clientID1 := uuid.New()
-	clientID2 := uuid.New()
-	clientID3 := uuid.New()
+	clientID1 := uuid.New().String()
+	clientID2 := uuid.New().String()
+	clientID3 := uuid.New().String()
 
 	req := dto.BillingPreviewRequest{
-		ClientIDs:    []uuid.UUID{clientID1, clientID2, clientID3},
+		ClientIDs:    []string{clientID1, clientID2, clientID3},
 		BillingYear:  2024,
 		BillingMonth: 3,
 		IsPreview:    true,

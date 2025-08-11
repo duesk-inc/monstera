@@ -26,15 +26,15 @@ type ExpenseRepositoryTestSuite struct {
 
 // TestUser テスト用のユーザーモデル
 type TestUser struct {
-	ID    uuid.UUID `gorm:"type:string;primary_key"`
-	Name  string    `gorm:"type:string"`
-	Email string    `gorm:"type:string"`
+	ID    string `gorm:"type:string;primary_key"`
+	Name  string `gorm:"type:string"`
+	Email string `gorm:"type:string"`
 }
 
 // TestExpense テスト用の経費申請モデル
 type TestExpense struct {
-	ID          uuid.UUID `gorm:"type:string;primary_key"`
-	UserID      uuid.UUID `gorm:"type:string;not null"`
+	ID          string    `gorm:"type:string;primary_key"`
+	UserID      string    `gorm:"type:string;not null"`
 	Title       string    `gorm:"type:string;not null"`
 	Amount      int       `gorm:"type:integer;not null"`
 	Status      string    `gorm:"type:string;not null;default:'draft'"`
@@ -165,17 +165,17 @@ func (suite *ExpenseRepositoryTestSuite) SetupTest() {
 // TestExpenseRepository_Create 経費申請作成のテスト
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Create() {
 	// テストユーザーの作成
-	userID := uuid.New()
+	userID := uuid.New().String()
 	suite.db.Exec("INSERT INTO users (id, email, cognito_sub, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-		userID.String(), "test@duesk.co.jp", "test-cognito-sub", "Test", "User", "Test User", time.Now(), time.Now())
+		userID, "test@duesk.co.jp", "test-cognito-sub", "Test", "User", "Test User", time.Now(), time.Now())
 
 	// テスト用経費申請
 	expense := &model.Expense{
-		ID:          uuid.New(),
+		ID:          uuid.New().String(),
 		UserID:      userID,
 		Title:       "テスト経費",
 		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
+		CategoryID:  uuid.New().String(),
 		Amount:      5000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
@@ -204,7 +204,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Create() {
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetByID() {
 	// テストユーザーの作成
 	user := &model.User{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Email:     "test@duesk.co.jp",
 		FirstName: "Test",
 		LastName:  "User",
@@ -215,13 +215,13 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetByID() {
 	suite.db.Create(user)
 
 	// テスト用経費申請をDBに直接作成
-	expenseID := uuid.New()
+	expenseID := uuid.New().String()
 	expense := &model.Expense{
 		ID:          expenseID,
 		UserID:      user.ID,
 		Title:       "取得テスト経費",
 		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
+		CategoryID:  uuid.New().String(),
 		Amount:      3000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
@@ -246,7 +246,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetByID() {
 
 // TestExpenseRepository_GetByID_NotFound 存在しない経費申請の取得テスト
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetByID_NotFound() {
-	nonExistentID := uuid.New()
+	nonExistentID := uuid.New().String()
 
 	// 存在しないIDで取得を試行
 	retrievedExpense, err := suite.repository.GetByID(suite.ctx, nonExistentID)
@@ -261,7 +261,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetByID_NotFound(
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Update() {
 	// テストユーザーの作成
 	user := &model.User{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Email:     "test@duesk.co.jp",
 		FirstName: "Test",
 		LastName:  "User",
@@ -272,14 +272,14 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Update() {
 	suite.db.Create(user)
 
 	// 既存の経費申請を作成
-	expenseID := uuid.New()
+	expenseID := uuid.New().String()
 	originalExpense := &model.Expense{
 		ID:          expenseID,
 		UserID:      user.ID,
 		Title:       "元のタイトル",
 		Amount:      2000,
 		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
+		CategoryID:  uuid.New().String(),
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
 		Description: "元の説明",
@@ -295,7 +295,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Update() {
 		UserID:      user.ID,
 		Title:       "更新されたタイトル",
 		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
+		CategoryID:  uuid.New().String(),
 		Amount:      4000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
@@ -324,7 +324,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Update() {
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Delete() {
 	// テストユーザーの作成
 	user := &model.User{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Email:     "test@duesk.co.jp",
 		FirstName: "Test",
 		LastName:  "User",
@@ -335,13 +335,13 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Delete() {
 	suite.db.Create(user)
 
 	// 削除対象の経費申請を作成
-	expenseID := uuid.New()
+	expenseID := uuid.New().String()
 	expense := &model.Expense{
 		ID:          expenseID,
 		UserID:      user.ID,
 		Title:       "削除テスト経費",
 		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
+		CategoryID:  uuid.New().String(),
 		Amount:      1000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
@@ -369,7 +369,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Delete() {
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetMonthlyTotal() {
 	// テストユーザーの作成
 	user := &model.User{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Email:     "test@duesk.co.jp",
 		FirstName: "Test",
 		LastName:  "User",
@@ -383,11 +383,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetMonthlyTotal()
 	testDate := time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC)
 	expenses := []*model.Expense{
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user.ID,
 			Title:       "経費1",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      1000,
 			Status:      model.ExpenseStatusApproved,
 			ExpenseDate: testDate,
@@ -396,11 +396,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetMonthlyTotal()
 			UpdatedAt:   time.Now(),
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user.ID,
 			Title:       "経費2",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      2000,
 			Status:      model.ExpenseStatusApproved,
 			ExpenseDate: testDate.Add(24 * time.Hour),
@@ -409,11 +409,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetMonthlyTotal()
 			UpdatedAt:   time.Now(),
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user.ID,
 			Title:       "経費3",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      1500,
 			Status:      model.ExpenseStatusDraft, // 下書きは含まれない
 			ExpenseDate: testDate.Add(48 * time.Hour),
@@ -440,7 +440,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_GetMonthlyTotal()
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_CountPendingByUserID() {
 	// テストユーザーの作成
 	user := &model.User{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Email:     "test@duesk.co.jp",
 		FirstName: "Test",
 		LastName:  "User",
@@ -453,11 +453,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_CountPendingByUse
 	// 異なるステータスの経費申請を作成
 	expenses := []*model.Expense{
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user.ID,
 			Title:       "提出済み経費1",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      1000,
 			Status:      model.ExpenseStatusSubmitted, // カウント対象
 			ExpenseDate: time.Now(),
@@ -466,11 +466,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_CountPendingByUse
 			UpdatedAt:   time.Now(),
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user.ID,
 			Title:       "提出済み経費2",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      2000,
 			Status:      model.ExpenseStatusSubmitted, // カウント対象
 			ExpenseDate: time.Now(),
@@ -479,11 +479,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_CountPendingByUse
 			UpdatedAt:   time.Now(),
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user.ID,
 			Title:       "下書き経費",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      1500,
 			Status:      model.ExpenseStatusDraft, // カウント対象外
 			ExpenseDate: time.Now(),
@@ -492,11 +492,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_CountPendingByUse
 			UpdatedAt:   time.Now(),
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user.ID,
 			Title:       "承認済み経費",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      3000,
 			Status:      model.ExpenseStatusApproved, // カウント対象外
 			ExpenseDate: time.Now(),
@@ -522,7 +522,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_CountPendingByUse
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ExistsByID() {
 	// テストユーザーの作成
 	user := &model.User{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Email:     "test@duesk.co.jp",
 		FirstName: "Test",
 		LastName:  "User",
@@ -533,13 +533,13 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ExistsByID() {
 	suite.db.Create(user)
 
 	// 存在する経費申請を作成
-	existingID := uuid.New()
+	existingID := uuid.New().String()
 	expense := &model.Expense{
 		ID:          existingID,
 		UserID:      user.ID,
 		Title:       "存在チェック経費",
 		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
+		CategoryID:  uuid.New().String(),
 		Amount:      1000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
@@ -556,7 +556,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ExistsByID() {
 	assert.True(suite.T(), exists, "存在する経費申請でtrueが返される")
 
 	// 存在しない場合のテスト
-	nonExistentID := uuid.New()
+	nonExistentID := uuid.New().String()
 	exists, err = suite.repository.ExistsByID(suite.ctx, nonExistentID)
 	assert.NoError(suite.T(), err, "存在チェックが成功する")
 	assert.False(suite.T(), exists, "存在しない経費申請でfalseが返される")
@@ -566,7 +566,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ExistsByID() {
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ListByUserID() {
 	// テストユーザーの作成
 	user1 := &model.User{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Email:     "test1@duesk.co.jp",
 		FirstName: "Test",
 		LastName:  "User 1",
@@ -575,7 +575,7 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ListByUserID() {
 		UpdatedAt: time.Now(),
 	}
 	user2 := &model.User{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Email:     "test2@duesk.co.jp",
 		FirstName: "Test",
 		LastName:  "User 2",
@@ -589,11 +589,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ListByUserID() {
 	// 複数ユーザーの経費申請を作成
 	expenses := []*model.Expense{
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user1.ID, // user1の経費
 			Title:       "User1経費1",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      1000,
 			Status:      model.ExpenseStatusDraft,
 			ExpenseDate: time.Now(),
@@ -602,11 +602,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ListByUserID() {
 			UpdatedAt:   time.Now(),
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user1.ID, // user1の経費
 			Title:       "User1経費2",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      2000,
 			Status:      model.ExpenseStatusSubmitted,
 			ExpenseDate: time.Now(),
@@ -615,11 +615,11 @@ func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_ListByUserID() {
 			UpdatedAt:   time.Now(),
 		},
 		{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      user2.ID, // user2の経費（含まれない）
 			Title:       "User2経費1",
 			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			Amount:      1500,
 			Status:      model.ExpenseStatusDraft,
 			ExpenseDate: time.Now(),

@@ -60,7 +60,7 @@ func (h *expensePDFHandler) GenerateExpensePDF(c *gin.Context) {
 	// PDFを生成
 	pdfData, err := h.service.GenerateExpensePDF(c.Request.Context(), expenseID)
 	if err != nil {
-		h.logger.Error("Failed to generate expense PDF", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		h.logger.Error("Failed to generate expense PDF", zap.Error(err), zap.String("expense_id", expenseID))
 		c.JSON(http.StatusInternalServerError, dto.ErrorResponse{
 			Error: "PDF生成に失敗しました",
 			Code:  "PDF_GENERATION_FAILED",
@@ -70,7 +70,7 @@ func (h *expensePDFHandler) GenerateExpensePDF(c *gin.Context) {
 
 	// PDFファイルとしてレスポンスを返す
 	c.Header("Content-Type", "application/pdf")
-	c.Header("Content-Disposition", "attachment; filename=expense_"+expenseID.String()+".pdf")
+	c.Header("Content-Disposition", "attachment; filename=expense_"+expenseID+".pdf")
 	c.Data(http.StatusOK, "application/pdf", pdfData)
 }
 

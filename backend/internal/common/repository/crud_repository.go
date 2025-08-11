@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"fmt"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -47,7 +45,7 @@ func (r *GormCRUDRepository[T]) Create(ctx context.Context, entity *T) error {
 }
 
 // FindByID はIDによりエンティティを取得する
-func (r *GormCRUDRepository[T]) FindByID(ctx context.Context, id uuid.UUID) (*T, error) {
+func (r *GormCRUDRepository[T]) FindByID(ctx context.Context, id string) (*T, error) {
 	if err := r.ValidateID(id); err != nil {
 		return nil, err
 	}
@@ -70,7 +68,7 @@ func (r *GormCRUDRepository[T]) Update(ctx context.Context, entity *T) error {
 }
 
 // Delete はエンティティを削除する
-func (r *GormCRUDRepository[T]) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *GormCRUDRepository[T]) Delete(ctx context.Context, id string) error {
 	if err := r.ValidateID(id); err != nil {
 		return err
 	}
@@ -130,7 +128,7 @@ func (r *GormCRUDRepository[T]) CreateInBatch(ctx context.Context, entities []T,
 // UpdateColumns は特定のカラムのみを更新する
 func (r *GormCRUDRepository[T]) UpdateColumns(
 	ctx context.Context,
-	id uuid.UUID,
+	id string,
 	values map[string]interface{},
 ) error {
 	if err := r.ValidateID(id); err != nil {

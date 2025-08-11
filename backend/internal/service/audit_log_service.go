@@ -10,7 +10,6 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -28,7 +27,7 @@ type AuditLogService interface {
 
 // LogActivityParams アクティビティログパラメータ
 type LogActivityParams struct {
-	UserID       uuid.UUID             `json:"user_id"`
+	UserID       string                `json:"user_id"`
 	Action       model.AuditActionType `json:"action"`
 	ResourceType model.ResourceType    `json:"resource_type"`
 	ResourceID   *string               `json:"resource_id"`
@@ -109,7 +108,7 @@ func (s *auditLogService) LogActivity(ctx context.Context, params LogActivityPar
 	if err := s.auditRepo.Create(ctx, auditLog); err != nil {
 		s.logger.Error("Failed to create audit log",
 			zap.Error(err),
-			zap.String("user_id", params.UserID.String()),
+			zap.String("user_id", params.UserID),
 			zap.String("action", string(params.Action)),
 		)
 
@@ -117,7 +116,7 @@ func (s *auditLogService) LogActivity(ctx context.Context, params LogActivityPar
 		if strings.Contains(err.Error(), "foreign key constraint") ||
 			strings.Contains(err.Error(), "fk_audit_logs_user") {
 			s.logger.Warn("Audit log creation failed due to foreign key constraint - user may not exist",
-				zap.String("user_id", params.UserID.String()),
+				zap.String("user_id", params.UserID),
 				zap.String("action", string(params.Action)),
 			)
 			return nil // エラーを返さず、監査ログの失敗がメイン処理をブロックしないようにする

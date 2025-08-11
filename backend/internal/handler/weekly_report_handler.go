@@ -74,7 +74,7 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 			userRoleStr = v
 		case *model.Role:
 			if v != nil {
-				userRoleStr = v.String()
+				userRoleStr = v
 			} else {
 				userRoleStr = "unknown"
 			}
@@ -94,9 +94,9 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 		},
 		debug.RequestDebugData{
 			Method:   c.Request.Method,
-			URL:      c.Request.URL.String(),
+			URL:      c.Request.URL,
 			RawBody:  string(bodyBytes),
-			UserID:   userUUID.String(),
+			UserID:   userUUID,
 			UserRole: userRoleStr,
 		},
 	)
@@ -209,8 +209,8 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 
 	// デバッグ: レポートのステータスを確認
 	h.logger.Debug("Weekly report created",
-		zap.String("report_id", report.ID.String()),
-		zap.String("status", report.Status.String()),
+		zap.String("report_id", report.ID),
+		zap.String("status", report.Status),
 		zap.Any("status_type", fmt.Sprintf("%T", report.Status)))
 
 	// デバッグログ: レスポンス送信
@@ -223,7 +223,7 @@ func (h *WeeklyReportHandler) Create(c *gin.Context) {
 			StatusCode:   http.StatusCreated,
 			ResponseBody: response,
 			Metadata: map[string]interface{}{
-				"report_id": report.ID.String(),
+				"report_id": report.ID,
 				"status":    report.Status,
 			},
 		},
@@ -244,7 +244,7 @@ func (h *WeeklyReportHandler) Get(c *gin.Context) {
 	// 週報を取得
 	report, err := h.reportService.GetByID(ctx, id)
 	if err != nil {
-		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id.String())
+		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id)
 		return
 	}
 
@@ -294,7 +294,7 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			userRoleStr = v
 		case *model.Role:
 			if v != nil {
-				userRoleStr = v.String()
+				userRoleStr = v
 			} else {
 				userRoleStr = "unknown"
 			}
@@ -314,11 +314,11 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 		},
 		debug.RequestDebugData{
 			Method:     c.Request.Method,
-			URL:        c.Request.URL.String(),
+			URL:        c.Request.URL,
 			RawBody:    string(bodyBytes),
-			UserID:     userUUID.String(),
+			UserID:     userUUID,
 			UserRole:   userRoleStr,
-			PathParams: map[string]string{"id": id.String()},
+			PathParams: map[string]string{"id": id},
 		},
 	)
 
@@ -350,7 +350,7 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			OutputData:  req,
 			ProcessType: "JSONBind",
 			Metadata: map[string]interface{}{
-				"report_id":           id.String(),
+				"report_id":           id,
 				"daily_records_count": len(req.DailyRecords),
 			},
 		},
@@ -367,10 +367,10 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			debug.ErrorDebugData{
 				Error:       err,
 				ErrorType:   "NotFoundError",
-				RequestData: id.String(),
+				RequestData: id,
 			},
 		)
-		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id.String())
+		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id)
 		return
 	}
 
@@ -384,7 +384,7 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			debug.ErrorDebugData{
 				Error:       fmt.Errorf("access denied"),
 				ErrorType:   "AuthorizationError",
-				RequestData: map[string]interface{}{"report_id": id.String(), "user_id": userUUID.String()},
+				RequestData: map[string]interface{}{"report_id": id, "user_id": userUUID},
 			},
 		)
 		h.respondError(c, http.StatusForbidden, message.MsgReportEditDenied)
@@ -407,7 +407,7 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 					debug.ErrorDebugData{
 						Error:       fmt.Errorf("submitted report cannot be edited"),
 						ErrorType:   "BusinessLogicError",
-						RequestData: map[string]interface{}{"report_id": id.String(), "status": report.Status, "user_role": userRole},
+						RequestData: map[string]interface{}{"report_id": id, "status": report.Status, "user_role": userRole},
 					},
 				)
 				h.respondError(c, http.StatusForbidden, message.MsgCannotEditSubmitted)
@@ -521,8 +521,8 @@ func (h *WeeklyReportHandler) Update(c *gin.Context) {
 			StatusCode:   http.StatusOK,
 			ResponseBody: response,
 			Metadata: map[string]interface{}{
-				"report_id": report.ID.String(),
-				"status":    report.Status.String(),
+				"report_id": report.ID,
+				"status":    report.Status,
 			},
 		},
 	)
@@ -542,7 +542,7 @@ func (h *WeeklyReportHandler) Delete(c *gin.Context) {
 	// 週報を取得
 	report, err := h.reportService.GetByID(ctx, id)
 	if err != nil {
-		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id.String())
+		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id)
 		return
 	}
 
@@ -619,11 +619,11 @@ func (h *WeeklyReportHandler) List(c *gin.Context) {
 	for i, report := range reports {
 		h.logger.Debug("Report status check",
 			zap.Int("index", i),
-			zap.String("report_id", report.ID.String()),
-			zap.String("status", report.Status.String()),
+			zap.String("report_id", report.ID),
+			zap.String("status", report.Status),
 			zap.Any("status_type", fmt.Sprintf("%T", report.Status)),
-			zap.Int("status_length", len(report.Status.String())),
-			zap.String("status_quoted", fmt.Sprintf("%q", report.Status.String())))
+			zap.Int("status_length", len(report.Status)),
+			zap.String("status_quoted", fmt.Sprintf("%q", report.Status)))
 	}
 
 	// レスポンスを作成
@@ -642,7 +642,7 @@ func (h *WeeklyReportHandler) List(c *gin.Context) {
 			UserID:                   report.UserID,
 			StartDate:                report.StartDate,
 			EndDate:                  report.EndDate,
-			Status:                   report.Status.String(),
+			Status:                   report.Status,
 			WeeklyRemarks:            report.WeeklyRemarks,
 			WorkplaceName:            report.WorkplaceName,
 			WorkplaceHours:           report.WorkplaceHours,
@@ -656,7 +656,7 @@ func (h *WeeklyReportHandler) List(c *gin.Context) {
 		// デバッグログ: レスポンスに設定されたステータスを確認
 		h.logger.Debug("Response status check",
 			zap.Int("index", i),
-			zap.String("report_id", response.Reports[i].ID.String()),
+			zap.String("report_id", response.Reports[i].ID),
 			zap.String("status", response.Reports[i].Status),
 			zap.Any("status_type", fmt.Sprintf("%T", response.Reports[i].Status)),
 			zap.String("status_hex", fmt.Sprintf("%x", response.Reports[i].Status)))
@@ -665,7 +665,7 @@ func (h *WeeklyReportHandler) List(c *gin.Context) {
 	// デバッグログ: JSON送信直前の全体確認
 	if len(response.Reports) > 0 {
 		h.logger.Debug("Final response before JSON",
-			zap.String("first_report_id", response.Reports[0].ID.String()),
+			zap.String("first_report_id", response.Reports[0].ID),
 			zap.String("first_report_status", response.Reports[0].Status),
 			zap.Any("response_type", fmt.Sprintf("%T", response)))
 	}
@@ -685,7 +685,7 @@ func (h *WeeklyReportHandler) Submit(c *gin.Context) {
 	// 週報を取得
 	report, err := h.reportService.GetByID(ctx, id)
 	if err != nil {
-		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id.String())
+		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id)
 		return
 	}
 
@@ -737,7 +737,7 @@ func (h *WeeklyReportHandler) Copy(c *gin.Context) {
 	// 元の週報を取得
 	originalReport, err := h.reportService.GetByID(ctx, id)
 	if err != nil {
-		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id.String())
+		h.handleError(c, http.StatusNotFound, message.MsgWeeklyReportNotFound, err, "id", id)
 		return
 	}
 
@@ -829,7 +829,7 @@ func (h *WeeklyReportHandler) GetWeeklyReportByDateRange(c *gin.Context) {
 			zap.Error(err),
 			zap.String("start_date", startDateStr),
 			zap.String("end_date", endDateStr),
-			zap.String("user_id", userUUID.String()))
+			zap.String("user_id", userUUID))
 
 		// レコードが見つからない場合は204を返す
 		h.respondError(c, http.StatusNoContent, message.MsgDateRangeReportNotFound)
@@ -843,7 +843,7 @@ func (h *WeeklyReportHandler) GetWeeklyReportByDateRange(c *gin.Context) {
 		if err != nil {
 			h.logger.Warn("Failed to get daily records for report",
 				zap.Error(err),
-				zap.String("report_id", report.ID.String()))
+				zap.String("report_id", report.ID))
 		} else {
 			report.DailyRecords = dailyRecords
 		}
@@ -852,7 +852,7 @@ func (h *WeeklyReportHandler) GetWeeklyReportByDateRange(c *gin.Context) {
 	// デバッグログ：日次勤怠記録の件数を確認
 	h.logger.Debug("Retrieved daily records count",
 		zap.Int("count", len(report.DailyRecords)),
-		zap.String("report_id", report.ID.String()))
+		zap.String("report_id", report.ID))
 
 	// レスポンスを作成
 	response := h.createReportResponse(report)
@@ -860,7 +860,7 @@ func (h *WeeklyReportHandler) GetWeeklyReportByDateRange(c *gin.Context) {
 	// 日次勤怠記録が正しくレスポンスに含まれているか確認
 	h.logger.Debug("Response daily records count",
 		zap.Int("count", len(response.DailyRecords)),
-		zap.String("report_id", response.ID.String()))
+		zap.String("report_id", response.ID))
 
 	c.JSON(http.StatusOK, response)
 }
@@ -1015,18 +1015,18 @@ func (h *WeeklyReportHandler) SaveAndSubmit(c *gin.Context) {
 func (h *WeeklyReportHandler) createReportResponse(report *model.WeeklyReport) *dto.WeeklyReportResponse {
 	// デバッグログ: 変換前のステータス値を確認
 	h.logger.Debug("Creating report response",
-		zap.String("report_id", report.ID.String()),
-		zap.String("status", report.Status.String()),
+		zap.String("report_id", report.ID),
+		zap.String("status", report.Status),
 		zap.Any("status_type", fmt.Sprintf("%T", report.Status)),
-		zap.Int("status_length", len(report.Status.String())),
-		zap.String("status_quoted", fmt.Sprintf("%q", report.Status.String())))
+		zap.Int("status_length", len(report.Status)),
+		zap.String("status_quoted", fmt.Sprintf("%q", report.Status)))
 
 	response := &dto.WeeklyReportResponse{
 		ID:                       report.ID,
 		UserID:                   report.UserID,
 		StartDate:                report.StartDate,
 		EndDate:                  report.EndDate,
-		Status:                   report.Status.String(), // WeeklyReportStatusEnumのString()メソッドを使用
+		Status:                   report.Status, // WeeklyReportStatusEnumのString()メソッドを使用
 		WeeklyRemarks:            report.WeeklyRemarks,
 		WorkplaceName:            report.WorkplaceName,
 		WorkplaceHours:           report.WorkplaceHours,
@@ -1065,11 +1065,11 @@ func (h *WeeklyReportHandler) createReportResponse(report *model.WeeklyReport) *
 		// デバッグログを追加：日次勤怠記録の件数
 		h.logger.Debug("Added daily records to response",
 			zap.Int("record_count", len(response.DailyRecords)),
-			zap.String("report_id", report.ID.String()))
+			zap.String("report_id", report.ID))
 	} else {
 		// 日次勤怠記録がない場合にデバッグログを出力
 		h.logger.Debug("No daily records available for report",
-			zap.String("report_id", report.ID.String()))
+			zap.String("report_id", report.ID))
 
 		// 空の配列を設定（nullではなく）
 		response.DailyRecords = []dto.DailyRecordResponse{}
@@ -1159,7 +1159,7 @@ func (h *WeeklyReportHandler) validateDateRange(startDateStr string, endDateStr 
 // 追加の共通ヘルパーメソッド
 
 // parseUUID UUIDをパースする
-func (h *WeeklyReportHandler) parseUUID(c *gin.Context, paramName string) (uuid.UUID, error) {
+func (h *WeeklyReportHandler) parseUUID(c *gin.Context, paramName string) (string, error) {
 	return ParseUUID(c, paramName, h.logger)
 }
 
@@ -1169,7 +1169,7 @@ func (h *WeeklyReportHandler) hasAccessToReport(c *gin.Context, report *model.We
 	userRole, _ := c.Get("role")
 
 	// 型変換を確実に行う
-	userUUID, ok := userID.(uuid.UUID)
+	userUUID, ok := userID.(string)
 	if !ok {
 		return false
 	}
@@ -1281,7 +1281,7 @@ func (h *WeeklyReportHandler) SaveUserDefaultWorkSettings(c *gin.Context) {
 	if err := h.reportService.SaveUserDefaultWorkSettings(settings); err != nil {
 		h.logger.Error("設定の保存に失敗しました",
 			zap.Error(err),
-			zap.String("user_id", userUUID.String()),
+			zap.String("user_id", userUUID),
 			zap.Any("settings", settings))
 		h.handleError(c, http.StatusInternalServerError, message.MsgDefaultWorkSettingsSaveFailed, err)
 		return

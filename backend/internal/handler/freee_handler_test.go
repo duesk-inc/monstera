@@ -41,18 +41,18 @@ func (m *MockFreeeService) ExchangeCodeForToken(ctx context.Context, req *dto.Fr
 	return args.Get(0).(*dto.FreeeOAuthResponse), args.Error(1)
 }
 
-func (m *MockFreeeService) RefreshAccessToken(ctx context.Context, userID uuid.UUID) error {
+func (m *MockFreeeService) RefreshAccessToken(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
-func (m *MockFreeeService) RevokeToken(ctx context.Context, userID uuid.UUID) error {
+func (m *MockFreeeService) RevokeToken(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
 // 設定管理関連
-func (m *MockFreeeService) GetFreeeSettings(ctx context.Context, userID uuid.UUID) (*dto.FreeeSettingsDTO, error) {
+func (m *MockFreeeService) GetFreeeSettings(ctx context.Context, userID string) (*dto.FreeeSettingsDTO, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -60,18 +60,18 @@ func (m *MockFreeeService) GetFreeeSettings(ctx context.Context, userID uuid.UUI
 	return args.Get(0).(*dto.FreeeSettingsDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) UpdateFreeeSettings(ctx context.Context, userID uuid.UUID, req *dto.UpdateFreeeSettingsRequest) error {
+func (m *MockFreeeService) UpdateFreeeSettings(ctx context.Context, userID string, req *dto.UpdateFreeeSettingsRequest) error {
 	args := m.Called(ctx, userID, req)
 	return args.Error(0)
 }
 
-func (m *MockFreeeService) DeleteFreeeSettings(ctx context.Context, userID uuid.UUID) error {
+func (m *MockFreeeService) DeleteFreeeSettings(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
 // 接続管理関連
-func (m *MockFreeeService) GetConnectionStatus(ctx context.Context, userID uuid.UUID) (*dto.FreeeConnectionStatusDTO, error) {
+func (m *MockFreeeService) GetConnectionStatus(ctx context.Context, userID string) (*dto.FreeeConnectionStatusDTO, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -79,7 +79,7 @@ func (m *MockFreeeService) GetConnectionStatus(ctx context.Context, userID uuid.
 	return args.Get(0).(*dto.FreeeConnectionStatusDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) TestConnection(ctx context.Context, userID uuid.UUID) (*dto.FreeeConnectionTestResult, error) {
+func (m *MockFreeeService) TestConnection(ctx context.Context, userID string) (*dto.FreeeConnectionTestResult, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -88,7 +88,7 @@ func (m *MockFreeeService) TestConnection(ctx context.Context, userID uuid.UUID)
 }
 
 // トークン管理関連
-func (m *MockFreeeService) GetValidAccessToken(ctx context.Context, userID uuid.UUID) (string, error) {
+func (m *MockFreeeService) GetValidAccessToken(ctx context.Context, userID string) (string, error) {
 	args := m.Called(ctx, userID)
 	return args.String(0), args.Error(1)
 }
@@ -98,13 +98,13 @@ func (m *MockFreeeService) IsTokenExpired(tokenExpiresAt time.Time) bool {
 	return args.Bool(0)
 }
 
-func (m *MockFreeeService) ScheduleTokenRefresh(ctx context.Context, userID uuid.UUID) error {
+func (m *MockFreeeService) ScheduleTokenRefresh(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
 // 取引先管理関連
-func (m *MockFreeeService) GetPartners(ctx context.Context, userID uuid.UUID) ([]*dto.FreeePartnerDTO, error) {
+func (m *MockFreeeService) GetPartners(ctx context.Context, userID string) ([]*dto.FreeePartnerDTO, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -112,7 +112,7 @@ func (m *MockFreeeService) GetPartners(ctx context.Context, userID uuid.UUID) ([
 	return args.Get(0).([]*dto.FreeePartnerDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) CreatePartner(ctx context.Context, userID uuid.UUID, req *dto.CreateFreeePartnerRequest) (*dto.FreeePartnerDTO, error) {
+func (m *MockFreeeService) CreatePartner(ctx context.Context, userID string, req *dto.CreateFreeePartnerRequest) (*dto.FreeePartnerDTO, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -120,7 +120,7 @@ func (m *MockFreeeService) CreatePartner(ctx context.Context, userID uuid.UUID, 
 	return args.Get(0).(*dto.FreeePartnerDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) UpdatePartner(ctx context.Context, userID uuid.UUID, partnerID int, req *dto.UpdateFreeePartnerRequest) (*dto.FreeePartnerDTO, error) {
+func (m *MockFreeeService) UpdatePartner(ctx context.Context, userID string, partnerID int, req *dto.UpdateFreeePartnerRequest) (*dto.FreeePartnerDTO, error) {
 	args := m.Called(ctx, userID, partnerID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -128,7 +128,7 @@ func (m *MockFreeeService) UpdatePartner(ctx context.Context, userID uuid.UUID, 
 	return args.Get(0).(*dto.FreeePartnerDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncPartner(ctx context.Context, userID uuid.UUID, clientID uuid.UUID) (*dto.FreeePartnerDTO, error) {
+func (m *MockFreeeService) SyncPartner(ctx context.Context, userID string, clientID string) (*dto.FreeePartnerDTO, error) {
 	args := m.Called(ctx, userID, clientID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -137,7 +137,7 @@ func (m *MockFreeeService) SyncPartner(ctx context.Context, userID uuid.UUID, cl
 }
 
 // 請求書管理関連
-func (m *MockFreeeService) GetInvoices(ctx context.Context, userID uuid.UUID, from, to *time.Time) ([]*dto.FreeeInvoiceDTO, error) {
+func (m *MockFreeeService) GetInvoices(ctx context.Context, userID string, from, to *time.Time) ([]*dto.FreeeInvoiceDTO, error) {
 	args := m.Called(ctx, userID, from, to)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -145,7 +145,7 @@ func (m *MockFreeeService) GetInvoices(ctx context.Context, userID uuid.UUID, fr
 	return args.Get(0).([]*dto.FreeeInvoiceDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) CreateInvoice(ctx context.Context, userID uuid.UUID, req *dto.CreateFreeeInvoiceRequest) (*dto.FreeeInvoiceDTO, error) {
+func (m *MockFreeeService) CreateInvoice(ctx context.Context, userID string, req *dto.CreateFreeeInvoiceRequest) (*dto.FreeeInvoiceDTO, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -153,7 +153,7 @@ func (m *MockFreeeService) CreateInvoice(ctx context.Context, userID uuid.UUID, 
 	return args.Get(0).(*dto.FreeeInvoiceDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) UpdateInvoice(ctx context.Context, userID uuid.UUID, invoiceID int, req *dto.UpdateFreeeInvoiceRequest) (*dto.FreeeInvoiceDTO, error) {
+func (m *MockFreeeService) UpdateInvoice(ctx context.Context, userID string, invoiceID int, req *dto.UpdateFreeeInvoiceRequest) (*dto.FreeeInvoiceDTO, error) {
 	args := m.Called(ctx, userID, invoiceID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -161,12 +161,12 @@ func (m *MockFreeeService) UpdateInvoice(ctx context.Context, userID uuid.UUID, 
 	return args.Get(0).(*dto.FreeeInvoiceDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) DeleteInvoice(ctx context.Context, userID uuid.UUID, invoiceID int) error {
+func (m *MockFreeeService) DeleteInvoice(ctx context.Context, userID string, invoiceID int) error {
 	args := m.Called(ctx, userID, invoiceID)
 	return args.Error(0)
 }
 
-func (m *MockFreeeService) SyncInvoice(ctx context.Context, userID uuid.UUID, invoiceID uuid.UUID) (*dto.FreeeInvoiceDTO, error) {
+func (m *MockFreeeService) SyncInvoice(ctx context.Context, userID string, invoiceID string) (*dto.FreeeInvoiceDTO, error) {
 	args := m.Called(ctx, userID, invoiceID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -175,7 +175,7 @@ func (m *MockFreeeService) SyncInvoice(ctx context.Context, userID uuid.UUID, in
 }
 
 // 支払い情報管理関連
-func (m *MockFreeeService) GetPayments(ctx context.Context, userID uuid.UUID, from, to *time.Time) ([]*dto.FreeePaymentDTO, error) {
+func (m *MockFreeeService) GetPayments(ctx context.Context, userID string, from, to *time.Time) ([]*dto.FreeePaymentDTO, error) {
 	args := m.Called(ctx, userID, from, to)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -183,7 +183,7 @@ func (m *MockFreeeService) GetPayments(ctx context.Context, userID uuid.UUID, fr
 	return args.Get(0).([]*dto.FreeePaymentDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) GetInvoicePayments(ctx context.Context, userID uuid.UUID, invoiceID int) ([]*dto.FreeePaymentDTO, error) {
+func (m *MockFreeeService) GetInvoicePayments(ctx context.Context, userID string, invoiceID int) ([]*dto.FreeePaymentDTO, error) {
 	args := m.Called(ctx, userID, invoiceID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -192,7 +192,7 @@ func (m *MockFreeeService) GetInvoicePayments(ctx context.Context, userID uuid.U
 }
 
 // データ同期関連
-func (m *MockFreeeService) SyncAllData(ctx context.Context, userID uuid.UUID) (*dto.FreeSyncResult, error) {
+func (m *MockFreeeService) SyncAllData(ctx context.Context, userID string) (*dto.FreeSyncResult, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -200,7 +200,7 @@ func (m *MockFreeeService) SyncAllData(ctx context.Context, userID uuid.UUID) (*
 	return args.Get(0).(*dto.FreeSyncResult), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncClients(ctx context.Context, userID uuid.UUID) (*dto.FreeSyncResult, error) {
+func (m *MockFreeeService) SyncClients(ctx context.Context, userID string) (*dto.FreeSyncResult, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -208,7 +208,7 @@ func (m *MockFreeeService) SyncClients(ctx context.Context, userID uuid.UUID) (*
 	return args.Get(0).(*dto.FreeSyncResult), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncInvoices(ctx context.Context, userID uuid.UUID) (*dto.FreeSyncResult, error) {
+func (m *MockFreeeService) SyncInvoices(ctx context.Context, userID string) (*dto.FreeSyncResult, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -217,7 +217,7 @@ func (m *MockFreeeService) SyncInvoices(ctx context.Context, userID uuid.UUID) (
 }
 
 // バッチ処理関連
-func (m *MockFreeeService) ProcessBatchSync(ctx context.Context, userIDs []uuid.UUID) ([]*dto.FreeBatchSyncResult, error) {
+func (m *MockFreeeService) ProcessBatchSync(ctx context.Context, userIDs []string) ([]*dto.FreeBatchSyncResult, error) {
 	args := m.Called(ctx, userIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -226,22 +226,22 @@ func (m *MockFreeeService) ProcessBatchSync(ctx context.Context, userIDs []uuid.
 }
 
 // ハンドラーで使用されているメソッド（インターフェースには定義されていないが、ハンドラーで呼ばれている）
-func (m *MockFreeeService) InitiateOAuth(ctx context.Context, userID uuid.UUID, redirectURL string) (string, string, error) {
+func (m *MockFreeeService) InitiateOAuth(ctx context.Context, userID string, redirectURL string) (string, string, error) {
 	args := m.Called(ctx, userID, redirectURL)
 	return args.String(0), args.String(1), args.Error(2)
 }
 
-func (m *MockFreeeService) CompleteOAuth(ctx context.Context, userID uuid.UUID, code, state string) error {
+func (m *MockFreeeService) CompleteOAuth(ctx context.Context, userID string, code, state string) error {
 	args := m.Called(ctx, userID, code, state)
 	return args.Error(0)
 }
 
-func (m *MockFreeeService) Disconnect(ctx context.Context, userID uuid.UUID) error {
+func (m *MockFreeeService) Disconnect(ctx context.Context, userID string) error {
 	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 
-func (m *MockFreeeService) SyncSpecificPartners(ctx context.Context, userID uuid.UUID, clientIDs []uuid.UUID) (*dto.FreeeSyncResponse, error) {
+func (m *MockFreeeService) SyncSpecificPartners(ctx context.Context, userID string, clientIDs []string) (*dto.FreeeSyncResponse, error) {
 	args := m.Called(ctx, userID, clientIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -249,7 +249,7 @@ func (m *MockFreeeService) SyncSpecificPartners(ctx context.Context, userID uuid
 	return args.Get(0).(*dto.FreeeSyncResponse), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncAllPartners(ctx context.Context, userID uuid.UUID) (*dto.FreeeSyncResponse, error) {
+func (m *MockFreeeService) SyncAllPartners(ctx context.Context, userID string) (*dto.FreeeSyncResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -257,7 +257,7 @@ func (m *MockFreeeService) SyncAllPartners(ctx context.Context, userID uuid.UUID
 	return args.Get(0).(*dto.FreeeSyncResponse), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncSpecificInvoices(ctx context.Context, userID uuid.UUID, invoiceIDs []uuid.UUID) (*dto.FreeeSyncResponse, error) {
+func (m *MockFreeeService) SyncSpecificInvoices(ctx context.Context, userID string, invoiceIDs []string) (*dto.FreeeSyncResponse, error) {
 	args := m.Called(ctx, userID, invoiceIDs)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -265,7 +265,7 @@ func (m *MockFreeeService) SyncSpecificInvoices(ctx context.Context, userID uuid
 	return args.Get(0).(*dto.FreeeSyncResponse), args.Error(1)
 }
 
-func (m *MockFreeeService) SyncInvoicesByMonth(ctx context.Context, userID uuid.UUID, targetMonth string) (*dto.FreeeSyncResponse, error) {
+func (m *MockFreeeService) SyncInvoicesByMonth(ctx context.Context, userID string, targetMonth string) (*dto.FreeeSyncResponse, error) {
 	args := m.Called(ctx, userID, targetMonth)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -273,7 +273,7 @@ func (m *MockFreeeService) SyncInvoicesByMonth(ctx context.Context, userID uuid.
 	return args.Get(0).(*dto.FreeeSyncResponse), args.Error(1)
 }
 
-func (m *MockFreeeService) GetSyncHistory(ctx context.Context, userID uuid.UUID, filters map[string]interface{}, offset, limit int) ([]*dto.FreeeSyncHistoryItem, int, error) {
+func (m *MockFreeeService) GetSyncHistory(ctx context.Context, userID string, filters map[string]interface{}, offset, limit int) ([]*dto.FreeeSyncHistoryItem, int, error) {
 	args := m.Called(ctx, userID, filters, offset, limit)
 	if args.Get(0) == nil {
 		return nil, args.Int(1), args.Error(2)
@@ -281,7 +281,7 @@ func (m *MockFreeeService) GetSyncHistory(ctx context.Context, userID uuid.UUID,
 	return args.Get(0).([]*dto.FreeeSyncHistoryItem), args.Int(1), args.Error(2)
 }
 
-func (m *MockFreeeService) GetCompanies(ctx context.Context, userID uuid.UUID) ([]*dto.FreeeCompanyDTO, error) {
+func (m *MockFreeeService) GetCompanies(ctx context.Context, userID string) ([]*dto.FreeeCompanyDTO, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -289,12 +289,12 @@ func (m *MockFreeeService) GetCompanies(ctx context.Context, userID uuid.UUID) (
 	return args.Get(0).([]*dto.FreeeCompanyDTO), args.Error(1)
 }
 
-func (m *MockFreeeService) SelectCompany(ctx context.Context, userID uuid.UUID, companyID int) error {
+func (m *MockFreeeService) SelectCompany(ctx context.Context, userID string, companyID int) error {
 	args := m.Called(ctx, userID, companyID)
 	return args.Error(0)
 }
 
-func (m *MockFreeeService) GetSyncSummary(ctx context.Context, userID uuid.UUID) (*dto.FreeeSyncSummaryResponse, error) {
+func (m *MockFreeeService) GetSyncSummary(ctx context.Context, userID string) (*dto.FreeeSyncSummaryResponse, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -316,7 +316,7 @@ func setupFreeeHandlerTest() (*MockFreeeService, *handler.FreeeHandler, *gin.Eng
 // テストケース
 func TestFreeeHandler_GetConnectionStatus(t *testing.T) {
 	mockService, h, router := setupFreeeHandlerTest()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	// ミドルウェアを追加してユーザーIDをセット
 	router.Use(func(c *gin.Context) {
@@ -379,7 +379,7 @@ func TestFreeeHandler_GetConnectionStatus(t *testing.T) {
 
 func TestFreeeHandler_InitiateOAuth(t *testing.T) {
 	mockService, h, router := setupFreeeHandlerTest()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	router.Use(func(c *gin.Context) {
 		c.Set("userID", userID)
@@ -429,7 +429,7 @@ func TestFreeeHandler_InitiateOAuth(t *testing.T) {
 
 func TestFreeeHandler_CompleteOAuth(t *testing.T) {
 	mockService, h, router := setupFreeeHandlerTest()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	router.Use(func(c *gin.Context) {
 		c.Set("userID", userID)
@@ -483,7 +483,7 @@ func TestFreeeHandler_CompleteOAuth(t *testing.T) {
 
 func TestFreeeHandler_TestConnection(t *testing.T) {
 	mockService, h, router := setupFreeeHandlerTest()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	router.Use(func(c *gin.Context) {
 		c.Set("userID", userID)
@@ -522,7 +522,7 @@ func TestFreeeHandler_TestConnection(t *testing.T) {
 
 func TestFreeeHandler_SyncPartners(t *testing.T) {
 	mockService, h, router := setupFreeeHandlerTest()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	router.Use(func(c *gin.Context) {
 		c.Set("userID", userID)
@@ -532,7 +532,7 @@ func TestFreeeHandler_SyncPartners(t *testing.T) {
 
 	t.Run("全取引先同期成功", func(t *testing.T) {
 		req := dto.FreeeSyncPartnersRequest{
-			ClientIDs: []uuid.UUID{},
+			ClientIDs: []string{},
 		}
 
 		expectedResult := &dto.FreeeSyncResponse{
@@ -542,7 +542,7 @@ func TestFreeeHandler_SyncPartners(t *testing.T) {
 			FailedCount: 0,
 			Details: []dto.FreeeSyncDetail{
 				{
-					ItemID:   uuid.New(),
+					ItemID:   uuid.New().String(),
 					ItemName: "テスト会社A",
 					Status:   "success",
 					Message:  "同期完了",
@@ -573,7 +573,7 @@ func TestFreeeHandler_SyncPartners(t *testing.T) {
 	})
 
 	t.Run("特定取引先同期成功", func(t *testing.T) {
-		clientIDs := []uuid.UUID{uuid.New(), uuid.New()}
+		clientIDs := []string{uuid.New().String(), uuid.New().String()}
 		req := dto.FreeeSyncPartnersRequest{
 			ClientIDs: clientIDs,
 		}
@@ -609,7 +609,7 @@ func TestFreeeHandler_SyncPartners(t *testing.T) {
 
 func TestFreeeHandler_SyncInvoices(t *testing.T) {
 	mockService, h, router := setupFreeeHandlerTest()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	router.Use(func(c *gin.Context) {
 		c.Set("userID", userID)
@@ -668,7 +668,7 @@ func TestFreeeHandler_SyncInvoices(t *testing.T) {
 
 func TestFreeeHandler_GetSyncHistory(t *testing.T) {
 	mockService, h, router := setupFreeeHandlerTest()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	router.Use(func(c *gin.Context) {
 		c.Set("userID", userID)
@@ -679,7 +679,7 @@ func TestFreeeHandler_GetSyncHistory(t *testing.T) {
 	t.Run("同期履歴取得成功", func(t *testing.T) {
 		expectedHistory := []*dto.FreeeSyncHistoryItem{
 			{
-				ID:          uuid.New(),
+				ID:          uuid.New().String(),
 				SyncType:    "partner",
 				Status:      "success",
 				Message:     "同期完了",
@@ -733,7 +733,7 @@ func TestFreeeHandler_GetSyncHistory(t *testing.T) {
 
 func TestFreeeHandler_SelectCompany(t *testing.T) {
 	mockService, h, router := setupFreeeHandlerTest()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	router.Use(func(c *gin.Context) {
 		c.Set("userID", userID)

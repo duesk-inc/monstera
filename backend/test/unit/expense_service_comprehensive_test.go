@@ -11,12 +11,12 @@ import (
 
 // ExpenseTestData テスト用のデータ構造
 type ExpenseTestData struct {
-	ID          uuid.UUID
-	UserID      uuid.UUID
+	ID          string
+	UserID      string
 	Title       string
 	Amount      int
 	Status      string
-	CategoryID  uuid.UUID
+	CategoryID  string
 	ExpenseDate time.Time
 	Description string
 	CreatedAt   time.Time
@@ -25,7 +25,7 @@ type ExpenseTestData struct {
 
 // ExpenseCategory テスト用のカテゴリ構造
 type ExpenseCategory struct {
-	ID       uuid.UUID
+	ID       string
 	Code     string
 	Name     string
 	IsActive bool
@@ -35,11 +35,11 @@ type ExpenseCategory struct {
 func TestExpenseServiceComprehensive(t *testing.T) {
 	t.Run("経費申請の作成テスト", func(t *testing.T) {
 		// テストデータの作成
-		userID := uuid.New()
-		categoryID := uuid.New()
+		userID := uuid.New().String()
+		categoryID := uuid.New().String()
 
 		expense := ExpenseTestData{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      userID,
 			Title:       "営業会議費",
 			Amount:      5000,
@@ -52,8 +52,8 @@ func TestExpenseServiceComprehensive(t *testing.T) {
 		}
 
 		// 基本的なバリデーション
-		assert.NotEqual(t, uuid.Nil, expense.ID, "経費申請IDが設定されている")
-		assert.NotEqual(t, uuid.Nil, expense.UserID, "ユーザーIDが設定されている")
+		assert.NotEqual(t, "", expense.ID, "経費申請IDが設定されている")
+		assert.NotEqual(t, "", expense.UserID, "ユーザーIDが設定されている")
 		assert.NotEmpty(t, expense.Title, "タイトルが設定されている")
 		assert.Greater(t, expense.Amount, 0, "金額が正の値")
 		assert.Equal(t, "draft", expense.Status, "初期ステータスは下書き")
@@ -64,12 +64,12 @@ func TestExpenseServiceComprehensive(t *testing.T) {
 	t.Run("経費申請の更新テスト", func(t *testing.T) {
 		// 既存の経費申請
 		originalExpense := ExpenseTestData{
-			ID:          uuid.New(),
-			UserID:      uuid.New(),
+			ID:          uuid.New().String(),
+			UserID:      uuid.New().String(),
 			Title:       "交通費",
 			Amount:      1000,
 			Status:      "draft",
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			ExpenseDate: time.Now().Add(-24 * time.Hour),
 			Description: "電車代",
 			CreatedAt:   time.Now().Add(-25 * time.Hour),
@@ -94,8 +94,8 @@ func TestExpenseServiceComprehensive(t *testing.T) {
 
 	t.Run("経費申請のステータス遷移テスト", func(t *testing.T) {
 		expense := ExpenseTestData{
-			ID:     uuid.New(),
-			UserID: uuid.New(),
+			ID:     uuid.New().String(),
+			UserID: uuid.New().String(),
 			Title:  "会議費",
 			Amount: 3000,
 			Status: "draft",
@@ -118,19 +118,19 @@ func TestExpenseServiceComprehensive(t *testing.T) {
 	t.Run("カテゴリ管理テスト", func(t *testing.T) {
 		categories := []ExpenseCategory{
 			{
-				ID:       uuid.New(),
+				ID:       uuid.New().String(),
 				Code:     "TRANSPORT",
 				Name:     "交通費",
 				IsActive: true,
 			},
 			{
-				ID:       uuid.New(),
+				ID:       uuid.New().String(),
 				Code:     "ENTERTAINMENT",
 				Name:     "接待費",
 				IsActive: true,
 			},
 			{
-				ID:       uuid.New(),
+				ID:       uuid.New().String(),
 				Code:     "SUPPLIES",
 				Name:     "消耗品費",
 				IsActive: false, // 無効化されたカテゴリ
@@ -304,16 +304,16 @@ func validateExpense(expense ExpenseTestData) []string {
 func TestExpenseIntegrationScenarios(t *testing.T) {
 	t.Run("完全な経費申請フローテスト", func(t *testing.T) {
 		ctx := context.Background()
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		// 1. 経費申請の作成
 		expense := ExpenseTestData{
-			ID:          uuid.New(),
+			ID:          uuid.New().String(),
 			UserID:      userID,
 			Title:       "プロジェクト打ち上げ費用",
 			Amount:      8000,
 			Status:      "draft",
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			ExpenseDate: time.Now().Add(-24 * time.Hour),
 			Description: "プロジェクト完了に伴う打ち上げ費用（チームメンバー4名分）",
 			CreatedAt:   time.Now(),
@@ -339,19 +339,19 @@ func TestExpenseIntegrationScenarios(t *testing.T) {
 
 		// 4. 処理完了の確認
 		assert.NotNil(t, ctx, "コンテキストが有効")
-		assert.NotEqual(t, uuid.Nil, expense.ID, "経費申請IDが有効")
+		assert.NotEqual(t, "", expense.ID, "経費申請IDが有効")
 		assert.Equal(t, userID, expense.UserID, "ユーザーIDが一致")
 	})
 
 	t.Run("高額経費申請の承認フローテスト", func(t *testing.T) {
 		// 高額経費申請（役員承認が必要）
 		expense := ExpenseTestData{
-			ID:          uuid.New(),
-			UserID:      uuid.New(),
+			ID:          uuid.New().String(),
+			UserID:      uuid.New().String(),
 			Title:       "システム導入費用",
 			Amount:      75000,
 			Status:      "draft",
-			CategoryID:  uuid.New(),
+			CategoryID:  uuid.New().String(),
 			ExpenseDate: time.Now().Add(-48 * time.Hour),
 			Description: "新システム導入に伴う初期費用およびライセンス費用",
 			CreatedAt:   time.Now(),

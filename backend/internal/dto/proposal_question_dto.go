@@ -2,22 +2,20 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // QuestionUserSummaryDTO 質問関連ユーザー概要
 type QuestionUserSummaryDTO struct {
-	ID        uuid.UUID `json:"id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	Email     string    `json:"email"`
+	ID        string `json:"id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
 }
 
 // QuestionDetailResponse 質問詳細レスポンス
 type QuestionDetailResponse struct {
-	ID           uuid.UUID                   `json:"id"`
-	ProposalID   uuid.UUID                   `json:"proposal_id"`
+	ID           string                      `json:"id"`
+	ProposalID   string                      `json:"proposal_id"`
 	QuestionText string                      `json:"question_text"`
 	ResponseText *string                     `json:"response_text"`
 	IsResponded  bool                        `json:"is_responded"`
@@ -30,16 +28,16 @@ type QuestionDetailResponse struct {
 
 // QuestionProposalSummaryDTO 質問画面用提案サマリー
 type QuestionProposalSummaryDTO struct {
-	ID          uuid.UUID `json:"id"`
-	ProjectID   uuid.UUID `json:"project_id"`
-	ProjectName string    `json:"project_name"`
-	Status      string    `json:"status"`
+	ID          string `json:"id"`
+	ProjectID   string `json:"project_id"`
+	ProjectName string `json:"project_name"`
+	Status      string `json:"status"`
 }
 
 // PendingQuestionItemDTO 営業担当者向け未回答質問アイテム
 type PendingQuestionItemDTO struct {
-	ID           uuid.UUID                   `json:"id"`
-	ProposalID   uuid.UUID                   `json:"proposal_id"`
+	ID           string                      `json:"id"`
+	ProposalID   string                      `json:"proposal_id"`
 	QuestionText string                      `json:"question_text"`
 	CreatedAt    time.Time                   `json:"created_at"`
 	Engineer     *QuestionUserSummaryDTO     `json:"engineer"`
@@ -91,7 +89,7 @@ type QuestionActivityResponse struct {
 
 // QuestionActivityItem 質問活動アイテム
 type QuestionActivityItem struct {
-	ID           uuid.UUID                   `json:"id"`
+	ID           string                      `json:"id"`
 	Type         string                      `json:"type"` // "created", "answered"
 	QuestionText string                      `json:"question_text"`
 	Engineer     *QuestionUserSummaryDTO     `json:"engineer,omitempty"`
@@ -110,26 +108,26 @@ type QuestionDailyStats struct {
 
 // QuestionBulkOperationRequest 質問一括操作リクエスト
 type QuestionBulkOperationRequest struct {
-	QuestionIDs []uuid.UUID `json:"question_ids" binding:"required,min=1"`
-	Operation   string      `json:"operation" binding:"required,oneof=mark_urgent mark_normal delete"`
-	SalesUserID *uuid.UUID  `json:"sales_user_id" binding:"omitempty"` // assign用
+	QuestionIDs []string `json:"question_ids" binding:"required,min=1"`
+	Operation   string   `json:"operation" binding:"required,oneof=mark_urgent mark_normal delete"`
+	SalesUserID *string  `json:"sales_user_id" binding:"omitempty"` // assign用
 }
 
 // QuestionBulkOperationResponse 質問一括操作レスポンス
 type QuestionBulkOperationResponse struct {
-	ProcessedCount int         `json:"processed_count"`
-	FailedCount    int         `json:"failed_count"`
-	FailedIDs      []uuid.UUID `json:"failed_ids,omitempty"`
+	ProcessedCount int      `json:"processed_count"`
+	FailedCount    int      `json:"failed_count"`
+	FailedIDs      []string `json:"failed_ids,omitempty"`
 }
 
 // QuestionTemplateDTO 質問テンプレート（よく使われる質問）
 type QuestionTemplateDTO struct {
-	ID           uuid.UUID `json:"id"`
-	Title        string    `json:"title"`
-	QuestionText string    `json:"question_text"`
-	Category     string    `json:"category"`
-	UsageCount   int       `json:"usage_count"`
-	IsActive     bool      `json:"is_active"`
+	ID           string `json:"id"`
+	Title        string `json:"title"`
+	QuestionText string `json:"question_text"`
+	Category     string `json:"category"`
+	UsageCount   int    `json:"usage_count"`
+	IsActive     bool   `json:"is_active"`
 }
 
 // QuestionTemplatesResponse 質問テンプレート一覧レスポンス

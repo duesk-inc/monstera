@@ -66,7 +66,7 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 	}
 
 	// ユーザーIDがuuid.UUID型であることを確認
-	userIDValue, ok := userID.(uuid.UUID)
+	userIDValue, ok := userID.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userID))
 		h.debugLogger.RequestError(
@@ -87,7 +87,7 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 	// プロフィール情報を取得
 	profile, err := h.profileService.GetUserProfile(userIDValue)
 	if err != nil {
-		h.logger.Error("Failed to get profile", zap.Error(err), zap.String("user_id", userIDValue.String()))
+		h.logger.Error("Failed to get profile", zap.Error(err), zap.String("user_id", userIDValue))
 		h.debugLogger.RequestError(
 			debug.DebugLogConfig{
 				Category:    debug.CategoryService,
@@ -113,7 +113,7 @@ func (h *ProfileHandler) GetProfile(c *gin.Context) {
 		debug.ResponseDebugData{
 			StatusCode: http.StatusOK,
 			Metadata: map[string]interface{}{
-				"user_id":              userIDValue.String(),
+				"user_id":              userIDValue,
 				"profile_id":           profile.ID,
 				"certifications_count": len(profile.Certifications),
 				"certifications":       profile.Certifications,
@@ -134,7 +134,7 @@ func (h *ProfileHandler) GetProfileWithWorkHistory(c *gin.Context) {
 	}
 
 	// ユーザーIDがuuid.UUID型であることを確認
-	userIDValue, ok := userID.(uuid.UUID)
+	userIDValue, ok := userID.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userID))
 		c.JSON(http.StatusBadRequest, gin.H{"error": message.MsgInvalidUserID})
@@ -144,7 +144,7 @@ func (h *ProfileHandler) GetProfileWithWorkHistory(c *gin.Context) {
 	// プロフィール情報と職務経歴を取得
 	profile, workHistories, err := h.profileService.GetUserProfileWithWorkHistory(userIDValue)
 	if err != nil {
-		h.logger.Error("Failed to get profile with work history", zap.Error(err), zap.String("user_id", userIDValue.String()))
+		h.logger.Error("Failed to get profile with work history", zap.Error(err), zap.String("user_id", userIDValue))
 		c.JSON(http.StatusInternalServerError, gin.H{"error": message.MsgProfileGetError})
 		return
 	}
@@ -168,7 +168,7 @@ func (h *ProfileHandler) GetProfileHistory(c *gin.Context) {
 	}
 
 	// ユーザーIDがuuid.UUID型であることを確認
-	userIDValue, ok := userID.(uuid.UUID)
+	userIDValue, ok := userID.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userID))
 		c.JSON(http.StatusBadRequest, gin.H{"error": message.MsgInvalidUserID})
@@ -187,7 +187,7 @@ func (h *ProfileHandler) GetProfileHistory(c *gin.Context) {
 
 		history, err := h.profileService.GetProfileHistoryByVersion(userIDValue, version)
 		if err != nil {
-			h.logger.Error("Failed to get profile history by version", zap.Error(err), zap.String("user_id", userIDValue.String()), zap.Int("version", version))
+			h.logger.Error("Failed to get profile history by version", zap.Error(err), zap.String("user_id", userIDValue), zap.Int("version", version))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": message.MsgProfileHistoryGetError})
 			return
 		}
@@ -197,7 +197,7 @@ func (h *ProfileHandler) GetProfileHistory(c *gin.Context) {
 		// 最新の履歴を取得
 		history, err := h.profileService.GetLatestProfileHistory(userIDValue)
 		if err != nil {
-			h.logger.Error("Failed to get latest profile history", zap.Error(err), zap.String("user_id", userIDValue.String()))
+			h.logger.Error("Failed to get latest profile history", zap.Error(err), zap.String("user_id", userIDValue))
 			c.JSON(http.StatusInternalServerError, gin.H{"error": message.MsgProfileHistoryGetError})
 			return
 		}
@@ -240,7 +240,7 @@ func (h *ProfileHandler) SaveProfile(c *gin.Context) {
 	}
 
 	// ユーザーIDがuuid.UUID型であることを確認
-	userIDValue, ok := userID.(uuid.UUID)
+	userIDValue, ok := userID.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userID))
 		h.debugLogger.RequestError(
@@ -287,7 +287,7 @@ func (h *ProfileHandler) SaveProfile(c *gin.Context) {
 		debug.DataProcessDebugData{
 			ProcessType: "ProfileSaveRequest",
 			InputData: map[string]interface{}{
-				"user_id":         userIDValue.String(),
+				"user_id":         userIDValue,
 				"education":       request.Education,
 				"nearest_station": request.NearestStation,
 				"can_travel":      request.CanTravel,
@@ -300,7 +300,7 @@ func (h *ProfileHandler) SaveProfile(c *gin.Context) {
 	// プロフィール情報を更新
 	err := h.profileService.UpdateUserProfileWithDTO(userIDValue, request, false)
 	if err != nil {
-		h.logger.Error("Failed to update profile", zap.Error(err), zap.String("user_id", userIDValue.String()))
+		h.logger.Error("Failed to update profile", zap.Error(err), zap.String("user_id", userIDValue))
 		h.debugLogger.RequestError(
 			debug.DebugLogConfig{
 				Category:    debug.CategoryService,
@@ -326,7 +326,7 @@ func (h *ProfileHandler) SaveProfile(c *gin.Context) {
 		debug.ResponseDebugData{
 			StatusCode: http.StatusOK,
 			Metadata: map[string]interface{}{
-				"user_id": userIDValue.String(),
+				"user_id": userIDValue,
 				"message": "プロフィール情報を更新しました",
 			},
 		},
@@ -369,7 +369,7 @@ func (h *ProfileHandler) TempSaveProfile(c *gin.Context) {
 	}
 
 	// ユーザーIDがuuid.UUID型であることを確認
-	userIDValue, ok := userID.(uuid.UUID)
+	userIDValue, ok := userID.(string)
 	if !ok {
 		h.logger.Error("Invalid user ID type", zap.Any("user_id", userID))
 		h.debugLogger.RequestError(
@@ -416,7 +416,7 @@ func (h *ProfileHandler) TempSaveProfile(c *gin.Context) {
 		debug.DataProcessDebugData{
 			ProcessType: "ProfileSaveRequest",
 			InputData: map[string]interface{}{
-				"user_id":         userIDValue.String(),
+				"user_id":         userIDValue,
 				"education":       request.Education,
 				"nearest_station": request.NearestStation,
 				"can_travel":      request.CanTravel,
@@ -429,7 +429,7 @@ func (h *ProfileHandler) TempSaveProfile(c *gin.Context) {
 	// プロフィール情報を一時保存（isTempSave = true）
 	err := h.profileService.UpdateUserProfileWithDTO(userIDValue, request, true)
 	if err != nil {
-		h.logger.Error("Failed to temp save profile", zap.Error(err), zap.String("user_id", userIDValue.String()))
+		h.logger.Error("Failed to temp save profile", zap.Error(err), zap.String("user_id", userIDValue))
 		h.debugLogger.RequestError(
 			debug.DebugLogConfig{
 				Category:    debug.CategoryService,
@@ -455,7 +455,7 @@ func (h *ProfileHandler) TempSaveProfile(c *gin.Context) {
 		debug.ResponseDebugData{
 			StatusCode: http.StatusOK,
 			Metadata: map[string]interface{}{
-				"user_id": userIDValue.String(),
+				"user_id": userIDValue,
 				"message": "プロフィール情報を一時保存しました",
 			},
 		},

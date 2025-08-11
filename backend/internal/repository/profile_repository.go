@@ -15,22 +15,22 @@ import (
 // ProfileRepository プロフィールに関するデータアクセスのインターフェース
 type ProfileRepository interface {
 	Create(profile *model.Profile) error
-	FindByID(id uuid.UUID) (*model.Profile, error)
+	FindByID(id string) (*model.Profile, error)
 	FindByUserID(userID string) (*model.Profile, error)
 	FindByUserIDWithWorkHistory(userID string) (*model.Profile, error)
 	Update(profile *model.Profile) error
-	Delete(id uuid.UUID) error
+	Delete(id string) error
 	CreateOrUpdate(profile *model.Profile) error
-	SaveLanguageSkills(profileID uuid.UUID, skills []model.LanguageSkill) error
-	SaveFrameworkSkills(profileID uuid.UUID, skills []model.FrameworkSkill) error
-	SaveBusinessExperiences(profileID uuid.UUID, experiences []model.BusinessExperience) error
-	SaveWorkHistories(profileID uuid.UUID, userID string, histories []model.WorkHistory) error
-	SaveCertifications(profileID uuid.UUID, certifications []dto.CertificationRequest) error
+	SaveLanguageSkills(profileID string, skills []model.LanguageSkill) error
+	SaveFrameworkSkills(profileID string, skills []model.FrameworkSkill) error
+	SaveBusinessExperiences(profileID string, experiences []model.BusinessExperience) error
+	SaveWorkHistories(profileID string, userID string, histories []model.WorkHistory) error
+	SaveCertifications(profileID string, certifications []dto.CertificationRequest) error
 
 	// 履歴関連の追加メソッド
 	CreateProfileHistory(profile *model.Profile) error
-	FindProfileHistoryByVersion(profileID uuid.UUID, version int) (*model.ProfileHistory, error)
-	FindLatestProfileHistory(profileID uuid.UUID) (*model.ProfileHistory, error)
+	FindProfileHistoryByVersion(profileID string, version int) (*model.ProfileHistory, error)
+	FindLatestProfileHistory(profileID string) (*model.ProfileHistory, error)
 }
 
 // ProfileRepositoryImpl プロフィールに関するデータアクセスの実装
@@ -51,7 +51,7 @@ func (r *ProfileRepositoryImpl) Create(profile *model.Profile) error {
 }
 
 // FindByID IDでプロフィールを検索
-func (r *ProfileRepositoryImpl) FindByID(id uuid.UUID) (*model.Profile, error) {
+func (r *ProfileRepositoryImpl) FindByID(id string) (*model.Profile, error) {
 	var profile model.Profile
 	err := r.db.First(&profile, "id = ?", id).Error
 	if err != nil {
@@ -119,7 +119,7 @@ func (r *ProfileRepositoryImpl) Update(profile *model.Profile) error {
 }
 
 // Delete プロフィールを削除（ソフトデリート）
-func (r *ProfileRepositoryImpl) Delete(id uuid.UUID) error {
+func (r *ProfileRepositoryImpl) Delete(id string) error {
 	return r.db.Delete(&model.Profile{}, "id = ?", id).Error
 }
 
@@ -142,7 +142,7 @@ func (r *ProfileRepositoryImpl) CreateOrUpdate(profile *model.Profile) error {
 }
 
 // SaveLanguageSkills 言語スキルを保存
-func (r *ProfileRepositoryImpl) SaveLanguageSkills(profileID uuid.UUID, skills []model.LanguageSkill) error {
+func (r *ProfileRepositoryImpl) SaveLanguageSkills(profileID string, skills []model.LanguageSkill) error {
 	// 既存のスキルを削除
 	if err := r.db.Where("profile_id = ?", profileID).Delete(&model.LanguageSkill{}).Error; err != nil {
 		return err
@@ -165,7 +165,7 @@ func (r *ProfileRepositoryImpl) SaveLanguageSkills(profileID uuid.UUID, skills [
 }
 
 // SaveFrameworkSkills フレームワークスキルを保存
-func (r *ProfileRepositoryImpl) SaveFrameworkSkills(profileID uuid.UUID, skills []model.FrameworkSkill) error {
+func (r *ProfileRepositoryImpl) SaveFrameworkSkills(profileID string, skills []model.FrameworkSkill) error {
 	// 既存のスキルを削除
 	if err := r.db.Where("profile_id = ?", profileID).Delete(&model.FrameworkSkill{}).Error; err != nil {
 		return err
@@ -188,7 +188,7 @@ func (r *ProfileRepositoryImpl) SaveFrameworkSkills(profileID uuid.UUID, skills 
 }
 
 // SaveBusinessExperiences 業務経験を保存
-func (r *ProfileRepositoryImpl) SaveBusinessExperiences(profileID uuid.UUID, experiences []model.BusinessExperience) error {
+func (r *ProfileRepositoryImpl) SaveBusinessExperiences(profileID string, experiences []model.BusinessExperience) error {
 	// 既存の経験を削除
 	if err := r.db.Where("profile_id = ?", profileID).Delete(&model.BusinessExperience{}).Error; err != nil {
 		return err
@@ -211,7 +211,7 @@ func (r *ProfileRepositoryImpl) SaveBusinessExperiences(profileID uuid.UUID, exp
 }
 
 // SaveWorkHistories 職務経歴を保存
-func (r *ProfileRepositoryImpl) SaveWorkHistories(profileID uuid.UUID, userID string, histories []model.WorkHistory) error {
+func (r *ProfileRepositoryImpl) SaveWorkHistories(profileID string, userID string, histories []model.WorkHistory) error {
 	// 既存の経歴を削除
 	if err := r.db.Where("profile_id = ?", profileID).Delete(&model.WorkHistory{}).Error; err != nil {
 		return err
@@ -235,7 +235,7 @@ func (r *ProfileRepositoryImpl) SaveWorkHistories(profileID uuid.UUID, userID st
 }
 
 // SaveCertifications プロフィールの資格情報を保存
-func (r *ProfileRepositoryImpl) SaveCertifications(profileID uuid.UUID, certifications []dto.CertificationRequest) error {
+func (r *ProfileRepositoryImpl) SaveCertifications(profileID string, certifications []dto.CertificationRequest) error {
 	// 既存の資格情報を削除
 	if err := r.db.Where("profile_id = ?", profileID).Delete(&model.ProfileCertification{}).Error; err != nil {
 		return err
@@ -255,7 +255,7 @@ func (r *ProfileRepositoryImpl) SaveCertifications(profileID uuid.UUID, certific
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				// 新しい資格を作成
 				certification = model.Certification{
-					ID:   uuid.New(),
+					ID:   uuid.New().String(),
 					Name: certReq.Name,
 				}
 				if err := r.db.Create(&certification).Error; err != nil {
@@ -354,7 +354,7 @@ func (r *ProfileRepositoryImpl) CreateProfileHistory(profile *model.Profile) err
 }
 
 // FindProfileHistoryByVersion 特定バージョンのプロフィール履歴を取得
-func (r *ProfileRepositoryImpl) FindProfileHistoryByVersion(profileID uuid.UUID, version int) (*model.ProfileHistory, error) {
+func (r *ProfileRepositoryImpl) FindProfileHistoryByVersion(profileID string, version int) (*model.ProfileHistory, error) {
 	var profileHistory model.ProfileHistory
 	err := r.db.Preload("WorkHistories").
 		Where("profile_id = ? AND version = ?", profileID, version).
@@ -366,7 +366,7 @@ func (r *ProfileRepositoryImpl) FindProfileHistoryByVersion(profileID uuid.UUID,
 }
 
 // FindLatestProfileHistory 最新のプロフィール履歴を取得
-func (r *ProfileRepositoryImpl) FindLatestProfileHistory(profileID uuid.UUID) (*model.ProfileHistory, error) {
+func (r *ProfileRepositoryImpl) FindLatestProfileHistory(profileID string) (*model.ProfileHistory, error) {
 	var profileHistory model.ProfileHistory
 	err := r.db.Preload("WorkHistories").
 		Where("profile_id = ?", profileID).

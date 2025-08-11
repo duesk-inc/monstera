@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -14,18 +13,18 @@ import (
 type EngineerProposalRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, proposal *model.EngineerProposal) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.EngineerProposal, error)
+	GetByID(ctx context.Context, id string) (*model.EngineerProposal, error)
 	Update(ctx context.Context, proposal *model.EngineerProposal) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 
 	// ステータス管理
-	UpdateStatus(ctx context.Context, id uuid.UUID, status string, respondedAt *time.Time) error
+	UpdateStatus(ctx context.Context, id string, status string, respondedAt *time.Time) error
 	GetByUserAndStatus(ctx context.Context, userID string, statuses []string) ([]*model.EngineerProposal, error)
 
 	// エンジニア向けクエリ
 	GetByUserID(ctx context.Context, userID string, filter EngineerProposalFilter) ([]*model.EngineerProposal, int64, error)
-	GetByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.EngineerProposal, error)
-	CheckDuplicateProposal(ctx context.Context, projectID uuid.UUID, userID string) (bool, error)
+	GetByProjectID(ctx context.Context, projectID string) ([]*model.EngineerProposal, error)
+	CheckDuplicateProposal(ctx context.Context, projectID string, userID string) (bool, error)
 
 	// 統計・分析クエリ
 	GetProposalSummary(ctx context.Context, userID string) (*ProposalSummaryResult, error)
@@ -51,7 +50,7 @@ type EngineerProposalRepository interface {
 	GetProposalActivityHeatmap(ctx context.Context, userID string, year int) ([]*ActivityHeatmapData, error)
 
 	// バルク操作
-	UpdateMultipleStatuses(ctx context.Context, ids []uuid.UUID, status string) error
+	UpdateMultipleStatuses(ctx context.Context, ids []string, status string) error
 }
 
 // EngineerProposalFilter エンジニア提案フィルター
@@ -116,24 +115,24 @@ type ResponseTimeStats struct {
 
 // ProjectProposalStats プロジェクト別提案統計
 type ProjectProposalStats struct {
-	ProjectID       uuid.UUID `json:"project_id"`
-	ProjectName     string    `json:"project_name"`
-	ProposalCount   int       `json:"proposal_count"`
-	ProceedCount    int       `json:"proceed_count"`
-	DeclinedCount   int       `json:"declined_count"`
-	ConversionRate  float64   `json:"conversion_rate"`
-	AvgResponseTime float64   `json:"avg_response_time_hours"`
+	ProjectID       string  `json:"project_id"`
+	ProjectName     string  `json:"project_name"`
+	ProposalCount   int     `json:"proposal_count"`
+	ProceedCount    int     `json:"proceed_count"`
+	DeclinedCount   int     `json:"declined_count"`
+	ConversionRate  float64 `json:"conversion_rate"`
+	AvgResponseTime float64 `json:"avg_response_time_hours"`
 }
 
 // EngineerProposalRank エンジニア提案ランキング
 type EngineerProposalRank struct {
-	UserID          uuid.UUID `json:"user_id"`
-	UserName        string    `json:"user_name"`
-	ProposalCount   int       `json:"proposal_count"`
-	ProceedCount    int       `json:"proceed_count"`
-	ConversionRate  float64   `json:"conversion_rate"`
-	AvgResponseTime float64   `json:"avg_response_time_hours"`
-	Rank            int       `json:"rank"`
+	UserID          string  `json:"user_id"`
+	UserName        string  `json:"user_name"`
+	ProposalCount   int     `json:"proposal_count"`
+	ProceedCount    int     `json:"proceed_count"`
+	ConversionRate  float64 `json:"conversion_rate"`
+	AvgResponseTime float64 `json:"avg_response_time_hours"`
+	Rank            int     `json:"rank"`
 }
 
 // ConversionRateStats 変換率統計
@@ -209,21 +208,21 @@ func (r *engineerProposalRepository) Create(ctx context.Context, proposal *model
 	if err := r.db.WithContext(ctx).Create(proposal).Error; err != nil {
 		r.logger.Error("Failed to create engineer proposal",
 			zap.Error(err),
-			zap.String("project_id", proposal.ProjectID.String()),
+			zap.String("project_id", proposal.ProjectID),
 			zap.String("user_id", proposal.UserID))
 		return err
 	}
 
 	r.logger.Info("Engineer proposal created successfully",
-		zap.String("proposal_id", proposal.ID.String()),
-		zap.String("project_id", proposal.ProjectID.String()),
+		zap.String("proposal_id", proposal.ID),
+		zap.String("project_id", proposal.ProjectID),
 		zap.String("user_id", proposal.UserID))
 
 	return nil
 }
 
 // GetByID IDでエンジニア提案を取得
-func (r *engineerProposalRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.EngineerProposal, error) {
+func (r *engineerProposalRepository) GetByID(ctx context.Context, id string) (*model.EngineerProposal, error) {
 	var proposal model.EngineerProposal
 
 	if err := r.db.WithContext(ctx).
@@ -231,12 +230,12 @@ func (r *engineerProposalRepository) GetByID(ctx context.Context, id uuid.UUID) 
 		Where("id = ? AND deleted_at IS NULL", id).
 		First(&proposal).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			r.logger.Warn("Engineer proposal not found", zap.String("id", id.String()))
+			r.logger.Warn("Engineer proposal not found", zap.String("id", id))
 			return nil, err
 		}
 		r.logger.Error("Failed to get engineer proposal by ID",
 			zap.Error(err),
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return nil, err
 	}
 
@@ -248,18 +247,18 @@ func (r *engineerProposalRepository) Update(ctx context.Context, proposal *model
 	if err := r.db.WithContext(ctx).Save(proposal).Error; err != nil {
 		r.logger.Error("Failed to update engineer proposal",
 			zap.Error(err),
-			zap.String("proposal_id", proposal.ID.String()))
+			zap.String("proposal_id", proposal.ID))
 		return err
 	}
 
 	r.logger.Info("Engineer proposal updated successfully",
-		zap.String("proposal_id", proposal.ID.String()))
+		zap.String("proposal_id", proposal.ID))
 
 	return nil
 }
 
 // Delete エンジニア提案を削除（論理削除）
-func (r *engineerProposalRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *engineerProposalRepository) Delete(ctx context.Context, id string) error {
 	result := r.db.WithContext(ctx).
 		Model(&model.EngineerProposal{}).
 		Where("id = ? AND deleted_at IS NULL", id).
@@ -268,21 +267,21 @@ func (r *engineerProposalRepository) Delete(ctx context.Context, id uuid.UUID) e
 	if result.Error != nil {
 		r.logger.Error("Failed to delete engineer proposal",
 			zap.Error(result.Error),
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		r.logger.Warn("Engineer proposal not found for deletion", zap.String("id", id.String()))
+		r.logger.Warn("Engineer proposal not found for deletion", zap.String("id", id))
 		return gorm.ErrRecordNotFound
 	}
 
-	r.logger.Info("Engineer proposal deleted successfully", zap.String("id", id.String()))
+	r.logger.Info("Engineer proposal deleted successfully", zap.String("id", id))
 	return nil
 }
 
 // UpdateStatus ステータスを更新
-func (r *engineerProposalRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status string, respondedAt *time.Time) error {
+func (r *engineerProposalRepository) UpdateStatus(ctx context.Context, id string, status string, respondedAt *time.Time) error {
 	updates := map[string]interface{}{
 		"status":     status,
 		"updated_at": time.Now(),
@@ -300,19 +299,19 @@ func (r *engineerProposalRepository) UpdateStatus(ctx context.Context, id uuid.U
 	if result.Error != nil {
 		r.logger.Error("Failed to update engineer proposal status",
 			zap.Error(result.Error),
-			zap.String("id", id.String()),
+			zap.String("id", id),
 			zap.String("status", status))
 		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
 		r.logger.Warn("Engineer proposal not found for status update",
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return gorm.ErrRecordNotFound
 	}
 
 	r.logger.Info("Engineer proposal status updated successfully",
-		zap.String("id", id.String()),
+		zap.String("id", id),
 		zap.String("status", status))
 
 	return nil
@@ -398,7 +397,7 @@ func (r *engineerProposalRepository) GetByUserID(ctx context.Context, userID str
 }
 
 // GetByProjectID プロジェクトIDでエンジニア提案を取得
-func (r *engineerProposalRepository) GetByProjectID(ctx context.Context, projectID uuid.UUID) ([]*model.EngineerProposal, error) {
+func (r *engineerProposalRepository) GetByProjectID(ctx context.Context, projectID string) ([]*model.EngineerProposal, error) {
 	var proposals []*model.EngineerProposal
 
 	if err := r.db.WithContext(ctx).
@@ -408,7 +407,7 @@ func (r *engineerProposalRepository) GetByProjectID(ctx context.Context, project
 		Find(&proposals).Error; err != nil {
 		r.logger.Error("Failed to get engineer proposals by project ID",
 			zap.Error(err),
-			zap.String("project_id", projectID.String()))
+			zap.String("project_id", projectID))
 		return nil, err
 	}
 
@@ -416,7 +415,7 @@ func (r *engineerProposalRepository) GetByProjectID(ctx context.Context, project
 }
 
 // CheckDuplicateProposal 重複提案をチェック
-func (r *engineerProposalRepository) CheckDuplicateProposal(ctx context.Context, projectID uuid.UUID, userID string) (bool, error) {
+func (r *engineerProposalRepository) CheckDuplicateProposal(ctx context.Context, projectID string, userID string) (bool, error) {
 	var count int64
 
 	if err := r.db.WithContext(ctx).
@@ -425,7 +424,7 @@ func (r *engineerProposalRepository) CheckDuplicateProposal(ctx context.Context,
 		Count(&count).Error; err != nil {
 		r.logger.Error("Failed to check duplicate proposal",
 			zap.Error(err),
-			zap.String("project_id", projectID.String()),
+			zap.String("project_id", projectID),
 			zap.String("user_id", userID))
 		return false, err
 	}
@@ -579,7 +578,7 @@ func (r *engineerProposalRepository) CountProposalsByStatus(ctx context.Context,
 }
 
 // UpdateMultipleStatuses 複数提案のステータスを一括更新
-func (r *engineerProposalRepository) UpdateMultipleStatuses(ctx context.Context, ids []uuid.UUID, status string) error {
+func (r *engineerProposalRepository) UpdateMultipleStatuses(ctx context.Context, ids []string, status string) error {
 	if len(ids) == 0 {
 		return nil
 	}

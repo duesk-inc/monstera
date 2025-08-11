@@ -4,10 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
-
-	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"time"
 
 	"github.com/duesk/monstera/internal/dto"
 )
@@ -36,7 +34,7 @@ const (
 )
 
 // GetMonthlyStats 月次統計をキャッシュから取得
-func (c *ExpenseSummaryCache) GetMonthlyStats(ctx context.Context, userID uuid.UUID, year, month int) (*dto.ExpenseSummaryResponse, error) {
+func (c *ExpenseSummaryCache) GetMonthlyStats(ctx context.Context, userID string, year, month int) (*dto.ExpenseSummaryResponse, error) {
 	key := c.buildMonthlyKey(userID, year, month)
 
 	data, err := c.redis.Get(ctx, key)
@@ -55,7 +53,7 @@ func (c *ExpenseSummaryCache) GetMonthlyStats(ctx context.Context, userID uuid.U
 }
 
 // SetMonthlyStats 月次統計をキャッシュに保存
-func (c *ExpenseSummaryCache) SetMonthlyStats(ctx context.Context, userID uuid.UUID, year, month int, stats *dto.ExpenseSummaryResponse) error {
+func (c *ExpenseSummaryCache) SetMonthlyStats(ctx context.Context, userID string, year, month int, stats *dto.ExpenseSummaryResponse) error {
 	key := c.buildMonthlyKey(userID, year, month)
 
 	data, err := json.Marshal(stats)
@@ -68,7 +66,7 @@ func (c *ExpenseSummaryCache) SetMonthlyStats(ctx context.Context, userID uuid.U
 }
 
 // GetYearlyStats 年次統計をキャッシュから取得
-func (c *ExpenseSummaryCache) GetYearlyStats(ctx context.Context, userID uuid.UUID, fiscalYear int) (*dto.ExpenseYearlySummaryResponse, error) {
+func (c *ExpenseSummaryCache) GetYearlyStats(ctx context.Context, userID string, fiscalYear int) (*dto.ExpenseYearlySummaryResponse, error) {
 	key := c.buildYearlyKey(userID, fiscalYear)
 
 	data, err := c.redis.Get(ctx, key)
@@ -87,7 +85,7 @@ func (c *ExpenseSummaryCache) GetYearlyStats(ctx context.Context, userID uuid.UU
 }
 
 // SetYearlyStats 年次統計をキャッシュに保存
-func (c *ExpenseSummaryCache) SetYearlyStats(ctx context.Context, userID uuid.UUID, fiscalYear int, stats *dto.ExpenseYearlySummaryResponse) error {
+func (c *ExpenseSummaryCache) SetYearlyStats(ctx context.Context, userID string, fiscalYear int, stats *dto.ExpenseYearlySummaryResponse) error {
 	key := c.buildYearlyKey(userID, fiscalYear)
 
 	data, err := json.Marshal(stats)
@@ -100,7 +98,7 @@ func (c *ExpenseSummaryCache) SetYearlyStats(ctx context.Context, userID uuid.UU
 }
 
 // GetLimitUsage 上限使用状況をキャッシュから取得
-func (c *ExpenseSummaryCache) GetLimitUsage(ctx context.Context, userID uuid.UUID, fiscalYear int) (*dto.LimitCheckResult, error) {
+func (c *ExpenseSummaryCache) GetLimitUsage(ctx context.Context, userID string, fiscalYear int) (*dto.LimitCheckResult, error) {
 	key := c.buildLimitUsageKey(userID, fiscalYear)
 
 	data, err := c.redis.Get(ctx, key)
@@ -119,7 +117,7 @@ func (c *ExpenseSummaryCache) GetLimitUsage(ctx context.Context, userID uuid.UUI
 }
 
 // SetLimitUsage 上限使用状況をキャッシュに保存
-func (c *ExpenseSummaryCache) SetLimitUsage(ctx context.Context, userID uuid.UUID, fiscalYear int, usage *dto.LimitCheckResult) error {
+func (c *ExpenseSummaryCache) SetLimitUsage(ctx context.Context, userID string, fiscalYear int, usage *dto.LimitCheckResult) error {
 	key := c.buildLimitUsageKey(userID, fiscalYear)
 
 	data, err := json.Marshal(usage)
@@ -133,10 +131,10 @@ func (c *ExpenseSummaryCache) SetLimitUsage(ctx context.Context, userID uuid.UUI
 }
 
 // InvalidateMonthlyStats 月次統計のキャッシュを無効化
-func (c *ExpenseSummaryCache) InvalidateMonthlyStats(ctx context.Context, userID *uuid.UUID) error {
+func (c *ExpenseSummaryCache) InvalidateMonthlyStats(ctx context.Context, userID *string) error {
 	pattern := monthlyStatsPrefix
 	if userID != nil {
-		pattern = fmt.Sprintf("%suser:%s:*", monthlyStatsPrefix, userID.String())
+		pattern = fmt.Sprintf("%suser:%s:*", monthlyStatsPrefix, userID)
 	} else {
 		pattern = monthlyStatsPrefix + "*"
 	}
@@ -144,10 +142,10 @@ func (c *ExpenseSummaryCache) InvalidateMonthlyStats(ctx context.Context, userID
 }
 
 // InvalidateYearlyStats 年次統計のキャッシュを無効化
-func (c *ExpenseSummaryCache) InvalidateYearlyStats(ctx context.Context, userID *uuid.UUID) error {
+func (c *ExpenseSummaryCache) InvalidateYearlyStats(ctx context.Context, userID *string) error {
 	pattern := yearlyStatsPrefix
 	if userID != nil {
-		pattern = fmt.Sprintf("%suser:%s:*", yearlyStatsPrefix, userID.String())
+		pattern = fmt.Sprintf("%suser:%s:*", yearlyStatsPrefix, userID)
 	} else {
 		pattern = yearlyStatsPrefix + "*"
 	}
@@ -155,10 +153,10 @@ func (c *ExpenseSummaryCache) InvalidateYearlyStats(ctx context.Context, userID 
 }
 
 // InvalidateLimitUsage 上限使用状況のキャッシュを無効化
-func (c *ExpenseSummaryCache) InvalidateLimitUsage(ctx context.Context, userID *uuid.UUID) error {
+func (c *ExpenseSummaryCache) InvalidateLimitUsage(ctx context.Context, userID *string) error {
 	pattern := limitUsagePrefix
 	if userID != nil {
-		pattern = fmt.Sprintf("%suser:%s:*", limitUsagePrefix, userID.String())
+		pattern = fmt.Sprintf("%suser:%s:*", limitUsagePrefix, userID)
 	} else {
 		pattern = limitUsagePrefix + "*"
 	}
@@ -166,7 +164,7 @@ func (c *ExpenseSummaryCache) InvalidateLimitUsage(ctx context.Context, userID *
 }
 
 // InvalidateUserSummaries ユーザーの全集計キャッシュを無効化
-func (c *ExpenseSummaryCache) InvalidateUserSummaries(ctx context.Context, userID uuid.UUID) error {
+func (c *ExpenseSummaryCache) InvalidateUserSummaries(ctx context.Context, userID string) error {
 	// 月次統計を無効化
 	if err := c.InvalidateMonthlyStats(ctx, &userID); err != nil {
 		return err
@@ -199,29 +197,29 @@ func (c *ExpenseSummaryCache) InvalidateAll(ctx context.Context) error {
 }
 
 // buildMonthlyKey 月次統計用のキーを生成
-func (c *ExpenseSummaryCache) buildMonthlyKey(userID uuid.UUID, year, month int) string {
+func (c *ExpenseSummaryCache) buildMonthlyKey(userID string, year, month int) string {
 	return fmt.Sprintf("%suser:%s:year:%d:month:%02d",
 		monthlyStatsPrefix,
-		userID.String(),
+		userID,
 		year,
 		month,
 	)
 }
 
 // buildYearlyKey 年次統計用のキーを生成
-func (c *ExpenseSummaryCache) buildYearlyKey(userID uuid.UUID, fiscalYear int) string {
+func (c *ExpenseSummaryCache) buildYearlyKey(userID string, fiscalYear int) string {
 	return fmt.Sprintf("%suser:%s:fy:%d",
 		yearlyStatsPrefix,
-		userID.String(),
+		userID,
 		fiscalYear,
 	)
 }
 
 // buildLimitUsageKey 上限使用状況用のキーを生成
-func (c *ExpenseSummaryCache) buildLimitUsageKey(userID uuid.UUID, fiscalYear int) string {
+func (c *ExpenseSummaryCache) buildLimitUsageKey(userID string, fiscalYear int) string {
 	return fmt.Sprintf("%suser:%s:fy:%d",
 		limitUsagePrefix,
-		userID.String(),
+		userID,
 		fiscalYear,
 	)
 }

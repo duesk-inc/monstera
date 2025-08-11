@@ -108,8 +108,9 @@ func (h *AuditLogHandler) GetAuditLogs(c *gin.Context) {
 // GetUserAuditLogs ユーザーの監査ログ取得
 func (h *AuditLogHandler) GetUserAuditLogs(c *gin.Context) {
 	userIDStr := c.Param("user_id")
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
+	userID := userIDStr
+	// UUID validation removed after migration
+	if userID == "" {
 		utils.RespondError(c, http.StatusBadRequest, "ユーザーIDの形式が不正です")
 		return
 	}
@@ -130,7 +131,7 @@ func (h *AuditLogHandler) GetUserAuditLogs(c *gin.Context) {
 	if err != nil {
 		h.logger.Error("Failed to get user audit logs",
 			zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 		)
 		utils.RespondError(c, http.StatusInternalServerError, "ユーザーの監査ログ取得に失敗しました")
 		return
@@ -163,11 +164,11 @@ func (h *AuditLogHandler) GetMyAuditLogs(c *gin.Context) {
 		limit = 20
 	}
 
-	auditLogs, err := h.auditService.GetUserAuditLogs(c.Request.Context(), userID.(uuid.UUID), page, limit)
+	auditLogs, err := h.auditService.GetUserAuditLogs(c.Request.Context(), userID.(string), page, limit)
 	if err != nil {
 		h.logger.Error("Failed to get my audit logs",
 			zap.Error(err),
-			zap.String("user_id", userID.(uuid.UUID).String()),
+			zap.String("user_id", userID.(string)),
 		)
 		utils.RespondError(c, http.StatusInternalServerError, "監査ログの取得に失敗しました")
 		return

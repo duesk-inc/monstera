@@ -56,7 +56,7 @@ func (h *ExpenseHandler) CreateExpense(c *gin.Context) {
 	// 経費申請を作成
 	expense, err := h.expenseService.Create(c.Request.Context(), userID, &req)
 	if err != nil {
-		h.logger.Error("Failed to create expense", zap.Error(err), zap.String("user_id", userID.String()))
+		h.logger.Error("Failed to create expense", zap.Error(err), zap.String("user_id", userID))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, "経費申請の作成に失敗しました", h.logger, err)
 		return
 	}
@@ -64,7 +64,7 @@ func (h *ExpenseHandler) CreateExpense(c *gin.Context) {
 	// レスポンスを変換
 	response := dto.ExpenseToResponse(expense)
 
-	h.logger.Info("経費申請作成成功", zap.String("expense_id", expense.ID.String()))
+	h.logger.Info("経費申請作成成功", zap.String("expense_id", expense.ID))
 	c.JSON(http.StatusCreated, gin.H{"data": response})
 }
 
@@ -87,7 +87,7 @@ func (h *ExpenseHandler) GetExpense(c *gin.Context) {
 	// 経費申請を取得
 	expense, err := h.expenseService.GetByID(c.Request.Context(), expenseID, userID)
 	if err != nil {
-		h.logger.Error("Failed to get expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		h.logger.Error("Failed to get expense", zap.Error(err), zap.String("expense_id", expenseID))
 
 		// エラーメッセージから404判定
 		if err.Error() == "経費申請が見つかりません" {
@@ -107,7 +107,7 @@ func (h *ExpenseHandler) GetExpense(c *gin.Context) {
 	// 詳細レスポンスを生成
 	response := dto.ExpenseToDetailResponse(&expense.Expense)
 
-	h.logger.Info("経費申請詳細取得成功", zap.String("expense_id", expenseID.String()))
+	h.logger.Info("経費申請詳細取得成功", zap.String("expense_id", expenseID))
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
@@ -139,7 +139,7 @@ func (h *ExpenseHandler) UpdateExpense(c *gin.Context) {
 	// 経費申請を更新
 	expense, err := h.expenseService.Update(c.Request.Context(), expenseID, userID, &req)
 	if err != nil {
-		h.logger.Error("Failed to update expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		h.logger.Error("Failed to update expense", zap.Error(err), zap.String("expense_id", expenseID))
 
 		// エラーメッセージから適切なステータスコードを判定
 		if err.Error() == "経費申請が見つかりません" {
@@ -164,7 +164,7 @@ func (h *ExpenseHandler) UpdateExpense(c *gin.Context) {
 	// レスポンスを変換
 	response := dto.ExpenseToResponse(expense)
 
-	h.logger.Info("経費申請更新成功", zap.String("expense_id", expenseID.String()))
+	h.logger.Info("経費申請更新成功", zap.String("expense_id", expenseID))
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
@@ -187,7 +187,7 @@ func (h *ExpenseHandler) DeleteExpense(c *gin.Context) {
 	// 経費申請を削除
 	err = h.expenseService.Delete(c.Request.Context(), expenseID, userID)
 	if err != nil {
-		h.logger.Error("Failed to delete expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		h.logger.Error("Failed to delete expense", zap.Error(err), zap.String("expense_id", expenseID))
 
 		// エラーメッセージから適切なステータスコードを判定
 		if err.Error() == "経費申請が見つかりません" {
@@ -209,7 +209,7 @@ func (h *ExpenseHandler) DeleteExpense(c *gin.Context) {
 		return
 	}
 
-	h.logger.Info("経費申請削除成功", zap.String("expense_id", expenseID.String()))
+	h.logger.Info("経費申請削除成功", zap.String("expense_id", expenseID))
 	c.JSON(http.StatusNoContent, nil)
 }
 
@@ -314,13 +314,13 @@ func (h *ExpenseHandler) GetExpenseList(c *gin.Context) {
 	// 経費申請一覧を取得
 	response, err := h.expenseService.List(c.Request.Context(), userID, filter)
 	if err != nil {
-		h.logger.Error("Failed to get expense list", zap.Error(err), zap.String("user_id", userID.String()))
+		h.logger.Error("Failed to get expense list", zap.Error(err), zap.String("user_id", userID))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, "経費申請一覧の取得に失敗しました", h.logger, err)
 		return
 	}
 
 	h.logger.Info("経費申請一覧取得成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("count", len(response.Items)),
 		zap.Int64("total", response.Total))
 
@@ -342,7 +342,7 @@ func (h *ExpenseHandler) GetCategories(c *gin.Context) {
 	if err != nil {
 		h.logger.Error("Failed to get expense categories",
 			zap.Error(err),
-			zap.String("user_id", userID.String()))
+			zap.String("user_id", userID))
 		HandleStandardError(c, http.StatusInternalServerError,
 			constants.ErrExpenseSaveFailed,
 			"カテゴリの取得に失敗しました", h.logger, err)
@@ -358,7 +358,7 @@ func (h *ExpenseHandler) GetCategories(c *gin.Context) {
 	}
 
 	h.logger.Info("経費カテゴリ一覧取得成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("count", len(response)))
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
@@ -390,7 +390,7 @@ func (h *ExpenseHandler) SubmitExpense(c *gin.Context) {
 	// 経費申請を提出
 	expense, err := h.expenseService.SubmitExpense(c.Request.Context(), expenseID, userID, &req)
 	if err != nil {
-		h.logger.Error("Failed to submit expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		h.logger.Error("Failed to submit expense", zap.Error(err), zap.String("expense_id", expenseID))
 
 		// ExpenseErrorタイプを確認
 		var expenseErr *dto.ExpenseError
@@ -435,7 +435,7 @@ func (h *ExpenseHandler) SubmitExpense(c *gin.Context) {
 	// レスポンスを変換
 	response := dto.ExpenseToResponse(expense)
 
-	h.logger.Info("経費申請提出成功", zap.String("expense_id", expenseID.String()))
+	h.logger.Info("経費申請提出成功", zap.String("expense_id", expenseID))
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
@@ -465,7 +465,7 @@ func (h *ExpenseHandler) CancelExpense(c *gin.Context) {
 	// 経費申請を取消
 	expense, err := h.expenseService.CancelExpense(c.Request.Context(), expenseID, userID, &req)
 	if err != nil {
-		h.logger.Error("Failed to cancel expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		h.logger.Error("Failed to cancel expense", zap.Error(err), zap.String("expense_id", expenseID))
 
 		// エラーメッセージから適切なステータスコードを判定
 		if err.Error() == "経費申請が見つかりません" {
@@ -485,7 +485,7 @@ func (h *ExpenseHandler) CancelExpense(c *gin.Context) {
 	// レスポンスを変換
 	response := dto.ExpenseToResponse(expense)
 
-	h.logger.Info("経費申請取消成功", zap.String("expense_id", expenseID.String()))
+	h.logger.Info("経費申請取消成功", zap.String("expense_id", expenseID))
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
@@ -511,13 +511,13 @@ func (h *ExpenseHandler) GenerateUploadURL(c *gin.Context) {
 	// Pre-signed URLを生成
 	uploadURLResponse, err := h.s3Service.GenerateUploadURL(c.Request.Context(), userID, &req)
 	if err != nil {
-		h.logger.Error("Failed to generate upload URL", zap.Error(err), zap.String("user_id", userID.String()))
+		h.logger.Error("Failed to generate upload URL", zap.Error(err), zap.String("user_id", userID))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, "アップロードURLの生成に失敗しました", h.logger, err)
 		return
 	}
 
 	h.logger.Info("ファイルアップロードURL生成成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("s3_key", uploadURLResponse.S3Key))
 
 	c.JSON(http.StatusOK, gin.H{"data": uploadURLResponse})
@@ -546,14 +546,14 @@ func (h *ExpenseHandler) CompleteUpload(c *gin.Context) {
 	response, err := h.expenseService.CompleteUpload(c.Request.Context(), userID, &req)
 	if err != nil {
 		h.logger.Error("Failed to complete upload", zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.String("s3_key", req.S3Key))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, "ファイルアップロードの完了処理に失敗しました", h.logger, err)
 		return
 	}
 
 	h.logger.Info("ファイルアップロード完了",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("s3_key", req.S3Key))
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
@@ -582,14 +582,14 @@ func (h *ExpenseHandler) DeleteUploadedFile(c *gin.Context) {
 	err := h.expenseService.DeleteUploadedFile(c.Request.Context(), userID, &req)
 	if err != nil {
 		h.logger.Error("Failed to delete uploaded file", zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.String("s3_key", req.S3Key))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, "ファイルの削除に失敗しました", h.logger, err)
 		return
 	}
 
 	h.logger.Info("アップロード済みファイル削除成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("s3_key", req.S3Key))
 
 	c.JSON(http.StatusNoContent, nil)
@@ -623,7 +623,7 @@ func (h *ExpenseHandler) ApproveExpense(c *gin.Context) {
 	// 経費申請を承認
 	expense, err := h.expenseService.ApproveExpense(c.Request.Context(), expenseID, approverID, &req)
 	if err != nil {
-		h.logger.Error("Failed to approve expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		h.logger.Error("Failed to approve expense", zap.Error(err), zap.String("expense_id", expenseID))
 
 		// エラーメッセージから適切なステータスコードを判定
 		if err.Error() == "経費申請が見つかりません" {
@@ -648,7 +648,7 @@ func (h *ExpenseHandler) ApproveExpense(c *gin.Context) {
 	// レスポンスを変換
 	response := dto.ExpenseToResponse(expense)
 
-	h.logger.Info("経費申請承認成功", zap.String("expense_id", expenseID.String()))
+	h.logger.Info("経費申請承認成功", zap.String("expense_id", expenseID))
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
@@ -680,7 +680,7 @@ func (h *ExpenseHandler) RejectExpense(c *gin.Context) {
 	// 経費申請を却下
 	expense, err := h.expenseService.RejectExpense(c.Request.Context(), expenseID, approverID, &req)
 	if err != nil {
-		h.logger.Error("Failed to reject expense", zap.Error(err), zap.String("expense_id", expenseID.String()))
+		h.logger.Error("Failed to reject expense", zap.Error(err), zap.String("expense_id", expenseID))
 
 		// エラーメッセージから適切なステータスコードを判定
 		if err.Error() == "経費申請が見つかりません" {
@@ -705,7 +705,7 @@ func (h *ExpenseHandler) RejectExpense(c *gin.Context) {
 	// レスポンスを変換
 	response := dto.ExpenseToResponse(expense)
 
-	h.logger.Info("経費申請却下成功", zap.String("expense_id", expenseID.String()))
+	h.logger.Info("経費申請却下成功", zap.String("expense_id", expenseID))
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
@@ -745,13 +745,13 @@ func (h *ExpenseHandler) GetPendingApprovals(c *gin.Context) {
 	// 承認待ち一覧を取得
 	response, err := h.expenseService.GetPendingApprovals(c.Request.Context(), approverID, filter)
 	if err != nil {
-		h.logger.Error("Failed to get pending approvals", zap.Error(err), zap.String("approver_id", approverID.String()))
+		h.logger.Error("Failed to get pending approvals", zap.Error(err), zap.String("approver_id", approverID))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, "承認待ち経費申請の取得に失敗しました", h.logger, err)
 		return
 	}
 
 	h.logger.Info("承認待ち経費申請一覧取得成功",
-		zap.String("approver_id", approverID.String()),
+		zap.String("approver_id", approverID),
 		zap.Int64("total", response.Total))
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
@@ -795,13 +795,13 @@ func (h *ExpenseHandler) CheckExpenseLimits(c *gin.Context) {
 	// 上限チェック実行
 	limitResult, err := h.expenseService.CheckLimits(c.Request.Context(), userID, amount, expenseDate)
 	if err != nil {
-		h.logger.Error("Failed to check expense limits", zap.Error(err), zap.String("user_id", userID.String()))
+		h.logger.Error("Failed to check expense limits", zap.Error(err), zap.String("user_id", userID))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrLimitSaveFailed, "上限チェックに失敗しました", h.logger, err)
 		return
 	}
 
 	h.logger.Info("経費申請上限チェック成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("amount", amount),
 		zap.Bool("within_monthly_limit", limitResult.WithinMonthlyLimit),
 		zap.Bool("within_yearly_limit", limitResult.WithinYearlyLimit))
@@ -852,7 +852,7 @@ func (h *ExpenseHandler) GetExpenseSummary(c *gin.Context) {
 	monthlySummary, err := h.expenseService.GetMonthlySummary(c.Request.Context(), userID, year, month)
 	if err != nil {
 		h.logger.Error("Failed to get monthly summary", zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("year", year),
 			zap.Int("month", month))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrSummaryProcessFailed, "月次集計の取得に失敗しました", h.logger, err)
@@ -876,7 +876,7 @@ func (h *ExpenseHandler) GetExpenseSummary(c *gin.Context) {
 			yearType = "会計年度"
 		}
 		h.logger.Error("Failed to get yearly summary", zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.Int("year", year),
 			zap.String("year_type", yearType))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrSummaryProcessFailed, "年次集計の取得に失敗しました", h.logger, err)
@@ -907,7 +907,7 @@ func (h *ExpenseHandler) GetExpenseSummary(c *gin.Context) {
 	}
 
 	h.logger.Info("経費申請集計取得成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("year", year),
 		zap.Int("month", month),
 		zap.Int("monthly_total", monthlySummary.Monthly.TotalAmount),
@@ -940,7 +940,7 @@ func (h *ExpenseHandler) GetExpenseLimits(c *gin.Context) {
 	// 経費申請上限一覧を取得
 	limits, err := h.expenseService.GetExpenseLimits(c.Request.Context())
 	if err != nil {
-		h.logger.Error("Failed to get expense limits", zap.Error(err), zap.String("user_id", userID.String()))
+		h.logger.Error("Failed to get expense limits", zap.Error(err), zap.String("user_id", userID))
 		HandleStandardError(c, http.StatusInternalServerError, constants.ErrLimitSaveFailed, "経費申請上限の取得に失敗しました", h.logger, err)
 		return
 	}
@@ -960,7 +960,7 @@ func (h *ExpenseHandler) GetExpenseLimits(c *gin.Context) {
 	}
 
 	h.logger.Info("経費申請上限一覧取得成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.Int("count", len(response)))
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
@@ -1000,7 +1000,7 @@ func (h *ExpenseHandler) UpdateExpenseLimit(c *gin.Context) {
 	limit, err := h.expenseService.UpdateExpenseLimit(c.Request.Context(), userID, &req)
 	if err != nil {
 		h.logger.Error("Failed to update expense limit", zap.Error(err),
-			zap.String("user_id", userID.String()),
+			zap.String("user_id", userID),
 			zap.String("limit_type", req.LimitType))
 
 		// エラーメッセージから適切なステータスコードを判定
@@ -1030,7 +1030,7 @@ func (h *ExpenseHandler) UpdateExpenseLimit(c *gin.Context) {
 	}
 
 	h.logger.Info("経費申請上限更新成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("limit_type", req.LimitType),
 		zap.Int("amount", req.Amount))
 
@@ -1083,8 +1083,8 @@ func (h *ExpenseHandler) CreateExpenseWithReceipts(c *gin.Context) {
 	}
 
 	h.logger.Info("複数領収書対応経費申請作成成功",
-		zap.String("expense_id", expense.ID.String()),
-		zap.String("user_id", userID.String()),
+		zap.String("expense_id", expense.ID),
+		zap.String("user_id", userID),
 		zap.Int("receipt_count", len(expense.Receipts)))
 
 	c.JSON(http.StatusCreated, gin.H{"data": expense})
@@ -1140,8 +1140,8 @@ func (h *ExpenseHandler) UpdateExpenseWithReceipts(c *gin.Context) {
 	}
 
 	h.logger.Info("複数領収書対応経費申請更新成功",
-		zap.String("expense_id", expense.ID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("expense_id", expense.ID),
+		zap.String("user_id", userID))
 
 	c.JSON(http.StatusOK, gin.H{"data": expense})
 }
@@ -1185,8 +1185,8 @@ func (h *ExpenseHandler) GetExpenseReceipts(c *gin.Context) {
 	}
 
 	h.logger.Info("経費申請領収書一覧取得成功",
-		zap.String("expense_id", expenseID.String()),
-		zap.String("user_id", userID.String()),
+		zap.String("expense_id", expenseID),
+		zap.String("user_id", userID),
 		zap.Int("count", len(receipts)))
 
 	c.JSON(http.StatusOK, gin.H{"data": receipts})
@@ -1238,9 +1238,9 @@ func (h *ExpenseHandler) DeleteExpenseReceipt(c *gin.Context) {
 	}
 
 	h.logger.Info("経費申請領収書削除成功",
-		zap.String("expense_id", expenseID.String()),
-		zap.String("receipt_id", receiptID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("expense_id", expenseID),
+		zap.String("receipt_id", receiptID),
+		zap.String("user_id", userID))
 
 	c.JSON(http.StatusOK, gin.H{"message": "領収書を削除しました"})
 }
@@ -1295,8 +1295,8 @@ func (h *ExpenseHandler) UpdateReceiptOrder(c *gin.Context) {
 	}
 
 	h.logger.Info("領収書表示順序更新成功",
-		zap.String("expense_id", expenseID.String()),
-		zap.String("user_id", userID.String()))
+		zap.String("expense_id", expenseID),
+		zap.String("user_id", userID))
 
 	c.JSON(http.StatusOK, gin.H{"message": "表示順序を更新しました"})
 }
@@ -1338,7 +1338,7 @@ func (h *ExpenseHandler) GenerateReceiptUploadURL(c *gin.Context) {
 	}
 
 	h.logger.Info("領収書アップロードURL生成成功",
-		zap.String("user_id", userID.String()),
+		zap.String("user_id", userID),
 		zap.String("file_name", req.FileName))
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
@@ -1457,7 +1457,7 @@ func (h *ExpenseHandler) getQueryParam(c *gin.Context, key string) *string {
 	return nil
 }
 
-func (h *ExpenseHandler) parseUUIDParam(c *gin.Context, key string) *uuid.UUID {
+func (h *ExpenseHandler) parseUUIDParam(c *gin.Context, key string) *string {
 	if value := c.Query(key); value != "" {
 		if id, err := uuid.Parse(value); err == nil {
 			return &id

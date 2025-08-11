@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -13,7 +12,7 @@ import (
 // AuditLogRepository 監査ログリポジトリインターフェース
 type AuditLogRepository interface {
 	Create(ctx context.Context, auditLog *model.AuditLog) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.AuditLog, error)
+	GetByID(ctx context.Context, id string) (*model.AuditLog, error)
 	GetByFilters(ctx context.Context, filters AuditLogFilters) ([]*model.AuditLog, int64, error)
 	GetByUserID(ctx context.Context, userID string, limit int, offset int) ([]*model.AuditLog, error)
 	GetByResourceID(ctx context.Context, resourceType model.ResourceType, resourceID string, limit int, offset int) ([]*model.AuditLog, error)
@@ -23,7 +22,7 @@ type AuditLogRepository interface {
 
 // AuditLogFilters 監査ログフィルター
 type AuditLogFilters struct {
-	UserID       *uuid.UUID `json:"user_id"`
+	UserID       *string    `json:"user_id"`
 	Action       *string    `json:"action"`
 	ResourceType *string    `json:"resource_type"`
 	ResourceID   *string    `json:"resource_id"`
@@ -48,7 +47,7 @@ type SuspiciousActivityFilters struct {
 
 // SuspiciousActivity 不審なアクティビティ
 type SuspiciousActivity struct {
-	UserID       uuid.UUID `json:"user_id"`
+	UserID       string    `json:"user_id"`
 	IPAddress    string    `json:"ip_address"`
 	Action       string    `json:"action"`
 	AttemptCount int       `json:"attempt_count"`
@@ -85,7 +84,7 @@ func (r *auditLogRepository) Create(ctx context.Context, auditLog *model.AuditLo
 	}
 
 	r.logger.Debug("Audit log created",
-		zap.String("id", auditLog.ID.String()),
+		zap.String("id", auditLog.ID),
 		zap.String("user_id", auditLog.UserID),
 		zap.String("action", auditLog.Action),
 		zap.String("resource_type", auditLog.ResourceType),
@@ -95,7 +94,7 @@ func (r *auditLogRepository) Create(ctx context.Context, auditLog *model.AuditLo
 }
 
 // GetByID IDで監査ログを取得
-func (r *auditLogRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.AuditLog, error) {
+func (r *auditLogRepository) GetByID(ctx context.Context, id string) (*model.AuditLog, error) {
 	var auditLog model.AuditLog
 	if err := r.db.WithContext(ctx).
 		Preload("User").
@@ -106,7 +105,7 @@ func (r *auditLogRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.
 		}
 		r.logger.Error("Failed to get audit log by ID",
 			zap.Error(err),
-			zap.String("id", id.String()),
+			zap.String("id", id),
 		)
 		return nil, err
 	}

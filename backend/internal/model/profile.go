@@ -9,8 +9,8 @@ import (
 
 // Profile ユーザープロフィールモデル
 type Profile struct {
-	ID              uuid.UUID            `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string            `gorm:"type:varchar(255);not null;unique" json:"user_id"`
+	ID              string               `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID          string               `gorm:"type:varchar(255);not null;unique" json:"user_id"`
 	User            User                 `gorm:"foreignKey:UserID" json:"user"`
 	Education       string               `gorm:"size:255" json:"education"`
 	NearestStation  string               `gorm:"size:255" json:"nearest_station"`
@@ -32,10 +32,10 @@ type Profile struct {
 
 // ProfileHistory プロフィールの履歴モデル
 type ProfileHistory struct {
-	ID             uuid.UUID            `gorm:"type:varchar(255);primary_key" json:"id"`
-	ProfileID      uuid.UUID            `gorm:"type:varchar(255);not null" json:"profile_id"`
+	ID             string               `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProfileID      string               `gorm:"type:varchar(255);not null" json:"profile_id"`
 	Profile        Profile              `gorm:"foreignKey:ProfileID" json:"-"`
-	UserID string            `gorm:"type:varchar(255);not null" json:"user_id"`
+	UserID         string               `gorm:"type:varchar(255);not null" json:"user_id"`
 	User           User                 `gorm:"foreignKey:UserID" json:"-"`
 	Education      string               `gorm:"size:255" json:"education"`
 	NearestStation string               `gorm:"size:255" json:"nearest_station"`
@@ -48,11 +48,11 @@ type ProfileHistory struct {
 
 // WorkHistoryHistory 職務経歴の履歴モデル
 type WorkHistoryHistory struct {
-	ID               uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
-	HistoryID        uuid.UUID      `gorm:"type:varchar(255);not null" json:"history_id"`
-	ProfileHistoryID uuid.UUID      `gorm:"type:varchar(255);not null" json:"profile_history_id"`
+	ID               string         `gorm:"type:varchar(255);primary_key" json:"id"`
+	HistoryID        string         `gorm:"type:varchar(255);not null" json:"history_id"`
+	ProfileHistoryID string         `gorm:"type:varchar(255);not null" json:"profile_history_id"`
 	ProfileHistory   ProfileHistory `gorm:"foreignKey:ProfileHistoryID" json:"-"`
-	UserID string      `gorm:"type:varchar(255);not null" json:"user_id"`
+	UserID           string         `gorm:"type:varchar(255);not null" json:"user_id"`
 	User             User           `gorm:"foreignKey:UserID" json:"-"`
 	ProjectName      string         `gorm:"size:255;not null" json:"project_name"`
 	StartDate        time.Time      `gorm:"not null" json:"start_date"`
@@ -67,7 +67,7 @@ type WorkHistoryHistory struct {
 
 // Skill スキルモデル
 type Skill struct {
-	ID        uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
+	ID        string         `gorm:"type:varchar(255);primary_key" json:"id"`
 	Name      string         `gorm:"size:255;not null;unique" json:"name"`
 	Category  string         `gorm:"size:50;not null" json:"category"`
 	CreatedAt time.Time      `json:"created_at"`
@@ -78,8 +78,8 @@ type Skill struct {
 
 // LanguageSkill 言語スキルモデル
 type LanguageSkill struct {
-	ID                uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
-	ProfileID         uuid.UUID      `gorm:"type:varchar(255);not null" json:"profile_id"`
+	ID                string         `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProfileID         string         `gorm:"type:varchar(255);not null" json:"profile_id"`
 	Name              string         `gorm:"size:255;not null" json:"name"`
 	Level             int            `gorm:"not null" json:"level"` // 1-5
 	YearsOfExperience int            `json:"years_of_experience"`
@@ -90,8 +90,8 @@ type LanguageSkill struct {
 
 // FrameworkSkill フレームワークスキルモデル
 type FrameworkSkill struct {
-	ID                uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
-	ProfileID         uuid.UUID      `gorm:"type:varchar(255);not null" json:"profile_id"`
+	ID                string         `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProfileID         string         `gorm:"type:varchar(255);not null" json:"profile_id"`
 	Name              string         `gorm:"size:255;not null" json:"name"`
 	Level             int            `gorm:"not null" json:"level"` // 1-5
 	YearsOfExperience int            `json:"years_of_experience"`
@@ -102,8 +102,8 @@ type FrameworkSkill struct {
 
 // BusinessExperience 業務経験モデル
 type BusinessExperience struct {
-	ID                uuid.UUID      `gorm:"type:varchar(255);primary_key" json:"id"`
-	ProfileID         uuid.UUID      `gorm:"type:varchar(255);not null" json:"profile_id"`
+	ID                string         `gorm:"type:varchar(255);primary_key" json:"id"`
+	ProfileID         string         `gorm:"type:varchar(255);not null" json:"profile_id"`
 	Industry          string         `gorm:"size:255;not null" json:"industry"`
 	ExperienceDetail  string         `gorm:"type:text" json:"experience_detail"`
 	YearsOfExperience int            `gorm:"not null" json:"years_of_experience"`
@@ -114,8 +114,8 @@ type BusinessExperience struct {
 
 // ProfileSkill プロフィールスキル中間テーブル
 type ProfileSkill struct {
-	ProfileID         uuid.UUID `gorm:"type:varchar(255);primaryKey;not null" json:"profile_id"`
-	SkillID           uuid.UUID `gorm:"type:varchar(255);primaryKey;not null" json:"skill_id"`
+	ProfileID         string    `gorm:"type:varchar(255);primaryKey;not null" json:"profile_id"`
+	SkillID           string    `gorm:"type:varchar(255);primaryKey;not null" json:"skill_id"`
 	Level             int       `gorm:"not null" json:"level"` // スキルレベル（1-5）
 	YearsOfExperience int       `json:"years_of_experience"`   // 経験年数
 	CreatedAt         time.Time `json:"created_at"`
@@ -124,13 +124,13 @@ type ProfileSkill struct {
 
 // ProfileCertification プロフィール資格中間テーブル
 type ProfileCertification struct {
-	ID              uuid.UUID  `gorm:"type:varchar(255);primaryKey" json:"id"`
-	ProfileID       uuid.UUID  `gorm:"type:varchar(255);not null" json:"profile_id"`
-	CertificationID *uuid.UUID `gorm:"type:varchar(255)" json:"certification_id"` // NULLの場合はカスタム入力
-	CustomName      *string    `gorm:"type:varchar(255)" json:"custom_name"`     // マスタにない資格名
-	IsCustom        bool       `gorm:"default:false" json:"is_custom"`           // カスタム入力フラグ
-	AcquiredDate    time.Time  `gorm:"not null" json:"acquired_date"`            // 取得日
-	ExpiryDate      *time.Time `json:"expiry_date"`                              // 有効期限
+	ID              string     `gorm:"type:varchar(255);primaryKey" json:"id"`
+	ProfileID       string     `gorm:"type:varchar(255);not null" json:"profile_id"`
+	CertificationID *string    `gorm:"type:varchar(255)" json:"certification_id"` // NULLの場合はカスタム入力
+	CustomName      *string    `gorm:"type:varchar(255)" json:"custom_name"`      // マスタにない資格名
+	IsCustom        bool       `gorm:"default:false" json:"is_custom"`            // カスタム入力フラグ
+	AcquiredDate    time.Time  `gorm:"not null" json:"acquired_date"`             // 取得日
+	ExpiryDate      *time.Time `json:"expiry_date"`                               // 有効期限
 	CreatedAt       time.Time  `json:"created_at"`
 	UpdatedAt       time.Time  `json:"updated_at"`
 
@@ -141,64 +141,64 @@ type ProfileCertification struct {
 
 // BeforeCreate UUIDを生成
 func (pc *ProfileCertification) BeforeCreate(tx *gorm.DB) error {
-	if pc.ID == uuid.Nil {
-		pc.ID = uuid.New()
+	if pc.ID == "" {
+		pc.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // BeforeCreate UUIDを生成
 func (p *Profile) BeforeCreate(tx *gorm.DB) error {
-	if p.ID == uuid.Nil {
-		p.ID = uuid.New()
+	if p.ID == "" {
+		p.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // BeforeCreate ProfileHistory用のUUID生成
 func (ph *ProfileHistory) BeforeCreate(tx *gorm.DB) error {
-	if ph.ID == uuid.Nil {
-		ph.ID = uuid.New()
+	if ph.ID == "" {
+		ph.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // BeforeCreate WorkHistoryHistory用のUUID生成
 func (whh *WorkHistoryHistory) BeforeCreate(tx *gorm.DB) error {
-	if whh.ID == uuid.Nil {
-		whh.ID = uuid.New()
+	if whh.ID == "" {
+		whh.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // BeforeCreate UUIDを生成
 func (s *Skill) BeforeCreate(tx *gorm.DB) error {
-	if s.ID == uuid.Nil {
-		s.ID = uuid.New()
+	if s.ID == "" {
+		s.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // BeforeCreate UUIDを生成
 func (ls *LanguageSkill) BeforeCreate(tx *gorm.DB) error {
-	if ls.ID == uuid.Nil {
-		ls.ID = uuid.New()
+	if ls.ID == "" {
+		ls.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // BeforeCreate UUIDを生成
 func (fs *FrameworkSkill) BeforeCreate(tx *gorm.DB) error {
-	if fs.ID == uuid.Nil {
-		fs.ID = uuid.New()
+	if fs.ID == "" {
+		fs.ID = uuid.New().String()
 	}
 	return nil
 }
 
 // BeforeCreate UUIDを生成
 func (be *BusinessExperience) BeforeCreate(tx *gorm.DB) error {
-	if be.ID == uuid.Nil {
-		be.ID = uuid.New()
+	if be.ID == "" {
+		be.ID = uuid.New().String()
 	}
 	return nil
 }

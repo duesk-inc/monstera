@@ -8,7 +8,6 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -17,17 +16,17 @@ import (
 type ExpenseRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, expense *model.Expense) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.Expense, error)
-	GetByIDForUpdate(ctx context.Context, id uuid.UUID) (*model.Expense, error)
-	GetDetailByID(ctx context.Context, id uuid.UUID) (*model.ExpenseWithDetails, error)
-	GetByIDWithDetails(ctx context.Context, id uuid.UUID) (*model.ExpenseWithDetails, error)
+	GetByID(ctx context.Context, id string) (*model.Expense, error)
+	GetByIDForUpdate(ctx context.Context, id string) (*model.Expense, error)
+	GetDetailByID(ctx context.Context, id string) (*model.ExpenseWithDetails, error)
+	GetByIDWithDetails(ctx context.Context, id string) (*model.ExpenseWithDetails, error)
 	Update(ctx context.Context, expense *model.Expense) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 
 	// 一覧・検索機能
 	List(ctx context.Context, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error)
 	ListByUserID(ctx context.Context, userID string, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error)
-	ListForApproval(ctx context.Context, approverID uuid.UUID, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error)
+	ListForApproval(ctx context.Context, approverID string, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error)
 
 	// 集計機能
 	GetMonthlySummary(ctx context.Context, userID string, year int, month int) (*model.ExpenseSummary, error)
@@ -35,8 +34,8 @@ type ExpenseRepository interface {
 	GetUserExpenseStatistics(ctx context.Context, userID string, fromDate, toDate time.Time) (*dto.ExpenseStatsResponse, error)
 
 	// 承認関連
-	GetPendingApprovals(ctx context.Context, approverID uuid.UUID) ([]model.Expense, error)
-	UpdateStatus(ctx context.Context, id uuid.UUID, status model.ExpenseStatus) error
+	GetPendingApprovals(ctx context.Context, approverID string) ([]model.Expense, error)
+	UpdateStatus(ctx context.Context, id string, status model.ExpenseStatus) error
 	CountPendingByUserID(ctx context.Context, userID string) (int64, error)
 
 	// 制限チェック関連
@@ -45,7 +44,7 @@ type ExpenseRepository interface {
 	GetYearlyTotal(ctx context.Context, userID string, year int) (int, error)
 
 	// ユーティリティ
-	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
+	ExistsByID(ctx context.Context, id string) (bool, error)
 	CountExpiringSoon(ctx context.Context, days int) (int64, error)
 	SetLogger(logger *zap.Logger)
 
@@ -56,10 +55,10 @@ type ExpenseRepository interface {
 	// 期限関連
 	GetExpiredExpenses(ctx context.Context, now time.Time) ([]*model.Expense, error)
 	GetExpensesNeedingReminder(ctx context.Context, reminderDate time.Time) ([]*model.Expense, error)
-	UpdateExpenseStatus(ctx context.Context, id uuid.UUID, status model.ExpenseStatus) error
-	MarkAsExpired(ctx context.Context, id uuid.UUID) error
-	MarkReminderSent(ctx context.Context, id uuid.UUID) error
-	MarkExpiryNotificationSent(ctx context.Context, id uuid.UUID) error
+	UpdateExpenseStatus(ctx context.Context, id string, status model.ExpenseStatus) error
+	MarkAsExpired(ctx context.Context, id string) error
+	MarkReminderSent(ctx context.Context, id string) error
+	MarkExpiryNotificationSent(ctx context.Context, id string) error
 }
 
 // ExpenseRepositoryImpl 経費申請に関するデータアクセスの実装
@@ -96,14 +95,14 @@ func (r *ExpenseRepositoryImpl) Create(ctx context.Context, expense *model.Expen
 	}
 
 	r.logger.Info("Expense created successfully",
-		zap.String("expense_id", expense.ID.String()),
+		zap.String("expense_id", expense.ID),
 		zap.String("user_id", expense.UserID),
 		zap.String("title", expense.Title))
 	return nil
 }
 
 // GetByID 経費申請IDで単一レコードを取得
-func (r *ExpenseRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*model.Expense, error) {
+func (r *ExpenseRepositoryImpl) GetByID(ctx context.Context, id string) (*model.Expense, error) {
 	var expense model.Expense
 	err := r.db.WithContext(ctx).
 		Preload("User").
@@ -113,12 +112,12 @@ func (r *ExpenseRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*mod
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			r.logger.Warn("Expense not found", zap.String("expense_id", id.String()))
+			r.logger.Warn("Expense not found", zap.String("expense_id", id))
 			return nil, err
 		}
 		r.logger.Error("Failed to get expense by ID",
 			zap.Error(err),
-			zap.String("expense_id", id.String()))
+			zap.String("expense_id", id))
 		return nil, err
 	}
 
@@ -126,7 +125,7 @@ func (r *ExpenseRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*mod
 }
 
 // GetByIDForUpdate 排他ロック付きで経費申請を取得
-func (r *ExpenseRepositoryImpl) GetByIDForUpdate(ctx context.Context, id uuid.UUID) (*model.Expense, error) {
+func (r *ExpenseRepositoryImpl) GetByIDForUpdate(ctx context.Context, id string) (*model.Expense, error) {
 	var expense model.Expense
 	err := r.db.WithContext(ctx).
 		Set("gorm:query_option", "FOR UPDATE").
@@ -135,12 +134,12 @@ func (r *ExpenseRepositoryImpl) GetByIDForUpdate(ctx context.Context, id uuid.UU
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			r.logger.Warn("Expense not found for update", zap.String("expense_id", id.String()))
+			r.logger.Warn("Expense not found for update", zap.String("expense_id", id))
 			return nil, err
 		}
 		r.logger.Error("Failed to get expense by ID for update",
 			zap.Error(err),
-			zap.String("expense_id", id.String()))
+			zap.String("expense_id", id))
 		return nil, err
 	}
 
@@ -148,7 +147,7 @@ func (r *ExpenseRepositoryImpl) GetByIDForUpdate(ctx context.Context, id uuid.UU
 }
 
 // GetDetailByID 詳細情報付きで経費申請を取得
-func (r *ExpenseRepositoryImpl) GetDetailByID(ctx context.Context, id uuid.UUID) (*model.ExpenseWithDetails, error) {
+func (r *ExpenseRepositoryImpl) GetDetailByID(ctx context.Context, id string) (*model.ExpenseWithDetails, error) {
 	// まず基本の経費申請を取得
 	expense, err := r.GetByID(ctx, id)
 	if err != nil {
@@ -164,7 +163,7 @@ func (r *ExpenseRepositoryImpl) GetDetailByID(ctx context.Context, id uuid.UUID)
 	if err := expenseWithDetails.LoadDetails(r.db); err != nil {
 		r.logger.Error("Failed to load expense details",
 			zap.Error(err),
-			zap.String("expense_id", id.String()))
+			zap.String("expense_id", id))
 		return nil, err
 	}
 
@@ -172,7 +171,7 @@ func (r *ExpenseRepositoryImpl) GetDetailByID(ctx context.Context, id uuid.UUID)
 }
 
 // GetByIDWithDetails 詳細情報付きで経費申請を取得（GetDetailByIDのエイリアス）
-func (r *ExpenseRepositoryImpl) GetByIDWithDetails(ctx context.Context, id uuid.UUID) (*model.ExpenseWithDetails, error) {
+func (r *ExpenseRepositoryImpl) GetByIDWithDetails(ctx context.Context, id string) (*model.ExpenseWithDetails, error) {
 	return r.GetDetailByID(ctx, id)
 }
 
@@ -182,28 +181,28 @@ func (r *ExpenseRepositoryImpl) Update(ctx context.Context, expense *model.Expen
 	if err != nil {
 		r.logger.Error("Failed to update expense",
 			zap.Error(err),
-			zap.String("expense_id", expense.ID.String()))
+			zap.String("expense_id", expense.ID))
 		return err
 	}
 
 	r.logger.Info("Expense updated successfully",
-		zap.String("expense_id", expense.ID.String()),
+		zap.String("expense_id", expense.ID),
 		zap.String("status", string(expense.Status)))
 	return nil
 }
 
 // Delete 経費申請を削除（論理削除）
-func (r *ExpenseRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseRepositoryImpl) Delete(ctx context.Context, id string) error {
 	err := r.db.WithContext(ctx).Delete(&model.Expense{}, id).Error
 	if err != nil {
 		r.logger.Error("Failed to delete expense",
 			zap.Error(err),
-			zap.String("expense_id", id.String()))
+			zap.String("expense_id", id))
 		return err
 	}
 
 	r.logger.Info("Expense deleted successfully",
-		zap.String("expense_id", id.String()))
+		zap.String("expense_id", id))
 	return nil
 }
 
@@ -272,7 +271,7 @@ func (r *ExpenseRepositoryImpl) ListByUserID(ctx context.Context, userID string,
 }
 
 // ListForApproval 承認待ち経費申請一覧を取得
-func (r *ExpenseRepositoryImpl) ListForApproval(ctx context.Context, approverID uuid.UUID, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error) {
+func (r *ExpenseRepositoryImpl) ListForApproval(ctx context.Context, approverID string, filter *dto.ExpenseFilterRequest) ([]model.Expense, int64, error) {
 	// 承認待ちの経費申請を取得するためのサブクエリ
 	subQuery := r.db.Table("expense_approvals").
 		Select("expense_id").
@@ -286,7 +285,7 @@ func (r *ExpenseRepositoryImpl) ListForApproval(ctx context.Context, approverID 
 	if err := query.Model(&model.Expense{}).Count(&total).Error; err != nil {
 		r.logger.Error("Failed to count approval expenses",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return nil, 0, err
 	}
 
@@ -302,7 +301,7 @@ func (r *ExpenseRepositoryImpl) ListForApproval(ctx context.Context, approverID 
 	if err != nil {
 		r.logger.Error("Failed to list approval expenses",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return nil, 0, err
 	}
 
@@ -424,7 +423,7 @@ func (r *ExpenseRepositoryImpl) GetUserExpenseStatistics(ctx context.Context, us
 // ========================================
 
 // GetPendingApprovals 承認待ち経費申請を取得
-func (r *ExpenseRepositoryImpl) GetPendingApprovals(ctx context.Context, approverID uuid.UUID) ([]model.Expense, error) {
+func (r *ExpenseRepositoryImpl) GetPendingApprovals(ctx context.Context, approverID string) ([]model.Expense, error) {
 	subQuery := r.db.Table("expense_approvals").
 		Select("expense_id").
 		Where("approver_id = ? AND status = ?", approverID, model.ApprovalStatusPending)
@@ -440,7 +439,7 @@ func (r *ExpenseRepositoryImpl) GetPendingApprovals(ctx context.Context, approve
 	if err != nil {
 		r.logger.Error("Failed to get pending approvals",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return nil, err
 	}
 
@@ -448,7 +447,7 @@ func (r *ExpenseRepositoryImpl) GetPendingApprovals(ctx context.Context, approve
 }
 
 // UpdateStatus 経費申請のステータスを更新
-func (r *ExpenseRepositoryImpl) UpdateStatus(ctx context.Context, id uuid.UUID, status model.ExpenseStatus) error {
+func (r *ExpenseRepositoryImpl) UpdateStatus(ctx context.Context, id string, status model.ExpenseStatus) error {
 	err := r.db.WithContext(ctx).
 		Model(&model.Expense{}).
 		Where("id = ?", id).
@@ -457,13 +456,13 @@ func (r *ExpenseRepositoryImpl) UpdateStatus(ctx context.Context, id uuid.UUID, 
 	if err != nil {
 		r.logger.Error("Failed to update expense status",
 			zap.Error(err),
-			zap.String("expense_id", id.String()),
+			zap.String("expense_id", id),
 			zap.String("status", string(status)))
 		return err
 	}
 
 	r.logger.Info("Expense status updated",
-		zap.String("expense_id", id.String()),
+		zap.String("expense_id", id),
 		zap.String("status", string(status)))
 	return nil
 }
@@ -535,7 +534,7 @@ func (r *ExpenseRepositoryImpl) GetYearlyTotal(ctx context.Context, userID strin
 // ========================================
 
 // ExistsByID 経費申請IDが存在するかチェック
-func (r *ExpenseRepositoryImpl) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (r *ExpenseRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.Expense{}).
@@ -545,7 +544,7 @@ func (r *ExpenseRepositoryImpl) ExistsByID(ctx context.Context, id uuid.UUID) (b
 	if err != nil {
 		r.logger.Error("Failed to check expense existence",
 			zap.Error(err),
-			zap.String("expense_id", id.String()))
+			zap.String("expense_id", id))
 		return false, err
 	}
 
@@ -760,7 +759,7 @@ func (r *ExpenseRepositoryImpl) GetExpensesNeedingReminder(ctx context.Context, 
 }
 
 // UpdateExpenseStatus 経費申請のステータスを更新
-func (r *ExpenseRepositoryImpl) UpdateExpenseStatus(ctx context.Context, id uuid.UUID, status model.ExpenseStatus) error {
+func (r *ExpenseRepositoryImpl) UpdateExpenseStatus(ctx context.Context, id string, status model.ExpenseStatus) error {
 	err := r.db.WithContext(ctx).
 		Model(&model.Expense{}).
 		Where("id = ?", id).
@@ -769,7 +768,7 @@ func (r *ExpenseRepositoryImpl) UpdateExpenseStatus(ctx context.Context, id uuid
 	if err != nil {
 		r.logger.Error("Failed to update expense status",
 			zap.Error(err),
-			zap.String("expense_id", id.String()),
+			zap.String("expense_id", id),
 			zap.String("status", string(status)))
 		return err
 	}
@@ -778,7 +777,7 @@ func (r *ExpenseRepositoryImpl) UpdateExpenseStatus(ctx context.Context, id uuid
 }
 
 // MarkAsExpired 経費申請を期限切れとしてマーク
-func (r *ExpenseRepositoryImpl) MarkAsExpired(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseRepositoryImpl) MarkAsExpired(ctx context.Context, id string) error {
 	now := time.Now()
 	err := r.db.WithContext(ctx).
 		Model(&model.Expense{}).
@@ -791,7 +790,7 @@ func (r *ExpenseRepositoryImpl) MarkAsExpired(ctx context.Context, id uuid.UUID)
 	if err != nil {
 		r.logger.Error("Failed to mark expense as expired",
 			zap.Error(err),
-			zap.String("expense_id", id.String()))
+			zap.String("expense_id", id))
 		return err
 	}
 
@@ -799,7 +798,7 @@ func (r *ExpenseRepositoryImpl) MarkAsExpired(ctx context.Context, id uuid.UUID)
 }
 
 // MarkReminderSent リマインダー送信済みとしてマーク
-func (r *ExpenseRepositoryImpl) MarkReminderSent(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseRepositoryImpl) MarkReminderSent(ctx context.Context, id string) error {
 	now := time.Now()
 	err := r.db.WithContext(ctx).
 		Model(&model.Expense{}).
@@ -809,7 +808,7 @@ func (r *ExpenseRepositoryImpl) MarkReminderSent(ctx context.Context, id uuid.UU
 	if err != nil {
 		r.logger.Error("Failed to mark reminder sent",
 			zap.Error(err),
-			zap.String("expense_id", id.String()))
+			zap.String("expense_id", id))
 		return err
 	}
 
@@ -817,7 +816,7 @@ func (r *ExpenseRepositoryImpl) MarkReminderSent(ctx context.Context, id uuid.UU
 }
 
 // MarkExpiryNotificationSent 期限切れ通知送信済みとしてマーク
-func (r *ExpenseRepositoryImpl) MarkExpiryNotificationSent(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseRepositoryImpl) MarkExpiryNotificationSent(ctx context.Context, id string) error {
 	err := r.db.WithContext(ctx).
 		Model(&model.Expense{}).
 		Where("id = ?", id).
@@ -826,7 +825,7 @@ func (r *ExpenseRepositoryImpl) MarkExpiryNotificationSent(ctx context.Context, 
 	if err != nil {
 		r.logger.Error("Failed to mark expiry notification sent",
 			zap.Error(err),
-			zap.String("expense_id", id.String()))
+			zap.String("expense_id", id))
 		return err
 	}
 

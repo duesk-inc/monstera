@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -14,11 +13,11 @@ import (
 type WeeklyReportRefactoredService interface {
 	// ユーザー向けメソッド
 	GetUserWeeklyReports(ctx context.Context, userID string, params *ListParams) (*WeeklyReportListResponse, error)
-	GetUserWeeklyReportDetail(ctx context.Context, userID, reportID uuid.UUID) (interface{}, error)
+	GetUserWeeklyReportDetail(ctx context.Context, userID, reportID string) (interface{}, error)
 	CreateWeeklyReport(ctx context.Context, report *model.WeeklyReport, dailyRecords []*model.DailyRecord) error
 	UpdateWeeklyReport(ctx context.Context, report *model.WeeklyReport, dailyRecords []*model.DailyRecord) error
-	SubmitWeeklyReport(ctx context.Context, userID, reportID uuid.UUID) error
-	DeleteWeeklyReport(ctx context.Context, userID, reportID uuid.UUID) error
+	SubmitWeeklyReport(ctx context.Context, userID, reportID string) error
+	DeleteWeeklyReport(ctx context.Context, userID, reportID string) error
 
 	// 管理者向けメソッド
 	GetAllWeeklyReports(ctx context.Context, params *AdminListParams) (*WeeklyReportListResponse, error)
@@ -49,7 +48,7 @@ func (s *weeklyReportRefactoredService) GetUserWeeklyReports(ctx context.Context
 }
 
 // GetUserWeeklyReportDetail ユーザーの週報詳細を取得
-func (s *weeklyReportRefactoredService) GetUserWeeklyReportDetail(ctx context.Context, userID, reportID uuid.UUID) (interface{}, error) {
+func (s *weeklyReportRefactoredService) GetUserWeeklyReportDetail(ctx context.Context, userID, reportID string) (interface{}, error) {
 	// TODO: 実装
 	return nil, nil
 }
@@ -67,13 +66,13 @@ func (s *weeklyReportRefactoredService) UpdateWeeklyReport(ctx context.Context, 
 }
 
 // SubmitWeeklyReport 週報を提出
-func (s *weeklyReportRefactoredService) SubmitWeeklyReport(ctx context.Context, userID, reportID uuid.UUID) error {
+func (s *weeklyReportRefactoredService) SubmitWeeklyReport(ctx context.Context, userID, reportID string) error {
 	// TODO: 実装
 	return nil
 }
 
 // DeleteWeeklyReport 週報を削除
-func (s *weeklyReportRefactoredService) DeleteWeeklyReport(ctx context.Context, userID, reportID uuid.UUID) error {
+func (s *weeklyReportRefactoredService) DeleteWeeklyReport(ctx context.Context, userID, reportID string) error {
 	// TODO: 実装
 	return nil
 }

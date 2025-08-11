@@ -9,7 +9,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -18,15 +17,15 @@ import (
 // AdminWeeklyReportService 管理者用週報サービスのインターフェース
 type AdminWeeklyReportService interface {
 	GetWeeklyReports(ctx context.Context, page, limit int, status, userID, dateFrom, dateTo string) ([]dto.AdminWeeklyReportDTO, int64, error)
-	GetWeeklyReportDetail(ctx context.Context, reportID uuid.UUID) (*dto.AdminWeeklyReportDetailDTO, error)
+	GetWeeklyReportDetail(ctx context.Context, reportID string) (*dto.AdminWeeklyReportDetailDTO, error)
 	CommentWeeklyReport(ctx context.Context, reportID, userID string, comment string) error
 	GetMonthlyAttendance(ctx context.Context, month string) ([]dto.MonthlyAttendanceDTO, error)
 	GetFollowUpRequiredUsers(ctx context.Context) ([]dto.FollowUpUserDTO, error)
 	ExportMonthlyReport(ctx context.Context, month, format string) ([]byte, string, string, error)
 	// サマリー統計API
-	GetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *uuid.UUID) (*dto.WeeklyReportSummaryStatsDTO, error)
+	GetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *string) (*dto.WeeklyReportSummaryStatsDTO, error)
 	// 月次サマリー統計API
-	GetMonthlySummary(ctx context.Context, year int, month int, departmentID *uuid.UUID) (*dto.MonthlySummaryDTO, error)
+	GetMonthlySummary(ctx context.Context, year int, month int, departmentID *string) (*dto.MonthlySummaryDTO, error)
 }
 
 // adminWeeklyReportService 管理者用週報サービスの実装
@@ -115,7 +114,7 @@ func (s *adminWeeklyReportService) GetWeeklyReports(
 }
 
 // GetWeeklyReportDetail 週報詳細を取得
-func (s *adminWeeklyReportService) GetWeeklyReportDetail(ctx context.Context, reportID uuid.UUID) (*dto.AdminWeeklyReportDetailDTO, error) {
+func (s *adminWeeklyReportService) GetWeeklyReportDetail(ctx context.Context, reportID string) (*dto.AdminWeeklyReportDetailDTO, error) {
 	var report model.WeeklyReport
 	if err := s.db.WithContext(ctx).
 		Preload("User").
@@ -257,7 +256,7 @@ func (s *adminWeeklyReportService) GetMonthlyAttendance(ctx context.Context, mon
 			WeekStart:      report.StartDate,
 			WeekEnd:        report.EndDate,
 			Status:         0, // レガシー互換性のため（廃止予定）
-			StatusString:   report.Status.String(),
+			StatusString:   string(report.Status),
 			TotalWorkHours: report.TotalWorkHours,
 			ClientHours:    report.ClientWorkHours,
 		}
@@ -309,10 +308,10 @@ func (s *adminWeeklyReportService) GetFollowUpRequiredUsers(ctx context.Context)
 	// 各ユーザーの最新週報を一括で取得するサブクエリ
 	// サブクエリで各ユーザーの最新週報の終了日を取得
 	type LatestReportInfo struct {
-		UserID   uuid.UUID                    `gorm:"column:user_id"`
+		UserID   string                       `gorm:"column:user_id"`
 		EndDate  time.Time                    `gorm:"column:end_date"`
 		Status   model.WeeklyReportStatusEnum `gorm:"column:status"`
-		ReportID uuid.UUID                    `gorm:"column:id"`
+		ReportID string                       `gorm:"column:id"`
 	}
 
 	var latestReports []LatestReportInfo
@@ -350,7 +349,7 @@ func (s *adminWeeklyReportService) GetFollowUpRequiredUsers(ctx context.Context)
 			status := 0 // レガシー互換性のため（廃止予定）
 			followUpUser.LastReportStatus = &status
 			// Phase 1: 文字列ステータスを追加
-			statusString := latestReport.Status.String()
+			statusString := string(latestReport.Status)
 			followUpUser.LastReportStatusString = &statusString
 
 			// 未提出期間を計算
@@ -408,7 +407,7 @@ func (s *adminWeeklyReportService) exportToExcel(attendance []dto.MonthlyAttenda
 func (s *adminWeeklyReportService) GetWeeklyReportSummary(
 	ctx context.Context,
 	startDate, endDate time.Time,
-	departmentID *uuid.UUID,
+	departmentID *string,
 ) (*dto.WeeklyReportSummaryStatsDTO, error) {
 	s.logger.Info("Getting weekly report summary",
 		zap.Time("start_date", startDate),
@@ -634,11 +633,11 @@ func (s *adminWeeklyReportService) calculateUserSummaries(reports []model.Weekly
 func (s *adminWeeklyReportService) calculateDepartmentStats(ctx context.Context, startDate, endDate time.Time) ([]dto.DepartmentStatsDTO, error) {
 	// 部署別集計クエリ
 	type DepartmentStat struct {
-		DepartmentID   uuid.UUID `gorm:"column:department_id"`
-		DepartmentName string    `gorm:"column:department_name"`
-		UserCount      int       `gorm:"column:user_count"`
-		SubmittedCount int       `gorm:"column:submitted_count"`
-		TotalWorkHours float64   `gorm:"column:total_work_hours"`
+		DepartmentID   string  `gorm:"column:department_id"`
+		DepartmentName string  `gorm:"column:department_name"`
+		UserCount      int     `gorm:"column:user_count"`
+		SubmittedCount int     `gorm:"column:submitted_count"`
+		TotalWorkHours float64 `gorm:"column:total_work_hours"`
 	}
 
 	var departmentStats []DepartmentStat
@@ -687,7 +686,7 @@ func (s *adminWeeklyReportService) calculateDepartmentStats(ctx context.Context,
 }
 
 // calculateTrendAnalysis トレンド分析を計算
-func (s *adminWeeklyReportService) calculateTrendAnalysis(ctx context.Context, startDate, endDate time.Time, departmentID *uuid.UUID) (dto.WeeklyReportTrendAnalysisDTO, error) {
+func (s *adminWeeklyReportService) calculateTrendAnalysis(ctx context.Context, startDate, endDate time.Time, departmentID *string) (dto.WeeklyReportTrendAnalysisDTO, error) {
 	// 前期間のデータを取得
 	previousPeriodDuration := endDate.Sub(startDate)
 	previousStartDate := startDate.Add(-previousPeriodDuration)
@@ -741,7 +740,7 @@ type BasicStats struct {
 	AverageWorkHours float64
 }
 
-func (s *adminWeeklyReportService) getBasicStats(ctx context.Context, startDate, endDate time.Time, departmentID *uuid.UUID) (BasicStats, error) {
+func (s *adminWeeklyReportService) getBasicStats(ctx context.Context, startDate, endDate time.Time, departmentID *string) (BasicStats, error) {
 	query := s.db.WithContext(ctx).Model(&model.WeeklyReport{}).
 		Where("deleted_at IS NULL").
 		Where("start_date >= ? AND end_date <= ?", startDate, endDate)
@@ -852,7 +851,7 @@ func (s *adminWeeklyReportService) GetMonthlySummary(
 	ctx context.Context,
 	year int,
 	month int,
-	departmentID *uuid.UUID,
+	departmentID *string,
 ) (*dto.MonthlySummaryDTO, error) {
 	s.logger.Info("Getting monthly summary",
 		zap.Int("year", year),
@@ -871,7 +870,7 @@ func (s *adminWeeklyReportService) GetMonthlySummary(
 	userQuery := s.db.WithContext(ctx).Model(&model.User{}).
 		Where("active = ? AND deleted_at IS NULL", true)
 
-	if departmentID != nil && *departmentID != uuid.Nil {
+	if departmentID != nil && *departmentID != "" {
 		userQuery = userQuery.Where("department_id = ?", *departmentID)
 	}
 
@@ -987,7 +986,7 @@ func (s *adminWeeklyReportService) calculateWeeklySummaries(
 	ctx context.Context,
 	year int,
 	month int,
-	departmentID *uuid.UUID,
+	departmentID *string,
 	totalUsers int,
 ) []dto.WeeklySummaryDTO {
 	var summaries []dto.WeeklySummaryDTO
@@ -1284,7 +1283,7 @@ func (s *adminWeeklyReportService) getAlertSummaryForMonth(
 	ctx context.Context,
 	year int,
 	month int,
-	departmentID *uuid.UUID,
+	departmentID *string,
 ) (*dto.AlertSummaryDTO, error) {
 	// 月の開始日と終了日
 	startDate := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
@@ -1340,7 +1339,7 @@ func (s *adminWeeklyReportService) calculateMonthlyComparison(
 	ctx context.Context,
 	year int,
 	month int,
-	departmentID *uuid.UUID,
+	departmentID *string,
 ) (*dto.MonthlyComparisonDTO, error) {
 	// 前月の年月を計算
 	prevMonth := month - 1
@@ -1379,7 +1378,7 @@ func (s *adminWeeklyReportService) getMonthlyComparisonData(
 	ctx context.Context,
 	year int,
 	month int,
-	departmentID *uuid.UUID,
+	departmentID *string,
 ) *dto.MonthlyComparisonDataDTO {
 	// 月の開始日と終了日
 	startDate := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)

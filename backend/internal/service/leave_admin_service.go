@@ -6,16 +6,15 @@ import (
 
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type LeaveAdminService interface {
 	GetLeaveRequests(ctx context.Context, filters repository.LeaveRequestFilters, pagination repository.Pagination) ([]*model.LeaveRequest, int64, error)
-	ApproveLeaveRequest(ctx context.Context, requestID, approverID uuid.UUID) error
-	RejectLeaveRequest(ctx context.Context, requestID, approverID uuid.UUID, reason string) error
-	BulkApproveLeaveRequests(ctx context.Context, requestIDs []string, approverID uuid.UUID) ([]ApprovalResult, error)
+	ApproveLeaveRequest(ctx context.Context, requestID, approverID string) error
+	RejectLeaveRequest(ctx context.Context, requestID, approverID string, reason string) error
+	BulkApproveLeaveRequests(ctx context.Context, requestIDs []string, approverID string) ([]ApprovalResult, error)
 	GetLeaveStatistics(ctx context.Context, filters repository.StatisticsFilters) (*repository.LeaveStatistics, error)
 	GetUserLeaveStatistics(ctx context.Context, userID string, filters repository.StatisticsFilters) (*repository.UserLeaveStatistics, error)
 }
@@ -30,9 +29,9 @@ type leaveAdminService struct {
 }
 
 type ApprovalResult struct {
-	RequestID uuid.UUID `json:"requestId"`
-	Success   bool      `json:"success"`
-	Error     string    `json:"error,omitempty"`
+	RequestID string `json:"requestId"`
+	Success   bool   `json:"success"`
+	Error     string `json:"error,omitempty"`
 }
 
 func NewLeaveAdminService(
@@ -59,7 +58,7 @@ func (s *leaveAdminService) GetLeaveRequests(ctx context.Context, filters reposi
 	return s.leaveAdminRepo.GetAllWithFilters(ctx, filters, pagination)
 }
 
-func (s *leaveAdminService) ApproveLeaveRequest(ctx context.Context, requestID, approverID uuid.UUID) error {
+func (s *leaveAdminService) ApproveLeaveRequest(ctx context.Context, requestID, approverID string) error {
 	// トランザクション開始
 	return s.db.Transaction(func(tx *gorm.DB) error {
 		// トランザクション用のリポジトリ作成
@@ -111,7 +110,7 @@ func (s *leaveAdminService) ApproveLeaveRequest(ctx context.Context, requestID, 
 	})
 }
 
-func (s *leaveAdminService) RejectLeaveRequest(ctx context.Context, requestID, approverID uuid.UUID, reason string) error {
+func (s *leaveAdminService) RejectLeaveRequest(ctx context.Context, requestID, approverID string, reason string) error {
 	if reason == "" {
 		return fmt.Errorf("却下理由を入力してください")
 	}
@@ -149,7 +148,7 @@ func (s *leaveAdminService) RejectLeaveRequest(ctx context.Context, requestID, a
 	})
 }
 
-func (s *leaveAdminService) BulkApproveLeaveRequests(ctx context.Context, requestIDs []string, approverID uuid.UUID) ([]ApprovalResult, error) {
+func (s *leaveAdminService) BulkApproveLeaveRequests(ctx context.Context, requestIDs []string, approverID string) ([]ApprovalResult, error) {
 	results := make([]ApprovalResult, 0, len(requestIDs))
 
 	for _, requestID := range requestIDs {

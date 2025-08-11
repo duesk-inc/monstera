@@ -70,21 +70,21 @@ func NewProposalFlowIntegrationTest(t *testing.T) *ProposalFlowIntegrationTest {
 func (suite *ProposalFlowIntegrationTest) SetupTestData() {
 	// テストユーザーの作成
 	suite.engineerUser = &model.User{
-		Base:     model.Base{ID: uuid.New()},
+		Base:     model.Base{ID: uuid.New().String()},
 		Username: "engineer_test",
 		Email:    "engineer@test.com",
 		Name:     "テストエンジニア",
 	}
 
 	suite.salesUser = &model.User{
-		Base:     model.Base{ID: uuid.New()},
+		Base:     model.Base{ID: uuid.New().String()},
 		Username: "sales_test",
 		Email:    "sales@test.com",
 		Name:     "テスト営業",
 	}
 
 	suite.adminUser = &model.User{
-		Base:     model.Base{ID: uuid.New()},
+		Base:     model.Base{ID: uuid.New().String()},
 		Username: "admin_test",
 		Email:    "admin@test.com",
 		Name:     "テスト管理者",
@@ -115,7 +115,7 @@ func (suite *ProposalFlowIntegrationTest) SetupTestData() {
 
 	// プロジェクトの作成
 	suite.project = &model.Project{
-		ID:            uuid.New(),
+		ID:            uuid.New().String(),
 		ProjectName:   "統合テストプロジェクト",
 		ClientName:    "テストクライアント株式会社",
 		Status:        "active",
@@ -130,7 +130,7 @@ func (suite *ProposalFlowIntegrationTest) SetupTestData() {
 
 	// 提案の作成
 	suite.proposal = &model.EngineerProposal{
-		Base:      model.Base{ID: uuid.New()},
+		Base:      model.Base{ID: uuid.New().String()},
 		UserID:    suite.engineerUser.ID,
 		ProjectID: suite.project.ID,
 		Status:    model.ProposalStatusProposed,
@@ -168,7 +168,7 @@ func (suite *ProposalFlowIntegrationTest) SetupRouter() {
 		// テスト用にユーザーIDを設定
 		userIDHeader := c.GetHeader("X-User-ID")
 		if userIDHeader != "" {
-			if userID, err := uuid.Parse(userIDHeader); err == nil {
+			if userID := userIDHeader
 				c.Set("user_id", userID)
 
 				// ロールも設定
@@ -221,7 +221,7 @@ func TestProposalFlow(t *testing.T) {
 	// シナリオ1: エンジニアが提案一覧を確認
 	t.Run("エンジニアが提案一覧を確認", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/proposals", nil)
-		req.Header.Set("X-User-ID", suite.engineerUser.ID.String())
+		req.Header.Set("X-User-ID", suite.engineerUser.ID)
 		rec := httptest.NewRecorder()
 
 		suite.router.ServeHTTP(rec, req)
@@ -232,13 +232,13 @@ func TestProposalFlow(t *testing.T) {
 		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		require.NoError(t, err)
 		assert.Len(t, response.Items, 1)
-		assert.Equal(t, suite.proposal.ID.String(), response.Items[0].ID)
+		assert.Equal(t, suite.proposal.ID, response.Items[0].ID)
 	})
 
 	// シナリオ2: エンジニアが提案詳細を確認
 	t.Run("エンジニアが提案詳細を確認", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/proposals/%s", suite.proposal.ID), nil)
-		req.Header.Set("X-User-ID", suite.engineerUser.ID.String())
+		req.Header.Set("X-User-ID", suite.engineerUser.ID)
 		rec := httptest.NewRecorder()
 
 		suite.router.ServeHTTP(rec, req)
@@ -248,7 +248,7 @@ func TestProposalFlow(t *testing.T) {
 		var response dto.ProposalDetailResponse
 		err := json.Unmarshal(rec.Body.Bytes(), &response)
 		require.NoError(t, err)
-		assert.Equal(t, suite.proposal.ID.String(), response.ID)
+		assert.Equal(t, suite.proposal.ID, response.ID)
 		assert.Equal(t, suite.project.ProjectName, response.Project.ProjectName)
 	})
 
@@ -262,7 +262,7 @@ func TestProposalFlow(t *testing.T) {
 		body, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/proposals/%s/questions", suite.proposal.ID), bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-User-ID", suite.engineerUser.ID.String())
+		req.Header.Set("X-User-ID", suite.engineerUser.ID)
 		rec := httptest.NewRecorder()
 
 		suite.router.ServeHTTP(rec, req)
@@ -285,7 +285,7 @@ func TestProposalFlow(t *testing.T) {
 	// シナリオ4: 営業担当者が未回答質問一覧を確認
 	t.Run("営業担当者が未回答質問一覧を確認", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, "/api/v1/sales/questions/pending", nil)
-		req.Header.Set("X-User-ID", suite.salesUser.ID.String())
+		req.Header.Set("X-User-ID", suite.salesUser.ID)
 		rec := httptest.NewRecorder()
 
 		suite.router.ServeHTTP(rec, req)
@@ -309,7 +309,7 @@ func TestProposalFlow(t *testing.T) {
 		body, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/sales/questions/%s/response", questionID), bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-User-ID", suite.salesUser.ID.String())
+		req.Header.Set("X-User-ID", suite.salesUser.ID)
 		rec := httptest.NewRecorder()
 
 		suite.router.ServeHTTP(rec, req)
@@ -334,7 +334,7 @@ func TestProposalFlow(t *testing.T) {
 	// シナリオ6: エンジニアが回答を確認
 	t.Run("エンジニアが回答を確認", func(t *testing.T) {
 		req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/api/v1/proposals/%s/questions", suite.proposal.ID), nil)
-		req.Header.Set("X-User-ID", suite.engineerUser.ID.String())
+		req.Header.Set("X-User-ID", suite.engineerUser.ID)
 		rec := httptest.NewRecorder()
 
 		suite.router.ServeHTTP(rec, req)
@@ -360,7 +360,7 @@ func TestProposalFlow(t *testing.T) {
 		body, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPut, fmt.Sprintf("/api/v1/proposals/%s/status", suite.proposal.ID), bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-User-ID", suite.engineerUser.ID.String())
+		req.Header.Set("X-User-ID", suite.engineerUser.ID)
 		rec := httptest.NewRecorder()
 
 		suite.router.ServeHTTP(rec, req)
@@ -376,7 +376,7 @@ func TestProposalFlow(t *testing.T) {
 
 		// 営業担当者への通知が作成されたか確認
 		var notification model.Notification
-		err = suite.db.Where("related_id = ? AND type = ?", suite.proposal.ID.String(), model.NotificationTypeProposalStatusUpdate).First(&notification).Error
+		err = suite.db.Where("related_id = ? AND type = ?", suite.proposal.ID, model.NotificationTypeProposalStatusUpdate).First(&notification).Error
 		assert.NoError(t, err)
 		assert.Equal(t, suite.salesUser.ID, notification.UserID)
 	})
@@ -385,7 +385,7 @@ func TestProposalFlow(t *testing.T) {
 	t.Run("24時間以内は同じユーザーに新しい提案を作成できない", func(t *testing.T) {
 		// 別のプロジェクトを作成
 		newProject := &model.Project{
-			ID:            uuid.New(),
+			ID:            uuid.New().String(),
 			ProjectName:   "新規プロジェクト",
 			ClientName:    "新規クライアント",
 			Status:        "active",
@@ -399,7 +399,7 @@ func TestProposalFlow(t *testing.T) {
 
 		// 新しい提案を作成しようとする（同じエンジニアに対して）
 		newProposal := &model.EngineerProposal{
-			Base:      model.Base{ID: uuid.New()},
+			Base:      model.Base{ID: uuid.New().String()},
 			UserID:    suite.engineerUser.ID,
 			ProjectID: newProject.ID,
 			Status:    model.ProposalStatusProposed,
@@ -432,7 +432,7 @@ func TestConcurrentQuestionCreation(t *testing.T) {
 			body, _ := json.Marshal(reqBody)
 			req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/proposals/%s/questions", suite.proposal.ID), bytes.NewBuffer(body))
 			req.Header.Set("Content-Type", "application/json")
-			req.Header.Set("X-User-ID", suite.engineerUser.ID.String())
+			req.Header.Set("X-User-ID", suite.engineerUser.ID)
 			rec := httptest.NewRecorder()
 
 			suite.router.ServeHTTP(rec, req)
@@ -478,7 +478,7 @@ func TestNotificationDelivery(t *testing.T) {
 		body, _ := json.Marshal(reqBody)
 		req := httptest.NewRequest(http.MethodPost, fmt.Sprintf("/api/v1/proposals/%s/questions", suite.proposal.ID), bytes.NewBuffer(body))
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("X-User-ID", suite.engineerUser.ID.String())
+		req.Header.Set("X-User-ID", suite.engineerUser.ID)
 		rec := httptest.NewRecorder()
 
 		suite.router.ServeHTTP(rec, req)

@@ -11,7 +11,6 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"go.uber.org/zap"
@@ -44,13 +43,13 @@ func (m *MockUserRepository) Update(ctx context.Context, user *model.User) error
 }
 
 // その他のUserRepositoryメソッドのスタブ実装
-func (m *MockUserRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
+func (m *MockUserRepository) GetByID(ctx context.Context, id string) (*model.User, error) {
 	return nil, nil
 }
 func (m *MockUserRepository) Create(ctx context.Context, user *model.User) error {
 	return nil
 }
-func (m *MockUserRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockUserRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 func (m *MockUserRepository) List(ctx context.Context, filter repository.UserListFilter) ([]*model.User, error) {
@@ -59,22 +58,22 @@ func (m *MockUserRepository) List(ctx context.Context, filter repository.UserLis
 func (m *MockUserRepository) Count(ctx context.Context, filter repository.UserListFilter) (int64, error) {
 	return 0, nil
 }
-func (m *MockUserRepository) UpdateRole(ctx context.Context, userID uuid.UUID, role model.Role) error {
+func (m *MockUserRepository) UpdateRole(ctx context.Context, userID string, role model.Role) error {
 	return nil
 }
-func (m *MockUserRepository) UpdateStatus(ctx context.Context, userID uuid.UUID, status string) error {
+func (m *MockUserRepository) UpdateStatus(ctx context.Context, userID string, status string) error {
 	return nil
 }
-func (m *MockUserRepository) AddRole(ctx context.Context, userID uuid.UUID, role model.Role) error {
+func (m *MockUserRepository) AddRole(ctx context.Context, userID string, role model.Role) error {
 	return nil
 }
-func (m *MockUserRepository) RemoveRole(ctx context.Context, userID uuid.UUID, role model.Role) error {
+func (m *MockUserRepository) RemoveRole(ctx context.Context, userID string, role model.Role) error {
 	return nil
 }
-func (m *MockUserRepository) GetRoles(ctx context.Context, userID uuid.UUID) ([]model.Role, error) {
+func (m *MockUserRepository) GetRoles(ctx context.Context, userID string) ([]model.Role, error) {
 	return nil, nil
 }
-func (m *MockUserRepository) HasRole(ctx context.Context, userID uuid.UUID, role model.Role) (bool, error) {
+func (m *MockUserRepository) HasRole(ctx context.Context, userID string, role model.Role) (bool, error) {
 	return false, nil
 }
 
@@ -98,7 +97,7 @@ func TestCognitoAuthMiddleware_AdminRequired(t *testing.T) {
 	router := gin.New()
 
 	// テスト用のエンドポイント
-	router.GET("/admin-only", 
+	router.GET("/admin-only",
 		cognitoMiddleware.AuthRequired(),
 		cognitoMiddleware.AdminRequired(),
 		func(c *gin.Context) {
@@ -112,7 +111,7 @@ func TestCognitoAuthMiddleware_AdminRequired(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), "admin access granted")
+		assert.Contains(t, w.Body, "admin access granted")
 	})
 
 	// 認証スキップモードを無効にしてテスト
@@ -125,7 +124,7 @@ func TestCognitoAuthMiddleware_AdminRequired(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusUnauthorized, w.Code)
-		assert.Contains(t, w.Body.String(), "認証が必要です")
+		assert.Contains(t, w.Body, "認証が必要です")
 	})
 }
 
@@ -149,13 +148,13 @@ func TestCognitoAuthMiddleware_AuthRequired(t *testing.T) {
 	router := gin.New()
 
 	// テスト用のエンドポイント
-	router.GET("/auth-required", 
+	router.GET("/auth-required",
 		cognitoMiddleware.AuthRequired(),
 		func(c *gin.Context) {
 			user, _ := c.Get("user")
 			c.JSON(http.StatusOK, gin.H{
 				"message": "authenticated",
-				"user": user,
+				"user":    user,
 			})
 		})
 
@@ -166,6 +165,6 @@ func TestCognitoAuthMiddleware_AuthRequired(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), "authenticated")
+		assert.Contains(t, w.Body, "authenticated")
 	})
 }

@@ -263,7 +263,7 @@ func (h *invoiceHandler) GetInvoiceSummary(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	// リクエストパラメータを取得
-	var clientID *uuid.UUID
+	var clientID *string
 	if clientIDStr := c.Query("client_id"); clientIDStr != "" {
 		id, err := uuid.Parse(clientIDStr)
 		if err == nil {

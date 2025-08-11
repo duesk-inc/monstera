@@ -55,13 +55,17 @@ func NewNotificationHistoryRepository(db *gorm.DB, logger *zap.Logger) Notificat
 
 // Create 通知履歴を作成
 func (r *notificationHistoryRepository) Create(ctx context.Context, notification *model.NotificationHistory) error {
-	if notification.ID == uuid.Nil {
-		notification.ID = uuid.New()
+	if notification.ID == "" {
+		notification.ID = uuid.New().String()
 	}
 
 	if err := r.db.WithContext(ctx).Create(notification).Error; err != nil {
+		recipientID := ""
+		if notification.RecipientID != nil {
+			recipientID = *notification.RecipientID
+		}
 		r.logger.Error("Failed to create notification history",
-			zap.String("recipient_id", notification.RecipientID.String()),
+			zap.String("recipient_id", recipientID),
 			zap.String("type", string(notification.Type)),
 			zap.Error(err))
 		return err
@@ -76,10 +80,10 @@ func (r *notificationHistoryRepository) CreateBatch(ctx context.Context, notific
 		return nil
 	}
 
-	// UUIDが未設定の場合は生成
+	// IDが未設定の場合は生成
 	for i := range notifications {
-		if notifications[i].ID == uuid.Nil {
-			notifications[i].ID = uuid.New()
+		if notifications[i].ID == "" {
+			notifications[i].ID = uuid.New().String()
 		}
 	}
 
@@ -132,7 +136,7 @@ func (r *notificationHistoryRepository) GetByID(ctx context.Context, id string) 
 func (r *notificationHistoryRepository) Update(ctx context.Context, notification *model.NotificationHistory) error {
 	if err := r.db.WithContext(ctx).Save(notification).Error; err != nil {
 		r.logger.Error("Failed to update notification history",
-			zap.String("id", notification.ID.String()),
+			zap.String("id", notification.ID),
 			zap.Error(err))
 		return err
 	}

@@ -122,7 +122,7 @@ const (
 type ProjectAssignment struct {
 	ID              string     `gorm:"type:varchar(255);primary_key" json:"id"`
 	ProjectID       string     `gorm:"type:varchar(255);not null" json:"project_id"`
-	UserID string  `gorm:"type:varchar(255);not null" json:"user_id"`
+	UserID          string     `gorm:"type:varchar(255);not null" json:"user_id"`
 	Role            string     `gorm:"size:100" json:"role"`
 	StartDate       time.Time  `gorm:"not null" json:"start_date"`
 	EndDate         *time.Time `json:"end_date"`

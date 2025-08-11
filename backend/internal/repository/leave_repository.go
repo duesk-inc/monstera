@@ -6,7 +6,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 
@@ -28,7 +27,7 @@ type LeaveRepository interface {
 	// 休暇申請
 	CreateLeaveRequest(ctx context.Context, request model.LeaveRequest) (model.LeaveRequest, error)
 	GetLeaveRequestsByUserID(ctx context.Context, userID string) ([]model.LeaveRequest, error)
-	GetLeaveRequestByID(ctx context.Context, id uuid.UUID) (model.LeaveRequest, error)
+	GetLeaveRequestByID(ctx context.Context, id string) (model.LeaveRequest, error)
 	UpdateLeaveRequest(ctx context.Context, request model.LeaveRequest) error
 	CheckExistingLeaveRequestsByDate(ctx context.Context, userID string, dates []time.Time) (map[string]bool, error)
 
@@ -37,10 +36,10 @@ type LeaveRepository interface {
 
 	// 振替特別休暇
 	GetSubstituteLeaveGrants(ctx context.Context, userID string) ([]model.SubstituteLeaveGrant, error)
-	GetSubstituteLeaveGrantByID(ctx context.Context, id uuid.UUID) (model.SubstituteLeaveGrant, error)
+	GetSubstituteLeaveGrantByID(ctx context.Context, id string) (model.SubstituteLeaveGrant, error)
 	CreateSubstituteLeaveGrant(ctx context.Context, grant model.SubstituteLeaveGrant) (model.SubstituteLeaveGrant, error)
 	UpdateSubstituteLeaveGrant(ctx context.Context, grant model.SubstituteLeaveGrant) error
-	DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.UUID) error
+	DeleteSubstituteLeaveGrant(ctx context.Context, id string) error
 	GetTotalSubstituteLeaveBalance(ctx context.Context, userID string) (float64, error)
 }
 
@@ -115,7 +114,7 @@ func (r *leaveRepository) UpdateUserLeaveBalance(ctx context.Context, balance mo
 // CreateLeaveRequest は新しい休暇申請を作成します
 func (r *leaveRepository) CreateLeaveRequest(ctx context.Context, request model.LeaveRequest) (model.LeaveRequest, error) {
 	// 新しいIDを必ず生成
-	if request.ID == uuid.Nil {
+	if request.ID == "" {
 		request.ID = r.NewID()
 	}
 
@@ -222,7 +221,7 @@ func (r *leaveRepository) GetLeaveRequestsByUserID(ctx context.Context, userID s
 }
 
 // GetLeaveRequestByID はIDによる休暇申請を取得します
-func (r *leaveRepository) GetLeaveRequestByID(ctx context.Context, id uuid.UUID) (model.LeaveRequest, error) {
+func (r *leaveRepository) GetLeaveRequestByID(ctx context.Context, id string) (model.LeaveRequest, error) {
 	// IDの検証
 	if err := r.ValidateID(id); err != nil {
 		return model.LeaveRequest{}, err
@@ -266,7 +265,7 @@ func (r *leaveRepository) GetSubstituteLeaveGrants(ctx context.Context, userID s
 }
 
 // GetSubstituteLeaveGrantByID はIDによる振替特別休暇付与履歴を取得します
-func (r *leaveRepository) GetSubstituteLeaveGrantByID(ctx context.Context, id uuid.UUID) (model.SubstituteLeaveGrant, error) {
+func (r *leaveRepository) GetSubstituteLeaveGrantByID(ctx context.Context, id string) (model.SubstituteLeaveGrant, error) {
 	// IDの検証
 	if err := r.ValidateID(id); err != nil {
 		return model.SubstituteLeaveGrant{}, err
@@ -283,8 +282,8 @@ func (r *leaveRepository) CreateSubstituteLeaveGrant(ctx context.Context, grant 
 	// 残日数の初期設定
 	grant.RemainingDays = grant.GrantedDays - grant.UsedDays
 
-	// UUIDがnilの場合は新規生成
-	if grant.ID == uuid.Nil {
+	// IDが空の場合は新規生成
+	if grant.ID == "" {
 		grant.ID = r.NewID()
 	}
 
@@ -301,7 +300,7 @@ func (r *leaveRepository) UpdateSubstituteLeaveGrant(ctx context.Context, grant 
 }
 
 // DeleteSubstituteLeaveGrant は振替特別休暇付与履歴を削除します
-func (r *leaveRepository) DeleteSubstituteLeaveGrant(ctx context.Context, id uuid.UUID) error {
+func (r *leaveRepository) DeleteSubstituteLeaveGrant(ctx context.Context, id string) error {
 	// IDの検証
 	if err := r.ValidateID(id); err != nil {
 		return err

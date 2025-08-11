@@ -4,26 +4,25 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 )
 
 // ExpenseApproverSettingRequest 承認者設定リクエスト
 type ExpenseApproverSettingRequest struct {
-	ApprovalType string    `json:"approval_type" binding:"required,oneof=manager executive"`
-	ApproverID   uuid.UUID `json:"approver_id" binding:"required"`
-	IsActive     *bool     `json:"is_active"`
-	Priority     *int      `json:"priority" binding:"omitempty,min=1,max=99"`
+	ApprovalType string `json:"approval_type" binding:"required,oneof=manager executive"`
+	ApproverID   string `json:"approver_id" binding:"required"`
+	IsActive     *bool  `json:"is_active"`
+	Priority     *int   `json:"priority" binding:"omitempty,min=1,max=99"`
 }
 
 // ExpenseApproverSettingResponse 承認者設定レスポンス
 type ExpenseApproverSettingResponse struct {
-	ID           uuid.UUID    `json:"id"`
+	ID           string       `json:"id"`
 	ApprovalType string       `json:"approval_type"`
-	ApproverID   uuid.UUID    `json:"approver_id"`
+	ApproverID   string       `json:"approver_id"`
 	Approver     *UserSummary `json:"approver"`
 	IsActive     bool         `json:"is_active"`
 	Priority     int          `json:"priority"`
-	CreatedBy    uuid.UUID    `json:"created_by"`
+	CreatedBy    string       `json:"created_by"`
 	Creator      *UserSummary `json:"creator"`
 	CreatedAt    time.Time    `json:"created_at"`
 	UpdatedAt    time.Time    `json:"updated_at"`
@@ -36,12 +35,12 @@ type ExpenseApproverSettingsResponse struct {
 
 // ExpenseApproverSettingHistoryResponse 承認者設定履歴レスポンス
 type ExpenseApproverSettingHistoryResponse struct {
-	ID           uuid.UUID              `json:"id"`
-	SettingID    uuid.UUID              `json:"setting_id"`
+	ID           string                 `json:"id"`
+	SettingID    string                 `json:"setting_id"`
 	ApprovalType string                 `json:"approval_type"`
-	ApproverID   uuid.UUID              `json:"approver_id"`
+	ApproverID   string                 `json:"approver_id"`
 	Action       string                 `json:"action"`
-	ChangedBy    uuid.UUID              `json:"changed_by"`
+	ChangedBy    string                 `json:"changed_by"`
 	Changer      *UserSummary           `json:"changer"`
 	ChangedAt    time.Time              `json:"changed_at"`
 	OldValue     map[string]interface{} `json:"old_value,omitempty"`

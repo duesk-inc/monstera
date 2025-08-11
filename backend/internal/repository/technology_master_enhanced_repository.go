@@ -18,8 +18,8 @@ type TechnologyMasterEnhancedRepository interface {
 	// 基本操作
 	Create(ctx context.Context, tech *model.TechnologyMaster) error
 	Update(ctx context.Context, tech *model.TechnologyMaster) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.TechnologyMaster, error)
+	Delete(ctx context.Context, id string) error
+	GetByID(ctx context.Context, id string) (*model.TechnologyMaster, error)
 	GetByName(ctx context.Context, category model.TechCategory, name string) (*model.TechnologyMaster, error)
 	GetAll(ctx context.Context) ([]*model.TechnologyMaster, error)
 	GetByCategory(ctx context.Context, category model.TechCategory) ([]*model.TechnologyMaster, error)
@@ -32,8 +32,8 @@ type TechnologyMasterEnhancedRepository interface {
 	GetRecentlyUsedTechnologies(ctx context.Context, userID string, limit int) ([]*model.TechnologyMaster, error)
 
 	// 使用回数更新機能（拡張）
-	IncrementUsageCount(ctx context.Context, id uuid.UUID) error
-	BatchIncrementUsageCount(ctx context.Context, ids []uuid.UUID) error
+	IncrementUsageCount(ctx context.Context, id string) error
+	BatchIncrementUsageCount(ctx context.Context, ids []string) error
 	UpdateUsageCountByName(ctx context.Context, category model.TechCategory, name string) error
 	GetUsageStatistics(ctx context.Context, category *model.TechCategory) ([]TechnologyUsageStats, error)
 
@@ -44,19 +44,19 @@ type TechnologyMasterEnhancedRepository interface {
 
 	// 管理機能
 	GetDuplicateTechnologies(ctx context.Context) ([]TechnologyDuplicateGroup, error)
-	MergeTechnologies(ctx context.Context, sourceID, targetID uuid.UUID) error
+	MergeTechnologies(ctx context.Context, sourceID, targetID string) error
 	UpdateSortOrder(ctx context.Context, updates []TechnologySortOrderUpdate) error
 }
 
 // TechnologyUsageStats 技術使用統計
 type TechnologyUsageStats struct {
-	TechnologyID     uuid.UUID `json:"technology_id"`
-	TechnologyName   string    `json:"technology_name"`
-	CategoryName     string    `json:"category_name"`
-	UsageCount       int32     `json:"usage_count"`
-	UserCount        int32     `json:"user_count"`         // 使用ユーザー数
-	ProjectCount     int32     `json:"project_count"`      // 使用プロジェクト数
-	RecentUsageCount int32     `json:"recent_usage_count"` // 最近の使用回数（1年以内）
+	TechnologyID     string `json:"technology_id"`
+	TechnologyName   string `json:"technology_name"`
+	CategoryName     string `json:"category_name"`
+	UsageCount       int32  `json:"usage_count"`
+	UserCount        int32  `json:"user_count"`         // 使用ユーザー数
+	ProjectCount     int32  `json:"project_count"`      // 使用プロジェクト数
+	RecentUsageCount int32  `json:"recent_usage_count"` // 最近の使用回数（1年以内）
 }
 
 // TechnologyCreateRequest 技術作成リクエスト
@@ -76,8 +76,8 @@ type TechnologyDuplicateGroup struct {
 
 // TechnologySortOrderUpdate ソート順更新
 type TechnologySortOrderUpdate struct {
-	ID        uuid.UUID `json:"id"`
-	SortOrder int32     `json:"sort_order"`
+	ID        string `json:"id"`
+	SortOrder int32  `json:"sort_order"`
 }
 
 // technologyMasterEnhancedRepository 拡張技術マスタリポジトリの実装
@@ -115,7 +115,7 @@ func (r *technologyMasterEnhancedRepository) Update(ctx context.Context, tech *m
 }
 
 // Delete 技術マスタを削除（論理削除）
-func (r *technologyMasterEnhancedRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *technologyMasterEnhancedRepository) Delete(ctx context.Context, id string) error {
 	if err := r.db.WithContext(ctx).Model(&model.TechnologyMaster{}).
 		Where("id = ?", id).
 		Update("is_active", false).Error; err != nil {
@@ -126,7 +126,7 @@ func (r *technologyMasterEnhancedRepository) Delete(ctx context.Context, id uuid
 }
 
 // GetByID IDで技術マスタを取得
-func (r *technologyMasterEnhancedRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.TechnologyMaster, error) {
+func (r *technologyMasterEnhancedRepository) GetByID(ctx context.Context, id string) (*model.TechnologyMaster, error) {
 	var tech model.TechnologyMaster
 	if err := r.db.WithContext(ctx).
 		Where("id = ? AND is_active = ?", id, true).
@@ -323,7 +323,7 @@ func (r *technologyMasterEnhancedRepository) GetRecentlyUsedTechnologies(ctx con
 }
 
 // IncrementUsageCount 使用回数をインクリメント
-func (r *technologyMasterEnhancedRepository) IncrementUsageCount(ctx context.Context, id uuid.UUID) error {
+func (r *technologyMasterEnhancedRepository) IncrementUsageCount(ctx context.Context, id string) error {
 	if err := r.db.WithContext(ctx).Model(&model.TechnologyMaster{}).
 		Where("id = ?", id).
 		Update("usage_count", gorm.Expr("usage_count + ?", 1)).Error; err != nil {
@@ -334,7 +334,7 @@ func (r *technologyMasterEnhancedRepository) IncrementUsageCount(ctx context.Con
 }
 
 // BatchIncrementUsageCount 複数の技術の使用回数を一括インクリメント
-func (r *technologyMasterEnhancedRepository) BatchIncrementUsageCount(ctx context.Context, ids []uuid.UUID) error {
+func (r *technologyMasterEnhancedRepository) BatchIncrementUsageCount(ctx context.Context, ids []string) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -423,7 +423,7 @@ func (r *technologyMasterEnhancedRepository) FindOrCreateByName(ctx context.Cont
 
 	// 存在しない場合は新規作成
 	newTech := &model.TechnologyMaster{
-		ID:          uuid.New(),
+		ID:          uuid.New().String(),
 		Category:    category,
 		Name:        lowerNormalized, // 小文字で保存
 		DisplayName: name,
@@ -481,7 +481,7 @@ func (r *technologyMasterEnhancedRepository) BulkCreateMissingTechnologies(ctx c
 
 			// 新規作成
 			newTech := &model.TechnologyMaster{
-				ID:        uuid.New(),
+				ID:        uuid.New().String(),
 				Category:  req.Category,
 				Name:      req.Name,
 				IsActive:  true,
@@ -545,8 +545,9 @@ func (r *technologyMasterEnhancedRepository) GetDuplicateTechnologies(ctx contex
 		var techs []*model.TechnologyMaster
 
 		for _, idStr := range idStrs {
-			if id, err := uuid.Parse(strings.TrimSpace(idStr)); err == nil {
-				if tech, err := r.GetByID(ctx, id); err == nil && tech != nil {
+			idStr = strings.TrimSpace(idStr)
+			if idStr != "" {
+				if tech, err := r.GetByID(ctx, idStr); err == nil && tech != nil {
 					techs = append(techs, tech)
 				}
 			}
@@ -564,7 +565,7 @@ func (r *technologyMasterEnhancedRepository) GetDuplicateTechnologies(ctx contex
 }
 
 // MergeTechnologies 技術をマージ（sourceをtargetに統合）
-func (r *technologyMasterEnhancedRepository) MergeTechnologies(ctx context.Context, sourceID, targetID uuid.UUID) error {
+func (r *technologyMasterEnhancedRepository) MergeTechnologies(ctx context.Context, sourceID, targetID string) error {
 	return r.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		// source技術の情報を取得
 		source, err := r.GetByID(ctx, sourceID)

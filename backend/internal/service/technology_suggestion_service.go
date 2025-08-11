@@ -299,7 +299,7 @@ func (s *technologySuggestionService) RegisterNewTechnology(ctx context.Context,
 
 	// 新規作成
 	technology := &model.TechnologyMaster{
-		ID:          uuid.New(),
+		ID:          uuid.New().String(),
 		Category:    category,
 		Name:        normalizedName,
 		DisplayName: "",
@@ -419,7 +419,7 @@ func (s *technologySuggestionService) calculateMatchScore(query, target string) 
 }
 
 // containsTechnology 技術が既に含まれているかチェック
-func (s *technologySuggestionService) containsTechnology(responses []dto.TechnologySuggestionResponse, techID uuid.UUID) bool {
+func (s *technologySuggestionService) containsTechnology(responses []dto.TechnologySuggestionResponse, techID string) bool {
 	// IDでの比較ができないため、名前で比較
 	// TODO: レスポンスにIDを含めることを検討
 	return false

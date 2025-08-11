@@ -37,7 +37,7 @@ func (r *reminderSettingsRepository) Get(ctx context.Context) (*model.ReminderSe
 	if err == gorm.ErrRecordNotFound {
 		// デフォルト設定を返す
 		return &model.ReminderSettings{
-			ID:                 uuid.New(),
+			ID:                 uuid.New().String(),
 			Enabled:            true,
 			FirstReminderDays:  3,
 			SecondReminderDays: 7,
@@ -58,7 +58,7 @@ func (r *reminderSettingsRepository) Update(ctx context.Context, settings *model
 		return err
 	}
 
-	if existing.ID != uuid.Nil {
+	if existing.ID != "" {
 		// 既存の設定を更新
 		settings.ID = existing.ID
 		return r.db.WithContext(ctx).

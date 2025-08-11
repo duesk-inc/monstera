@@ -8,8 +8,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/google/uuid"
-
 	"github.com/duesk/monstera/internal/message"
 )
 
@@ -65,10 +63,8 @@ func (v *ValidationUtils) ValidateUUID(id string, fieldName string) error {
 		return fmt.Errorf("%sは必須項目です", fieldName)
 	}
 
-	_, err := uuid.Parse(id)
-	if err != nil {
-		return fmt.Errorf("%sの形式が正しくありません", fieldName)
-	}
+	// UUID validation removed after migration - now just a string check
+	// ID format validation could be added here if needed
 
 	return nil
 }

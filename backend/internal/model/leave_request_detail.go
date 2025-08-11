@@ -4,12 +4,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // LeaveRequestDetail は休暇申請詳細を表すモデルです
 type LeaveRequestDetail struct {
-	ID             uuid.UUID  `gorm:"primaryKey;type:varchar(36)" json:"id"`
-	LeaveRequestID uuid.UUID  `gorm:"type:varchar(36)" json:"leave_request_id"`
+	ID             string     `gorm:"primaryKey;type:varchar(255)" json:"id"`
+	LeaveRequestID string     `gorm:"type:varchar(255)" json:"leave_request_id"`
 	LeaveDate      time.Time  `json:"leave_date"`
 	StartTime      string     `gorm:"type:varchar(10)" json:"start_time"`
 	EndTime        string     `gorm:"type:varchar(10)" json:"end_time"`
@@ -25,4 +26,12 @@ type LeaveRequestDetail struct {
 // TableName はテーブル名を指定します
 func (LeaveRequestDetail) TableName() string {
 	return "leave_request_details"
+}
+
+// BeforeCreate UUIDを生成
+func (lrd *LeaveRequestDetail) BeforeCreate(tx *gorm.DB) error {
+	if lrd.ID == "" {
+		lrd.ID = uuid.New().String()
+	}
+	return nil
 }

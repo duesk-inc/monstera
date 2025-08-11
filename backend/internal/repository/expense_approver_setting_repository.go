@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -13,23 +12,23 @@ import (
 type ExpenseApproverSettingRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, setting *model.ExpenseApproverSetting) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseApproverSetting, error)
+	GetByID(ctx context.Context, id string) (*model.ExpenseApproverSetting, error)
 	Update(ctx context.Context, setting *model.ExpenseApproverSetting) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 
 	// 検索機能
 	GetAll(ctx context.Context) ([]model.ExpenseApproverSetting, error)
 	GetByApprovalType(ctx context.Context, approvalType model.ApprovalType) ([]model.ExpenseApproverSetting, error)
 	GetActiveByApprovalType(ctx context.Context, approvalType model.ApprovalType) ([]model.ExpenseApproverSetting, error)
-	GetByApproverID(ctx context.Context, approverID uuid.UUID) ([]model.ExpenseApproverSetting, error)
+	GetByApproverID(ctx context.Context, approverID string) ([]model.ExpenseApproverSetting, error)
 
 	// 履歴管理
 	CreateHistory(ctx context.Context, history *model.ExpenseApproverSettingHistory) error
-	GetHistories(ctx context.Context, settingID uuid.UUID) ([]model.ExpenseApproverSettingHistory, error)
+	GetHistories(ctx context.Context, settingID string) ([]model.ExpenseApproverSettingHistory, error)
 	GetAllHistories(ctx context.Context, limit, offset int) ([]model.ExpenseApproverSettingHistory, int64, error)
 
 	// ユーティリティ
-	ExistsByApproverAndType(ctx context.Context, approverID uuid.UUID, approvalType model.ApprovalType) (bool, error)
+	ExistsByApproverAndType(ctx context.Context, approverID string, approvalType model.ApprovalType) (bool, error)
 	SetLogger(logger *zap.Logger)
 }
 
@@ -58,18 +57,18 @@ func (r *ExpenseApproverSettingRepositoryImpl) Create(ctx context.Context, setti
 		r.logger.Error("Failed to create approver setting",
 			zap.Error(err),
 			zap.String("approval_type", string(setting.ApprovalType)),
-			zap.String("approver_id", setting.ApproverID.String()))
+			zap.String("approver_id", setting.ApproverID))
 		return err
 	}
 
 	r.logger.Info("Approver setting created successfully",
-		zap.String("id", setting.ID.String()),
+		zap.String("id", setting.ID),
 		zap.String("approval_type", string(setting.ApprovalType)))
 	return nil
 }
 
 // GetByID IDで承認者設定を取得
-func (r *ExpenseApproverSettingRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseApproverSetting, error) {
+func (r *ExpenseApproverSettingRepositoryImpl) GetByID(ctx context.Context, id string) (*model.ExpenseApproverSetting, error) {
 	var setting model.ExpenseApproverSetting
 	err := r.db.WithContext(ctx).
 		Preload("Approver").
@@ -83,7 +82,7 @@ func (r *ExpenseApproverSettingRepositoryImpl) GetByID(ctx context.Context, id u
 		}
 		r.logger.Error("Failed to get approver setting by ID",
 			zap.Error(err),
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return nil, err
 	}
 
@@ -95,26 +94,26 @@ func (r *ExpenseApproverSettingRepositoryImpl) Update(ctx context.Context, setti
 	if err := r.db.WithContext(ctx).Save(setting).Error; err != nil {
 		r.logger.Error("Failed to update approver setting",
 			zap.Error(err),
-			zap.String("id", setting.ID.String()))
+			zap.String("id", setting.ID))
 		return err
 	}
 
 	r.logger.Info("Approver setting updated successfully",
-		zap.String("id", setting.ID.String()))
+		zap.String("id", setting.ID))
 	return nil
 }
 
 // Delete 承認者設定を削除
-func (r *ExpenseApproverSettingRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseApproverSettingRepositoryImpl) Delete(ctx context.Context, id string) error {
 	if err := r.db.WithContext(ctx).Delete(&model.ExpenseApproverSetting{}, id).Error; err != nil {
 		r.logger.Error("Failed to delete approver setting",
 			zap.Error(err),
-			zap.String("id", id.String()))
+			zap.String("id", id))
 		return err
 	}
 
 	r.logger.Info("Approver setting deleted successfully",
-		zap.String("id", id.String()))
+		zap.String("id", id))
 	return nil
 }
 
@@ -175,7 +174,7 @@ func (r *ExpenseApproverSettingRepositoryImpl) GetActiveByApprovalType(ctx conte
 }
 
 // GetByApproverID 承認者IDで承認者設定を取得
-func (r *ExpenseApproverSettingRepositoryImpl) GetByApproverID(ctx context.Context, approverID uuid.UUID) ([]model.ExpenseApproverSetting, error) {
+func (r *ExpenseApproverSettingRepositoryImpl) GetByApproverID(ctx context.Context, approverID string) ([]model.ExpenseApproverSetting, error) {
 	var settings []model.ExpenseApproverSetting
 	err := r.db.WithContext(ctx).
 		Preload("Approver").
@@ -187,7 +186,7 @@ func (r *ExpenseApproverSettingRepositoryImpl) GetByApproverID(ctx context.Conte
 	if err != nil {
 		r.logger.Error("Failed to get approver settings by approver ID",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return nil, err
 	}
 
@@ -199,7 +198,7 @@ func (r *ExpenseApproverSettingRepositoryImpl) CreateHistory(ctx context.Context
 	if err := r.db.WithContext(ctx).Create(history).Error; err != nil {
 		r.logger.Error("Failed to create approver setting history",
 			zap.Error(err),
-			zap.String("setting_id", history.SettingID.String()),
+			zap.String("setting_id", history.SettingID),
 			zap.String("action", history.Action))
 		return err
 	}
@@ -208,7 +207,7 @@ func (r *ExpenseApproverSettingRepositoryImpl) CreateHistory(ctx context.Context
 }
 
 // GetHistories 設定IDで履歴を取得
-func (r *ExpenseApproverSettingRepositoryImpl) GetHistories(ctx context.Context, settingID uuid.UUID) ([]model.ExpenseApproverSettingHistory, error) {
+func (r *ExpenseApproverSettingRepositoryImpl) GetHistories(ctx context.Context, settingID string) ([]model.ExpenseApproverSettingHistory, error) {
 	var histories []model.ExpenseApproverSettingHistory
 	err := r.db.WithContext(ctx).
 		Preload("Changer").
@@ -219,7 +218,7 @@ func (r *ExpenseApproverSettingRepositoryImpl) GetHistories(ctx context.Context,
 	if err != nil {
 		r.logger.Error("Failed to get approver setting histories",
 			zap.Error(err),
-			zap.String("setting_id", settingID.String()))
+			zap.String("setting_id", settingID))
 		return nil, err
 	}
 
@@ -254,7 +253,7 @@ func (r *ExpenseApproverSettingRepositoryImpl) GetAllHistories(ctx context.Conte
 }
 
 // ExistsByApproverAndType 承認者IDと承認タイプで存在確認
-func (r *ExpenseApproverSettingRepositoryImpl) ExistsByApproverAndType(ctx context.Context, approverID uuid.UUID, approvalType model.ApprovalType) (bool, error) {
+func (r *ExpenseApproverSettingRepositoryImpl) ExistsByApproverAndType(ctx context.Context, approverID string, approvalType model.ApprovalType) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseApproverSetting{}).
@@ -264,7 +263,7 @@ func (r *ExpenseApproverSettingRepositoryImpl) ExistsByApproverAndType(ctx conte
 	if err != nil {
 		r.logger.Error("Failed to check existence by approver and type",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()),
+			zap.String("approver_id", approverID),
 			zap.String("approval_type", string(approvalType)))
 		return false, err
 	}

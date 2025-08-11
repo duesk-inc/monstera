@@ -88,7 +88,7 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 		// 未提出者に通知
 		for _, expense := range pendingExpenses {
 			notification := &model.Notification{
-				ID:               uuid.New(),
+				ID:               uuid.New().String(),
 				RecipientID:      &expense.UserID,
 				NotificationType: model.NotificationTypeExpense,
 				Title:            fmt.Sprintf("%d年%d月の経費申請が未提出です", year, month),
@@ -101,7 +101,7 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 			if err := s.notificationService.CreateNotification(ctx, notification); err != nil {
 				s.logger.Error("通知の作成に失敗しました",
 					zap.Error(err),
-					zap.String("user_id", expense.UserID.String()),
+					zap.String("user_id", expense.UserID),
 				)
 			}
 		}
@@ -118,7 +118,7 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 
 	// 3. 月次締め状態を記録
 	closeStatus := &model.MonthlyCloseStatus{
-		ID:                  uuid.New(),
+		ID:                  uuid.New().String(),
 		Year:                year,
 		Month:               month,
 		Status:              model.MonthlyCloseStatusClosed,
@@ -162,12 +162,12 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 		zap.Int("month", month),
 		zap.Int("approved_count", closeStatus.TotalExpenseCount),
 		zap.Float64("total_amount", closeStatus.TotalExpenseAmount),
-		zap.String("summary_id", summary.ID.String()),
+		zap.String("summary_id", summary.ID),
 	)
 
 	// 6. 管理者に完了通知
 	adminNotification := &model.Notification{
-		ID:               uuid.New(),
+		ID:               uuid.New().String(),
 		RecipientID:      nil, // 全管理者向け
 		NotificationType: model.NotificationTypeSystem,
 		Title:            fmt.Sprintf("%d年%d月の月次締め処理が完了しました", year, month),
@@ -230,7 +230,7 @@ func (s *expenseMonthlyCloseService) CreateMonthlyCloseSummary(ctx context.Conte
 // createMonthlySummaryInTx トランザクション内で月次サマリーを作成
 func (s *expenseMonthlyCloseService) createMonthlySummaryInTx(tx *gorm.DB, year int, month int, expenses []model.Expense) (*model.MonthlyCloseSummary, error) {
 	summary := &model.MonthlyCloseSummary{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		Year:      year,
 		Month:     month,
 		CreatedAt: time.Now(),
@@ -238,7 +238,7 @@ func (s *expenseMonthlyCloseService) createMonthlySummaryInTx(tx *gorm.DB, year 
 	}
 
 	// ユーザー別集計
-	userSummaries := make(map[uuid.UUID]*model.UserExpenseSummary)
+	userSummaries := make(map[string]*model.UserExpenseSummary)
 	categoryTotals := make(map[uint]float64)
 
 	for _, expense := range expenses {
@@ -251,7 +251,7 @@ func (s *expenseMonthlyCloseService) createMonthlySummaryInTx(tx *gorm.DB, year 
 			}
 
 			userSummaries[expense.UserID] = &model.UserExpenseSummary{
-				ID:               uuid.New(),
+				ID:               uuid.New().String(),
 				MonthlySummaryID: summary.ID,
 				UserID:           expense.UserID,
 				UserName:         userName,
@@ -286,7 +286,7 @@ func (s *expenseMonthlyCloseService) createMonthlySummaryInTx(tx *gorm.DB, year 
 	summary.CategorySummaries = make([]model.CategoryExpenseSummary, 0, len(categoryTotals))
 	for categoryID, amount := range categoryTotals {
 		summary.CategorySummaries = append(summary.CategorySummaries, model.CategoryExpenseSummary{
-			ID:               uuid.New(),
+			ID:               uuid.New().String(),
 			MonthlySummaryID: summary.ID,
 			CategoryID:       categoryID,
 			CategoryName:     fmt.Sprintf("Category_%d", categoryID), // TODO: カテゴリー名を取得

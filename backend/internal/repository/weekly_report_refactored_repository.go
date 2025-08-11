@@ -8,7 +8,6 @@ import (
 	"github.com/duesk/monstera/internal/common/repository"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/utils"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -18,8 +17,8 @@ type WeeklyReportRefactoredRepository interface {
 	// 基本操作
 	Create(ctx context.Context, report *model.WeeklyReport) error
 	Update(ctx context.Context, report *model.WeeklyReport) error
-	Delete(ctx context.Context, id uuid.UUID) error
-	FindByID(ctx context.Context, id uuid.UUID) (*model.WeeklyReport, error)
+	Delete(ctx context.Context, id string) error
+	FindByID(ctx context.Context, id string) (*model.WeeklyReport, error)
 
 	// 検索操作（最適化済み）
 	FindWithPreload(ctx context.Context, params QueryParams) ([]*model.WeeklyReport, *utils.PaginationResult, error)
@@ -28,12 +27,12 @@ type WeeklyReportRefactoredRepository interface {
 
 	// 統計操作
 	CountByStatus(ctx context.Context, status model.WeeklyReportStatusEnum) (int64, error)
-	CountUnsubmittedByDepartment(ctx context.Context, departmentID uuid.UUID) (int64, error)
+	CountUnsubmittedByDepartment(ctx context.Context, departmentID string) (int64, error)
 	GetSubmissionStatistics(ctx context.Context, startDate, endDate time.Time) (*SubmissionStatistics, error)
 
 	// バルク操作
-	BatchUpdateStatus(ctx context.Context, ids []uuid.UUID, status model.WeeklyReportStatusEnum) error
-	BatchUpdateSubmissionDeadline(ctx context.Context, ids []uuid.UUID, deadline time.Time) error
+	BatchUpdateStatus(ctx context.Context, ids []string, status model.WeeklyReportStatusEnum) error
+	BatchUpdateSubmissionDeadline(ctx context.Context, ids []string, deadline time.Time) error
 }
 
 // QueryParams クエリパラメータ
@@ -48,8 +47,8 @@ type QueryParams struct {
 	OrderDir  string
 
 	// 詳細フィルタ
-	DepartmentID *uuid.UUID
-	ManagerID    *uuid.UUID
+	DepartmentID *string
+	ManagerID    *string
 }
 
 // SubmissionStatistics 提出統計
@@ -80,7 +79,7 @@ func NewWeeklyReportRefactoredRepository(db *gorm.DB, logger *zap.Logger) Weekly
 
 // Create 新しい週報を作成
 func (r *weeklyReportRefactoredRepository) Create(ctx context.Context, report *model.WeeklyReport) error {
-	if report.ID == uuid.Nil {
+	if report.ID == "" {
 		report.ID = r.NewID()
 	}
 	return r.WithContext(ctx).Create(report).Error
@@ -94,7 +93,7 @@ func (r *weeklyReportRefactoredRepository) Update(ctx context.Context, report *m
 }
 
 // Delete 週報を削除
-func (r *weeklyReportRefactoredRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *weeklyReportRefactoredRepository) Delete(ctx context.Context, id string) error {
 	if err := r.ValidateID(id); err != nil {
 		return err
 	}
@@ -102,7 +101,7 @@ func (r *weeklyReportRefactoredRepository) Delete(ctx context.Context, id uuid.U
 }
 
 // FindByID IDで週報を検索（関連データを含む）
-func (r *weeklyReportRefactoredRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.WeeklyReport, error) {
+func (r *weeklyReportRefactoredRepository) FindByID(ctx context.Context, id string) (*model.WeeklyReport, error) {
 	if err := r.ValidateID(id); err != nil {
 		return nil, err
 	}
@@ -242,7 +241,7 @@ func (r *weeklyReportRefactoredRepository) CountByStatus(ctx context.Context, st
 }
 
 // CountUnsubmittedByDepartment 部署別の未提出件数を取得
-func (r *weeklyReportRefactoredRepository) CountUnsubmittedByDepartment(ctx context.Context, departmentID uuid.UUID) (int64, error) {
+func (r *weeklyReportRefactoredRepository) CountUnsubmittedByDepartment(ctx context.Context, departmentID string) (int64, error) {
 	var count int64
 	err := r.WithContext(ctx).Model(&model.WeeklyReport{}).
 		Joins("JOIN users ON users.id = weekly_reports.user_id").
@@ -304,7 +303,7 @@ func (r *weeklyReportRefactoredRepository) GetSubmissionStatistics(ctx context.C
 }
 
 // BatchUpdateStatus 複数の週報のステータスを一括更新
-func (r *weeklyReportRefactoredRepository) BatchUpdateStatus(ctx context.Context, ids []uuid.UUID, status model.WeeklyReportStatusEnum) error {
+func (r *weeklyReportRefactoredRepository) BatchUpdateStatus(ctx context.Context, ids []string, status model.WeeklyReportStatusEnum) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -325,7 +324,7 @@ func (r *weeklyReportRefactoredRepository) BatchUpdateStatus(ctx context.Context
 }
 
 // BatchUpdateSubmissionDeadline 複数の週報の提出期限を一括更新
-func (r *weeklyReportRefactoredRepository) BatchUpdateSubmissionDeadline(ctx context.Context, ids []uuid.UUID, deadline time.Time) error {
+func (r *weeklyReportRefactoredRepository) BatchUpdateSubmissionDeadline(ctx context.Context, ids []string, deadline time.Time) error {
 	if len(ids) == 0 {
 		return nil
 	}

@@ -5,7 +5,6 @@ import (
 
 	"github.com/duesk/monstera/internal/common/repository"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -13,12 +12,12 @@ import (
 // ProjectRepository 案件リポジトリのインターフェース
 type ProjectRepository interface {
 	CrudRepository[model.Project]
-	GetByID(ctx context.Context, id uuid.UUID) (*model.Project, error)
-	List(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.Project, error)
-	FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.Project, error)
+	GetByID(ctx context.Context, id string) (*model.Project, error)
+	List(ctx context.Context, clientID *string, limit, offset int) ([]*model.Project, error)
+	FindByClientID(ctx context.Context, clientID string) ([]*model.Project, error)
 	FindActiveProjects(ctx context.Context) ([]*model.Project, error)
 	FindByStatus(ctx context.Context, status model.ProjectStatus) ([]*model.Project, error)
-	GetActiveProjectCount(ctx context.Context, clientID *uuid.UUID) (int64, error)
+	GetActiveProjectCount(ctx context.Context, clientID *string) (int64, error)
 }
 
 // projectRepository 案件リポジトリの実装
@@ -36,7 +35,7 @@ func NewProjectRepository(base BaseRepository) ProjectRepository {
 }
 
 // FindByClientID 取引先IDで案件を検索
-func (r *projectRepository) FindByClientID(ctx context.Context, clientID uuid.UUID) ([]*model.Project, error) {
+func (r *projectRepository) FindByClientID(ctx context.Context, clientID string) ([]*model.Project, error) {
 	var projects []*model.Project
 	err := r.db.WithContext(ctx).
 		Where("client_id = ? AND deleted_at IS NULL", clientID).
@@ -44,7 +43,7 @@ func (r *projectRepository) FindByClientID(ctx context.Context, clientID uuid.UU
 
 	if err != nil {
 		r.logger.Error("Failed to find projects by client ID",
-			zap.String("client_id", clientID.String()),
+			zap.String("client_id", clientID),
 			zap.Error(err))
 		return nil, err
 	}
@@ -53,7 +52,7 @@ func (r *projectRepository) FindByClientID(ctx context.Context, clientID uuid.UU
 }
 
 // GetByID IDで案件を取得
-func (r *projectRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Project, error) {
+func (r *projectRepository) GetByID(ctx context.Context, id string) (*model.Project, error) {
 	var project model.Project
 	err := r.db.WithContext(ctx).
 		Where("id = ? AND deleted_at IS NULL", id).
@@ -64,7 +63,7 @@ func (r *projectRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.P
 			return nil, nil
 		}
 		r.logger.Error("Failed to get project by ID",
-			zap.String("id", id.String()),
+			zap.String("id", id),
 			zap.Error(err))
 		return nil, err
 	}
@@ -73,7 +72,7 @@ func (r *projectRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.P
 }
 
 // List 案件一覧を取得
-func (r *projectRepository) List(ctx context.Context, clientID *uuid.UUID, limit, offset int) ([]*model.Project, error) {
+func (r *projectRepository) List(ctx context.Context, clientID *string, limit, offset int) ([]*model.Project, error) {
 	var projects []*model.Project
 	query := r.db.WithContext(ctx).Where("deleted_at IS NULL")
 
@@ -91,7 +90,7 @@ func (r *projectRepository) List(ctx context.Context, clientID *uuid.UUID, limit
 }
 
 // GetActiveProjectCount アクティブプロジェクト数を取得
-func (r *projectRepository) GetActiveProjectCount(ctx context.Context, clientID *uuid.UUID) (int64, error) {
+func (r *projectRepository) GetActiveProjectCount(ctx context.Context, clientID *string) (int64, error) {
 	var count int64
 	query := r.db.WithContext(ctx).Model(&model.Project{}).
 		Where("status = ? AND deleted_at IS NULL", model.ProjectStatusActive)

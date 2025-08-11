@@ -17,7 +17,6 @@ import (
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -214,7 +213,7 @@ func (m *CognitoAuthMiddleware) AdminRequired() gin.HandlerFunc {
 		// 管理者権限をチェック（スーパー管理者または管理者）
 		if user.Role != model.RoleSuperAdmin && user.Role != model.RoleAdmin {
 			m.logger.Warn("管理者権限なしでのアクセス試行",
-				zap.String("user_id", user.ID.String()),
+				zap.String("user_id", user.ID),
 				zap.Int("role", int(user.Role)),
 			)
 			c.JSON(http.StatusForbidden, gin.H{"error": "管理者権限が必要です"})
@@ -495,8 +494,8 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 	// 開発用のダミーユーザー情報
 	adminRole := model.RoleAdmin // Role型の定数を使用
 
-	// UUIDを生成
-	userID, _ := uuid.Parse("00000000-0000-0000-0000-000000000001")
+	// IDを設定
+	userID := "00000000-0000-0000-0000-000000000001"
 
 	devUser := &model.User{
 		ID:          userID,
@@ -519,5 +518,5 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 
 	m.logger.Debug("開発用ユーザーを設定しました",
 		zap.String("email", devUser.Email),
-		zap.String("role", adminRole.String()))
+		zap.String("role", adminRole))
 }

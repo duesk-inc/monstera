@@ -21,7 +21,7 @@ type MockNotificationRepository struct {
 	mock.Mock
 }
 
-func (m *MockNotificationRepository) GetNotificationByID(ctx context.Context, id uuid.UUID) (model.Notification, error) {
+func (m *MockNotificationRepository) GetNotificationByID(ctx context.Context, id string) (model.Notification, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(model.Notification), args.Error(1)
 }
@@ -36,57 +36,57 @@ func (m *MockNotificationRepository) UpdateNotification(ctx context.Context, not
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) DeleteNotification(ctx context.Context, id uuid.UUID) error {
+func (m *MockNotificationRepository) DeleteNotification(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) SoftDeleteNotification(ctx context.Context, id uuid.UUID) error {
+func (m *MockNotificationRepository) SoftDeleteNotification(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) GetNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID, params *repository.NotificationQueryParams) ([]*model.Notification, *utils.PaginationResult, error) {
+func (m *MockNotificationRepository) GetNotificationsByRecipient(ctx context.Context, recipientID string, params *repository.NotificationQueryParams) ([]*model.Notification, *utils.PaginationResult, error) {
 	args := m.Called(ctx, recipientID, params)
 	return args.Get(0).([]*model.Notification), args.Get(1).(*utils.PaginationResult), args.Error(2)
 }
 
-func (m *MockNotificationRepository) GetUnreadNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID) ([]*model.Notification, error) {
+func (m *MockNotificationRepository) GetUnreadNotificationsByRecipient(ctx context.Context, recipientID string) ([]*model.Notification, error) {
 	args := m.Called(ctx, recipientID)
 	return args.Get(0).([]*model.Notification), args.Error(1)
 }
 
-func (m *MockNotificationRepository) GetRecentNotificationsByRecipient(ctx context.Context, recipientID uuid.UUID, limit int) ([]*model.Notification, error) {
+func (m *MockNotificationRepository) GetRecentNotificationsByRecipient(ctx context.Context, recipientID string, limit int) ([]*model.Notification, error) {
 	args := m.Called(ctx, recipientID, limit)
 	return args.Get(0).([]*model.Notification), args.Error(1)
 }
 
-func (m *MockNotificationRepository) MarkNotificationAsRead(ctx context.Context, id uuid.UUID) error {
+func (m *MockNotificationRepository) MarkNotificationAsRead(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) MarkNotificationsAsReadByRecipient(ctx context.Context, recipientID uuid.UUID, ids []uuid.UUID) error {
+func (m *MockNotificationRepository) MarkNotificationsAsReadByRecipient(ctx context.Context, recipientID string, ids []string) error {
 	args := m.Called(ctx, recipientID, ids)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) MarkAllNotificationsAsReadByRecipient(ctx context.Context, recipientID uuid.UUID) error {
+func (m *MockNotificationRepository) MarkAllNotificationsAsReadByRecipient(ctx context.Context, recipientID string) error {
 	args := m.Called(ctx, recipientID)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) HideNotification(ctx context.Context, id uuid.UUID) error {
+func (m *MockNotificationRepository) HideNotification(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) GetUnreadNotificationCountByRecipient(ctx context.Context, recipientID uuid.UUID) (int64, error) {
+func (m *MockNotificationRepository) GetUnreadNotificationCountByRecipient(ctx context.Context, recipientID string) (int64, error) {
 	args := m.Called(ctx, recipientID)
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockNotificationRepository) GetNotificationCountByTypeAndRecipient(ctx context.Context, notificationType model.NotificationType, recipientID uuid.UUID) (int64, error) {
+func (m *MockNotificationRepository) GetNotificationCountByTypeAndRecipient(ctx context.Context, notificationType model.NotificationType, recipientID string) (int64, error) {
 	args := m.Called(ctx, notificationType, recipientID)
 	return args.Get(0).(int64), args.Error(1)
 }
@@ -117,12 +117,12 @@ func (m *MockNotificationRepository) GetNotificationStats(ctx context.Context, s
 }
 
 // 既存インターフェースのモック実装
-func (m *MockNotificationRepository) GetUserNotifications(ctx context.Context, userID uuid.UUID, limit, offset int) ([]model.UserNotification, int64, error) {
+func (m *MockNotificationRepository) GetUserNotifications(ctx context.Context, userID string, limit, offset int) ([]model.UserNotification, int64, error) {
 	args := m.Called(ctx, userID, limit, offset)
 	return args.Get(0).([]model.UserNotification), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockNotificationRepository) GetUserNotificationByID(ctx context.Context, id uuid.UUID) (model.UserNotification, error) {
+func (m *MockNotificationRepository) GetUserNotificationByID(ctx context.Context, id string) (model.UserNotification, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(model.UserNotification), args.Error(1)
 }
@@ -137,22 +137,22 @@ func (m *MockNotificationRepository) CreateUserNotificationBulk(ctx context.Cont
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) MarkAsRead(ctx context.Context, userID uuid.UUID, notificationIDs []uuid.UUID) error {
+func (m *MockNotificationRepository) MarkAsRead(ctx context.Context, userID string, notificationIDs []string) error {
 	args := m.Called(ctx, userID, notificationIDs)
 	return args.Error(0)
 }
 
-func (m *MockNotificationRepository) GetUnreadCount(ctx context.Context, userID uuid.UUID) (int64, error) {
+func (m *MockNotificationRepository) GetUnreadCount(ctx context.Context, userID string) (int64, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).(int64), args.Error(1)
 }
 
-func (m *MockNotificationRepository) GetUserNotificationSettings(ctx context.Context, userID uuid.UUID) ([]model.NotificationSetting, error) {
+func (m *MockNotificationRepository) GetUserNotificationSettings(ctx context.Context, userID string) ([]model.NotificationSetting, error) {
 	args := m.Called(ctx, userID)
 	return args.Get(0).([]model.NotificationSetting), args.Error(1)
 }
 
-func (m *MockNotificationRepository) GetUserNotificationSettingByType(ctx context.Context, userID uuid.UUID, notificationType model.NotificationType) (model.NotificationSetting, error) {
+func (m *MockNotificationRepository) GetUserNotificationSettingByType(ctx context.Context, userID string, notificationType model.NotificationType) (model.NotificationSetting, error) {
 	args := m.Called(ctx, userID, notificationType)
 	return args.Get(0).(model.NotificationSetting), args.Error(1)
 }
@@ -175,7 +175,7 @@ func TestCreateAdvancedNotification(t *testing.T) {
 
 	t.Run("通知作成成功", func(t *testing.T) {
 		// テストデータ
-		recipientID := uuid.New()
+		recipientID := uuid.New().String()
 		req := &service.CreateAdvancedNotificationRequest{
 			RecipientID: &recipientID,
 			Type:        model.NotificationTypeWeeklyReportReminder,
@@ -183,14 +183,14 @@ func TestCreateAdvancedNotification(t *testing.T) {
 			Title:       "週報提出リマインド",
 			Message:     "今週の週報をご提出ください。",
 			Metadata: &model.NotificationMetadata{
-				WeeklyReportID: &uuid.UUID{},
+				WeeklyReportID: &string{},
 				StartDate:      timePtr(time.Now().Truncate(24 * time.Hour)),
 				EndDate:        timePtr(time.Now().Truncate(24*time.Hour).AddDate(0, 0, 6)),
 			},
 		}
 
 		expectedNotification := model.Notification{
-			ID:               uuid.New(),
+			ID:               uuid.New().String(),
 			RecipientID:      req.RecipientID,
 			Title:            req.Title,
 			Message:          req.Message,
@@ -248,7 +248,7 @@ func TestGetNotificationsByRecipient(t *testing.T) {
 
 	t.Run("受信者別通知取得成功", func(t *testing.T) {
 		// テストデータ
-		recipientID := uuid.New()
+		recipientID := uuid.New().String()
 		params := &repository.NotificationQueryParams{
 			Page:  1,
 			Limit: 20,
@@ -256,7 +256,7 @@ func TestGetNotificationsByRecipient(t *testing.T) {
 
 		notifications := []*model.Notification{
 			{
-				ID:               uuid.New(),
+				ID:               uuid.New().String(),
 				RecipientID:      &recipientID,
 				Title:            "テスト通知1",
 				Message:          "テストメッセージ1",
@@ -299,7 +299,7 @@ func TestCreateWeeklyReportReminderNotification(t *testing.T) {
 
 	t.Run("週報リマインド通知作成成功", func(t *testing.T) {
 		// テストデータ
-		recipientID := uuid.New()
+		recipientID := uuid.New().String()
 		startDate := time.Now().Truncate(24 * time.Hour)
 		endDate := startDate.AddDate(0, 0, 6)
 
@@ -310,7 +310,7 @@ func TestCreateWeeklyReportReminderNotification(t *testing.T) {
 		}
 
 		expectedNotification := model.Notification{
-			ID:               uuid.New(),
+			ID:               uuid.New().String(),
 			RecipientID:      &recipientID,
 			Title:            "週報提出リマインド",
 			NotificationType: model.NotificationTypeWeeklyReportReminder,
@@ -338,7 +338,7 @@ func TestCreateWeeklyReportReminderNotification(t *testing.T) {
 	t.Run("無効な日付範囲", func(t *testing.T) {
 		// 不正な日付範囲（終了日が開始日より前）
 		req := &service.WeeklyReportReminderRequest{
-			RecipientID: uuid.New(),
+			RecipientID: uuid.New().String(),
 			StartDate:   time.Now(),
 			EndDate:     time.Now().AddDate(0, 0, -1), // 前日
 		}
@@ -358,7 +358,7 @@ func TestGetUnreadNotificationCount(t *testing.T) {
 
 	t.Run("未読通知数取得成功", func(t *testing.T) {
 		// テストデータ
-		userID := uuid.New()
+		userID := uuid.New().String()
 		expectedCount := int64(5)
 
 		// モック設定
@@ -383,8 +383,8 @@ func TestMarkAdvancedNotificationsAsRead(t *testing.T) {
 
 	t.Run("通知一括既読成功", func(t *testing.T) {
 		// テストデータ
-		userID := uuid.New()
-		notificationIDs := []uuid.UUID{uuid.New(), uuid.New()}
+		userID := uuid.New().String()
+		notificationIDs := []string{uuid.New().String(), uuid.New().String()}
 
 		// モック設定
 		mockRepo.On("MarkNotificationsAsReadByRecipient", mock.Anything, userID, notificationIDs).

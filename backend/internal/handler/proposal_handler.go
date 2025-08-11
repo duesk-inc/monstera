@@ -150,8 +150,9 @@ func (h *proposalHandler) GetProposalDetail(c *gin.Context) {
 
 	// パスパラメータを取得
 	proposalIDStr := c.Param("id")
-	proposalID, err := uuid.Parse(proposalIDStr)
-	if err != nil {
+	proposalID := proposalIDStr
+	// UUID validation removed after migration
+	if proposalID == "" {
 		RespondErrorWithCode(c, message.ErrCodeProposalInvalidID, "無効な提案IDです")
 		return
 	}
@@ -193,8 +194,9 @@ func (h *proposalHandler) UpdateProposalStatus(c *gin.Context) {
 
 	// パスパラメータを取得
 	proposalIDStr := c.Param("id")
-	proposalID, err := uuid.Parse(proposalIDStr)
-	if err != nil {
+	proposalID := proposalIDStr
+	// UUID validation removed after migration
+	if proposalID == "" {
 		RespondErrorWithCode(c, message.ErrCodeProposalInvalidID, "無効な提案IDです")
 		return
 	}
@@ -243,8 +245,9 @@ func (h *proposalHandler) CreateQuestion(c *gin.Context) {
 
 	// パスパラメータを取得
 	proposalIDStr := c.Param("proposalId")
-	proposalID, err := uuid.Parse(proposalIDStr)
-	if err != nil {
+	proposalID := proposalIDStr
+	// UUID validation removed after migration
+	if proposalID == "" {
 		RespondErrorWithCode(c, message.ErrCodeProposalInvalidID, "無効な提案IDです")
 		return
 	}
@@ -293,8 +296,9 @@ func (h *proposalHandler) GetQuestions(c *gin.Context) {
 
 	// パスパラメータを取得
 	proposalIDStr := c.Param("proposalId")
-	proposalID, err := uuid.Parse(proposalIDStr)
-	if err != nil {
+	proposalID := proposalIDStr
+	// UUID validation removed after migration
+	if proposalID == "" {
 		RespondErrorWithCode(c, message.ErrCodeProposalInvalidID, "無効な提案IDです")
 		return
 	}
@@ -342,8 +346,9 @@ func (h *proposalHandler) UpdateQuestion(c *gin.Context) {
 
 	// パスパラメータを取得
 	questionIDStr := c.Param("id")
-	questionID, err := uuid.Parse(questionIDStr)
-	if err != nil {
+	questionID := questionIDStr
+	// UUID validation removed after migration
+	if questionID == "" {
 		RespondErrorWithCode(c, message.ErrCodeQuestionInvalidID, "無効な質問IDです")
 		return
 	}
@@ -391,8 +396,9 @@ func (h *proposalHandler) DeleteQuestion(c *gin.Context) {
 
 	// パスパラメータを取得
 	questionIDStr := c.Param("id")
-	questionID, err := uuid.Parse(questionIDStr)
-	if err != nil {
+	questionID := questionIDStr
+	// UUID validation removed after migration
+	if questionID == "" {
 		RespondErrorWithCode(c, message.ErrCodeQuestionInvalidID, "無効な質問IDです")
 		return
 	}
@@ -435,8 +441,9 @@ func (h *proposalHandler) RespondToQuestion(c *gin.Context) {
 
 	// パスパラメータを取得
 	questionIDStr := c.Param("id")
-	questionID, err := uuid.Parse(questionIDStr)
-	if err != nil {
+	questionID := questionIDStr
+	// UUID validation removed after migration
+	if questionID == "" {
 		RespondErrorWithCode(c, message.ErrCodeQuestionInvalidID, "無効な質問IDです")
 		return
 	}
@@ -533,8 +540,9 @@ func (h *proposalHandler) AssignQuestionToSales(c *gin.Context) {
 
 	// パスパラメータを取得
 	questionIDStr := c.Param("id")
-	questionID, err := uuid.Parse(questionIDStr)
-	if err != nil {
+	questionID := questionIDStr
+	// UUID validation removed after migration
+	if questionID == "" {
 		RespondErrorWithCode(c, message.ErrCodeQuestionInvalidID, "無効な質問IDです")
 		return
 	}
@@ -691,8 +699,9 @@ func (h *proposalHandler) UpdateProposal(c *gin.Context) {
 
 	// パスパラメータを取得
 	proposalIDStr := c.Param("id")
-	proposalID, err := uuid.Parse(proposalIDStr)
-	if err != nil {
+	proposalID := proposalIDStr
+	// UUID validation removed after migration
+	if proposalID == "" {
 		RespondErrorWithCode(c, message.ErrCodeProposalInvalidID, "無効な提案IDです")
 		return
 	}
@@ -723,8 +732,9 @@ func (h *proposalHandler) DeleteProposal(c *gin.Context) {
 
 	// パスパラメータを取得
 	proposalIDStr := c.Param("id")
-	proposalID, err := uuid.Parse(proposalIDStr)
-	if err != nil {
+	proposalID := proposalIDStr
+	// UUID validation removed after migration
+	if proposalID == "" {
 		RespondErrorWithCode(c, message.ErrCodeProposalInvalidID, "無効な提案IDです")
 		return
 	}
@@ -742,8 +752,9 @@ func (h *proposalHandler) GetActiveProposalsByEngineer(c *gin.Context) {
 
 	// パスパラメータを取得
 	engineerIDStr := c.Param("id")
-	engineerID, err := uuid.Parse(engineerIDStr)
-	if err != nil {
+	engineerID := engineerIDStr
+	// UUID validation removed after migration
+	if engineerID == "" {
 		RespondError(c, http.StatusBadRequest, "無効なエンジニアIDです")
 		return
 	}

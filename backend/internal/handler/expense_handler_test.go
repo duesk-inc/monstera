@@ -23,7 +23,7 @@ type MockExpenseService struct {
 	mock.Mock
 }
 
-func (m *MockExpenseService) Create(ctx context.Context, userID uuid.UUID, req *dto.CreateExpenseRequest) (*model.Expense, error) {
+func (m *MockExpenseService) Create(ctx context.Context, userID string, req *dto.CreateExpenseRequest) (*model.Expense, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -31,7 +31,7 @@ func (m *MockExpenseService) Create(ctx context.Context, userID uuid.UUID, req *
 	return args.Get(0).(*model.Expense), args.Error(1)
 }
 
-func (m *MockExpenseService) GetByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) (*model.ExpenseWithDetails, error) {
+func (m *MockExpenseService) GetByID(ctx context.Context, id string, userID string) (*model.ExpenseWithDetails, error) {
 	args := m.Called(ctx, id, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -39,7 +39,7 @@ func (m *MockExpenseService) GetByID(ctx context.Context, id uuid.UUID, userID u
 	return args.Get(0).(*model.ExpenseWithDetails), args.Error(1)
 }
 
-func (m *MockExpenseService) Update(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.UpdateExpenseRequest) (*model.Expense, error) {
+func (m *MockExpenseService) Update(ctx context.Context, id string, userID string, req *dto.UpdateExpenseRequest) (*model.Expense, error) {
 	args := m.Called(ctx, id, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -47,12 +47,12 @@ func (m *MockExpenseService) Update(ctx context.Context, id uuid.UUID, userID uu
 	return args.Get(0).(*model.Expense), args.Error(1)
 }
 
-func (m *MockExpenseService) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
+func (m *MockExpenseService) Delete(ctx context.Context, id string, userID string) error {
 	args := m.Called(ctx, id, userID)
 	return args.Error(0)
 }
 
-func (m *MockExpenseService) List(ctx context.Context, userID uuid.UUID, filter *dto.ExpenseFilterRequest) (*dto.ExpenseListResponse, error) {
+func (m *MockExpenseService) List(ctx context.Context, userID string, filter *dto.ExpenseFilterRequest) (*dto.ExpenseListResponse, error) {
 	args := m.Called(ctx, userID, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -60,7 +60,7 @@ func (m *MockExpenseService) List(ctx context.Context, userID uuid.UUID, filter 
 	return args.Get(0).(*dto.ExpenseListResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) ApproveExpense(ctx context.Context, id uuid.UUID, approverID uuid.UUID, req *dto.ApproveExpenseRequest) (*model.Expense, error) {
+func (m *MockExpenseService) ApproveExpense(ctx context.Context, id string, approverID string, req *dto.ApproveExpenseRequest) (*model.Expense, error) {
 	args := m.Called(ctx, id, approverID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -73,7 +73,7 @@ func (m *MockExpenseService) BulkUpdateCategories(ctx context.Context, req *dto.
 	return args.Error(0)
 }
 
-func (m *MockExpenseService) CancelExpense(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.CancelExpenseRequest) (*model.Expense, error) {
+func (m *MockExpenseService) CancelExpense(ctx context.Context, id string, userID string, req *dto.CancelExpenseRequest) (*model.Expense, error) {
 	args := m.Called(ctx, id, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -81,7 +81,7 @@ func (m *MockExpenseService) CancelExpense(ctx context.Context, id uuid.UUID, us
 	return args.Get(0).(*model.Expense), args.Error(1)
 }
 
-func (m *MockExpenseService) CheckLimits(ctx context.Context, userID uuid.UUID, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error) {
+func (m *MockExpenseService) CheckLimits(ctx context.Context, userID string, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error) {
 	args := m.Called(ctx, userID, amount, expenseDate)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -89,7 +89,7 @@ func (m *MockExpenseService) CheckLimits(ctx context.Context, userID uuid.UUID, 
 	return args.Get(0).(*dto.LimitCheckResult), args.Error(1)
 }
 
-func (m *MockExpenseService) CheckLimitsWithScope(ctx context.Context, userID uuid.UUID, departmentID *uuid.UUID, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error) {
+func (m *MockExpenseService) CheckLimitsWithScope(ctx context.Context, userID string, departmentID *string, amount int, expenseDate time.Time) (*dto.LimitCheckResult, error) {
 	args := m.Called(ctx, userID, departmentID, amount, expenseDate)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -130,7 +130,7 @@ func (m *MockExpenseService) GetCategoriesWithFilter(ctx context.Context, filter
 	return args.Get(0).(*dto.ExpenseCategoryListResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) GetCategoryByID(ctx context.Context, id uuid.UUID) (*dto.ExpenseCategoryResponse, error) {
+func (m *MockExpenseService) GetCategoryByID(ctx context.Context, id string) (*dto.ExpenseCategoryResponse, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -146,7 +146,7 @@ func (m *MockExpenseService) CreateCategory(ctx context.Context, req *dto.Create
 	return args.Get(0).(*dto.ExpenseCategoryResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) UpdateCategory(ctx context.Context, id uuid.UUID, req *dto.UpdateExpenseCategoryRequest) (*dto.ExpenseCategoryResponse, error) {
+func (m *MockExpenseService) UpdateCategory(ctx context.Context, id string, req *dto.UpdateExpenseCategoryRequest) (*dto.ExpenseCategoryResponse, error) {
 	args := m.Called(ctx, id, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -154,7 +154,7 @@ func (m *MockExpenseService) UpdateCategory(ctx context.Context, id uuid.UUID, r
 	return args.Get(0).(*dto.ExpenseCategoryResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) DeleteCategory(ctx context.Context, id uuid.UUID) error {
+func (m *MockExpenseService) DeleteCategory(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -164,7 +164,7 @@ func (m *MockExpenseService) ReorderCategories(ctx context.Context, req *dto.Reo
 	return args.Error(0)
 }
 
-func (m *MockExpenseService) GetMonthlySummary(ctx context.Context, userID uuid.UUID, year int, month int) (*dto.ExpenseSummaryResponse, error) {
+func (m *MockExpenseService) GetMonthlySummary(ctx context.Context, userID string, year int, month int) (*dto.ExpenseSummaryResponse, error) {
 	args := m.Called(ctx, userID, year, month)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -172,7 +172,7 @@ func (m *MockExpenseService) GetMonthlySummary(ctx context.Context, userID uuid.
 	return args.Get(0).(*dto.ExpenseSummaryResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) GetYearlySummary(ctx context.Context, userID uuid.UUID, year int) (*dto.ExpenseYearlySummaryResponse, error) {
+func (m *MockExpenseService) GetYearlySummary(ctx context.Context, userID string, year int) (*dto.ExpenseYearlySummaryResponse, error) {
 	args := m.Called(ctx, userID, year)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -180,7 +180,7 @@ func (m *MockExpenseService) GetYearlySummary(ctx context.Context, userID uuid.U
 	return args.Get(0).(*dto.ExpenseYearlySummaryResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) GetFiscalYearSummary(ctx context.Context, userID uuid.UUID, fiscalYear int) (*dto.ExpenseYearlySummaryResponse, error) {
+func (m *MockExpenseService) GetFiscalYearSummary(ctx context.Context, userID string, fiscalYear int) (*dto.ExpenseYearlySummaryResponse, error) {
 	args := m.Called(ctx, userID, fiscalYear)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -204,7 +204,7 @@ func (m *MockExpenseService) GetExpenseLimits(ctx context.Context) ([]model.Expe
 	return args.Get(0).([]model.ExpenseLimit), args.Error(1)
 }
 
-func (m *MockExpenseService) UpdateExpenseLimit(ctx context.Context, userID uuid.UUID, req *dto.UpdateExpenseLimitRequest) (*model.ExpenseLimit, error) {
+func (m *MockExpenseService) UpdateExpenseLimit(ctx context.Context, userID string, req *dto.UpdateExpenseLimitRequest) (*model.ExpenseLimit, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -220,7 +220,7 @@ func (m *MockExpenseService) GetExpenseLimitsWithScope(ctx context.Context, filt
 	return args.Get(0).(*dto.ExpenseLimitListResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) GetExpenseLimitByID(ctx context.Context, id uuid.UUID) (*dto.ExpenseLimitDetailResponse, error) {
+func (m *MockExpenseService) GetExpenseLimitByID(ctx context.Context, id string) (*dto.ExpenseLimitDetailResponse, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -228,7 +228,7 @@ func (m *MockExpenseService) GetExpenseLimitByID(ctx context.Context, id uuid.UU
 	return args.Get(0).(*dto.ExpenseLimitDetailResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) CreateExpenseLimitWithScope(ctx context.Context, createdBy uuid.UUID, req *dto.CreateExpenseLimitRequest) (*dto.ExpenseLimitDetailResponse, error) {
+func (m *MockExpenseService) CreateExpenseLimitWithScope(ctx context.Context, createdBy string, req *dto.CreateExpenseLimitRequest) (*dto.ExpenseLimitDetailResponse, error) {
 	args := m.Called(ctx, createdBy, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -236,7 +236,7 @@ func (m *MockExpenseService) CreateExpenseLimitWithScope(ctx context.Context, cr
 	return args.Get(0).(*dto.ExpenseLimitDetailResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) UpdateExpenseLimitWithScope(ctx context.Context, id uuid.UUID, createdBy uuid.UUID, req *dto.UpdateExpenseLimitV2Request) (*dto.ExpenseLimitDetailResponse, error) {
+func (m *MockExpenseService) UpdateExpenseLimitWithScope(ctx context.Context, id string, createdBy string, req *dto.UpdateExpenseLimitV2Request) (*dto.ExpenseLimitDetailResponse, error) {
 	args := m.Called(ctx, id, createdBy, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -244,7 +244,7 @@ func (m *MockExpenseService) UpdateExpenseLimitWithScope(ctx context.Context, id
 	return args.Get(0).(*dto.ExpenseLimitDetailResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) DeleteExpenseLimitWithScope(ctx context.Context, id uuid.UUID) error {
+func (m *MockExpenseService) DeleteExpenseLimitWithScope(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -257,7 +257,7 @@ func (m *MockExpenseService) GetExpenseLimitHistory(ctx context.Context, filter 
 	return args.Get(0).(*dto.ExpenseLimitHistoryResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) SubmitExpense(ctx context.Context, id uuid.UUID, userID uuid.UUID, req *dto.SubmitExpenseRequest) (*model.Expense, error) {
+func (m *MockExpenseService) SubmitExpense(ctx context.Context, id string, userID string, req *dto.SubmitExpenseRequest) (*model.Expense, error) {
 	args := m.Called(ctx, id, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -265,7 +265,7 @@ func (m *MockExpenseService) SubmitExpense(ctx context.Context, id uuid.UUID, us
 	return args.Get(0).(*model.Expense), args.Error(1)
 }
 
-func (m *MockExpenseService) RejectExpense(ctx context.Context, id uuid.UUID, approverID uuid.UUID, req *dto.RejectExpenseRequest) (*model.Expense, error) {
+func (m *MockExpenseService) RejectExpense(ctx context.Context, id string, approverID string, req *dto.RejectExpenseRequest) (*model.Expense, error) {
 	args := m.Called(ctx, id, approverID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -273,7 +273,7 @@ func (m *MockExpenseService) RejectExpense(ctx context.Context, id uuid.UUID, ap
 	return args.Get(0).(*model.Expense), args.Error(1)
 }
 
-func (m *MockExpenseService) GetPendingApprovals(ctx context.Context, approverID uuid.UUID, filter *dto.ApprovalFilterRequest) (*dto.ApprovalListResponse, error) {
+func (m *MockExpenseService) GetPendingApprovals(ctx context.Context, approverID string, filter *dto.ApprovalFilterRequest) (*dto.ApprovalListResponse, error) {
 	args := m.Called(ctx, approverID, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -281,7 +281,7 @@ func (m *MockExpenseService) GetPendingApprovals(ctx context.Context, approverID
 	return args.Get(0).(*dto.ApprovalListResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
+func (m *MockExpenseService) GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -289,7 +289,7 @@ func (m *MockExpenseService) GenerateUploadURL(ctx context.Context, userID uuid.
 	return args.Get(0).(*dto.UploadURLResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) CompleteUpload(ctx context.Context, userID uuid.UUID, req *dto.CompleteUploadRequest) (*dto.CompleteUploadResponse, error) {
+func (m *MockExpenseService) CompleteUpload(ctx context.Context, userID string, req *dto.CompleteUploadRequest) (*dto.CompleteUploadResponse, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -297,7 +297,7 @@ func (m *MockExpenseService) CompleteUpload(ctx context.Context, userID uuid.UUI
 	return args.Get(0).(*dto.CompleteUploadResponse), args.Error(1)
 }
 
-func (m *MockExpenseService) DeleteUploadedFile(ctx context.Context, userID uuid.UUID, req *dto.DeleteUploadRequest) error {
+func (m *MockExpenseService) DeleteUploadedFile(ctx context.Context, userID string, req *dto.DeleteUploadRequest) error {
 	args := m.Called(ctx, userID, req)
 	return args.Error(0)
 }
@@ -315,7 +315,7 @@ type MockS3Service struct {
 	mock.Mock
 }
 
-func (m *MockS3Service) GenerateUploadURL(ctx context.Context, userID uuid.UUID, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
+func (m *MockS3Service) GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
 	args := m.Called(ctx, userID, req)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -350,7 +350,7 @@ func setupGinContext(method, path string, body interface{}) (*gin.Context, *http
 	ctx.Request = req
 
 	// 認証済みユーザーIDを設定
-	userID := uuid.New()
+	userID := uuid.New().String()
 	ctx.Set("user_id", userID)
 
 	return ctx, w
@@ -370,12 +370,12 @@ func TestExpenseHandler_CreateExpense(t *testing.T) {
 			requestBody: dto.CreateExpenseRequest{
 				Title:       "テスト経費",
 				Amount:      10000,
-				CategoryID:  uuid.New(),
+				CategoryID:  uuid.New().String(),
 				Description: "テスト用の経費申請です",
 			},
 			setupMocks: func(expenseService *MockExpenseService, s3Service *MockS3Service) {
 				expense := &model.Expense{
-					ID:     uuid.New(),
+					ID:     uuid.New().String(),
 					Title:  "テスト経費",
 					Amount: 10000,
 					Status: model.ExpenseStatusDraft,
@@ -445,14 +445,14 @@ func TestExpenseHandler_GetExpense(t *testing.T) {
 	tests := []struct {
 		name           string
 		expenseID      string
-		setupMocks     func(*MockExpenseService, *MockS3Service, uuid.UUID)
+		setupMocks     func(*MockExpenseService, *MockS3Service, string)
 		expectedStatus int
 		expectedError  bool
 	}{
 		{
 			name:      "正常に経費申請詳細を取得",
 			expenseID: uuid.New().String(),
-			setupMocks: func(expenseService *MockExpenseService, s3Service *MockS3Service, expenseID uuid.UUID) {
+			setupMocks: func(expenseService *MockExpenseService, s3Service *MockS3Service, expenseID string) {
 				response := &dto.ExpenseDetailResponse{
 					ExpenseResponse: dto.ExpenseResponse{
 						ID:     expenseID,
@@ -469,7 +469,7 @@ func TestExpenseHandler_GetExpense(t *testing.T) {
 		{
 			name:           "不正なUUID形式でエラー",
 			expenseID:      "invalid-uuid",
-			setupMocks:     func(expenseService *MockExpenseService, s3Service *MockS3Service, expenseID uuid.UUID) {},
+			setupMocks:     func(expenseService *MockExpenseService, s3Service *MockS3Service, expenseID string) {},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  true,
 		},
@@ -481,15 +481,15 @@ func TestExpenseHandler_GetExpense(t *testing.T) {
 			mockExpenseService := new(MockExpenseService)
 			mockS3Service := new(MockS3Service)
 
-			// UUIDの解析
-			var expenseUUID uuid.UUID
+			// IDの設定
+			var expenseID string
 			if tt.expenseID != "invalid-uuid" {
-				expenseUUID, _ = uuid.Parse(tt.expenseID)
+				expenseID = tt.expenseID
 			}
 
 			// モックの設定
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockExpenseService, mockS3Service, expenseUUID)
+				tt.setupMocks(mockExpenseService, mockS3Service, expenseID)
 			}
 
 			// ハンドラーの作成
@@ -532,14 +532,14 @@ func TestExpenseHandler_DeleteExpense(t *testing.T) {
 	tests := []struct {
 		name           string
 		expenseID      string
-		setupMocks     func(*MockExpenseService, *MockS3Service, uuid.UUID)
+		setupMocks     func(*MockExpenseService, *MockS3Service, string)
 		expectedStatus int
 		expectedError  bool
 	}{
 		{
 			name:      "正常に経費申請を削除",
 			expenseID: uuid.New().String(),
-			setupMocks: func(expenseService *MockExpenseService, s3Service *MockS3Service, expenseID uuid.UUID) {
+			setupMocks: func(expenseService *MockExpenseService, s3Service *MockS3Service, expenseID string) {
 				expenseService.On("Delete", mock.Anything, expenseID, mock.Anything).Return(nil)
 			},
 			expectedStatus: http.StatusOK,
@@ -548,7 +548,7 @@ func TestExpenseHandler_DeleteExpense(t *testing.T) {
 		{
 			name:           "不正なUUID形式でエラー",
 			expenseID:      "invalid-uuid",
-			setupMocks:     func(expenseService *MockExpenseService, s3Service *MockS3Service, expenseID uuid.UUID) {},
+			setupMocks:     func(expenseService *MockExpenseService, s3Service *MockS3Service, expenseID string) {},
 			expectedStatus: http.StatusBadRequest,
 			expectedError:  true,
 		},
@@ -560,15 +560,15 @@ func TestExpenseHandler_DeleteExpense(t *testing.T) {
 			mockExpenseService := new(MockExpenseService)
 			mockS3Service := new(MockS3Service)
 
-			// UUIDの解析
-			var expenseUUID uuid.UUID
+			// IDの設定
+			var expenseID string
 			if tt.expenseID != "invalid-uuid" {
-				expenseUUID, _ = uuid.Parse(tt.expenseID)
+				expenseID = tt.expenseID
 			}
 
 			// モックの設定
 			if tt.setupMocks != nil {
-				tt.setupMocks(mockExpenseService, mockS3Service, expenseUUID)
+				tt.setupMocks(mockExpenseService, mockS3Service, expenseID)
 			}
 
 			// ハンドラーの作成

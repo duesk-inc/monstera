@@ -1,11 +1,17 @@
 package service
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"strings"
+	"time"
 
+	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"gorm.io/gorm"
+	"github.com/jung-kurt/gofpdf"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // SkillSheetPDFServiceV2 スキルシートPDFサービスのインターフェース（改良版）

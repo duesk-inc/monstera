@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/duesk/monstera/internal/handler/admin"
+	"github.com/duesk/monstera/internal/handler"
 	"github.com/duesk/monstera/internal/middleware"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -10,7 +10,7 @@ import (
 // SetupAlertSettingsRoutes アラート設定ルートの設定
 func SetupAlertSettingsRoutes(
 	router *gin.RouterGroup,
-	alertHandler *admin.AlertSettingsHandler,
+	alertHandler *handler.AlertSettingsHandler,
 	authMiddleware gin.HandlerFunc,
 	managerRoleMiddleware gin.HandlerFunc,
 	logger *zap.Logger,

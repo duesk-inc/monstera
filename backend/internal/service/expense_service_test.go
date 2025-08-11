@@ -47,7 +47,7 @@ func TestUpdateMonthlySummary_Submit(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := uuid.New().String()
 	expenseDate := time.Date(2025, 7, 15, 0, 0, 0, 0, time.UTC)
 	amount := 10000
 
@@ -98,7 +98,7 @@ func TestUpdateMonthlySummary_Cancel(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := uuid.New().String()
 	expenseDate := time.Date(2025, 7, 15, 0, 0, 0, 0, time.UTC)
 
 	// まず申請を作成
@@ -135,7 +135,7 @@ func TestUpdateMonthlySummary_Approve(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := uuid.New().String()
 	expenseDate := time.Date(2025, 7, 15, 0, 0, 0, 0, time.UTC)
 	amount := 10000
 
@@ -174,7 +174,7 @@ func TestUpdateMonthlySummary_Reject(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := uuid.New().String()
 	expenseDate := time.Date(2025, 7, 15, 0, 0, 0, 0, time.UTC)
 	amount := 10000
 
@@ -213,7 +213,7 @@ func TestUpdateMonthlySummary_MultipleMonths(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	// 7月の申請
 	julyDate := time.Date(2025, 7, 15, 0, 0, 0, 0, time.UTC)
@@ -249,7 +249,7 @@ type MockExpenseRepository struct {
 	mock.Mock
 }
 
-func (m *MockExpenseRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.Expense, error) {
+func (m *MockExpenseRepository) GetByID(ctx context.Context, id string) (*model.Expense, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -257,7 +257,7 @@ func (m *MockExpenseRepository) GetByID(ctx context.Context, id uuid.UUID) (*mod
 	return args.Get(0).(*model.Expense), args.Error(1)
 }
 
-func (m *MockExpenseRepository) List(ctx context.Context, userID uuid.UUID, filter *repository.ExpenseListFilter) ([]model.Expense, int64, error) {
+func (m *MockExpenseRepository) List(ctx context.Context, userID string, filter *repository.ExpenseListFilter) ([]model.Expense, int64, error) {
 	args := m.Called(ctx, userID, filter)
 	return args.Get(0).([]model.Expense), args.Get(1).(int64), args.Error(2)
 }
@@ -272,7 +272,7 @@ func (m *MockExpenseRepository) Update(ctx context.Context, expense *model.Expen
 	return args.Error(0)
 }
 
-func (m *MockExpenseRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (m *MockExpenseRepository) Delete(ctx context.Context, id string) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -282,7 +282,7 @@ func (m *MockExpenseRepository) GetExpensesByStatus(ctx context.Context, status 
 	return args.Get(0).([]model.Expense), args.Error(1)
 }
 
-func (m *MockExpenseRepository) GetMonthlySummary(ctx context.Context, userID uuid.UUID, year int, month int) (*model.ExpenseSummary, error) {
+func (m *MockExpenseRepository) GetMonthlySummary(ctx context.Context, userID string, year int, month int) (*model.ExpenseSummary, error) {
 	args := m.Called(ctx, userID, year, month)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -290,7 +290,7 @@ func (m *MockExpenseRepository) GetMonthlySummary(ctx context.Context, userID uu
 	return args.Get(0).(*model.ExpenseSummary), args.Error(1)
 }
 
-func (m *MockExpenseRepository) UpdateReceipt(ctx context.Context, id uuid.UUID, receiptURL string) error {
+func (m *MockExpenseRepository) UpdateReceipt(ctx context.Context, id string, receiptURL string) error {
 	args := m.Called(ctx, id, receiptURL)
 	return args.Error(0)
 }
@@ -300,12 +300,12 @@ func (m *MockExpenseRepository) AdminList(ctx context.Context, filter *repositor
 	return args.Get(0).([]model.Expense), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockExpenseRepository) GetPendingApprovalExpenses(ctx context.Context, approverID uuid.UUID, filter *repository.ExpenseListFilter) ([]model.Expense, int64, error) {
+func (m *MockExpenseRepository) GetPendingApprovalExpenses(ctx context.Context, approverID string, filter *repository.ExpenseListFilter) ([]model.Expense, int64, error) {
 	args := m.Called(ctx, approverID, filter)
 	return args.Get(0).([]model.Expense), args.Get(1).(int64), args.Error(2)
 }
 
-func (m *MockExpenseRepository) GetByIDWithDetails(ctx context.Context, id uuid.UUID) (*model.Expense, error) {
+func (m *MockExpenseRepository) GetByIDWithDetails(ctx context.Context, id string) (*model.Expense, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)

@@ -3,14 +3,12 @@ package model
 import (
 	"fmt"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // PocProjectRef monstera-pocスキーマのprojectsテーブル参照用モデル
 // 実際のmonstera_poc.projectsテーブルを読み取り専用で参照するためのモデル
 type PocProjectRef struct {
-	ID             uuid.UUID  `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID             string     `gorm:"type:varchar(36);primary_key" json:"id"`
 	ProjectName    string     `gorm:"column:project_name;size:255;not null" json:"project_name"`
 	MinPrice       *int       `gorm:"column:min_price" json:"min_price"`
 	MaxPrice       *int       `gorm:"column:max_price" json:"max_price"`
@@ -36,9 +34,9 @@ func (PocProjectRef) TableName() string {
 
 // PocProjectRequiredSkillRef monstera-pocスキーマのproject_required_skillsテーブル参照用モデル
 type PocProjectRequiredSkillRef struct {
-	ID        uuid.UUID `gorm:"type:varchar(36);primary_key" json:"id"`
-	ProjectID uuid.UUID `gorm:"column:project_id;type:varchar(36);not null" json:"project_id"`
-	SkillID   uuid.UUID `gorm:"column:skill_id;type:varchar(36);not null" json:"skill_id"`
+	ID        string    `gorm:"type:varchar(36);primary_key" json:"id"`
+	ProjectID string    `gorm:"column:project_id;type:varchar(36);not null" json:"project_id"`
+	SkillID   string    `gorm:"column:skill_id;type:varchar(36);not null" json:"skill_id"`
 	Level     *int      `gorm:"column:level" json:"level"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -54,7 +52,7 @@ func (PocProjectRequiredSkillRef) TableName() string {
 
 // PocSkillRef monstera-pocスキーマのskillsテーブル参照用モデル
 type PocSkillRef struct {
-	ID          uuid.UUID  `gorm:"type:varchar(36);primary_key" json:"id"`
+	ID          string     `gorm:"type:varchar(36);primary_key" json:"id"`
 	Name        string     `gorm:"column:name;size:100;not null" json:"name"`
 	Category    *string    `gorm:"column:category;size:50" json:"category"`
 	Description *string    `gorm:"column:description;type:text" json:"description"`

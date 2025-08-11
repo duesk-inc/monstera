@@ -23,7 +23,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		report := &model.WeeklyReport{
 			UserID:    userID,
 			StartDate: getMonday(time.Now()),
@@ -45,7 +45,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		err := weeklyService.Create(ctx, report, dailyRecords)
 
 		assert.NoError(t, err)
-		assert.NotEqual(t, uuid.Nil, report.ID)
+		assert.NotEqual(t, "", report.ID)
 
 		// データベースに保存されているかを確認
 		var savedReport model.WeeklyReport
@@ -59,7 +59,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		report := createBasicTestWeeklyReport(t, db, userID)
 
 		result, err := weeklyService.GetByID(ctx, report.ID)
@@ -74,7 +74,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		report := createBasicTestWeeklyReport(t, db, userID)
 
 		report.WeeklyRemarks = "更新されたコメント"
@@ -93,7 +93,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		report := createBasicTestWeeklyReport(t, db, userID)
 
 		err := weeklyService.Delete(ctx, report.ID)
@@ -110,7 +110,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		report := createBasicTestWeeklyReport(t, db, userID)
 
 		err := weeklyService.Submit(ctx, report.ID)
@@ -128,7 +128,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		// テストデータ作成
 		for i := 0; i < 3; i++ {
@@ -158,7 +158,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 	t.Run("GetDailyRecords", func(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		report := createBasicTestWeeklyReport(t, db, userID)
 
 		records, err := weeklyService.GetDailyRecords(report.ID)
@@ -170,7 +170,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 	t.Run("GetTotalWorkHours", func(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		report := createBasicTestWeeklyReport(t, db, userID)
 
 		totalHours, err := weeklyService.GetTotalWorkHours(report.ID)
@@ -183,7 +183,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		now := time.Now()
 
 		report := &model.WeeklyReport{
@@ -208,7 +208,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		statuses := []model.WeeklyReportStatusEnum{
 			model.WeeklyReportStatusDraft,
@@ -236,7 +236,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		_, weeklyService := setupBasicTestService(t)
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		weekStart := getMonday(time.Now())
 		report := &model.WeeklyReport{
 			UserID:    userID,
@@ -259,13 +259,13 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 		err := weeklyService.SaveReport(ctx, report, dailyRecords)
 
 		assert.NoError(t, err)
-		assert.NotEqual(t, uuid.Nil, report.ID)
+		assert.NotEqual(t, "", report.ID)
 	})
 
 	t.Run("GetUserDefaultWorkSettings", func(t *testing.T) {
 		_, weeklyService := setupBasicTestService(t)
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		result, err := weeklyService.GetUserDefaultWorkSettings(userID)
 
@@ -280,7 +280,7 @@ func TestWeeklyReportServiceBasic(t *testing.T) {
 	t.Run("SaveUserDefaultWorkSettings", func(t *testing.T) {
 		db, weeklyService := setupBasicTestService(t)
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		settings := &model.UserDefaultWorkSettings{
 			UserID:           userID,
 			WeekdayStartTime: "08:30",
@@ -334,7 +334,7 @@ func setupBasicTestService(t *testing.T) (*gorm.DB, *service.WeeklyReportService
 	return db, weeklyService
 }
 
-func createBasicTestWeeklyReport(t *testing.T, db *gorm.DB, userID uuid.UUID) *model.WeeklyReport {
+func createBasicTestWeeklyReport(t *testing.T, db *gorm.DB, userID string) *model.WeeklyReport {
 	weekStart := getMonday(time.Now())
 	report := &model.WeeklyReport{
 		UserID:    userID,

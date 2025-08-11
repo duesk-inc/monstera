@@ -1,25 +1,23 @@
-package admin
+package handler
 
 import (
 	"net/http"
 	"strconv"
 
 	"github.com/duesk/monstera/internal/dto"
-	"github.com/duesk/monstera/internal/handler"
 	"github.com/duesk/monstera/internal/repository"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
 // AlertSettingsHandler アラート設定ハンドラー
 type AlertSettingsHandler struct {
-	handler.BaseHandler
+	BaseHandler
 	alertSettingsRepo repository.AlertSettingsRepository
 	alertHistoryRepo  repository.AlertHistoryRepository
 	alertService      service.AlertService
-	util              *handler.HandlerUtil
+	util              *HandlerUtil
 }
 
 // NewAlertSettingsHandler アラート設定ハンドラーの作成
@@ -30,11 +28,11 @@ func NewAlertSettingsHandler(
 	logger *zap.Logger,
 ) *AlertSettingsHandler {
 	return &AlertSettingsHandler{
-		BaseHandler:       handler.BaseHandler{Logger: logger},
+		BaseHandler:       BaseHandler{Logger: logger},
 		alertSettingsRepo: alertSettingsRepo,
 		alertHistoryRepo:  alertHistoryRepo,
 		alertService:      alertService,
-		util:              handler.NewHandlerUtil(logger),
+		util:              NewHandlerUtil(logger),
 	}
 }
 
@@ -57,12 +55,12 @@ func (h *AlertSettingsHandler) CreateAlertSettings(c *gin.Context) {
 	// サービス呼び出し
 	result, err := h.alertService.CreateAlertSettings(ctx, &req, userID)
 	if err != nil {
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラート設定の作成に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusCreated, "アラート設定を作成しました", gin.H{"settings": result})
+	RespondSuccess(c, http.StatusCreated, "アラート設定を作成しました", gin.H{"settings": result})
 }
 
 // GetAlertSettings アラート設定取得
@@ -73,15 +71,15 @@ func (h *AlertSettingsHandler) GetAlertSettings(c *gin.Context) {
 	result, err := h.alertService.GetAlertSettings(ctx)
 	if err != nil {
 		if err == service.ErrAlertSettingsNotFound {
-			handler.RespondNotFound(c, "アラート設定")
+			RespondNotFound(c, "アラート設定")
 			return
 		}
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラート設定の取得に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusOK, "", gin.H{"settings": result})
+	RespondSuccess(c, http.StatusOK, "", gin.H{"settings": result})
 }
 
 // GetAlertSettingsList アラート設定一覧取得
@@ -102,12 +100,12 @@ func (h *AlertSettingsHandler) GetAlertSettingsList(c *gin.Context) {
 	// サービス呼び出し
 	settings, total, err := h.alertService.GetAlertSettingsList(ctx, page, limit)
 	if err != nil {
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラート設定一覧の取得に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusOK, "", gin.H{
+	RespondSuccess(c, http.StatusOK, "", gin.H{
 		"settings": settings,
 		"total":    total,
 		"page":     page,
@@ -121,9 +119,10 @@ func (h *AlertSettingsHandler) UpdateAlertSettings(c *gin.Context) {
 
 	// パスパラメータ取得
 	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		handler.RespondBadRequest(c, "無効なIDです")
+	id := idStr
+	// UUID validation removed after migration
+	if id == "" {
+		RespondBadRequest(c, "無効なIDです")
 		return
 	}
 
@@ -143,15 +142,15 @@ func (h *AlertSettingsHandler) UpdateAlertSettings(c *gin.Context) {
 	result, err := h.alertService.UpdateAlertSettings(ctx, id, &req, userID)
 	if err != nil {
 		if err == service.ErrAlertSettingsNotFound {
-			handler.RespondNotFound(c, "アラート設定")
+			RespondNotFound(c, "アラート設定")
 			return
 		}
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラート設定の更新に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusOK, "アラート設定を更新しました", gin.H{"settings": result})
+	RespondSuccess(c, http.StatusOK, "アラート設定を更新しました", gin.H{"settings": result})
 }
 
 // DeleteAlertSettings アラート設定削除
@@ -160,25 +159,26 @@ func (h *AlertSettingsHandler) DeleteAlertSettings(c *gin.Context) {
 
 	// パスパラメータ取得
 	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		handler.RespondBadRequest(c, "無効なIDです")
+	id := idStr
+	// UUID validation removed after migration
+	if id == "" {
+		RespondBadRequest(c, "無効なIDです")
 		return
 	}
 
 	// サービス呼び出し
-	err = h.alertService.DeleteAlertSettings(ctx, id)
+	err := h.alertService.DeleteAlertSettings(ctx, id)
 	if err != nil {
 		if err == service.ErrAlertSettingsNotFound {
-			handler.RespondNotFound(c, "アラート設定")
+			RespondNotFound(c, "アラート設定")
 			return
 		}
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラート設定の削除に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusOK, "アラート設定を削除しました", nil)
+	RespondSuccess(c, http.StatusOK, "アラート設定を削除しました", nil)
 }
 
 // GetAlertHistories アラート履歴一覧取得
@@ -188,7 +188,7 @@ func (h *AlertSettingsHandler) GetAlertHistories(c *gin.Context) {
 	// フィルターパラメータ取得
 	var filters dto.AlertFilters
 	if err := c.ShouldBindQuery(&filters); err != nil {
-		handler.RespondBadRequest(c, "無効なパラメータです")
+		RespondBadRequest(c, "無効なパラメータです")
 		return
 	}
 
@@ -227,12 +227,12 @@ func (h *AlertSettingsHandler) GetAlertHistories(c *gin.Context) {
 	// サービス呼び出し
 	histories, total, err := h.alertService.GetAlertHistories(ctx, filterMap, page, limit)
 	if err != nil {
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラート履歴一覧の取得に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusOK, "", gin.H{
+	RespondSuccess(c, http.StatusOK, "", gin.H{
 		"histories": histories,
 		"total":     total,
 		"page":      page,
@@ -246,9 +246,10 @@ func (h *AlertSettingsHandler) GetAlertHistory(c *gin.Context) {
 
 	// パスパラメータ取得
 	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		handler.RespondBadRequest(c, "無効なIDです")
+	id := idStr
+	// UUID validation removed after migration
+	if id == "" {
+		RespondBadRequest(c, "無効なIDです")
 		return
 	}
 
@@ -256,15 +257,15 @@ func (h *AlertSettingsHandler) GetAlertHistory(c *gin.Context) {
 	result, err := h.alertService.GetAlertHistory(ctx, id)
 	if err != nil {
 		if err == service.ErrAlertHistoryNotFound {
-			handler.RespondNotFound(c, "アラート履歴")
+			RespondNotFound(c, "アラート履歴")
 			return
 		}
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラート履歴の取得に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusOK, "", gin.H{"history": result})
+	RespondSuccess(c, http.StatusOK, "", gin.H{"history": result})
 }
 
 // UpdateAlertStatus アラートステータス更新
@@ -273,9 +274,10 @@ func (h *AlertSettingsHandler) UpdateAlertStatus(c *gin.Context) {
 
 	// パスパラメータ取得
 	idStr := c.Param("id")
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		handler.RespondBadRequest(c, "無効なIDです")
+	id := idStr
+	// UUID validation removed after migration
+	if id == "" {
+		RespondBadRequest(c, "無効なIDです")
 		return
 	}
 
@@ -292,18 +294,18 @@ func (h *AlertSettingsHandler) UpdateAlertStatus(c *gin.Context) {
 	}
 
 	// サービス呼び出し
-	err = h.alertService.UpdateAlertStatus(ctx, id, req.Status, req.Comment, userID)
+	err := h.alertService.UpdateAlertStatus(ctx, id, req.Status, req.Comment, userID)
 	if err != nil {
 		if err == service.ErrAlertHistoryNotFound {
-			handler.RespondNotFound(c, "アラート履歴")
+			RespondNotFound(c, "アラート履歴")
 			return
 		}
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラートステータスの更新に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusOK, "アラートステータスを更新しました", nil)
+	RespondSuccess(c, http.StatusOK, "アラートステータスを更新しました", nil)
 }
 
 // GetAlertSummary アラートサマリー取得
@@ -313,10 +315,10 @@ func (h *AlertSettingsHandler) GetAlertSummary(c *gin.Context) {
 	// サービス呼び出し
 	summary, err := h.alertService.GetAlertSummary(ctx)
 	if err != nil {
-		handler.HandleError(c, http.StatusInternalServerError,
+		HandleError(c, http.StatusInternalServerError,
 			"アラートサマリーの取得に失敗しました", h.BaseHandler.Logger, err)
 		return
 	}
 
-	handler.RespondSuccess(c, http.StatusOK, "", gin.H{"summary": summary})
+	RespondSuccess(c, http.StatusOK, "", gin.H{"summary": summary})
 }

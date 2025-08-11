@@ -2,13 +2,11 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // ClientDTO 取引先DTO
 type ClientDTO struct {
-	ID              uuid.UUID `json:"id"`
+	ID              string    `json:"id"`
 	CompanyName     string    `json:"company_name"`
 	CompanyNameKana string    `json:"company_name_kana"`
 	BillingType     string    `json:"billing_type"`
@@ -58,8 +56,8 @@ type UpdateClientRequest struct {
 
 // ProjectDTO 案件DTO
 type ProjectDTO struct {
-	ID            uuid.UUID  `json:"id"`
-	ClientID      uuid.UUID  `json:"client_id"`
+	ID            string     `json:"id"`
+	ClientID      string     `json:"client_id"`
 	ClientName    string     `json:"client_name,omitempty"`
 	ProjectName   string     `json:"project_name"`
 	ProjectCode   string     `json:"project_code"`

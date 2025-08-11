@@ -6,7 +6,6 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -16,37 +15,37 @@ type ExpenseApprovalRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, approval *model.ExpenseApproval) error
 	CreateBatch(ctx context.Context, approvals []model.ExpenseApproval) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseApproval, error)
+	GetByID(ctx context.Context, id string) (*model.ExpenseApproval, error)
 	Update(ctx context.Context, approval *model.ExpenseApproval) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 
 	// 承認履歴取得
-	GetByExpenseID(ctx context.Context, expenseID uuid.UUID) ([]model.ExpenseApproval, error)
-	GetByExpenseIDOrderByStep(ctx context.Context, expenseID uuid.UUID) ([]model.ExpenseApproval, error)
-	GetCurrentPendingApproval(ctx context.Context, expenseID uuid.UUID) (*model.ExpenseApproval, error)
-	GetPendingApprovals(ctx context.Context, expenseID uuid.UUID) ([]model.ExpenseApproval, error)
+	GetByExpenseID(ctx context.Context, expenseID string) ([]model.ExpenseApproval, error)
+	GetByExpenseIDOrderByStep(ctx context.Context, expenseID string) ([]model.ExpenseApproval, error)
+	GetCurrentPendingApproval(ctx context.Context, expenseID string) (*model.ExpenseApproval, error)
+	GetPendingApprovals(ctx context.Context, expenseID string) ([]model.ExpenseApproval, error)
 
 	// 承認者関連
-	GetByApproverID(ctx context.Context, approverID uuid.UUID) ([]model.ExpenseApproval, error)
-	GetPendingByApproverID(ctx context.Context, approverID uuid.UUID, filter *dto.ApprovalFilterRequest) ([]model.ExpenseApproval, int64, error)
-	GetPendingByApproverIDWithLimit(ctx context.Context, approverID uuid.UUID, limit int) ([]model.ExpenseApproval, error)
-	CountPendingByApproverID(ctx context.Context, approverID uuid.UUID) (int64, error)
+	GetByApproverID(ctx context.Context, approverID string) ([]model.ExpenseApproval, error)
+	GetPendingByApproverID(ctx context.Context, approverID string, filter *dto.ApprovalFilterRequest) ([]model.ExpenseApproval, int64, error)
+	GetPendingByApproverIDWithLimit(ctx context.Context, approverID string, limit int) ([]model.ExpenseApproval, error)
+	CountPendingByApproverID(ctx context.Context, approverID string) (int64, error)
 
 	// 承認フロー管理
-	CreateApprovalFlow(ctx context.Context, expenseID uuid.UUID, amount int, settingRepo ExpenseApproverSettingRepository) error
-	UpdateApprovalStatus(ctx context.Context, approvalID uuid.UUID, status model.ApprovalStatus, comment string, approverID uuid.UUID) error
-	GetNextPendingApproval(ctx context.Context, expenseID uuid.UUID) (*model.ExpenseApproval, error)
-	IsApprovalCompleted(ctx context.Context, expenseID uuid.UUID) (bool, error)
-	IsApprovalRejected(ctx context.Context, expenseID uuid.UUID) (bool, error)
+	CreateApprovalFlow(ctx context.Context, expenseID string, amount int, settingRepo ExpenseApproverSettingRepository) error
+	UpdateApprovalStatus(ctx context.Context, approvalID string, status model.ApprovalStatus, comment string, approverID string) error
+	GetNextPendingApproval(ctx context.Context, expenseID string) (*model.ExpenseApproval, error)
+	IsApprovalCompleted(ctx context.Context, expenseID string) (bool, error)
+	IsApprovalRejected(ctx context.Context, expenseID string) (bool, error)
 
 	// 統計・検索
-	GetApprovalHistory(ctx context.Context, approverID uuid.UUID, fromDate, toDate time.Time) ([]model.ExpenseApproval, error)
-	GetApprovalStatistics(ctx context.Context, approverID uuid.UUID, fromDate, toDate time.Time) (map[string]interface{}, error)
+	GetApprovalHistory(ctx context.Context, approverID string, fromDate, toDate time.Time) ([]model.ExpenseApproval, error)
+	GetApprovalStatistics(ctx context.Context, approverID string, fromDate, toDate time.Time) (map[string]interface{}, error)
 	GetExpensesByApprovalType(ctx context.Context, approvalType model.ApprovalType, status model.ApprovalStatus) ([]model.ExpenseApproval, error)
 
 	// ユーティリティ
-	ExistsByExpenseID(ctx context.Context, expenseID uuid.UUID) (bool, error)
-	ExistsByApprovalID(ctx context.Context, approvalID uuid.UUID) (bool, error)
+	ExistsByExpenseID(ctx context.Context, expenseID string) (bool, error)
+	ExistsByApprovalID(ctx context.Context, approvalID string) (bool, error)
 	CountPendingByLevel(ctx context.Context, level int) (int64, error)
 	SetLogger(logger *zap.Logger)
 }
@@ -79,16 +78,16 @@ func (r *ExpenseApprovalRepositoryImpl) Create(ctx context.Context, approval *mo
 	if err := r.db.WithContext(ctx).Create(approval).Error; err != nil {
 		r.logger.Error("Failed to create expense approval",
 			zap.Error(err),
-			zap.String("expense_id", approval.ExpenseID.String()),
-			zap.String("approver_id", approval.ApproverID.String()),
+			zap.String("expense_id", approval.ExpenseID),
+			zap.String("approver_id", approval.ApproverID),
 			zap.String("approval_type", string(approval.ApprovalType)))
 		return err
 	}
 
 	r.logger.Info("Expense approval created successfully",
-		zap.String("approval_id", approval.ID.String()),
-		zap.String("expense_id", approval.ExpenseID.String()),
-		zap.String("approver_id", approval.ApproverID.String()),
+		zap.String("approval_id", approval.ID),
+		zap.String("expense_id", approval.ExpenseID),
+		zap.String("approver_id", approval.ApproverID),
 		zap.String("approval_type", string(approval.ApprovalType)))
 	return nil
 }
@@ -112,7 +111,7 @@ func (r *ExpenseApprovalRepositoryImpl) CreateBatch(ctx context.Context, approva
 }
 
 // GetByID 承認IDで単一レコードを取得
-func (r *ExpenseApprovalRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetByID(ctx context.Context, id string) (*model.ExpenseApproval, error) {
 	var approval model.ExpenseApproval
 	err := r.db.WithContext(ctx).
 		Preload("Expense").
@@ -122,12 +121,12 @@ func (r *ExpenseApprovalRepositoryImpl) GetByID(ctx context.Context, id uuid.UUI
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			r.logger.Warn("Expense approval not found", zap.String("approval_id", id.String()))
+			r.logger.Warn("Expense approval not found", zap.String("approval_id", id))
 			return nil, err
 		}
 		r.logger.Error("Failed to get expense approval by ID",
 			zap.Error(err),
-			zap.String("approval_id", id.String()))
+			zap.String("approval_id", id))
 		return nil, err
 	}
 
@@ -140,28 +139,28 @@ func (r *ExpenseApprovalRepositoryImpl) Update(ctx context.Context, approval *mo
 	if err != nil {
 		r.logger.Error("Failed to update expense approval",
 			zap.Error(err),
-			zap.String("approval_id", approval.ID.String()))
+			zap.String("approval_id", approval.ID))
 		return err
 	}
 
 	r.logger.Info("Expense approval updated successfully",
-		zap.String("approval_id", approval.ID.String()),
+		zap.String("approval_id", approval.ID),
 		zap.String("status", string(approval.Status)))
 	return nil
 }
 
 // Delete 承認レコードを削除（物理削除）
-func (r *ExpenseApprovalRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseApprovalRepositoryImpl) Delete(ctx context.Context, id string) error {
 	err := r.db.WithContext(ctx).Delete(&model.ExpenseApproval{}, id).Error
 	if err != nil {
 		r.logger.Error("Failed to delete expense approval",
 			zap.Error(err),
-			zap.String("approval_id", id.String()))
+			zap.String("approval_id", id))
 		return err
 	}
 
 	r.logger.Info("Expense approval deleted successfully",
-		zap.String("approval_id", id.String()))
+		zap.String("approval_id", id))
 	return nil
 }
 
@@ -170,7 +169,7 @@ func (r *ExpenseApprovalRepositoryImpl) Delete(ctx context.Context, id uuid.UUID
 // ========================================
 
 // GetByExpenseID 経費申請IDで承認履歴を取得
-func (r *ExpenseApprovalRepositoryImpl) GetByExpenseID(ctx context.Context, expenseID uuid.UUID) ([]model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetByExpenseID(ctx context.Context, expenseID string) ([]model.ExpenseApproval, error) {
 	var approvals []model.ExpenseApproval
 	err := r.db.WithContext(ctx).
 		Preload("Approver").
@@ -180,7 +179,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetByExpenseID(ctx context.Context, expe
 	if err != nil {
 		r.logger.Error("Failed to get expense approvals by expense ID",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()))
+			zap.String("expense_id", expenseID))
 		return nil, err
 	}
 
@@ -188,7 +187,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetByExpenseID(ctx context.Context, expe
 }
 
 // GetByExpenseIDOrderByStep 経費申請IDで承認履歴を承認順序順で取得
-func (r *ExpenseApprovalRepositoryImpl) GetByExpenseIDOrderByStep(ctx context.Context, expenseID uuid.UUID) ([]model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetByExpenseIDOrderByStep(ctx context.Context, expenseID string) ([]model.ExpenseApproval, error) {
 	var approvals []model.ExpenseApproval
 	err := r.db.WithContext(ctx).
 		Preload("Approver").
@@ -199,7 +198,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetByExpenseIDOrderByStep(ctx context.Co
 	if err != nil {
 		r.logger.Error("Failed to get expense approvals by expense ID ordered by step",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()))
+			zap.String("expense_id", expenseID))
 		return nil, err
 	}
 
@@ -207,7 +206,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetByExpenseIDOrderByStep(ctx context.Co
 }
 
 // GetCurrentPendingApproval 現在承認待ちの承認レコードを取得
-func (r *ExpenseApprovalRepositoryImpl) GetCurrentPendingApproval(ctx context.Context, expenseID uuid.UUID) (*model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetCurrentPendingApproval(ctx context.Context, expenseID string) (*model.ExpenseApproval, error) {
 	var approval model.ExpenseApproval
 	err := r.db.WithContext(ctx).
 		Preload("Approver").
@@ -221,7 +220,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetCurrentPendingApproval(ctx context.Co
 		}
 		r.logger.Error("Failed to get current pending approval",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()))
+			zap.String("expense_id", expenseID))
 		return nil, err
 	}
 
@@ -229,7 +228,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetCurrentPendingApproval(ctx context.Co
 }
 
 // GetPendingApprovals 経費IDに紐づく承認待ち一覧を取得
-func (r *ExpenseApprovalRepositoryImpl) GetPendingApprovals(ctx context.Context, expenseID uuid.UUID) ([]model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetPendingApprovals(ctx context.Context, expenseID string) ([]model.ExpenseApproval, error) {
 	var approvals []model.ExpenseApproval
 	err := r.db.WithContext(ctx).
 		Preload("Approver").
@@ -240,7 +239,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetPendingApprovals(ctx context.Context,
 	if err != nil {
 		r.logger.Error("Failed to get pending approvals",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()))
+			zap.String("expense_id", expenseID))
 		return nil, err
 	}
 
@@ -252,7 +251,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetPendingApprovals(ctx context.Context,
 // ========================================
 
 // GetByApproverID 承認者IDで承認履歴を取得
-func (r *ExpenseApprovalRepositoryImpl) GetByApproverID(ctx context.Context, approverID uuid.UUID) ([]model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetByApproverID(ctx context.Context, approverID string) ([]model.ExpenseApproval, error) {
 	var approvals []model.ExpenseApproval
 	err := r.db.WithContext(ctx).
 		Preload("Expense").
@@ -264,7 +263,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetByApproverID(ctx context.Context, app
 	if err != nil {
 		r.logger.Error("Failed to get expense approvals by approver ID",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return nil, err
 	}
 
@@ -272,7 +271,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetByApproverID(ctx context.Context, app
 }
 
 // GetPendingByApproverID 承認者の承認待ち一覧を取得（フィルタ対応）
-func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverID(ctx context.Context, approverID uuid.UUID, filter *dto.ApprovalFilterRequest) ([]model.ExpenseApproval, int64, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverID(ctx context.Context, approverID string, filter *dto.ApprovalFilterRequest) ([]model.ExpenseApproval, int64, error) {
 	query := r.db.WithContext(ctx).
 		Model(&model.ExpenseApproval{}).
 		Joins("JOIN expenses ON expense_approvals.expense_id = expenses.id").
@@ -310,7 +309,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverID(ctx context.Conte
 	if err := query.Count(&total).Error; err != nil {
 		r.logger.Error("Failed to count pending approvals",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return nil, 0, err
 	}
 
@@ -347,7 +346,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverID(ctx context.Conte
 	if err != nil {
 		r.logger.Error("Failed to get pending approvals by approver ID",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return nil, 0, err
 	}
 
@@ -355,7 +354,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverID(ctx context.Conte
 }
 
 // GetPendingByApproverIDWithLimit 承認者の承認待ち一覧を件数制限付きで取得
-func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverIDWithLimit(ctx context.Context, approverID uuid.UUID, limit int) ([]model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverIDWithLimit(ctx context.Context, approverID string, limit int) ([]model.ExpenseApproval, error) {
 	var approvals []model.ExpenseApproval
 	err := r.db.WithContext(ctx).
 		Preload("Expense").
@@ -368,7 +367,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverIDWithLimit(ctx cont
 	if err != nil {
 		r.logger.Error("Failed to get pending approvals by approver ID with limit",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()),
+			zap.String("approver_id", approverID),
 			zap.Int("limit", limit))
 		return nil, err
 	}
@@ -377,7 +376,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetPendingByApproverIDWithLimit(ctx cont
 }
 
 // CountPendingByApproverID 承認者の承認待ち件数を取得
-func (r *ExpenseApprovalRepositoryImpl) CountPendingByApproverID(ctx context.Context, approverID uuid.UUID) (int64, error) {
+func (r *ExpenseApprovalRepositoryImpl) CountPendingByApproverID(ctx context.Context, approverID string) (int64, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseApproval{}).
@@ -387,7 +386,7 @@ func (r *ExpenseApprovalRepositoryImpl) CountPendingByApproverID(ctx context.Con
 	if err != nil {
 		r.logger.Error("Failed to count pending approvals by approver ID",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return 0, err
 	}
 
@@ -399,13 +398,13 @@ func (r *ExpenseApprovalRepositoryImpl) CountPendingByApproverID(ctx context.Con
 // ========================================
 
 // CreateApprovalFlow 承認フローを作成（金額に応じて必要な承認者を設定）
-func (r *ExpenseApprovalRepositoryImpl) CreateApprovalFlow(ctx context.Context, expenseID uuid.UUID, amount int, settingRepo ExpenseApproverSettingRepository) error {
+func (r *ExpenseApprovalRepositoryImpl) CreateApprovalFlow(ctx context.Context, expenseID string, amount int, settingRepo ExpenseApproverSettingRepository) error {
 	// 承認フローの設計:
 	// 5万円未満: 管理部のみ
 	// 5万円以上: 管理部 → 役員
 
 	r.logger.Info("Starting CreateApprovalFlow",
-		zap.String("expense_id", expenseID.String()),
+		zap.String("expense_id", expenseID),
 		zap.Int("amount", amount))
 
 	var approvals []model.ExpenseApproval
@@ -471,20 +470,20 @@ func (r *ExpenseApprovalRepositoryImpl) CreateApprovalFlow(ctx context.Context, 
 	if err := r.CreateBatch(ctx, approvals); err != nil {
 		r.logger.Error("Failed to create approval flow",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()),
+			zap.String("expense_id", expenseID),
 			zap.Int("amount", amount))
 		return err
 	}
 
 	r.logger.Info("Approval flow created successfully",
-		zap.String("expense_id", expenseID.String()),
+		zap.String("expense_id", expenseID),
 		zap.Int("amount", amount),
 		zap.Int("approval_steps", len(approvals)))
 	return nil
 }
 
 // UpdateApprovalStatus 承認ステータスを更新
-func (r *ExpenseApprovalRepositoryImpl) UpdateApprovalStatus(ctx context.Context, approvalID uuid.UUID, status model.ApprovalStatus, comment string, approverID uuid.UUID) error {
+func (r *ExpenseApprovalRepositoryImpl) UpdateApprovalStatus(ctx context.Context, approvalID string, status model.ApprovalStatus, comment string, approverID string) error {
 	// 楽観的ロックを考慮した更新
 	result := r.db.WithContext(ctx).
 		Model(&model.ExpenseApproval{}).
@@ -498,34 +497,34 @@ func (r *ExpenseApprovalRepositoryImpl) UpdateApprovalStatus(ctx context.Context
 	if result.Error != nil {
 		r.logger.Error("Failed to update approval status",
 			zap.Error(result.Error),
-			zap.String("approval_id", approvalID.String()),
-			zap.String("approver_id", approverID.String()),
+			zap.String("approval_id", approvalID),
+			zap.String("approver_id", approverID),
 			zap.String("status", string(status)))
 		return result.Error
 	}
 
 	if result.RowsAffected == 0 {
 		r.logger.Warn("No rows affected when updating approval status - possible concurrent modification",
-			zap.String("approval_id", approvalID.String()),
-			zap.String("approver_id", approverID.String()),
+			zap.String("approval_id", approvalID),
+			zap.String("approver_id", approverID),
 			zap.String("status", string(status)))
 		return gorm.ErrRecordNotFound
 	}
 
 	r.logger.Info("Approval status updated successfully",
-		zap.String("approval_id", approvalID.String()),
-		zap.String("approver_id", approverID.String()),
+		zap.String("approval_id", approvalID),
+		zap.String("approver_id", approverID),
 		zap.String("status", string(status)))
 	return nil
 }
 
 // GetNextPendingApproval 次の承認待ち承認者を取得
-func (r *ExpenseApprovalRepositoryImpl) GetNextPendingApproval(ctx context.Context, expenseID uuid.UUID) (*model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetNextPendingApproval(ctx context.Context, expenseID string) (*model.ExpenseApproval, error) {
 	return r.GetCurrentPendingApproval(ctx, expenseID)
 }
 
 // IsApprovalCompleted 承認が完了しているかチェック
-func (r *ExpenseApprovalRepositoryImpl) IsApprovalCompleted(ctx context.Context, expenseID uuid.UUID) (bool, error) {
+func (r *ExpenseApprovalRepositoryImpl) IsApprovalCompleted(ctx context.Context, expenseID string) (bool, error) {
 	var pendingCount int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseApproval{}).
@@ -535,7 +534,7 @@ func (r *ExpenseApprovalRepositoryImpl) IsApprovalCompleted(ctx context.Context,
 	if err != nil {
 		r.logger.Error("Failed to check if approval is completed",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()))
+			zap.String("expense_id", expenseID))
 		return false, err
 	}
 
@@ -543,7 +542,7 @@ func (r *ExpenseApprovalRepositoryImpl) IsApprovalCompleted(ctx context.Context,
 }
 
 // IsApprovalRejected 承認が却下されているかチェック
-func (r *ExpenseApprovalRepositoryImpl) IsApprovalRejected(ctx context.Context, expenseID uuid.UUID) (bool, error) {
+func (r *ExpenseApprovalRepositoryImpl) IsApprovalRejected(ctx context.Context, expenseID string) (bool, error) {
 	var rejectedCount int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseApproval{}).
@@ -553,7 +552,7 @@ func (r *ExpenseApprovalRepositoryImpl) IsApprovalRejected(ctx context.Context, 
 	if err != nil {
 		r.logger.Error("Failed to check if approval is rejected",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()))
+			zap.String("expense_id", expenseID))
 		return false, err
 	}
 
@@ -565,7 +564,7 @@ func (r *ExpenseApprovalRepositoryImpl) IsApprovalRejected(ctx context.Context, 
 // ========================================
 
 // GetApprovalHistory 承認者の承認履歴を期間指定で取得
-func (r *ExpenseApprovalRepositoryImpl) GetApprovalHistory(ctx context.Context, approverID uuid.UUID, fromDate, toDate time.Time) ([]model.ExpenseApproval, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetApprovalHistory(ctx context.Context, approverID string, fromDate, toDate time.Time) ([]model.ExpenseApproval, error) {
 	var approvals []model.ExpenseApproval
 	err := r.db.WithContext(ctx).
 		Preload("Expense").
@@ -578,7 +577,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetApprovalHistory(ctx context.Context, 
 	if err != nil {
 		r.logger.Error("Failed to get approval history",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()),
+			zap.String("approver_id", approverID),
 			zap.Time("from_date", fromDate),
 			zap.Time("to_date", toDate))
 		return nil, err
@@ -588,7 +587,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetApprovalHistory(ctx context.Context, 
 }
 
 // GetApprovalStatistics 承認者の承認統計を取得
-func (r *ExpenseApprovalRepositoryImpl) GetApprovalStatistics(ctx context.Context, approverID uuid.UUID, fromDate, toDate time.Time) (map[string]interface{}, error) {
+func (r *ExpenseApprovalRepositoryImpl) GetApprovalStatistics(ctx context.Context, approverID string, fromDate, toDate time.Time) (map[string]interface{}, error) {
 	type statsResult struct {
 		TotalApprovals     int64
 		ApprovedCount      int64
@@ -622,7 +621,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetApprovalStatistics(ctx context.Contex
 	if err != nil {
 		r.logger.Error("Failed to get approval statistics",
 			zap.Error(err),
-			zap.String("approver_id", approverID.String()))
+			zap.String("approver_id", approverID))
 		return nil, err
 	}
 
@@ -674,7 +673,7 @@ func (r *ExpenseApprovalRepositoryImpl) GetExpensesByApprovalType(ctx context.Co
 // ========================================
 
 // ExistsByExpenseID 経費申請IDに承認レコードが存在するかチェック
-func (r *ExpenseApprovalRepositoryImpl) ExistsByExpenseID(ctx context.Context, expenseID uuid.UUID) (bool, error) {
+func (r *ExpenseApprovalRepositoryImpl) ExistsByExpenseID(ctx context.Context, expenseID string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseApproval{}).
@@ -684,7 +683,7 @@ func (r *ExpenseApprovalRepositoryImpl) ExistsByExpenseID(ctx context.Context, e
 	if err != nil {
 		r.logger.Error("Failed to check approval existence by expense ID",
 			zap.Error(err),
-			zap.String("expense_id", expenseID.String()))
+			zap.String("expense_id", expenseID))
 		return false, err
 	}
 
@@ -692,7 +691,7 @@ func (r *ExpenseApprovalRepositoryImpl) ExistsByExpenseID(ctx context.Context, e
 }
 
 // ExistsByApprovalID 承認IDが存在するかチェック
-func (r *ExpenseApprovalRepositoryImpl) ExistsByApprovalID(ctx context.Context, approvalID uuid.UUID) (bool, error) {
+func (r *ExpenseApprovalRepositoryImpl) ExistsByApprovalID(ctx context.Context, approvalID string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseApproval{}).
@@ -702,7 +701,7 @@ func (r *ExpenseApprovalRepositoryImpl) ExistsByApprovalID(ctx context.Context, 
 	if err != nil {
 		r.logger.Error("Failed to check approval existence by approval ID",
 			zap.Error(err),
-			zap.String("approval_id", approvalID.String()))
+			zap.String("approval_id", approvalID))
 		return false, err
 	}
 

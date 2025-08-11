@@ -7,7 +7,6 @@ import (
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -15,11 +14,11 @@ import (
 // ClientService 取引先サービスのインターフェース
 type ClientService interface {
 	GetClients(ctx context.Context, page, limit int, search string) ([]dto.ClientDTO, int64, error)
-	GetClientByID(ctx context.Context, clientID uuid.UUID) (*dto.ClientDetailDTO, error)
+	GetClientByID(ctx context.Context, clientID string) (*dto.ClientDetailDTO, error)
 	CreateClient(ctx context.Context, req *dto.CreateClientRequest) (*dto.ClientDTO, error)
-	UpdateClient(ctx context.Context, clientID uuid.UUID, req *dto.UpdateClientRequest) (*dto.ClientDTO, error)
-	DeleteClient(ctx context.Context, clientID uuid.UUID) error
-	GetClientProjects(ctx context.Context, clientID uuid.UUID) ([]dto.ProjectDTO, error)
+	UpdateClient(ctx context.Context, clientID string, req *dto.UpdateClientRequest) (*dto.ClientDTO, error)
+	DeleteClient(ctx context.Context, clientID string) error
+	GetClientProjects(ctx context.Context, clientID string) ([]dto.ProjectDTO, error)
 }
 
 // clientService 取引先サービスの実装
@@ -85,7 +84,7 @@ func (s *clientService) GetClients(ctx context.Context, page, limit int, search 
 }
 
 // GetClientByID 取引先詳細を取得
-func (s *clientService) GetClientByID(ctx context.Context, clientID uuid.UUID) (*dto.ClientDetailDTO, error) {
+func (s *clientService) GetClientByID(ctx context.Context, clientID string) (*dto.ClientDetailDTO, error) {
 	var client model.Client
 	if err := s.db.WithContext(ctx).
 		Preload("Projects", "deleted_at IS NULL").
@@ -160,7 +159,7 @@ func (s *clientService) CreateClient(ctx context.Context, req *dto.CreateClientR
 }
 
 // UpdateClient 取引先を更新
-func (s *clientService) UpdateClient(ctx context.Context, clientID uuid.UUID, req *dto.UpdateClientRequest) (*dto.ClientDTO, error) {
+func (s *clientService) UpdateClient(ctx context.Context, clientID string, req *dto.UpdateClientRequest) (*dto.ClientDTO, error) {
 	// トランザクション開始
 	tx := s.db.WithContext(ctx).Begin()
 	defer func() {
@@ -229,7 +228,7 @@ func (s *clientService) UpdateClient(ctx context.Context, clientID uuid.UUID, re
 }
 
 // DeleteClient 取引先を削除
-func (s *clientService) DeleteClient(ctx context.Context, clientID uuid.UUID) error {
+func (s *clientService) DeleteClient(ctx context.Context, clientID string) error {
 	// アクティブな案件があるか確認
 	var activeProjectCount int64
 	if err := s.db.WithContext(ctx).Model(&model.Project{}).
@@ -253,7 +252,7 @@ func (s *clientService) DeleteClient(ctx context.Context, clientID uuid.UUID) er
 }
 
 // GetClientProjects 取引先の案件一覧を取得
-func (s *clientService) GetClientProjects(ctx context.Context, clientID uuid.UUID) ([]dto.ProjectDTO, error) {
+func (s *clientService) GetClientProjects(ctx context.Context, clientID string) ([]dto.ProjectDTO, error) {
 	var projects []model.Project
 	if err := s.db.WithContext(ctx).
 		Preload("Assignments.User").

@@ -14,44 +14,10 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
-
-	"github.com/duesk/monstera/internal/security"
 )
 
 // InitDatabase データベース接続を初期化する
 func InitDatabase(config *Config, logger *zap.Logger) (*gorm.DB, error) {
-	// セキュリティ設定の初期化
-	securityConfig := security.NewSecurityConfig(logger)
-
-	// データベースセキュリティ設定を作成
-	dbSecurityConfig := security.DatabaseSecurityConfig{
-		SSLMode:         config.Database.SSLMode,
-		RequireSSL:      config.Database.RequireSSL,
-		MinTLSVersion:   config.Database.MinTLSVersion,
-		CertFile:        config.Database.SSLCertFile,
-		KeyFile:         config.Database.SSLKeyFile,
-		RootCertFile:    config.Database.SSLRootCertFile,
-		CertContent:     config.Database.SSLCert,
-		KeyContent:      config.Database.SSLKey,
-		RootCertContent: config.Database.SSLRootCert,
-		ConnectTimeout:  config.Database.ConnectTimeout,
-	}
-
-	// セキュリティ設定の検証
-	if err := securityConfig.ValidateSecurityConfiguration(dbSecurityConfig); err != nil {
-		logger.Warn("Security configuration validation failed", zap.Error(err))
-	}
-
-	// セキュリティ設定をログに出力
-	securityConfig.LogSecuritySettings(dbSecurityConfig)
-
-	// セキュリティレポート生成
-	report := securityConfig.GenerateSecurityReport(dbSecurityConfig)
-	logger.Info("Database security score",
-		zap.Int("score", report.SecurityScore),
-		zap.Strings("recommendations", report.Recommendations),
-	)
-
 	// SSL設定の検証
 	if err := config.Database.ValidateSSLConfig(); err != nil {
 		return nil, fmt.Errorf("invalid SSL configuration: %w", err)

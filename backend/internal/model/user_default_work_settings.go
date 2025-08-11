@@ -9,8 +9,8 @@ import (
 
 // UserDefaultWorkSettings はユーザーのデフォルト勤務時間設定モデル
 type UserDefaultWorkSettings struct {
-	ID               uuid.UUID `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string `gorm:"type:varchar(255);not null" json:"user_id"`
+	ID               string    `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID           string    `gorm:"type:varchar(255);not null" json:"user_id"`
 	WeekdayStartTime string    `gorm:"type:varchar(10);not null;default:'09:00'" json:"weekday_start_time"`
 	WeekdayEndTime   string    `gorm:"type:varchar(10);not null;default:'18:00'" json:"weekday_end_time"`
 	WeekdayBreakTime float64   `gorm:"type:decimal(4,2);not null;default:1.00" json:"weekday_break_time"`
@@ -20,8 +20,8 @@ type UserDefaultWorkSettings struct {
 
 // BeforeCreate UUIDを自動生成
 func (s *UserDefaultWorkSettings) BeforeCreate(tx *gorm.DB) error {
-	if s.ID == uuid.Nil {
-		s.ID = uuid.New()
+	if s.ID == "" {
+		s.ID = uuid.New().String()
 	}
 	return nil
 }

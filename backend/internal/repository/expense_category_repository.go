@@ -6,7 +6,6 @@ import (
 
 	"github.com/duesk/monstera/internal/dto"
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -15,37 +14,37 @@ import (
 type ExpenseCategoryRepository interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, category *model.ExpenseCategoryMaster) error
-	GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseCategoryMaster, error)
+	GetByID(ctx context.Context, id string) (*model.ExpenseCategoryMaster, error)
 	GetByCode(ctx context.Context, code string) (*model.ExpenseCategoryMaster, error)
 	Update(ctx context.Context, category *model.ExpenseCategoryMaster) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 
 	// 一覧・検索機能
 	GetAll(ctx context.Context) ([]model.ExpenseCategoryMaster, error)
 	GetActive(ctx context.Context) ([]model.ExpenseCategoryMaster, error)
 	GetActiveOrderByDisplayOrder(ctx context.Context) ([]model.ExpenseCategoryMaster, error)
-	GetByIDs(ctx context.Context, ids []uuid.UUID) ([]model.ExpenseCategoryMaster, error)
+	GetByIDs(ctx context.Context, ids []string) ([]model.ExpenseCategoryMaster, error)
 	GetByCodes(ctx context.Context, codes []string) ([]model.ExpenseCategoryMaster, error)
 	GetCategoriesWithFilter(ctx context.Context, filter *dto.ExpenseCategoryListRequest) ([]model.ExpenseCategoryMaster, int64, error)
 
 	// 表示順序管理
-	UpdateDisplayOrder(ctx context.Context, id uuid.UUID, newOrder int) error
-	ReorderCategories(ctx context.Context, categoryOrders map[uuid.UUID]int) error
+	UpdateDisplayOrder(ctx context.Context, id string, newOrder int) error
+	ReorderCategories(ctx context.Context, categoryOrders map[string]int) error
 	GetMaxDisplayOrder(ctx context.Context) (int, error)
 
 	// 有効性管理
-	SetActive(ctx context.Context, id uuid.UUID, isActive bool) error
+	SetActive(ctx context.Context, id string, isActive bool) error
 	ActivateByCode(ctx context.Context, code string) error
 	DeactivateByCode(ctx context.Context, code string) error
 
 	// バルク操作
 	CreateBatch(ctx context.Context, categories []model.ExpenseCategoryMaster) error
-	BulkUpdateActive(ctx context.Context, ids []uuid.UUID, isActive bool) error
+	BulkUpdateActive(ctx context.Context, ids []string, isActive bool) error
 
 	// 検証・チェック
-	ExistsByID(ctx context.Context, id uuid.UUID) (bool, error)
+	ExistsByID(ctx context.Context, id string) (bool, error)
 	ExistsByCode(ctx context.Context, code string) (bool, error)
-	IsCodeUnique(ctx context.Context, code string, excludeID *uuid.UUID) (bool, error)
+	IsCodeUnique(ctx context.Context, code string, excludeID *string) (bool, error)
 	CountActive(ctx context.Context) (int64, error)
 
 	// 初期化
@@ -90,14 +89,14 @@ func (r *ExpenseCategoryRepositoryImpl) Create(ctx context.Context, category *mo
 	}
 
 	r.logger.Info("Expense category created successfully",
-		zap.String("category_id", category.ID.String()),
+		zap.String("category_id", category.ID),
 		zap.String("code", category.Code),
 		zap.String("name", category.Name))
 	return nil
 }
 
 // GetByID カテゴリIDで単一レコードを取得
-func (r *ExpenseCategoryRepositoryImpl) GetByID(ctx context.Context, id uuid.UUID) (*model.ExpenseCategoryMaster, error) {
+func (r *ExpenseCategoryRepositoryImpl) GetByID(ctx context.Context, id string) (*model.ExpenseCategoryMaster, error) {
 	var category model.ExpenseCategoryMaster
 	err := r.db.WithContext(ctx).
 		Where("id = ?", id).
@@ -105,12 +104,12 @@ func (r *ExpenseCategoryRepositoryImpl) GetByID(ctx context.Context, id uuid.UUI
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			r.logger.Warn("Expense category not found", zap.String("category_id", id.String()))
+			r.logger.Warn("Expense category not found", zap.String("category_id", id))
 			return nil, err
 		}
 		r.logger.Error("Failed to get expense category by ID",
 			zap.Error(err),
-			zap.String("category_id", id.String()))
+			zap.String("category_id", id))
 		return nil, err
 	}
 
@@ -144,28 +143,28 @@ func (r *ExpenseCategoryRepositoryImpl) Update(ctx context.Context, category *mo
 	if err != nil {
 		r.logger.Error("Failed to update expense category",
 			zap.Error(err),
-			zap.String("category_id", category.ID.String()))
+			zap.String("category_id", category.ID))
 		return err
 	}
 
 	r.logger.Info("Expense category updated successfully",
-		zap.String("category_id", category.ID.String()),
+		zap.String("category_id", category.ID),
 		zap.String("code", category.Code))
 	return nil
 }
 
 // Delete カテゴリを削除（論理削除）
-func (r *ExpenseCategoryRepositoryImpl) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *ExpenseCategoryRepositoryImpl) Delete(ctx context.Context, id string) error {
 	err := r.db.WithContext(ctx).Delete(&model.ExpenseCategoryMaster{}, id).Error
 	if err != nil {
 		r.logger.Error("Failed to delete expense category",
 			zap.Error(err),
-			zap.String("category_id", id.String()))
+			zap.String("category_id", id))
 		return err
 	}
 
 	r.logger.Info("Expense category deleted successfully",
-		zap.String("category_id", id.String()))
+		zap.String("category_id", id))
 	return nil
 }
 
@@ -210,7 +209,7 @@ func (r *ExpenseCategoryRepositoryImpl) GetActiveOrderByDisplayOrder(ctx context
 }
 
 // GetByIDs 複数のカテゴリIDで取得
-func (r *ExpenseCategoryRepositoryImpl) GetByIDs(ctx context.Context, ids []uuid.UUID) ([]model.ExpenseCategoryMaster, error) {
+func (r *ExpenseCategoryRepositoryImpl) GetByIDs(ctx context.Context, ids []string) ([]model.ExpenseCategoryMaster, error) {
 	if len(ids) == 0 {
 		return []model.ExpenseCategoryMaster{}, nil
 	}
@@ -258,7 +257,7 @@ func (r *ExpenseCategoryRepositoryImpl) GetByCodes(ctx context.Context, codes []
 // ========================================
 
 // UpdateDisplayOrder 表示順序を更新
-func (r *ExpenseCategoryRepositoryImpl) UpdateDisplayOrder(ctx context.Context, id uuid.UUID, newOrder int) error {
+func (r *ExpenseCategoryRepositoryImpl) UpdateDisplayOrder(ctx context.Context, id string, newOrder int) error {
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseCategoryMaster{}).
 		Where("id = ?", id).
@@ -267,19 +266,19 @@ func (r *ExpenseCategoryRepositoryImpl) UpdateDisplayOrder(ctx context.Context, 
 	if err != nil {
 		r.logger.Error("Failed to update display order",
 			zap.Error(err),
-			zap.String("category_id", id.String()),
+			zap.String("category_id", id),
 			zap.Int("new_order", newOrder))
 		return err
 	}
 
 	r.logger.Info("Display order updated successfully",
-		zap.String("category_id", id.String()),
+		zap.String("category_id", id),
 		zap.Int("new_order", newOrder))
 	return nil
 }
 
 // ReorderCategories 複数カテゴリの表示順序を一括更新
-func (r *ExpenseCategoryRepositoryImpl) ReorderCategories(ctx context.Context, categoryOrders map[uuid.UUID]int) error {
+func (r *ExpenseCategoryRepositoryImpl) ReorderCategories(ctx context.Context, categoryOrders map[string]int) error {
 	if len(categoryOrders) == 0 {
 		return nil
 	}
@@ -329,7 +328,7 @@ func (r *ExpenseCategoryRepositoryImpl) GetMaxDisplayOrder(ctx context.Context) 
 // ========================================
 
 // SetActive カテゴリの有効/無効を設定
-func (r *ExpenseCategoryRepositoryImpl) SetActive(ctx context.Context, id uuid.UUID, isActive bool) error {
+func (r *ExpenseCategoryRepositoryImpl) SetActive(ctx context.Context, id string, isActive bool) error {
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseCategoryMaster{}).
 		Where("id = ?", id).
@@ -338,13 +337,13 @@ func (r *ExpenseCategoryRepositoryImpl) SetActive(ctx context.Context, id uuid.U
 	if err != nil {
 		r.logger.Error("Failed to set category active status",
 			zap.Error(err),
-			zap.String("category_id", id.String()),
+			zap.String("category_id", id),
 			zap.Bool("is_active", isActive))
 		return err
 	}
 
 	r.logger.Info("Category active status updated",
-		zap.String("category_id", id.String()),
+		zap.String("category_id", id),
 		zap.Bool("is_active", isActive))
 	return nil
 }
@@ -410,7 +409,7 @@ func (r *ExpenseCategoryRepositoryImpl) CreateBatch(ctx context.Context, categor
 }
 
 // BulkUpdateActive 複数カテゴリの有効/無効を一括更新
-func (r *ExpenseCategoryRepositoryImpl) BulkUpdateActive(ctx context.Context, ids []uuid.UUID, isActive bool) error {
+func (r *ExpenseCategoryRepositoryImpl) BulkUpdateActive(ctx context.Context, ids []string, isActive bool) error {
 	if len(ids) == 0 {
 		return nil
 	}
@@ -439,7 +438,7 @@ func (r *ExpenseCategoryRepositoryImpl) BulkUpdateActive(ctx context.Context, id
 // ========================================
 
 // ExistsByID カテゴリIDが存在するかチェック
-func (r *ExpenseCategoryRepositoryImpl) ExistsByID(ctx context.Context, id uuid.UUID) (bool, error) {
+func (r *ExpenseCategoryRepositoryImpl) ExistsByID(ctx context.Context, id string) (bool, error) {
 	var count int64
 	err := r.db.WithContext(ctx).
 		Model(&model.ExpenseCategoryMaster{}).
@@ -449,7 +448,7 @@ func (r *ExpenseCategoryRepositoryImpl) ExistsByID(ctx context.Context, id uuid.
 	if err != nil {
 		r.logger.Error("Failed to check category existence by ID",
 			zap.Error(err),
-			zap.String("category_id", id.String()))
+			zap.String("category_id", id))
 		return false, err
 	}
 
@@ -475,7 +474,7 @@ func (r *ExpenseCategoryRepositoryImpl) ExistsByCode(ctx context.Context, code s
 }
 
 // IsCodeUnique カテゴリコードがユニークかチェック
-func (r *ExpenseCategoryRepositoryImpl) IsCodeUnique(ctx context.Context, code string, excludeID *uuid.UUID) (bool, error) {
+func (r *ExpenseCategoryRepositoryImpl) IsCodeUnique(ctx context.Context, code string, excludeID *string) (bool, error) {
 	query := r.db.WithContext(ctx).
 		Model(&model.ExpenseCategoryMaster{}).
 		Where("code = ?", code)

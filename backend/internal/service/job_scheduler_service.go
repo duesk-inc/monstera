@@ -19,14 +19,14 @@ import (
 type JobSchedulerServiceInterface interface {
 	// ジョブ管理
 	CreateJob(ctx context.Context, name string, jobType model.ScheduledJobType, cronExpression string, config map[string]interface{}) (*model.ScheduledJob, error)
-	UpdateJob(ctx context.Context, jobID uuid.UUID, updates map[string]interface{}) error
-	DeleteJob(ctx context.Context, jobID uuid.UUID) error
-	GetJob(ctx context.Context, jobID uuid.UUID) (*model.ScheduledJob, error)
+	UpdateJob(ctx context.Context, jobID string, updates map[string]interface{}) error
+	DeleteJob(ctx context.Context, jobID string) error
+	GetJob(ctx context.Context, jobID string) (*model.ScheduledJob, error)
 	ListJobs(ctx context.Context, filters map[string]interface{}) ([]*model.ScheduledJob, error)
 
 	// ジョブ実行
-	ExecuteJob(ctx context.Context, jobID uuid.UUID) error
-	ExecuteJobAsync(ctx context.Context, jobID uuid.UUID) error
+	ExecuteJob(ctx context.Context, jobID string) error
+	ExecuteJobAsync(ctx context.Context, jobID string) error
 
 	// スケジューラー管理
 	Start() error
@@ -37,11 +37,11 @@ type JobSchedulerServiceInterface interface {
 	RegisterJobHandler(jobType model.ScheduledJobType, handler JobHandler)
 
 	// ジョブ状態管理
-	EnableJob(ctx context.Context, jobID uuid.UUID) error
-	DisableJob(ctx context.Context, jobID uuid.UUID) error
+	EnableJob(ctx context.Context, jobID string) error
+	DisableJob(ctx context.Context, jobID string) error
 
 	// 実行履歴
-	GetJobExecutionHistory(ctx context.Context, jobID uuid.UUID, limit int) ([]*JobExecutionHistory, error)
+	GetJobExecutionHistory(ctx context.Context, jobID string, limit int) ([]*JobExecutionHistory, error)
 	CleanupOldExecutions(ctx context.Context, daysToKeep int) error
 }
 
@@ -53,8 +53,8 @@ type JobHandler interface {
 
 // JobExecutionHistory ジョブ実行履歴
 type JobExecutionHistory struct {
-	ID          uuid.UUID
-	JobID       uuid.UUID
+	ID          string
+	JobID       string
 	StartedAt   time.Time
 	CompletedAt *time.Time
 	Status      string
@@ -69,10 +69,10 @@ type jobSchedulerService struct {
 	jobRepo        repository.ScheduledJobRepositoryInterface
 	scheduler      *cron.Cron
 	handlers       map[model.ScheduledJobType]JobHandler
-	activeJobs     map[uuid.UUID]cron.EntryID
+	activeJobs     map[string]cron.EntryID
 	mu             sync.RWMutex
 	isRunning      bool
-	executionStore map[uuid.UUID][]*JobExecutionHistory // 簡易的な実行履歴ストア
+	executionStore map[string][]*JobExecutionHistory // 簡易的な実行履歴ストア
 }
 
 // NewJobSchedulerService ジョブスケジューラーサービスのコンストラクタ
@@ -87,8 +87,8 @@ func NewJobSchedulerService(
 		jobRepo:        jobRepo,
 		scheduler:      cron.New(cron.WithSeconds()),
 		handlers:       make(map[model.ScheduledJobType]JobHandler),
-		activeJobs:     make(map[uuid.UUID]cron.EntryID),
-		executionStore: make(map[uuid.UUID][]*JobExecutionHistory),
+		activeJobs:     make(map[string]cron.EntryID),
+		executionStore: make(map[string][]*JobExecutionHistory),
 	}
 }
 
@@ -119,7 +119,7 @@ func (s *jobSchedulerService) CreateJob(ctx context.Context, name string, jobTyp
 		Parameters:     &params,
 		Status:         model.ScheduledJobStatusActive,
 		NextRunAt:      s.calculateNextRunTime(cronExpression),
-		CreatedBy:      uuid.New(), // TODO: 実際のユーザーIDを設定
+		CreatedBy:      uuid.New().String(), // TODO: 実際のユーザーIDを設定
 	}
 
 	if err := s.jobRepo.Create(ctx, job); err != nil {
@@ -134,7 +134,7 @@ func (s *jobSchedulerService) CreateJob(ctx context.Context, name string, jobTyp
 	}
 
 	s.logger.Info("Job created successfully",
-		zap.String("job_id", job.ID.String()),
+		zap.String("job_id", job.ID),
 		zap.String("name", job.JobName),
 		zap.String("type", string(job.JobType)))
 
@@ -142,7 +142,7 @@ func (s *jobSchedulerService) CreateJob(ctx context.Context, name string, jobTyp
 }
 
 // UpdateJob ジョブを更新
-func (s *jobSchedulerService) UpdateJob(ctx context.Context, jobID uuid.UUID, updates map[string]interface{}) error {
+func (s *jobSchedulerService) UpdateJob(ctx context.Context, jobID string, updates map[string]interface{}) error {
 	job, err := s.jobRepo.GetByID(ctx, jobID)
 	if err != nil {
 		return fmt.Errorf("ジョブの取得に失敗しました: %w", err)
@@ -191,7 +191,7 @@ func (s *jobSchedulerService) UpdateJob(ctx context.Context, jobID uuid.UUID, up
 }
 
 // DeleteJob ジョブを削除
-func (s *jobSchedulerService) DeleteJob(ctx context.Context, jobID uuid.UUID) error {
+func (s *jobSchedulerService) DeleteJob(ctx context.Context, jobID string) error {
 	// スケジューラーから削除
 	s.unscheduleJob(jobID)
 
@@ -209,7 +209,7 @@ func (s *jobSchedulerService) DeleteJob(ctx context.Context, jobID uuid.UUID) er
 }
 
 // GetJob ジョブを取得
-func (s *jobSchedulerService) GetJob(ctx context.Context, jobID uuid.UUID) (*model.ScheduledJob, error) {
+func (s *jobSchedulerService) GetJob(ctx context.Context, jobID string) (*model.ScheduledJob, error) {
 	return s.jobRepo.GetByID(ctx, jobID)
 }
 
@@ -219,7 +219,7 @@ func (s *jobSchedulerService) ListJobs(ctx context.Context, filters map[string]i
 }
 
 // ExecuteJob ジョブを即座に実行（同期）
-func (s *jobSchedulerService) ExecuteJob(ctx context.Context, jobID uuid.UUID) error {
+func (s *jobSchedulerService) ExecuteJob(ctx context.Context, jobID string) error {
 	job, err := s.jobRepo.GetByID(ctx, jobID)
 	if err != nil {
 		return fmt.Errorf("ジョブの取得に失敗しました: %w", err)
@@ -232,7 +232,7 @@ func (s *jobSchedulerService) ExecuteJob(ctx context.Context, jobID uuid.UUID) e
 
 	// 実行履歴を記録
 	execution := &JobExecutionHistory{
-		ID:        uuid.New(),
+		ID:        uuid.New().String(),
 		JobID:     jobID,
 		StartedAt: time.Now(),
 		Status:    "running",
@@ -265,7 +265,7 @@ func (s *jobSchedulerService) ExecuteJob(ctx context.Context, jobID uuid.UUID) e
 }
 
 // ExecuteJobAsync ジョブを非同期で実行
-func (s *jobSchedulerService) ExecuteJobAsync(ctx context.Context, jobID uuid.UUID) error {
+func (s *jobSchedulerService) ExecuteJobAsync(ctx context.Context, jobID string) error {
 	job, err := s.jobRepo.GetByID(ctx, jobID)
 	if err != nil {
 		return fmt.Errorf("ジョブの取得に失敗しました: %w", err)
@@ -280,7 +280,7 @@ func (s *jobSchedulerService) ExecuteJobAsync(ctx context.Context, jobID uuid.UU
 	go func() {
 		if err := s.ExecuteJob(context.Background(), jobID); err != nil {
 			s.logger.Error("Async job execution failed",
-				zap.String("job_id", jobID.String()),
+				zap.String("job_id", jobID),
 				zap.Error(err))
 		}
 	}()
@@ -307,7 +307,7 @@ func (s *jobSchedulerService) Start() error {
 	for _, job := range jobs {
 		if err := s.scheduleJob(job); err != nil {
 			s.logger.Error("Failed to schedule job",
-				zap.String("job_id", job.ID.String()),
+				zap.String("job_id", job.ID),
 				zap.Error(err))
 		}
 	}
@@ -332,7 +332,7 @@ func (s *jobSchedulerService) Stop() error {
 	<-ctx.Done()
 
 	s.isRunning = false
-	s.activeJobs = make(map[uuid.UUID]cron.EntryID)
+	s.activeJobs = make(map[string]cron.EntryID)
 
 	s.logger.Info("Job scheduler stopped")
 	return nil
@@ -355,7 +355,7 @@ func (s *jobSchedulerService) RegisterJobHandler(jobType model.ScheduledJobType,
 }
 
 // EnableJob ジョブを有効化
-func (s *jobSchedulerService) EnableJob(ctx context.Context, jobID uuid.UUID) error {
+func (s *jobSchedulerService) EnableJob(ctx context.Context, jobID string) error {
 	job, err := s.jobRepo.GetByID(ctx, jobID)
 	if err != nil {
 		return fmt.Errorf("ジョブの取得に失敗しました: %w", err)
@@ -381,7 +381,7 @@ func (s *jobSchedulerService) EnableJob(ctx context.Context, jobID uuid.UUID) er
 }
 
 // DisableJob ジョブを無効化
-func (s *jobSchedulerService) DisableJob(ctx context.Context, jobID uuid.UUID) error {
+func (s *jobSchedulerService) DisableJob(ctx context.Context, jobID string) error {
 	job, err := s.jobRepo.GetByID(ctx, jobID)
 	if err != nil {
 		return fmt.Errorf("ジョブの取得に失敗しました: %w", err)
@@ -403,7 +403,7 @@ func (s *jobSchedulerService) DisableJob(ctx context.Context, jobID uuid.UUID) e
 }
 
 // GetJobExecutionHistory ジョブ実行履歴を取得
-func (s *jobSchedulerService) GetJobExecutionHistory(ctx context.Context, jobID uuid.UUID, limit int) ([]*JobExecutionHistory, error) {
+func (s *jobSchedulerService) GetJobExecutionHistory(ctx context.Context, jobID string, limit int) ([]*JobExecutionHistory, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
@@ -462,7 +462,7 @@ func (s *jobSchedulerService) scheduleJob(job *model.ScheduledJob) error {
 		ctx := context.Background()
 		if err := s.ExecuteJob(ctx, job.ID); err != nil {
 			s.logger.Error("Scheduled job execution failed",
-				zap.String("job_id", job.ID.String()),
+				zap.String("job_id", job.ID),
 				zap.String("job_name", job.JobName),
 				zap.Error(err))
 		}
@@ -486,7 +486,7 @@ func (s *jobSchedulerService) scheduleJob(job *model.ScheduledJob) error {
 }
 
 // unscheduleJob ジョブをスケジュールから削除（内部メソッド）
-func (s *jobSchedulerService) unscheduleJob(jobID uuid.UUID) {
+func (s *jobSchedulerService) unscheduleJob(jobID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -508,7 +508,7 @@ func (s *jobSchedulerService) calculateNextRunTime(cronExpression string) *time.
 }
 
 // recordExecution 実行履歴を記録（内部メソッド）
-func (s *jobSchedulerService) recordExecution(jobID uuid.UUID, execution *JobExecutionHistory) {
+func (s *jobSchedulerService) recordExecution(jobID string, execution *JobExecutionHistory) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 

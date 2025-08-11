@@ -29,8 +29,8 @@ const (
 
 // Attendance 勤怠モデル
 type Attendance struct {
-	ID        uuid.UUID        `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string        `gorm:"type:varchar(255);not null" json:"user_id"`
+	ID        string           `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID    string           `gorm:"type:varchar(255);not null" json:"user_id"`
 	User      User             `gorm:"foreignKey:UserID" json:"user"`
 	Date      time.Time        `gorm:"not null" json:"date"`
 	Status    AttendanceStatus `gorm:"type:enum('present','absent','late','early_leave','paid_leave','unpaid_leave','holiday');default:'present';not null" json:"status"`
@@ -45,8 +45,8 @@ type Attendance struct {
 
 // BeforeCreate UUIDを生成
 func (a *Attendance) BeforeCreate(tx *gorm.DB) error {
-	if a.ID == uuid.Nil {
-		a.ID = uuid.New()
+	if a.ID == "" {
+		a.ID = uuid.New().String()
 	}
 	return nil
 }

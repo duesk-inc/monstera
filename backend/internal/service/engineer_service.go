@@ -7,7 +7,6 @@ import (
 
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -16,13 +15,13 @@ import (
 type EngineerService interface {
 	// エンジニア情報の基本操作
 	GetEngineers(ctx context.Context, filters repository.EngineerFilters) ([]*model.User, int64, error)
-	GetEngineerByID(ctx context.Context, id uuid.UUID) (*model.User, error)
+	GetEngineerByID(ctx context.Context, id string) (*model.User, error)
 	CreateEngineer(ctx context.Context, input CreateEngineerInput) (*model.User, error)
-	UpdateEngineer(ctx context.Context, id uuid.UUID, input UpdateEngineerInput) (*model.User, error)
-	DeleteEngineer(ctx context.Context, id uuid.UUID) error
+	UpdateEngineer(ctx context.Context, id string, input UpdateEngineerInput) (*model.User, error)
+	DeleteEngineer(ctx context.Context, id string) error
 
 	// ステータス管理
-	UpdateEngineerStatus(ctx context.Context, id uuid.UUID, status string, reason string, changedBy uuid.UUID) error
+	UpdateEngineerStatus(ctx context.Context, id string, status string, reason string, changedBy string) error
 	GetStatusHistory(ctx context.Context, userID string) ([]*model.EngineerStatusHistory, error)
 
 	// スキル情報
@@ -53,7 +52,7 @@ type CreateEngineerInput struct {
 	HireDate       *time.Time
 	Education      string
 	EngineerStatus string
-	CreatedBy      uuid.UUID
+	CreatedBy      string
 }
 
 // UpdateEngineerInput エンジニア更新入力
@@ -71,7 +70,7 @@ type UpdateEngineerInput struct {
 	Position      string
 	HireDate      *time.Time
 	Education     string
-	UpdatedBy     uuid.UUID
+	UpdatedBy     string
 }
 
 // SystemUsage システム利用状況
@@ -120,14 +119,14 @@ func (s *engineerService) GetEngineers(ctx context.Context, filters repository.E
 }
 
 // GetEngineerByID IDでエンジニアを取得
-func (s *engineerService) GetEngineerByID(ctx context.Context, id uuid.UUID) (*model.User, error) {
+func (s *engineerService) GetEngineerByID(ctx context.Context, id string) (*model.User, error) {
 	user, err := s.engineerRepo.FindEngineerByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	// ロール情報を読み込み
-	user.LoadRolesFromUserRoles()
+	// user.LoadRolesFromUserRoles() - Method removed after migration
 
 	return user, nil
 }
@@ -216,7 +215,7 @@ func (s *engineerService) CreateEngineer(ctx context.Context, input CreateEngine
 }
 
 // UpdateEngineer エンジニア情報を更新
-func (s *engineerService) UpdateEngineer(ctx context.Context, id uuid.UUID, input UpdateEngineerInput) (*model.User, error) {
+func (s *engineerService) UpdateEngineer(ctx context.Context, id string, input UpdateEngineerInput) (*model.User, error) {
 	// 既存のユーザーを取得
 	user, err := s.engineerRepo.FindEngineerByID(ctx, id)
 	if err != nil {
@@ -250,12 +249,12 @@ func (s *engineerService) UpdateEngineer(ctx context.Context, id uuid.UUID, inpu
 }
 
 // DeleteEngineer エンジニアを削除
-func (s *engineerService) DeleteEngineer(ctx context.Context, id uuid.UUID) error {
+func (s *engineerService) DeleteEngineer(ctx context.Context, id string) error {
 	return s.engineerRepo.DeleteEngineer(ctx, id)
 }
 
 // UpdateEngineerStatus エンジニアのステータスを更新
-func (s *engineerService) UpdateEngineerStatus(ctx context.Context, id uuid.UUID, status string, reason string, changedBy uuid.UUID) error {
+func (s *engineerService) UpdateEngineerStatus(ctx context.Context, id string, status string, reason string, changedBy string) error {
 	// ステータスの妥当性チェック
 	if !model.IsValidEngineerStatus(status) {
 		return fmt.Errorf("無効なステータスです: %s", status)

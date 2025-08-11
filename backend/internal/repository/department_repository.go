@@ -4,17 +4,16 @@ import (
 	"context"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 // DepartmentRepository 部署リポジトリインターフェース
 type DepartmentRepository interface {
 	FindAll(ctx context.Context) ([]*model.Department, error)
-	FindByID(ctx context.Context, id uuid.UUID) (*model.Department, error)
+	FindByID(ctx context.Context, id string) (*model.Department, error)
 	Create(ctx context.Context, department *model.Department) error
 	Update(ctx context.Context, department *model.Department) error
-	Delete(ctx context.Context, id uuid.UUID) error
+	Delete(ctx context.Context, id string) error
 }
 
 // departmentRepository 部署リポジトリ実装
@@ -40,7 +39,7 @@ func (r *departmentRepository) FindAll(ctx context.Context) ([]*model.Department
 }
 
 // FindByID IDで部署を検索
-func (r *departmentRepository) FindByID(ctx context.Context, id uuid.UUID) (*model.Department, error) {
+func (r *departmentRepository) FindByID(ctx context.Context, id string) (*model.Department, error) {
 	var department model.Department
 	err := r.db.WithContext(ctx).
 		Where("id = ? AND deleted_at IS NULL", id).
@@ -62,7 +61,7 @@ func (r *departmentRepository) Update(ctx context.Context, department *model.Dep
 }
 
 // Delete 部署を削除
-func (r *departmentRepository) Delete(ctx context.Context, id uuid.UUID) error {
+func (r *departmentRepository) Delete(ctx context.Context, id string) error {
 	return r.db.WithContext(ctx).
 		Where("id = ?", id).
 		Delete(&model.Department{}).Error

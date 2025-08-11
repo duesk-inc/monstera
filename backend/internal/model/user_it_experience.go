@@ -7,7 +7,7 @@ import (
 
 // UserITExperience ユーザーIT経験ビュー
 type UserITExperience struct {
-	UserID string  `gorm:"type:varchar(255);primaryKey" json:"user_id"`
+	UserID                  string     `gorm:"type:varchar(255);primaryKey" json:"user_id"`
 	UserEmail               string     `gorm:"type:varchar(255)" json:"user_email"`
 	UserName                string     `gorm:"type:varchar(255)" json:"user_name"`
 	TotalITExperienceMonths int32      `gorm:"type:int" json:"total_it_experience_months"`

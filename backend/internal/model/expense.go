@@ -53,19 +53,19 @@ const (
 
 // Expense 経費申請モデル
 type Expense struct {
-	ID                     uuid.UUID       `gorm:"type:varchar(255);primary_key" json:"id"`
-	UserID string       `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"user_id"`
+	ID                     string          `gorm:"type:varchar(255);primary_key" json:"id"`
+	UserID                 string          `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"user_id"`
 	User                   User            `gorm:"foreignKey:UserID" json:"user"`
 	Title                  string          `gorm:"size:255;not null" json:"title"`
 	Category               ExpenseCategory `gorm:"size:50;not null" json:"category"`
-	CategoryID             uuid.UUID       `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"category_id"`
+	CategoryID             string          `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;not null" json:"category_id"`
 	Amount                 int             `gorm:"not null" json:"amount"` // 金額（円）
 	ExpenseDate            time.Time       `gorm:"not null" json:"expense_date"`
 	Status                 ExpenseStatus   `gorm:"type:enum('draft','submitted','approved','rejected','paid','cancelled','expired');default:'draft';not null" json:"status"`
 	Description            string          `gorm:"type:text" json:"description"`
 	ReceiptURL             string          `gorm:"size:255" json:"receipt_url"` // 領収書画像のURL
 	ReceiptURLs            []string        `gorm:"-" json:"receipt_urls"`       // 複数の領収書画像URL（expense_receiptsテーブルで管理）
-	ApproverID             *uuid.UUID      `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci" json:"approver_id"`
+	ApproverID             *string         `gorm:"type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci" json:"approver_id"`
 	Approver               *User           `gorm:"foreignKey:ApproverID;references:ID" json:"approver"`
 	ApprovedAt             *time.Time      `json:"approved_at"`
 	PaidAt                 *time.Time      `json:"paid_at"`
@@ -82,8 +82,8 @@ type Expense struct {
 
 // BeforeCreate UUIDを生成
 func (e *Expense) BeforeCreate(tx *gorm.DB) error {
-	if e.ID == uuid.Nil {
-		e.ID = uuid.New()
+	if e.ID == "" {
+		e.ID = uuid.New().String()
 	}
 	return nil
 }
@@ -296,12 +296,12 @@ func (e *Expense) MarkExpiryNotificationSent() {
 
 // MonthlyCloseStatus 月次締め状態
 type MonthlyCloseStatus struct {
-	ID                  uuid.UUID              `gorm:"type:uuid;primary_key" json:"id"`
+	ID                  string                 `gorm:"type:varchar(255);primary_key" json:"id"`
 	Year                int                    `gorm:"not null" json:"year"`
 	Month               int                    `gorm:"not null" json:"month"`
 	Status              MonthlyCloseStatusType `gorm:"type:varchar(20);not null" json:"status"`
 	ClosedAt            *time.Time             `json:"closed_at"`
-	ClosedBy            *uuid.UUID             `gorm:"type:uuid" json:"closed_by"`
+	ClosedBy            *string                `gorm:"type:varchar(255)" json:"closed_by"`
 	TotalExpenseCount   int                    `json:"total_expense_count"`
 	TotalExpenseAmount  float64                `json:"total_expense_amount"`
 	PendingExpenseCount int                    `json:"pending_expense_count"`
@@ -321,7 +321,7 @@ const (
 
 // MonthlyCloseSummary 月次締めサマリー
 type MonthlyCloseSummary struct {
-	ID                 uuid.UUID                `gorm:"type:uuid;primary_key" json:"id"`
+	ID                 string                   `gorm:"type:varchar(255);primary_key" json:"id"`
 	Year               int                      `gorm:"not null" json:"year"`
 	Month              int                      `gorm:"not null" json:"month"`
 	TotalExpenseCount  int                      `json:"total_expense_count"`
@@ -334,20 +334,20 @@ type MonthlyCloseSummary struct {
 
 // UserExpenseSummary ユーザー別経費サマリー
 type UserExpenseSummary struct {
-	ID               uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
-	MonthlySummaryID uuid.UUID `gorm:"type:uuid;not null" json:"monthly_summary_id"`
-	UserID string `gorm:"type:varchar(255);not null" json:"user_id"`
-	UserName         string    `gorm:"type:varchar(255)" json:"user_name"`
-	ExpenseCount     int       `json:"expense_count"`
-	TotalAmount      float64   `json:"total_amount"`
+	ID               string  `gorm:"type:varchar(255);primary_key" json:"id"`
+	MonthlySummaryID string  `gorm:"type:varchar(255);not null" json:"monthly_summary_id"`
+	UserID           string  `gorm:"type:varchar(255);not null" json:"user_id"`
+	UserName         string  `gorm:"type:varchar(255)" json:"user_name"`
+	ExpenseCount     int     `json:"expense_count"`
+	TotalAmount      float64 `json:"total_amount"`
 }
 
 // CategoryExpenseSummary カテゴリー別経費サマリー
 type CategoryExpenseSummary struct {
-	ID               uuid.UUID `gorm:"type:uuid;primary_key" json:"id"`
-	MonthlySummaryID uuid.UUID `gorm:"type:uuid;not null" json:"monthly_summary_id"`
-	CategoryID       uint      `gorm:"not null" json:"category_id"`
-	CategoryName     string    `gorm:"type:varchar(255)" json:"category_name"`
-	ExpenseCount     int       `json:"expense_count"`
-	TotalAmount      float64   `json:"total_amount"`
+	ID               string  `gorm:"type:varchar(255);primary_key" json:"id"`
+	MonthlySummaryID string  `gorm:"type:varchar(255);not null" json:"monthly_summary_id"`
+	CategoryID       uint    `gorm:"not null" json:"category_id"`
+	CategoryName     string  `gorm:"type:varchar(255)" json:"category_name"`
+	ExpenseCount     int     `json:"expense_count"`
+	TotalAmount      float64 `json:"total_amount"`
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/duesk/monstera/internal/config"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -135,7 +134,7 @@ func (s *userService) CreateUser(ctx context.Context, req *CreateUserRequest) (*
 		}
 	}
 
-	s.logger.Info("User created successfully", zap.String("user_id", user.ID.String()))
+	s.logger.Info("User created successfully", zap.String("user_id", user.ID))
 
 	return user, nil
 }
@@ -156,7 +155,7 @@ func (s *userService) Login(ctx context.Context, req *UserLoginRequest) (*model.
 		return nil, "", err
 	}
 
-	s.logger.Info("User logged in successfully", zap.String("user_id", authResponse.User.ID.String()))
+	s.logger.Info("User logged in successfully", zap.String("user_id", authResponse.User.ID))
 
 	// アクセストークン（IDトークン）を返す
 	return authResponse.User, authResponse.AccessToken, nil
@@ -166,11 +165,7 @@ func (s *userService) Login(ctx context.Context, req *UserLoginRequest) (*model.
 func (s *userService) UnlockAccount(ctx context.Context, userID string) error {
 	s.logger.Info("Unlocking account", zap.String("user_id", userID))
 
-	uid, err := uuid.Parse(userID)
-	if err != nil {
-		return fmt.Errorf("無効なユーザーID: %w", err)
-	}
-
+	uid := userID
 	user, err := s.userRepo.GetByID(ctx, uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -207,11 +202,7 @@ func (s *userService) UnlockAccount(ctx context.Context, userID string) error {
 
 // GetUserByID ユーザー情報取得（ID）
 func (s *userService) GetUserByID(ctx context.Context, userID string) (*model.User, error) {
-	uid, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, fmt.Errorf("無効なユーザーID: %w", err)
-	}
-
+	uid := userID
 	user, err := s.userRepo.GetByID(ctx, uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -236,17 +227,11 @@ func (s *userService) GetUserByEmail(ctx context.Context, email string) (*model.
 	return user, nil
 }
 
-
-
 // UpdateUser ユーザー情報更新
 func (s *userService) UpdateUser(ctx context.Context, userID string, req *UpdateUserRequest) (*model.User, error) {
 	s.logger.Info("Updating user", zap.String("user_id", userID))
 
-	uid, err := uuid.Parse(userID)
-	if err != nil {
-		return nil, fmt.Errorf("無効なユーザーID: %w", err)
-	}
-
+	uid := userID
 	user, err := s.userRepo.GetByID(ctx, uid)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

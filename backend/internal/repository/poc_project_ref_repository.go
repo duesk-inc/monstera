@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -13,13 +12,13 @@ import (
 // PocProjectRefRepository monstera-pocスキーマのプロジェクト情報参照用リポジトリのインターフェース
 type PocProjectRefRepository interface {
 	// 基本取得操作
-	GetByID(ctx context.Context, id uuid.UUID) (*model.PocProjectRef, error)
-	GetByIDs(ctx context.Context, ids []uuid.UUID) ([]*model.PocProjectRef, error)
+	GetByID(ctx context.Context, id string) (*model.PocProjectRef, error)
+	GetByIDs(ctx context.Context, ids []string) ([]*model.PocProjectRef, error)
 	GetAll(ctx context.Context, filter PocProjectRefFilter) ([]*model.PocProjectRef, int64, error)
 
 	// 検索・フィルタリング
 	SearchByName(ctx context.Context, name string, limit int) ([]*model.PocProjectRef, error)
-	GetBySkillID(ctx context.Context, skillID uuid.UUID) ([]*model.PocProjectRef, error)
+	GetBySkillID(ctx context.Context, skillID string) ([]*model.PocProjectRef, error)
 	GetByPriceRange(ctx context.Context, minPrice, maxPrice int) ([]*model.PocProjectRef, error)
 	GetByWorkLocation(ctx context.Context, location string) ([]*model.PocProjectRef, error)
 
@@ -35,36 +34,36 @@ type PocProjectRefRepository interface {
 
 	// アクティブプロジェクト（削除されていないもの）
 	GetActiveProjects(ctx context.Context, filter PocProjectRefFilter) ([]*model.PocProjectRef, int64, error)
-	GetActiveProjectsBySkills(ctx context.Context, skillIDs []uuid.UUID) ([]*model.PocProjectRef, error)
+	GetActiveProjectsBySkills(ctx context.Context, skillIDs []string) ([]*model.PocProjectRef, error)
 
 	// スキル関連
-	GetProjectWithSkills(ctx context.Context, id uuid.UUID) (*model.PocProjectRef, error)
+	GetProjectWithSkills(ctx context.Context, id string) (*model.PocProjectRef, error)
 	GetPopularSkills(ctx context.Context, limit int) ([]*SkillPopularityStats, error)
 }
 
 // PocProjectRefFilter プロジェクト検索フィルター
 type PocProjectRefFilter struct {
-	SkillIDs       []uuid.UUID `json:"skill_ids"`
-	MinPrice       *int        `json:"min_price"`
-	MaxPrice       *int        `json:"max_price"`
-	WorkLocation   *string     `json:"work_location"`
-	RemoteWorkType *string     `json:"remote_work_type"`
-	StartDateFrom  *time.Time  `json:"start_date_from"`
-	StartDateTo    *time.Time  `json:"start_date_to"`
-	CreatedAfter   *time.Time  `json:"created_after"`
-	CreatedBefore  *time.Time  `json:"created_before"`
-	SearchKeyword  *string     `json:"search_keyword"`
-	Page           int         `json:"page"`
-	Limit          int         `json:"limit"`
-	SortBy         *string     `json:"sort_by"`    // "created_at", "start_date", "project_name"
-	SortOrder      *string     `json:"sort_order"` // "asc", "desc"
+	SkillIDs       []string   `json:"skill_ids"`
+	MinPrice       *int       `json:"min_price"`
+	MaxPrice       *int       `json:"max_price"`
+	WorkLocation   *string    `json:"work_location"`
+	RemoteWorkType *string    `json:"remote_work_type"`
+	StartDateFrom  *time.Time `json:"start_date_from"`
+	StartDateTo    *time.Time `json:"start_date_to"`
+	CreatedAfter   *time.Time `json:"created_after"`
+	CreatedBefore  *time.Time `json:"created_before"`
+	SearchKeyword  *string    `json:"search_keyword"`
+	Page           int        `json:"page"`
+	Limit          int        `json:"limit"`
+	SortBy         *string    `json:"sort_by"`    // "created_at", "start_date", "project_name"
+	SortOrder      *string    `json:"sort_order"` // "asc", "desc"
 }
 
 // SkillProjectCount スキル別プロジェクト数
 type SkillProjectCount struct {
-	SkillID      uuid.UUID `json:"skill_id"`
-	SkillName    string    `json:"skill_name"`
-	ProjectCount int       `json:"project_count"`
+	SkillID      string `json:"skill_id"`
+	SkillName    string `json:"skill_name"`
+	ProjectCount int    `json:"project_count"`
 }
 
 // LocationProjectCount 勤務地別プロジェクト数
@@ -81,11 +80,11 @@ type PriceRangeProjectCount struct {
 
 // SkillPopularityStats スキル人気度統計
 type SkillPopularityStats struct {
-	SkillID      uuid.UUID `json:"skill_id"`
-	SkillName    string    `json:"skill_name"`
-	ProjectCount int       `json:"project_count"`
-	RecentCount  int       `json:"recent_count"` // 直近30日のプロジェクト数
-	GrowthRate   float64   `json:"growth_rate"`  // 成長率（％）
+	SkillID      string  `json:"skill_id"`
+	SkillName    string  `json:"skill_name"`
+	ProjectCount int     `json:"project_count"`
+	RecentCount  int     `json:"recent_count"` // 直近30日のプロジェクト数
+	GrowthRate   float64 `json:"growth_rate"`  // 成長率（％）
 }
 
 // pocProjectRefRepository monstera-pocスキーマ参照用リポジトリ実装
@@ -103,8 +102,8 @@ func NewPocProjectRefRepository(db *gorm.DB, logger *zap.Logger) PocProjectRefRe
 }
 
 // GetByID IDによるプロジェクト取得
-func (r *pocProjectRefRepository) GetByID(ctx context.Context, id uuid.UUID) (*model.PocProjectRef, error) {
-	r.logger.Info("PocProjectRefRepository.GetByID called", zap.String("id", id.String()))
+func (r *pocProjectRefRepository) GetByID(ctx context.Context, id string) (*model.PocProjectRef, error) {
+	r.logger.Info("PocProjectRefRepository.GetByID called", zap.String("id", id))
 
 	var project model.PocProjectRef
 	err := r.db.WithContext(ctx).
@@ -114,19 +113,19 @@ func (r *pocProjectRefRepository) GetByID(ctx context.Context, id uuid.UUID) (*m
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			r.logger.Warn("Project not found", zap.String("id", id.String()))
+			r.logger.Warn("Project not found", zap.String("id", id))
 			return nil, nil
 		}
-		r.logger.Error("Failed to get project by ID", zap.Error(err), zap.String("id", id.String()))
+		r.logger.Error("Failed to get project by ID", zap.Error(err), zap.String("id", id))
 		return nil, err
 	}
 
-	r.logger.Info("Project retrieved successfully", zap.String("id", id.String()), zap.String("name", project.ProjectName))
+	r.logger.Info("Project retrieved successfully", zap.String("id", id), zap.String("name", project.ProjectName))
 	return &project, nil
 }
 
 // GetByIDs 複数IDによるプロジェクト取得
-func (r *pocProjectRefRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) ([]*model.PocProjectRef, error) {
+func (r *pocProjectRefRepository) GetByIDs(ctx context.Context, ids []string) ([]*model.PocProjectRef, error) {
 	r.logger.Info("PocProjectRefRepository.GetByIDs called", zap.Int("count", len(ids)))
 
 	if len(ids) == 0 {
@@ -227,8 +226,8 @@ func (r *pocProjectRefRepository) SearchByName(ctx context.Context, name string,
 }
 
 // GetBySkillID スキルIDによるプロジェクト検索
-func (r *pocProjectRefRepository) GetBySkillID(ctx context.Context, skillID uuid.UUID) ([]*model.PocProjectRef, error) {
-	r.logger.Info("PocProjectRefRepository.GetBySkillID called", zap.String("skill_id", skillID.String()))
+func (r *pocProjectRefRepository) GetBySkillID(ctx context.Context, skillID string) ([]*model.PocProjectRef, error) {
+	r.logger.Info("PocProjectRefRepository.GetBySkillID called", zap.String("skill_id", skillID))
 
 	var projects []*model.PocProjectRef
 	err := r.db.WithContext(ctx).
@@ -240,11 +239,11 @@ func (r *pocProjectRefRepository) GetBySkillID(ctx context.Context, skillID uuid
 		Find(&projects).Error
 
 	if err != nil {
-		r.logger.Error("Failed to get projects by skill ID", zap.Error(err), zap.String("skill_id", skillID.String()))
+		r.logger.Error("Failed to get projects by skill ID", zap.Error(err), zap.String("skill_id", skillID))
 		return nil, err
 	}
 
-	r.logger.Info("Projects by skill retrieved", zap.String("skill_id", skillID.String()), zap.Int("found", len(projects)))
+	r.logger.Info("Projects by skill retrieved", zap.String("skill_id", skillID), zap.Int("found", len(projects)))
 	return projects, nil
 }
 
@@ -455,7 +454,7 @@ func (r *pocProjectRefRepository) GetActiveProjects(ctx context.Context, filter 
 }
 
 // GetActiveProjectsBySkills スキルリストに基づくアクティブプロジェクト取得
-func (r *pocProjectRefRepository) GetActiveProjectsBySkills(ctx context.Context, skillIDs []uuid.UUID) ([]*model.PocProjectRef, error) {
+func (r *pocProjectRefRepository) GetActiveProjectsBySkills(ctx context.Context, skillIDs []string) ([]*model.PocProjectRef, error) {
 	r.logger.Info("PocProjectRefRepository.GetActiveProjectsBySkills called", zap.Int("skill_count", len(skillIDs)))
 
 	if len(skillIDs) == 0 {
@@ -482,8 +481,8 @@ func (r *pocProjectRefRepository) GetActiveProjectsBySkills(ctx context.Context,
 }
 
 // GetProjectWithSkills スキル情報付きでプロジェクトを取得
-func (r *pocProjectRefRepository) GetProjectWithSkills(ctx context.Context, id uuid.UUID) (*model.PocProjectRef, error) {
-	r.logger.Info("PocProjectRefRepository.GetProjectWithSkills called", zap.String("id", id.String()))
+func (r *pocProjectRefRepository) GetProjectWithSkills(ctx context.Context, id string) (*model.PocProjectRef, error) {
+	r.logger.Info("PocProjectRefRepository.GetProjectWithSkills called", zap.String("id", id))
 
 	var project model.PocProjectRef
 	err := r.db.WithContext(ctx).
@@ -493,14 +492,14 @@ func (r *pocProjectRefRepository) GetProjectWithSkills(ctx context.Context, id u
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			r.logger.Warn("Project with skills not found", zap.String("id", id.String()))
+			r.logger.Warn("Project with skills not found", zap.String("id", id))
 			return nil, nil
 		}
-		r.logger.Error("Failed to get project with skills", zap.Error(err), zap.String("id", id.String()))
+		r.logger.Error("Failed to get project with skills", zap.Error(err), zap.String("id", id))
 		return nil, err
 	}
 
-	r.logger.Info("Project with skills retrieved", zap.String("id", id.String()), zap.Int("skills", len(project.RequiredSkills)))
+	r.logger.Info("Project with skills retrieved", zap.String("id", id), zap.Int("skills", len(project.RequiredSkills)))
 	return &project, nil
 }
 

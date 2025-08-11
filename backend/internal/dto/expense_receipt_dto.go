@@ -2,14 +2,12 @@ package dto
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 // ExpenseReceiptDTO 経費領収書DTO
 type ExpenseReceiptDTO struct {
-	ID           uuid.UUID `json:"id"`
-	ExpenseID    uuid.UUID `json:"expense_id"`
+	ID           string    `json:"id"`
+	ExpenseID    string    `json:"expense_id"`
 	ReceiptURL   string    `json:"receipt_url"`
 	S3Key        string    `json:"s3_key"`
 	FileName     string    `json:"file_name"`
@@ -33,7 +31,7 @@ type CreateExpenseReceiptRequest struct {
 type CreateExpenseWithReceiptsRequest struct {
 	Title         string                        `json:"title" binding:"required,min=1,max=255"`
 	Category      string                        `json:"category" binding:"required,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
-	CategoryID    *uuid.UUID                    `json:"category_id" binding:"omitempty"`                                                        // オプショナルに変更（後方互換性）
+	CategoryID    *string                       `json:"category_id" binding:"omitempty"`                                                        // オプショナルに変更（後方互換性）
 	Amount        int                           `json:"amount" binding:"required,min=1,max=10000000"`
 	ExpenseDate   time.Time                     `json:"expense_date" binding:"required"`
 	Description   string                        `json:"description" binding:"required,min=10,max=1000"`
@@ -45,7 +43,7 @@ type CreateExpenseWithReceiptsRequest struct {
 type UpdateExpenseWithReceiptsRequest struct {
 	Title         *string                       `json:"title,omitempty" binding:"omitempty,min=1,max=255"`
 	Category      *string                       `json:"category,omitempty" binding:"omitempty,oneof=transport entertainment supplies books seminar other"` // カテゴリコード
-	CategoryID    *uuid.UUID                    `json:"category_id,omitempty" binding:"omitempty"`
+	CategoryID    *string                       `json:"category_id,omitempty" binding:"omitempty"`
 	Amount        *int                          `json:"amount,omitempty" binding:"omitempty,min=1,max=10000000"`
 	ExpenseDate   *time.Time                    `json:"expense_date,omitempty" binding:"omitempty"`
 	Description   *string                       `json:"description,omitempty" binding:"omitempty,min=10,max=1000"`
@@ -61,8 +59,8 @@ type UpdateReceiptOrderRequest struct {
 
 // ReceiptOrderItem 領収書表示順項目
 type ReceiptOrderItem struct {
-	ReceiptID    uuid.UUID `json:"receipt_id" binding:"required"`
-	DisplayOrder int       `json:"display_order" binding:"required,min=0"`
+	ReceiptID    string `json:"receipt_id" binding:"required"`
+	DisplayOrder int    `json:"display_order" binding:"required,min=0"`
 }
 
 // GenerateReceiptUploadURLRequest 領収書アップロードURL生成リクエスト
@@ -81,13 +79,13 @@ type GenerateReceiptUploadURLResponse struct {
 
 // ExpenseWithReceiptsResponse 複数領収書を含む経費申請レスポンス
 type ExpenseWithReceiptsResponse struct {
-	ID              uuid.UUID           `json:"id"`
-	UserID string           `json:"user_id"`
+	ID              string              `json:"id"`
+	UserID          string              `json:"user_id"`
 	UserName        string              `json:"user_name"`
-	DepartmentID    *uuid.UUID          `json:"department_id,omitempty"`
+	DepartmentID    *string             `json:"department_id,omitempty"`
 	DepartmentName  string              `json:"department_name,omitempty"`
 	Title           string              `json:"title"`
-	CategoryID      uuid.UUID           `json:"category_id"`
+	CategoryID      string              `json:"category_id"`
 	CategoryName    string              `json:"category_name"`
 	CategoryCode    string              `json:"category_code"`
 	Amount          int                 `json:"amount"`
@@ -96,10 +94,10 @@ type ExpenseWithReceiptsResponse struct {
 	Status          string              `json:"status"`
 	SubmittedAt     *time.Time          `json:"submitted_at,omitempty"`
 	ApprovedAt      *time.Time          `json:"approved_at,omitempty"`
-	ApprovedBy      *uuid.UUID          `json:"approved_by,omitempty"`
+	ApprovedBy      *string             `json:"approved_by,omitempty"`
 	ApproverName    string              `json:"approver_name,omitempty"`
 	RejectedAt      *time.Time          `json:"rejected_at,omitempty"`
-	RejectedBy      *uuid.UUID          `json:"rejected_by,omitempty"`
+	RejectedBy      *string             `json:"rejected_by,omitempty"`
 	RejectionReason string              `json:"rejection_reason,omitempty"`
 	ReceiptURL      string              `json:"receipt_url,omitempty"` // 後方互換性のため保持
 	Receipts        []ExpenseReceiptDTO `json:"receipts"`              // 複数領収書

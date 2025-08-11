@@ -7,7 +7,6 @@ import (
 
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -24,7 +23,7 @@ type ReminderBatchService interface {
 	ProcessEscalations(ctx context.Context) error
 
 	// リマインド送信履歴を記録
-	RecordReminderHistory(ctx context.Context, userID, reportID uuid.UUID, reminderType string) error
+	RecordReminderHistory(ctx context.Context, userID, reportID string, reminderType string) error
 
 	// 本日送信予定のリマインドを取得
 	GetTodaysReminders(ctx context.Context) ([]ReminderTarget, error)
@@ -35,15 +34,15 @@ type ReminderBatchService interface {
 
 // ReminderTarget リマインド対象者
 type ReminderTarget struct {
-	UserID       uuid.UUID
+	UserID       string
 	UserName     string
 	UserEmail    string
-	ReportID     uuid.UUID
+	ReportID     string
 	StartDate    time.Time
 	EndDate      time.Time
 	DaysOverdue  int
 	ReminderType string // "first", "second", "escalation"
-	ManagerID    *uuid.UUID
+	ManagerID    *string
 	ManagerEmail string
 }
 
@@ -196,7 +195,7 @@ func (s *reminderBatchService) SendRemindersForOverdueDays(ctx context.Context, 
 	for _, target := range targets {
 		if err := s.sendReminder(ctx, target); err != nil {
 			s.logger.Error("Failed to send reminder",
-				zap.String("user_id", target.UserID.String()),
+				zap.String("user_id", target.UserID),
 				zap.Error(err))
 			continue
 		}
@@ -204,7 +203,7 @@ func (s *reminderBatchService) SendRemindersForOverdueDays(ctx context.Context, 
 		// 送信履歴を記録
 		if err := s.RecordReminderHistory(ctx, target.UserID, target.ReportID, target.ReminderType); err != nil {
 			s.logger.Error("Failed to record reminder history",
-				zap.String("user_id", target.UserID.String()),
+				zap.String("user_id", target.UserID),
 				zap.Error(err))
 		}
 	}
@@ -284,7 +283,7 @@ func (s *reminderBatchService) ProcessEscalations(ctx context.Context) error {
 	for _, target := range targets {
 		if err := s.sendEscalation(ctx, target); err != nil {
 			s.logger.Error("Failed to send escalation",
-				zap.String("user_id", target.UserID.String()),
+				zap.String("user_id", target.UserID),
 				zap.Error(err))
 			continue
 		}
@@ -292,7 +291,7 @@ func (s *reminderBatchService) ProcessEscalations(ctx context.Context) error {
 		// 送信履歴を記録
 		if err := s.RecordReminderHistory(ctx, target.UserID, target.ReportID, "escalation"); err != nil {
 			s.logger.Error("Failed to record escalation history",
-				zap.String("user_id", target.UserID.String()),
+				zap.String("user_id", target.UserID),
 				zap.Error(err))
 		}
 	}
@@ -303,7 +302,7 @@ func (s *reminderBatchService) ProcessEscalations(ctx context.Context) error {
 }
 
 // RecordReminderHistory リマインド送信履歴を記録
-func (s *reminderBatchService) RecordReminderHistory(ctx context.Context, userID, reportID uuid.UUID, reminderType string) error {
+func (s *reminderBatchService) RecordReminderHistory(ctx context.Context, userID, reportID string, reminderType string) error {
 	// 通知を作成
 	notification := model.Notification{
 		RecipientID:      &userID,
@@ -441,7 +440,7 @@ func (s *reminderBatchService) sendEscalation(ctx context.Context, target Remind
 }
 
 // isReminderSentToday 本日既にリマインドを送信済みかチェック
-func (s *reminderBatchService) isReminderSentToday(ctx context.Context, userID, reportID uuid.UUID) bool {
+func (s *reminderBatchService) isReminderSentToday(ctx context.Context, userID, reportID string) bool {
 	today := time.Now().Truncate(24 * time.Hour)
 	tomorrow := today.Add(24 * time.Hour)
 
@@ -462,7 +461,7 @@ func (s *reminderBatchService) isReminderSentToday(ctx context.Context, userID, 
 }
 
 // isEscalationSentToday 本日既にエスカレーションを送信済みかチェック
-func (s *reminderBatchService) isEscalationSentToday(ctx context.Context, userID, reportID uuid.UUID) bool {
+func (s *reminderBatchService) isEscalationSentToday(ctx context.Context, userID, reportID string) bool {
 	today := time.Now().Truncate(24 * time.Hour)
 	tomorrow := today.Add(24 * time.Hour)
 
@@ -717,7 +716,7 @@ func (s *reminderBatchService) sendRemindersForDaysWithCount(ctx context.Context
 		// リマインドを送信
 		if err := s.sendReminder(ctx, target); err != nil {
 			s.logger.Error("Failed to send reminder",
-				zap.String("user_id", target.UserID.String()),
+				zap.String("user_id", target.UserID),
 				zap.Error(err))
 			errorCount++
 			continue
@@ -726,7 +725,7 @@ func (s *reminderBatchService) sendRemindersForDaysWithCount(ctx context.Context
 		// 送信履歴を記録
 		if err := s.RecordReminderHistory(ctx, target.UserID, target.ReportID, target.ReminderType); err != nil {
 			s.logger.Error("Failed to record reminder history",
-				zap.String("user_id", target.UserID.String()),
+				zap.String("user_id", target.UserID),
 				zap.Error(err))
 		}
 
@@ -808,7 +807,7 @@ func (s *reminderBatchService) processEscalationsWithCount(ctx context.Context) 
 		// エスカレーション通知を送信
 		if err := s.sendEscalation(ctx, target); err != nil {
 			s.logger.Error("Failed to send escalation",
-				zap.String("user_id", target.UserID.String()),
+				zap.String("user_id", target.UserID),
 				zap.Error(err))
 			errorCount++
 			continue
@@ -817,7 +816,7 @@ func (s *reminderBatchService) processEscalationsWithCount(ctx context.Context) 
 		// 送信履歴を記録
 		if err := s.RecordReminderHistory(ctx, target.UserID, target.ReportID, "escalation"); err != nil {
 			s.logger.Error("Failed to record escalation history",
-				zap.String("user_id", target.UserID.String()),
+				zap.String("user_id", target.UserID),
 				zap.Error(err))
 		}
 

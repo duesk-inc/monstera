@@ -146,7 +146,7 @@ func (h *salesHandler) CreateSalesActivity(c *gin.Context) {
 		return
 	}
 
-	userID, ok := userIDStr.(uuid.UUID)
+	userID, ok := userIDStr.(string)
 	if !ok {
 		RespondUnauthorized(c)
 		return
@@ -241,7 +241,7 @@ func (h *salesHandler) GetSalesSummary(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	// リクエストパラメータを取得
-	var userID *uuid.UUID
+	var userID *string
 	if userIDStr := c.Query("user_id"); userIDStr != "" {
 		id, err := uuid.Parse(userIDStr)
 		if err == nil {
@@ -279,7 +279,7 @@ func (h *salesHandler) GetSalesPipeline(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	// リクエストパラメータを取得
-	var userID *uuid.UUID
+	var userID *string
 	if userIDStr := c.Query("user_id"); userIDStr != "" {
 		id, err := uuid.Parse(userIDStr)
 		if err == nil {
