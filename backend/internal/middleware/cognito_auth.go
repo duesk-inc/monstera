@@ -129,7 +129,7 @@ func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 		c.Set("user_id", user.ID)
 		c.Set("email", user.Email)
 		c.Set("role", user.DefaultRole) // 互換性のため
-		c.Set("roles", user.Roles)      // 複数ロール対応
+		c.Set("roles", []model.Role{user.Role})      // 複数ロール対応
 		c.Set("cognito_sub", claims["sub"])
 
 		c.Next()
@@ -177,7 +177,7 @@ func (m *CognitoAuthMiddleware) OptionalAuth() gin.HandlerFunc {
 		c.Set("user_id", user.ID)
 		c.Set("email", user.Email)
 		c.Set("role", user.DefaultRole) // 互換性のため
-		c.Set("roles", user.Roles)      // 複数ロール対応
+		c.Set("roles", []model.Role{user.Role})      // 複数ロール対応
 		c.Set("cognito_sub", claims["sub"])
 
 		c.Next()
@@ -360,7 +360,7 @@ func (m *CognitoAuthMiddleware) getUserFromClaims(ctx context.Context, claims jw
 		}
 
 		// CognitoサブIDを更新
-		user.CognitoSub = cognitoSub
+		user.ID = cognitoSub
 		if err := m.userRepo.Update(ctx, user); err != nil {
 			m.logger.Error("CognitoサブID更新エラー", zap.Error(err))
 		}
@@ -504,7 +504,6 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 		LastName:    "ユーザー",
 		Role:        adminRole,  // Roleフィールドに直接設定
 		DefaultRole: &adminRole, // ポインタで設定
-		Roles:       []model.Role{adminRole},
 		Status:      "active",
 	}
 
@@ -513,10 +512,10 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 	c.Set("user_id", devUser.ID)
 	c.Set("email", devUser.Email)
 	c.Set("role", devUser.DefaultRole) // 互換性のため
-	c.Set("roles", devUser.Roles)      // 複数ロール対応
+	c.Set("roles", []model.Role{devUser.Role})      // 複数ロール対応
 	c.Set("cognito_sub", "dev-user-sub")
 
 	m.logger.Debug("開発用ユーザーを設定しました",
 		zap.String("email", devUser.Email),
-		zap.String("role", adminRole))
+		zap.Int("role", int(adminRole)))
 }

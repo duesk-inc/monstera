@@ -417,7 +417,7 @@ func (w *WeeklyReportAuthMiddleware) checkDepartmentManagementPermission(ctx con
 	userUUID := userID
 	// UUID validation removed after migration
 	if userUUID == "" {
-		return false, err
+		return false, fmt.Errorf("user ID is empty")
 	}
 
 	user, err := w.userRepo.GetByID(ctx, userUUID)
@@ -426,7 +426,7 @@ func (w *WeeklyReportAuthMiddleware) checkDepartmentManagementPermission(ctx con
 	}
 
 	// ユーザーの所属部署と一致するかチェック
-	if user.DepartmentID != nil && user.DepartmentID == departmentID {
+	if user.DepartmentID != nil && *user.DepartmentID == departmentID {
 		return true, nil
 	}
 
@@ -447,7 +447,7 @@ func (w *WeeklyReportAuthMiddleware) isSubordinate(ctx context.Context, managerI
 	userUUID := userID
 	// UUID validation removed after migration
 	if userUUID == "" {
-		return false, err
+		return false, fmt.Errorf("user ID is empty")
 	}
 
 	user, err := w.userRepo.GetByID(ctx, userUUID)
@@ -455,7 +455,7 @@ func (w *WeeklyReportAuthMiddleware) isSubordinate(ctx context.Context, managerI
 		return false, err
 	}
 
-	return user.ManagerID != nil && user.ManagerID == managerID, nil
+	return user.ManagerID != nil && *user.ManagerID == managerID, nil
 }
 
 // Helper methods

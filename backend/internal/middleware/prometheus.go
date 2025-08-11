@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/duesk/monstera/internal/metrics"
+	// "github.com/duesk/monstera/internal/metrics" // TODO: metricsパッケージが実装されていない
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,13 +18,13 @@ func PrometheusMiddleware() gin.HandlerFunc {
 		method := c.Request.Method
 
 		// 実行中のリクエスト数を増加
-		metrics.HTTPRequestsInFlight.Inc()
+		// metrics.HTTPRequestsInFlight.Inc() // TODO: metricsパッケージが実装されていない
 
 		// リクエスト処理
 		c.Next()
 
 		// 実行中のリクエスト数を減少
-		metrics.HTTPRequestsInFlight.Dec()
+		// metrics.HTTPRequestsInFlight.Dec() // TODO: metricsパッケージが実装されていない
 
 		// レスポンス時間を計算
 		duration := time.Since(start).Seconds()
@@ -34,7 +34,11 @@ func PrometheusMiddleware() gin.HandlerFunc {
 		normalizedPath := normalizePath(path)
 
 		// メトリクスを記録
-		metrics.RecordHTTPRequest(method, normalizedPath, status, duration)
+		// metrics.RecordHTTPRequest(method, normalizedPath, status, duration) // TODO: metricsパッケージが実装されていない
+		_ = method
+		_ = normalizedPath 
+		_ = status
+		_ = duration
 	}
 }
 

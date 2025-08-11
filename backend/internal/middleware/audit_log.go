@@ -11,10 +11,8 @@ import (
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
+	// "github.com/google/uuid" // 現在は使用されていない
 	"go.uber.org/zap"
-
-	"fmt"
 )
 
 // AuditLogConfig 監査ログミドルウェア設定

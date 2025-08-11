@@ -87,15 +87,14 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 	t.Run("Valid token with UUID user_id", func(t *testing.T) {
 		// モックリポジトリの設定
 		mockRepo := new(MockUserRepository)
-		userID := uuid.New().String()
+		userID := "test-cognito-sub" // IDはCognito Subとして使用
 		employeeRole := model.RoleEmployee
 		testUser := &model.User{
 			ID:          userID,
-			CognitoSub:  "test-cognito-sub",
 			Email:       "test@example.com",
 			Name:        "Test User",
+			Role:        employeeRole,
 			DefaultRole: &employeeRole,
-			Roles:       []model.Role{employeeRole},
 		}
 		mockRepo.On("GetByCognitoSub", "test-cognito-sub").Return(testUser, nil)
 
