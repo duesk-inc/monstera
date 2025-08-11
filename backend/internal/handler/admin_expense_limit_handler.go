@@ -97,7 +97,7 @@ func (h *AdminExpenseLimitHandler) GetExpenseLimit(c *gin.Context) {
 	// サービスから取得
 	response, err := h.expenseService.GetExpenseLimitByID(c.Request.Context(), limitID)
 	if err != nil {
-		h.logger.Error("Failed to get expense limit by ID", zap.Error(err), zap.String("limit_id", limitID.String()))
+		h.logger.Error("Failed to get expense limit by ID", zap.Error(err), zap.String("limit_id", limitID))
 
 		if err.Error() == "経費申請上限が見つかりません" {
 			RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrLimitNotFound, "経費申請上限が見つかりません")
@@ -109,7 +109,7 @@ func (h *AdminExpenseLimitHandler) GetExpenseLimit(c *gin.Context) {
 	}
 
 	h.logger.Info("管理者向け経費申請上限詳細取得成功",
-		zap.String("limit_id", limitID.String()))
+		zap.String("limit_id", limitID))
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
@@ -162,7 +162,7 @@ func (h *AdminExpenseLimitHandler) CreateExpenseLimit(c *gin.Context) {
 	}
 
 	h.logger.Info("管理者向け経費申請上限作成成功",
-		zap.String("limit_id", response.ID.String()),
+		zap.String("limit_id", response.ID),
 		zap.String("limit_type", response.LimitType),
 		zap.String("limit_scope", response.LimitScope))
 
@@ -208,7 +208,7 @@ func (h *AdminExpenseLimitHandler) UpdateExpenseLimit(c *gin.Context) {
 	// サービスで更新
 	response, err := h.expenseService.UpdateExpenseLimitWithScope(c.Request.Context(), limitID, userID, &req)
 	if err != nil {
-		h.logger.Error("Failed to update expense limit with scope", zap.Error(err), zap.String("limit_id", limitID.String()))
+		h.logger.Error("Failed to update expense limit with scope", zap.Error(err), zap.String("limit_id", limitID))
 
 		if err.Error() == "経費申請上限が見つかりません" {
 			RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrLimitNotFound, "経費申請上限が見つかりません")
@@ -228,8 +228,8 @@ func (h *AdminExpenseLimitHandler) UpdateExpenseLimit(c *gin.Context) {
 	}
 
 	h.logger.Info("管理者向け経費申請上限更新成功",
-		zap.String("limit_id", limitID.String()),
-		zap.String("new_limit_id", response.ID.String()),
+		zap.String("limit_id", limitID),
+		zap.String("new_limit_id", response.ID),
 		zap.String("limit_type", response.LimitType),
 		zap.String("limit_scope", response.LimitScope))
 
@@ -260,7 +260,7 @@ func (h *AdminExpenseLimitHandler) DeleteExpenseLimit(c *gin.Context) {
 	// サービスで削除
 	err = h.expenseService.DeleteExpenseLimitWithScope(c.Request.Context(), limitID)
 	if err != nil {
-		h.logger.Error("Failed to delete expense limit with scope", zap.Error(err), zap.String("limit_id", limitID.String()))
+		h.logger.Error("Failed to delete expense limit with scope", zap.Error(err), zap.String("limit_id", limitID))
 
 		if err.Error() == "経費申請上限が見つかりません" {
 			RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrLimitNotFound, "経費申請上限が見つかりません")
@@ -272,7 +272,7 @@ func (h *AdminExpenseLimitHandler) DeleteExpenseLimit(c *gin.Context) {
 	}
 
 	h.logger.Info("管理者向け経費申請上限削除成功",
-		zap.String("limit_id", limitID.String()))
+		zap.String("limit_id", limitID))
 
 	c.JSON(http.StatusNoContent, nil)
 }

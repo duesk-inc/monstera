@@ -98,7 +98,7 @@ func (h *AdminCategoryHandler) GetCategory(c *gin.Context) {
 	// サービスから取得
 	response, err := h.expenseService.GetCategoryByID(c.Request.Context(), categoryID)
 	if err != nil {
-		h.logger.Error("Failed to get category by ID", zap.Error(err), zap.String("category_id", categoryID.String()))
+		h.logger.Error("Failed to get category by ID", zap.Error(err), zap.String("category_id", categoryID))
 
 		if err.Error() == "経費カテゴリが見つかりません" {
 			RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrCategoryNotFound, "経費カテゴリが見つかりません")
@@ -110,7 +110,7 @@ func (h *AdminCategoryHandler) GetCategory(c *gin.Context) {
 	}
 
 	h.logger.Info("管理者向け経費カテゴリ詳細取得成功",
-		zap.String("category_id", categoryID.String()))
+		zap.String("category_id", categoryID))
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
@@ -159,7 +159,7 @@ func (h *AdminCategoryHandler) CreateCategory(c *gin.Context) {
 	}
 
 	h.logger.Info("管理者向け経費カテゴリ作成成功",
-		zap.String("category_id", response.ID.String()),
+		zap.String("category_id", response.ID),
 		zap.String("code", response.Code))
 
 	c.JSON(http.StatusCreated, gin.H{"data": response})
@@ -198,7 +198,7 @@ func (h *AdminCategoryHandler) UpdateCategory(c *gin.Context) {
 	// サービスで更新
 	response, err := h.expenseService.UpdateCategory(c.Request.Context(), categoryID, &req)
 	if err != nil {
-		h.logger.Error("Failed to update category", zap.Error(err), zap.String("category_id", categoryID.String()))
+		h.logger.Error("Failed to update category", zap.Error(err), zap.String("category_id", categoryID))
 
 		if err.Error() == "経費カテゴリが見つかりません" {
 			RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrCategoryNotFound, "経費カテゴリが見つかりません")
@@ -210,7 +210,7 @@ func (h *AdminCategoryHandler) UpdateCategory(c *gin.Context) {
 	}
 
 	h.logger.Info("管理者向け経費カテゴリ更新成功",
-		zap.String("category_id", categoryID.String()),
+		zap.String("category_id", categoryID),
 		zap.String("code", response.Code))
 
 	c.JSON(http.StatusOK, gin.H{"data": response})
@@ -240,7 +240,7 @@ func (h *AdminCategoryHandler) DeleteCategory(c *gin.Context) {
 	// サービスで削除
 	err = h.expenseService.DeleteCategory(c.Request.Context(), categoryID)
 	if err != nil {
-		h.logger.Error("Failed to delete category", zap.Error(err), zap.String("category_id", categoryID.String()))
+		h.logger.Error("Failed to delete category", zap.Error(err), zap.String("category_id", categoryID))
 
 		if err.Error() == "経費カテゴリが見つかりません" {
 			RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrCategoryNotFound, "経費カテゴリが見つかりません")
@@ -258,7 +258,7 @@ func (h *AdminCategoryHandler) DeleteCategory(c *gin.Context) {
 	}
 
 	h.logger.Info("管理者向け経費カテゴリ削除成功",
-		zap.String("category_id", categoryID.String()))
+		zap.String("category_id", categoryID))
 
 	c.JSON(http.StatusNoContent, nil)
 }
