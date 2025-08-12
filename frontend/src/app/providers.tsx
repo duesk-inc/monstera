@@ -8,6 +8,7 @@ import theme from '@/theme/theme';
 import AuthErrorHandler from '@/components/common/AuthErrorHandler';
 import { ToastProvider, GlobalErrorBoundary } from '@/components/common';
 import { ActiveRoleProvider } from '@/context/ActiveRoleContext';
+import { AuthProvider } from '@/context/AuthContext';
 import { queryClient } from '@/lib/query-client';
 import { QueryErrorBoundary } from '@/components/common/QueryErrorBoundary';
 
@@ -21,11 +22,13 @@ export function Providers({ children }: { children: ReactNode }) {
           <CssBaseline />
           <ToastProvider>
             <AuthErrorHandler />
-            <ActiveRoleProvider>
-              <QueryErrorBoundary>
-                {children}
-              </QueryErrorBoundary>
-            </ActiveRoleProvider>
+            <AuthProvider>
+              <ActiveRoleProvider>
+                <QueryErrorBoundary>
+                  {children}
+                </QueryErrorBoundary>
+              </ActiveRoleProvider>
+            </AuthProvider>
           </ToastProvider>
         </ThemeProvider>
         <ReactQueryDevtools initialIsOpen={false} />

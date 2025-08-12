@@ -11,13 +11,6 @@ import {
   LogoutResponse,
   ErrorResponse
 } from '@/types/auth';
-import { 
-  setAuthState,
-  clearAuthState,
-  removeUser,
-  convertToLocalUser,
-  setUser as setLocalUser
-} from '@/utils/auth';
 import { DebugLogger } from '@/lib/debug/logger';
 
 // 認証エラーが発生したページのパスを保存するキー
@@ -60,14 +53,8 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
 
     // 正常にレスポンスを受け取った場合
     if (response.data && response.data.access_token) {
-      // 認証状態を保存
-      setAuthState(true);
-      
-      // ユーザー情報をローカルストレージに保存
-      if (response.data.user) {
-        const localUser = convertToLocalUser(response.data.user);
-        setLocalUser(localUser);
-      } else {
+      // ユーザー情報の確認
+      if (!response.data.user) {
         DebugLogger.apiError({
           category: '認証',
           operation: 'ログイン'
@@ -143,16 +130,9 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
       hasUser: !!response.data.user
     });
 
-    // 正常にレスポンスを受け取った場合
-    if (response.data && response.data.access_token) {
-      // 認証状態を保存
-      setAuthState(true);
-      
-      // ユーザー情報が含まれていれば更新
-      if (response.data.user) {
-        const localUser = convertToLocalUser(response.data.user);
-        setLocalUser(localUser);
-      }
+    // 正常にレスポンスを受け取った場合（トークンはCookieで管理）
+    if (!response.data || !response.data.access_token) {
+      throw new Error('トークンリフレッシュレスポンスが不正です');
     }
     
     return response.data;
@@ -166,12 +146,8 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
 
     // エラーハンドリング
     if (axios.isAxiosError(error) && error.response) {
-      // 401エラーの場合はログアウト処理を実行
+      // 401エラーの場合は現在のパスを保存
       if (error.response.status === 401) {
-        // ログアウト処理（ユーザー情報とトークンをクリア）
-        clearAuthState();
-        removeUser();
-        
         // 現在のパスを保存
         if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
           sessionStorage.setItem(AUTH_ERROR_PAGE_KEY, window.location.pathname);
@@ -225,9 +201,7 @@ export const logout = async (): Promise<LogoutResponse> => {
       operation: 'ログアウト成功'
     }, 'ログアウトに成功');
 
-    // ローカルストレージからユーザー情報を削除
-    removeUser();
-    clearAuthState();
+    // ログアウト成功（サーバー側でセッションとCookieがクリアされる）
     
     return response.data;
   } catch (error) {
@@ -238,11 +212,7 @@ export const logout = async (): Promise<LogoutResponse> => {
       error
     });
 
-    // エラーがあってもローカルのトークンとユーザー情報は削除
-    removeUser();
-    clearAuthState();
-    
-    // セッションストレージもクリア
+    // エラーがあってもセッションストレージはクリア
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem(AUTH_ERROR_PAGE_KEY);
     }

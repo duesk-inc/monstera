@@ -30,102 +30,54 @@ const debugLog = (...args: unknown[]) => {
 };
 
 /**
- * クライアント側で認証状態を追跡するためのフラグ設定
- * @param isAuthenticated 認証状態
- * @param timestamp タイムスタンプ
+ * @deprecated Cookie認証に移行中。この関数は使用しないでください。
  */
 export const setAuthState = (isAuthenticated: boolean, timestamp?: number): void => {
-  if (typeof window !== 'undefined') {
-    const now = timestamp || Date.now();
-    localStorage.setItem(AUTH_STATE_KEY, JSON.stringify({
-      authenticated: isAuthenticated,
-      timestamp: now,
-      expires: now + TOKEN_EXPIRY
-    }));
-  }
+  debugLog('[DEPRECATED] setAuthState called - localStorage usage is being phased out');
 };
 
 /**
- * クライアント側の認証状態を取得
- * @returns 認証状態とタイムスタンプ
+ * @deprecated Cookie認証に移行中。この関数は使用しないでください。
  */
 export const getAuthState = (): { authenticated: boolean; timestamp: number; expires: number } | null => {
-  if (typeof window !== 'undefined') {
-    try {
-      const state = localStorage.getItem(AUTH_STATE_KEY);
-      if (state) {
-        return JSON.parse(state);
-      }
-    } catch (e) {
-      debugLog('認証状態解析エラー:', e);
-    }
-  }
+  debugLog('[DEPRECATED] getAuthState called - localStorage usage is being phased out');
   return null;
 };
 
 /**
- * クライアント側の認証状態をクリア
+ * @deprecated Cookie認証に移行中。この関数は使用しないでください。
  */
 export const clearAuthState = (): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(AUTH_STATE_KEY);
-  }
+  debugLog('[DEPRECATED] clearAuthState called - localStorage usage is being phased out');
 };
 
 /**
- * すべての認証関連データをクリア（完全なログアウト用）
+ * @deprecated Cookie認証に移行中。この関数は使用しないでください。
  */
 export const clearAllAuthData = (): void => {
-  clearAuthState();
-  removeUser();
-  localStorage.removeItem(AUTH_STORAGE_KEYS.ACCESS_TOKEN);
-  localStorage.removeItem(AUTH_STORAGE_KEYS.REFRESH_TOKEN);
-  localStorage.removeItem(AUTH_STORAGE_KEYS.USER);
-  sessionStorage.removeItem('auth_state');
+  debugLog('[DEPRECATED] clearAllAuthData called - localStorage usage is being phased out');
 };
 
-// ユーザー情報を保存
+/**
+ * @deprecated Cookie認証に移行中。この関数は使用しないでください。
+ */
 export const setUser = (user: User): void => {
-  if (typeof window !== 'undefined') {
-    try {
-      // JSONに変換
-      const userJson = JSON.stringify(user);
-      
-      // ローカルストレージに保存
-      localStorage.setItem(USER_KEY, userJson);
-    } catch (error) {
-      debugLog('ユーザー情報の保存中にエラー:', error);
-    }
-  }
+  debugLog('[DEPRECATED] setUser called - localStorage usage is being phased out');
 };
 
-// ユーザー情報を取得
+/**
+ * @deprecated Cookie認証に移行中。この関数は使用しないでください。
+ */
 export const getUser = (): User | null => {
-  if (typeof window !== 'undefined') {
-    try {
-      const userStr = localStorage.getItem(USER_KEY);
-      
-      if (userStr) {
-        try {
-          const user = JSON.parse(userStr) as User;
-          return user;
-        } catch (error) {
-          debugLog('ユーザー情報解析エラー:', error);
-          return null;
-        }
-      }
-    } catch (error) {
-      debugLog('ユーザー情報取得中にエラー:', error);
-    }
-  }
+  debugLog('[DEPRECATED] getUser called - localStorage usage is being phased out');
   return null;
 };
 
-// ユーザー情報を削除
+/**
+ * @deprecated Cookie認証に移行中。この関数は使用しないでください。
+ */
 export const removeUser = (): void => {
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem(USER_KEY);
-  }
+  debugLog('[DEPRECATED] removeUser called - localStorage usage is being phased out');
 };
 
 /**
@@ -183,67 +135,64 @@ export const convertToLocalUser = (user: {
 };
 
 /**
- * トークンの有効期限をチェック
- * @returns トークンが有効かどうか
+ * @deprecated Cookie認証に移行中。サーバー側で検証されます。
  */
 export const isTokenValid = (): boolean => {
-  const state = getAuthState();
-  
-  if (!state) {
-    return false;
-  }
-  
-  // 現在時刻と有効期限を比較
-  return state.authenticated && Date.now() < state.expires;
+  debugLog('[DEPRECATED] isTokenValid called - Token validation is handled server-side');
+  return false;
 };
 
-// ログイン状態をチェック
+/**
+ * @deprecated Cookie認証に移行中。認証状態はContext経由で取得してください。
+ */
 export const isAuthenticated = (): boolean => {
-  // トークンの有効期限をチェック
-  if (!isTokenValid()) {
-    // 有効期限切れの場合はfalseを返す
-    return false;
-  }
-  
-  // ユーザー情報が存在するかチェック
-  return !!getUser();
+  debugLog('[DEPRECATED] isAuthenticated called - Use AuthContext instead');
+  return false;
 };
 
-// ログアウト処理
+/**
+ * @deprecated Cookie認証に移行中。AuthContextのlogout関数を使用してください。
+ */
 export const logout = (): void => {
-  clearAllAuthData();
+  debugLog('[DEPRECATED] logout called - Use AuthContext.logout() instead');
 };
 
-// アクセストークンを取得
+/**
+ * @deprecated Cookie認証に移行中。トークンはHTTPOnly Cookieで管理されます。
+ */
 export const getAccessToken = (): string | null => {
-  return localStorage.getItem('access_token');
+  debugLog('[DEPRECATED] getAccessToken called - Tokens are managed in HTTPOnly cookies');
+  return null;
 };
 
-// ユーザーが特定のロールを持っているかチェック
+/**
+ * @deprecated Cookie認証に移行中。AuthContext経由でユーザー情報を取得してください。
+ */
 export const hasRole = (role: string): boolean => {
-  const user = getUser();
-  if (!user) return false;
-  
-  // 複数ロールがある場合はその中からチェック
-  if (user.roles && user.roles.length > 0) {
-    return user.roles.includes(role);
-  }
-  
-  // 互換性のため単一ロールもチェック
-  return user.role === role;
+  debugLog('[DEPRECATED] hasRole called - Use AuthContext to get user information');
+  return false;
 };
 
-// ユーザーが管理者権限を持っているかチェック
+/**
+ * @deprecated Cookie認証に移行中。AuthContext経由でユーザー情報を取得してください。
+ */
 export const isAdmin = (): boolean => {
-  return hasRole('admin') || hasRole('super_admin');
+  debugLog('[DEPRECATED] isAdmin called - Use AuthContext to get user information');
+  return false;
 };
 
-// ユーザーがマネージャー権限を持っているかチェック
+/**
+ * @deprecated Cookie認証に移行中。AuthContext経由でユーザー情報を取得してください。
+ */
 export const isManager = (): boolean => {
-  return hasRole('manager') || isAdmin();
+  debugLog('[DEPRECATED] isManager called - Use AuthContext to get user information');
+  return false;
 };
 
-// ユーザーがエンジニア権限を持っているかチェック
+/**
+ * @deprecated Cookie認証に移行中。AuthContext経由でユーザー情報を取得してください。
+ */
 export const isEngineer = (): boolean => {
-  return hasRole('engineer');
+  debugLog('[DEPRECATED] isEngineer called - Use AuthContext to get user information');
+  return false;
 }; 
