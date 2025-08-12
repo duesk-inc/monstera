@@ -288,9 +288,9 @@ func TestAccountingPermissionMatcher(t *testing.T) {
 // TestAccountingRoleHierarchy ロール階層のテスト
 func TestAccountingRoleHierarchy(t *testing.T) {
 	roleNames := map[int]string{
-		1: "super_admin",
-		2: "admin",
-		3: "manager",
+		1: "super_admin", // TODO: Use testutil constants
+		2: "admin",       // TODO: Use testutil constants
+		3: "manager",     // TODO: Use testutil constants
 		4: "employee",
 		5: "sales_manager",
 		6: "sales_rep",

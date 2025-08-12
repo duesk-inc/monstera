@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
+	"github.com/duesk/monstera/internal/testutil"
 	"github.com/duesk/monstera/internal/service"
 	mocks "github.com/duesk/monstera/test/cognito/mocks"
 	"github.com/gin-gonic/gin"
@@ -81,7 +82,7 @@ func testCreateMember(t *testing.T) {
 			UserID:      userID.String(),
 			TeamRole:    "member",
 			Permissions: []string{"read", "write"},
-			CreatedBy:   "admin",
+			CreatedBy:   testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -117,7 +118,7 @@ func testCreateMember(t *testing.T) {
 		reqBody := service.CreateSalesTeamMemberRequest{
 			UserID:    uuid.New().String(),
 			TeamRole:  "member",
-			CreatedBy: "admin",
+			CreatedBy: testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -148,7 +149,7 @@ func testCreateMember(t *testing.T) {
 		reqBody := service.CreateSalesTeamMemberRequest{
 			UserID:    uuid.New().String(),
 			TeamRole:  "member",
-			CreatedBy: "admin",
+			CreatedBy: testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -323,7 +324,7 @@ func testUpdateMember(t *testing.T) {
 
 		reqBody := service.UpdateSalesTeamMemberRequest{
 			TeamRole:  "leader",
-			UpdatedBy: "admin",
+			UpdatedBy: testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -359,7 +360,7 @@ func testUpdateMember(t *testing.T) {
 
 		reqBody := service.UpdateSalesTeamMemberRequest{
 			TeamRole:  "leader",
-			UpdatedBy: "admin",
+			UpdatedBy: testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -386,14 +387,14 @@ func testDeleteMember(t *testing.T) {
 		memberID := uuid.New().String()
 
 		mockService.EXPECT().
-			DeleteMember(gomock.Any(), memberID, "admin").
+			DeleteMember(gomock.Any(), memberID, testutil.RoleStringAdmin).
 			Return(nil)
 
 		router := gin.New()
 		router.DELETE("/members/:id", handler.DeleteMember)
 
 		reqBody := map[string]string{
-			"deleted_by": "admin",
+			"deleted_by": testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -443,14 +444,14 @@ func testStatusManagement(t *testing.T) {
 		memberID := uuid.New().String()
 
 		mockService.EXPECT().
-			ActivateMember(gomock.Any(), memberID, "admin").
+			ActivateMember(gomock.Any(), memberID, testutil.RoleStringAdmin).
 			Return(nil)
 
 		router := gin.New()
 		router.POST("/members/:id/activate", handler.ActivateMember)
 
 		reqBody := map[string]string{
-			"activated_by": "admin",
+			"activated_by": testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -474,14 +475,14 @@ func testStatusManagement(t *testing.T) {
 		memberID := uuid.New().String()
 
 		mockService.EXPECT().
-			DeactivateMember(gomock.Any(), memberID, "admin").
+			DeactivateMember(gomock.Any(), memberID, testutil.RoleStringAdmin).
 			Return(nil)
 
 		router := gin.New()
 		router.POST("/members/:id/deactivate", handler.DeactivateMember)
 
 		reqBody := map[string]string{
-			"deactivated_by": "admin",
+			"deactivated_by": testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 
@@ -505,14 +506,14 @@ func testStatusManagement(t *testing.T) {
 		nonExistentID := uuid.New().String()
 
 		mockService.EXPECT().
-			ActivateMember(gomock.Any(), nonExistentID, "admin").
+			ActivateMember(gomock.Any(), nonExistentID, testutil.RoleStringAdmin).
 			Return(fmt.Errorf("営業チームメンバーが見つかりません"))
 
 		router := gin.New()
 		router.POST("/members/:id/activate", handler.ActivateMember)
 
 		reqBody := map[string]string{
-			"activated_by": "admin",
+			"activated_by": testutil.RoleStringAdmin,
 		}
 		body, _ := json.Marshal(reqBody)
 

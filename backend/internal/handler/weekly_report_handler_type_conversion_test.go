@@ -22,7 +22,7 @@ func TestGetUserRoleString(t *testing.T) {
 	}{
 		{
 			name:         "文字列型のロール",
-			roleValue:    "admin",
+			roleValue:    "admin", // TODO: Use testutil.RoleStringAdmin,
 			expectedRole: "admin",
 		},
 		{
