@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/duesk/monstera/internal/model"
-	"github.com/duesk/monstera/internal/testutil"
 	"github.com/duesk/monstera/internal/service"
+	"github.com/duesk/monstera/internal/testutil"
 	mocks "github.com/duesk/monstera/test/cognito/mocks"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"

@@ -464,7 +464,7 @@ func (s *ProfileService) createProfileResponse(profile *model.Profile, user *mod
 		LanguageSkills:  languageSkills,
 		FrameworkSkills: frameworkSkills,
 		BusinessExps:    businessExps,
-		Role: string(user.Role),
+		Role:            string(user.Role),
 	}
 }
 
@@ -794,7 +794,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 			s.logger.Info("プロフィールが存在しないため新規作成", zap.String("user_id", userID))
 			// 新規プロフィール作成
 			profile = model.Profile{
-				ID: uuid.New().String(),
+				ID:             uuid.New().String(),
 				UserID:         userID,
 				Education:      request.Education,
 				NearestStation: request.NearestStation,
@@ -928,7 +928,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 		err := tx.Where("name = ? AND is_common = true", certReq.Name).First(&certification).Error
 
 		profileCert := model.ProfileCertification{
-			ID: uuid.New().String(),
+			ID:           uuid.New().String(),
 			ProfileID:    profile.ID,
 			AcquiredDate: acquiredDate,
 		}
@@ -1040,7 +1040,7 @@ func (s *ProfileService) UpdateUserProfileWithDTO(userID string, request dto.Pro
 		}
 
 		workHistory := model.WorkHistory{
-			ID: uuid.New().String(),
+			ID:               uuid.New().String(),
 			ProfileID:        profile.ID,
 			UserID:           userID,
 			ProjectName:      workReq.ProjectName,

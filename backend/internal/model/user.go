@@ -25,7 +25,7 @@ type User struct {
 	PhoneNumber   string     `gorm:"size:20" json:"phone_number"`
 
 	// 権限・ロール
-	Role        Role  `gorm:"type:int;not null;default:4" json:"role"`        // 4 = RoleEngineer
+	Role        Role  `gorm:"type:int;not null;default:4" json:"role"` // 4 = RoleEngineer
 	DefaultRole *Role `gorm:"type:int;default:null" json:"default_role"`
 
 	// 組織情報

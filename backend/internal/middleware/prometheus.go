@@ -36,7 +36,7 @@ func PrometheusMiddleware() gin.HandlerFunc {
 		// メトリクスを記録
 		// metrics.RecordHTTPRequest(method, normalizedPath, status, duration) // TODO: metricsパッケージが実装されていない
 		_ = method
-		_ = normalizedPath 
+		_ = normalizedPath
 		_ = status
 		_ = duration
 	}

@@ -173,7 +173,6 @@ func (r *UserRepositoryImpl) List(offset, limit int) ([]model.User, int64, error
 		return nil, 0, err
 	}
 
-
 	return users, count, nil
 }
 
@@ -190,7 +189,6 @@ func (r *UserRepositoryImpl) FindByRole(role model.Role) ([]model.User, error) {
 	if err != nil {
 		return nil, err
 	}
-
 
 	return users, nil
 }

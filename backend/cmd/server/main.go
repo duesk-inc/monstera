@@ -606,13 +606,13 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 				authHandler.Login(c)
 			})
 			auth.POST("/refresh", authHandler.RefreshToken)
-			auth.POST("/logout", authHandler.Logout)
 
 			// 認証が必要なエンドポイント
 			authRequired := auth.Group("/")
 			authRequired.Use(authMiddlewareFunc)
 			{
 				authRequired.GET("/me", authHandler.Me)
+				authRequired.POST("/logout", authHandler.Logout)
 			}
 		}
 

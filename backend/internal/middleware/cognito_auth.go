@@ -128,8 +128,8 @@ func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 		c.Set("user", user)
 		c.Set("user_id", user.ID)
 		c.Set("email", user.Email)
-		c.Set("role", user.DefaultRole) // 互換性のため
-		c.Set("roles", []model.Role{user.Role})      // 複数ロール対応
+		c.Set("role", user.DefaultRole)         // 互換性のため
+		c.Set("roles", []model.Role{user.Role}) // 複数ロール対応
 		c.Set("cognito_sub", claims["sub"])
 
 		c.Next()
@@ -176,8 +176,8 @@ func (m *CognitoAuthMiddleware) OptionalAuth() gin.HandlerFunc {
 		c.Set("user", user)
 		c.Set("user_id", user.ID)
 		c.Set("email", user.Email)
-		c.Set("role", user.DefaultRole) // 互換性のため
-		c.Set("roles", []model.Role{user.Role})      // 複数ロール対応
+		c.Set("role", user.DefaultRole)         // 互換性のため
+		c.Set("roles", []model.Role{user.Role}) // 複数ロール対応
 		c.Set("cognito_sub", claims["sub"])
 
 		c.Next()
@@ -511,8 +511,8 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 	c.Set("user", devUser)
 	c.Set("user_id", devUser.ID)
 	c.Set("email", devUser.Email)
-	c.Set("role", devUser.DefaultRole) // 互換性のため
-	c.Set("roles", []model.Role{devUser.Role})      // 複数ロール対応
+	c.Set("role", devUser.DefaultRole)         // 互換性のため
+	c.Set("roles", []model.Role{devUser.Role}) // 複数ロール対応
 	c.Set("cognito_sub", "dev-user-sub")
 
 	m.logger.Debug("開発用ユーザーを設定しました",
