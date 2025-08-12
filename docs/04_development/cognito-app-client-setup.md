@@ -73,10 +73,12 @@ COGNITO_USER_POOL_ID=ap-northeast-1_B38FHxujm
 COGNITO_CLIENT_ID=7abc123def456ghi789jkl012     # 実際のClient IDに置き換え
 COGNITO_CLIENT_SECRET=your-actual-client-secret  # 実際のClient Secretに置き換え
 
-# オプション設定（User Pool IDを含むように更新）
-COGNITO_ENDPOINT=https://cognito-idp.ap-northeast-1.amazonaws.com
-COGNITO_ISSUER=https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_B38FHxujm
-COGNITO_JWKS_URI=https://cognito-idp.ap-northeast-1.amazonaws.com/ap-northeast-1_B38FHxujm/.well-known/jwks.json
+# ⚠️ 重要: 以下の設定は本番AWS Cognitoでは使用しないでください
+# これらの値はCOGNITO_REGIONとCOGNITO_USER_POOL_IDから自動生成されます
+# ローカルCognitoエミュレーター使用時のみ設定してください
+# COGNITO_ENDPOINT=http://localhost:9229  # ローカルCognitoエミュレーター用のみ
+# COGNITO_ISSUER=  # 自動生成されるため設定不要
+# COGNITO_JWKS_URI=  # 自動生成されるため設定不要
 ```
 
 ## 作成後の確認
