@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -530,7 +531,7 @@ func (h *SalesTeamHandler) GetUserPermissions(c *gin.Context) {
 	// ロールに基づいて権限を設定
 	var permissions []string
 	switch member.TeamRole {
-	case "manager":
+	case model.SalesTeamRoleManager.String():
 		permissions = []string{
 			"view_all_proposals",
 			"respond_to_questions",
@@ -541,7 +542,7 @@ func (h *SalesTeamHandler) GetUserPermissions(c *gin.Context) {
 			"update_proposals",
 			"delete_proposals",
 		}
-	case "member":
+	case model.SalesTeamRoleMember.String():
 		permissions = []string{
 			"view_assigned_proposals",
 			"respond_to_questions",

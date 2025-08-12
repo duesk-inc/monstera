@@ -59,6 +59,30 @@ const (
 	PocSyncStatusFailed    PocSyncStatus = "failed"    // 失敗
 )
 
+// SalesTeamRole 営業チームのロール
+type SalesTeamRole string
+
+const (
+	SalesTeamRoleManager SalesTeamRole = "manager" // マネージャー
+	SalesTeamRoleMember  SalesTeamRole = "member"  // メンバー
+	SalesTeamRoleLeader  SalesTeamRole = "leader"  // リーダー（将来の拡張用）
+)
+
+// String ロールを文字列に変換
+func (r SalesTeamRole) String() string {
+	return string(r)
+}
+
+// IsValid ロールが有効かチェック
+func (r SalesTeamRole) IsValid() bool {
+	switch r {
+	case SalesTeamRoleManager, SalesTeamRoleMember, SalesTeamRoleLeader:
+		return true
+	default:
+		return false
+	}
+}
+
 // Proposal 提案
 type Proposal struct {
 	ID               string         `gorm:"type:varchar(255);primaryKey" json:"id"`

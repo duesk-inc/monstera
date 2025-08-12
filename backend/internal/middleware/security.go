@@ -273,15 +273,12 @@ func isValidToken(token string) bool {
 	return token != "expired.token" && token != "invalid.token"
 }
 
+// extractUserInfoFromToken is deprecated - use CognitoAuthMiddleware instead
+// This function was used for testing purposes only
 func extractUserInfoFromToken(token string) (string, model.Role) {
-	// 実際の実装では トークンからユーザー情報を抽出
-	// ここではテスト用の簡単な実装
-	if strings.Contains(token, "admin") {
-		return "admin-user-id", model.RoleAdmin
-	} else if strings.Contains(token, "manager") {
-		return "manager-user-id", model.RoleManager
-	}
-	return "user-id", model.RoleEngineer
+	// この関数は非推奨です。CognitoAuthMiddlewareを使用してください
+	// テスト用の簡易実装のため、本番環境では使用しないでください
+	return "test-user-id", model.RoleEngineer
 }
 
 func isValidCSRFToken(token string) bool {
