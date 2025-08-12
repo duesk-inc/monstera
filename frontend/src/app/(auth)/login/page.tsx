@@ -101,11 +101,16 @@ function LoginPageContent() {
       // リダイレクト先の決定
       // ユーザーのロールに基づいてデフォルトのリダイレクト先を決定
       let defaultPath = '/dashboard';
-      if (response.user && response.user.roles && response.user.roles.length > 0) {
-        // 最高権限のロールを取得（数値が小さいほど高権限）
-        const highestRole = Math.min(...response.user.roles);
-        if (highestRole <= 3) { // 1:super_admin, 2:admin, 3:manager
+      if (response.user && response.user.role !== undefined) {
+        // roleは数値型（1:super_admin, 2:admin, 3:manager, 4:engineer）
+        const userRole = typeof response.user.role === 'number' 
+          ? response.user.role 
+          : parseInt(String(response.user.role), 10);
+        
+        if (userRole <= 3) { // 1:super_admin, 2:admin, 3:manager は管理者画面へ
           defaultPath = '/admin/dashboard';
+        } else { // 4:engineer はエンジニア画面へ
+          defaultPath = '/dashboard';
         }
       }
       
