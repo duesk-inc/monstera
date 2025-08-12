@@ -19,19 +19,19 @@ INSERT INTO users (
     created_at,
     updated_at
 ) VALUES (
-    'system-00000000-0000-0000-0000-000000000000',  -- Cognito Sub形式のシステムID
+    '00000000-0000-0000-0000-000000000000',  -- システムID（36文字のUUID形式）
     'system@internal',
-    'system-00000000-0000-0000-0000-000000000000',
+    '00000000-0000-0000-0000-000000000000',
     'System',
     'User',
     'System User',
     'システム',
     'ユーザー',
     '000-0000-0000',
-    4,  -- employee role (権限なし)
+    4,  -- engineer role (権限なし)
     false,  -- 非アクティブ
     'system',
-    'system',
+    'active',  -- engineer_statusは有効な値を使用
     NOW(),
     NOW()
 ) ON CONFLICT (id) DO UPDATE SET
@@ -46,7 +46,7 @@ SELECT
     '00:00',
     0.00
 FROM users u
-WHERE u.id = 'system-00000000-0000-0000-0000-000000000000'
+WHERE u.id = '00000000-0000-0000-0000-000000000000'
 AND NOT EXISTS (
     SELECT 1 FROM user_default_work_settings udws 
     WHERE udws.user_id = u.id

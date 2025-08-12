@@ -85,10 +85,10 @@ ON CONFLICT DO NOTHING;
 
 -- 経理ロール（accounting_manager, accounting_staff）の追加
 -- usersテーブルのroleカラムのコメントを更新
-COMMENT ON COLUMN users.role IS '1:super_admin, 2:admin, 3:manager, 4:employee, 5:sales_manager, 6:sales_rep, 7:accounting_manager, 8:accounting_staff';
+COMMENT ON COLUMN users.role IS '1:super_admin, 2:admin, 3:manager, 4:engineer, 5:sales_manager, 6:sales_rep, 7:accounting_manager, 8:accounting_staff';
 
 -- default_roleカラムのコメントも更新
-COMMENT ON COLUMN users.default_role IS 'ユーザーのデフォルトロール（1:super_admin, 2:admin, 3:manager, 4:employee, 5:sales_manager, 6:sales_rep, 7:accounting_manager, 8:accounting_staff）';
+COMMENT ON COLUMN users.default_role IS 'ユーザーのデフォルトロール（1:super_admin, 2:admin, 3:manager, 4:engineer, 5:sales_manager, 6:sales_rep, 7:accounting_manager, 8:accounting_staff）';
 
 -- 経理専用の詳細権限管理テーブル（将来の拡張用）
 CREATE TABLE IF NOT EXISTS accounting_role_permissions (

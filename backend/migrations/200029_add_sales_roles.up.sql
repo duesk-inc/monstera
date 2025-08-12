@@ -1,12 +1,12 @@
 -- 営業関連ロールの追加（PostgreSQL版）
--- 既存: 1:super_admin, 2:admin, 3:manager, 4:employee 
+-- 既存: 1:super_admin, 2:admin, 3:manager, 4:engineer 
 -- 追加: 5:sales_manager, 6:sales_rep
 
 -- usersテーブルのroleカラムのコメントを更新
-COMMENT ON COLUMN users.role IS '1:super_admin, 2:admin, 3:manager, 4:employee, 5:sales_manager, 6:sales_rep';
+COMMENT ON COLUMN users.role IS '1:super_admin, 2:admin, 3:manager, 4:engineer, 5:sales_manager, 6:sales_rep';
 
 -- default_roleカラムのコメントも更新
-COMMENT ON COLUMN users.default_role IS 'ユーザーのデフォルトロール（1:super_admin, 2:admin, 3:manager, 4:employee, 5:sales_manager, 6:sales_rep）';
+COMMENT ON COLUMN users.default_role IS 'ユーザーのデフォルトロール（1:super_admin, 2:admin, 3:manager, 4:engineer, 5:sales_manager, 6:sales_rep）';
 
 -- 営業ロールタイプのENUM型を作成
 DO $$

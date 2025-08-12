@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- PostgreSQL用のコメント設定
-COMMENT ON COLUMN users.role IS '1:super_admin, 2:admin, 3:manager, 4:employee';
-COMMENT ON COLUMN users.default_role IS 'ユーザーのデフォルトロール（1:super_admin, 2:admin, 3:manager, 4:employee）';
+COMMENT ON COLUMN users.role IS '1:super_admin, 2:admin, 3:manager, 4:engineer';
+COMMENT ON COLUMN users.default_role IS 'ユーザーのデフォルトロール（1:super_admin, 2:admin, 3:manager, 4:engineer）';
 COMMENT ON COLUMN users.follow_up_required IS 'フォローアップ必要フラグ';
 COMMENT ON COLUMN users.follow_up_reason IS 'フォローアップ理由';
 COMMENT ON COLUMN users.last_follow_up_date IS '最終フォローアップ日';
