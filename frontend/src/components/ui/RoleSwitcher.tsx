@@ -24,7 +24,8 @@ import {
   Person as PersonIcon,
   SupervisorAccount as SuperAdminIcon,
 } from '@mui/icons-material';
-import { useActiveRole, RoleType } from '@/context/ActiveRoleContext';
+import { useActiveRole } from '@/context/ActiveRoleContext';
+import { ROLES, RoleType, ADMIN_ROLES } from '@/constants/roles';
 import { useRouter } from 'next/navigation';
 
 // ロール切り替えコンポーネントのプロパティ
@@ -35,13 +36,13 @@ interface RoleSwitcherProps {
 // ロールアイコンのマッピング
 const getRoleIcon = (role: RoleType) => {
   switch (role) {
-    case 'super_admin':
+    case ROLES.SUPER_ADMIN:
       return <SuperAdminIcon fontSize="small" sx={{ color: 'error.main' }} />;
-    case 'admin':
+    case ROLES.ADMIN:
       return <AdminIcon fontSize="small" sx={{ color: 'error.main' }} />;
-    case 'manager':
+    case ROLES.MANAGER:
       return <ManagerIcon fontSize="small" sx={{ color: 'warning.main' }} />;
-    case 'engineer':
+    case ROLES.ENGINEER:
       return <PersonIcon fontSize="small" sx={{ color: 'primary.main' }} />;
     default:
       return <PersonIcon fontSize="small" />;
@@ -84,7 +85,7 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ onClose }) => {
     const currentPath = window.location.pathname;
     
     // 管理者系ロールの場合
-    if (newRole === 'super_admin' || newRole === 'admin' || newRole === 'manager') {
+    if (ADMIN_ROLES.includes(newRole)) {
       // 既に管理画面にいない場合は管理画面に遷移
       if (!currentPath.startsWith('/admin')) {
         // 少し待機してからページ遷移（状態更新を確実にするため）
@@ -97,7 +98,7 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ onClose }) => {
       }
     } 
     // エンジニアロールの場合
-    else if (newRole === 'engineer') {
+    else if (newRole === ROLES.ENGINEER) {
       // 管理画面にいる場合はダッシュボードに遷移
       if (currentPath.startsWith('/admin')) {
         // 少し待機してからページ遷移（状態更新を確実にするため）

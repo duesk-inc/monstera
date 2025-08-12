@@ -10,6 +10,7 @@ import {
 import { User } from '@/types/auth';
 import { UserAvatar } from './UserAvatar';
 import { RoleSwitcher } from '@/components/ui/RoleSwitcher';
+import { ROLES, ROLE_DISPLAY_NAMES, RoleType } from '@/constants/roles';
 
 interface SharedUserMenuProps {
   anchorEl: null | HTMLElement;
@@ -55,25 +56,14 @@ export const SharedUserMenu: React.FC<SharedUserMenuProps> = ({
     // 複数ロールがある場合
     if (user.roles && user.roles.length > 0) {
       const roleLabels = user.roles.map(role => {
-        switch (role) {
-          case 'super_admin': return 'スーパー管理者';
-          case 'admin': return '管理者';
-          case 'manager': return 'マネージャー';
-          case 'engineer': return 'エンジニア';
-          default: return role;
-        }
+        // ROLE_DISPLAY_NAMESを使用して表示名を取得
+        return ROLE_DISPLAY_NAMES[role as RoleType] || role;
       });
       return roleLabels.join(' / ');
     }
     
     // 単一ロールの場合
-    switch (user.role) {
-      case 'super_admin': return 'スーパー管理者';
-      case 'admin': return '管理者';
-      case 'manager': return 'マネージャー';
-      case 'engineer': return 'エンジニア';
-      default: return user.role;
-    }
+    return ROLE_DISPLAY_NAMES[user.role as RoleType] || user.role;
   };
 
   return (

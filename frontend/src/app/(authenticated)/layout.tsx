@@ -6,6 +6,7 @@ import AdminSidebar from '@/components/ui/AdminSidebar';
 import EngineerSidebar from '@/components/ui/EngineerSidebar';
 import { SharedLayoutWrapper } from '@/components/common/layout';
 import { useActiveRole } from '@/context/ActiveRoleContext';
+import { ROLES } from '@/constants/roles';
 
 export default function RootLayout({
   children,
@@ -14,7 +15,7 @@ export default function RootLayout({
 }) {
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
   const { activeRole } = useActiveRole();
-  const isEngineer = activeRole === 'engineer';
+  const isEngineer = activeRole === ROLES.ENGINEER;
 
 
   const userMenuItems = (

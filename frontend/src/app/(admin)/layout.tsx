@@ -7,6 +7,7 @@ import AdminSidebar from '@/components/ui/AdminSidebar';
 import { SharedLayoutWrapper } from '@/components/common/layout';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
+import { ADMIN_ROLES, RoleType } from '@/constants/roles';
 
 export default function AdminLayout({
   children,
@@ -21,8 +22,8 @@ export default function AdminLayout({
   useEffect(() => {
     if (!isLoading && user) {
       const hasAdminRole = user.roles ? 
-        user.roles.some(role => role === 'admin' || role === 'manager' || role === 'super_admin') :
-        (user.role === 'admin' || user.role === 'manager');
+        user.roles.some(role => ADMIN_ROLES.includes(role as RoleType)) :
+        ADMIN_ROLES.includes(user.role as RoleType);
       
       if (!hasAdminRole) {
         router.push('/dashboard');

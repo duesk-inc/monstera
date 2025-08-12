@@ -20,6 +20,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { useActiveRole } from '@/context/ActiveRoleContext';
 import { updateDefaultRole } from '@/lib/api/user';
 import { useToast } from '@/components/common';
+import { 
+  ROLE_STRING_TO_VALUE, 
+  ROLE_VALUE_TO_STRING, 
+  ADMIN_ROLES,
+  RoleType,
+  RoleValueType
+} from '@/constants/roles';
 
 /**
  * アカウント設定セクションコンポーネント
@@ -34,22 +41,6 @@ export const AccountSettingsSection: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // ロールを数値に変換するマッピング
-  const roleStringToNumber: Record<string, number> = {
-    'super_admin': 1,
-    'admin': 2,
-    'manager': 3,
-    'engineer': 4
-  };
-
-  // 数値をロール文字列に変換するマッピング
-  const roleNumberToString: Record<number, string> = {
-    1: 'super_admin',
-    2: 'admin',
-    3: 'manager',
-    4: 'engineer',
-  };
-
   // 初期値の設定
   useEffect(() => {
     if (user && user.default_role !== undefined) {
@@ -57,11 +48,11 @@ export const AccountSettingsSection: React.FC = () => {
     } else if (availableRoles.length > 0) {
       // デフォルトロールが設定されていない場合は最高権限を初期値にする
       const highestRole = availableRoles.reduce((highest, current) => {
-        const currentPriority = roleStringToNumber[current] || 999;
-        const highestPriority = roleStringToNumber[highest] || 999;
+        const currentPriority = ROLE_STRING_TO_VALUE[current as RoleType] || 999;
+        const highestPriority = ROLE_STRING_TO_VALUE[highest as RoleType] || 999;
         return currentPriority < highestPriority ? current : highest;
       });
-      setDefaultRole(roleStringToNumber[highestRole] || null);
+      setDefaultRole(ROLE_STRING_TO_VALUE[highestRole as RoleType] || null);
     }
   }, [user, availableRoles]);
 
@@ -96,7 +87,7 @@ export const AccountSettingsSection: React.FC = () => {
 
   // ロールアイコンの取得
   const getRoleIcon = (role: string) => {
-    if (role === 'super_admin' || role === 'admin' || role === 'manager') {
+    if (ADMIN_ROLES.includes(role as RoleType)) {
       return <AdminIcon fontSize="small" sx={{ color: 'error.main' }} />;
     }
     return <PersonIcon fontSize="small" sx={{ color: 'primary.main' }} />;
@@ -124,7 +115,7 @@ export const AccountSettingsSection: React.FC = () => {
             onChange={handleDefaultRoleChange}
           >
             {availableRoles.map((role) => {
-              const roleNumber = roleStringToNumber[role];
+              const roleNumber = ROLE_STRING_TO_VALUE[role as RoleType];
               if (!roleNumber) return null;
               
               return (

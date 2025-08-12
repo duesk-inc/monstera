@@ -1,9 +1,15 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-// アクティブロールの型定義
-export type RoleType = 'super_admin' | 'admin' | 'manager' | 'engineer';
+import { 
+  RoleType, 
+  ROLES, 
+  ROLE_DISPLAY_NAMES,
+  ALL_ROLES,
+  ROLE_VALUE_TO_STRING,
+  ROLE_STRING_TO_VALUE,
+  RoleValueType
+} from '@/constants/roles';
 
 // アクティブロールコンテキストの型定義
 interface ActiveRoleContextType {
@@ -27,22 +33,6 @@ interface ActiveRoleProviderProps {
 
 // セッションストレージのキー
 const ACTIVE_ROLE_KEY = 'monstera_active_role';
-
-// ロール表示名のマッピング
-const ROLE_DISPLAY_NAMES: Record<RoleType, string> = {
-  super_admin: 'スーパー管理者',
-  admin: '管理者',
-  manager: 'マネージャー',
-  engineer: 'エンジニア'
-};
-
-// ロールの優先順位（数値が小さいほど高権限）
-const ROLE_PRIORITY: Record<RoleType, number> = {
-  super_admin: 1,
-  admin: 2,
-  manager: 3,
-  engineer: 4
-};
 
 // アクティブロールプロバイダー
 export const ActiveRoleProvider: React.FC<ActiveRoleProviderProps> = ({ children }) => {
@@ -73,7 +63,7 @@ export const ActiveRoleProvider: React.FC<ActiveRoleProviderProps> = ({ children
     // 文字列配列をRoleType配列に変換
     const validRoles: RoleType[] = roles
       .filter((role): role is RoleType => 
-        ['super_admin', 'admin', 'manager', 'engineer'].includes(role)
+        ALL_ROLES.includes(role as RoleType)
       );
 
     setAvailableRoles(validRoles);
@@ -87,20 +77,12 @@ export const ActiveRoleProvider: React.FC<ActiveRoleProviderProps> = ({ children
       }
     }
 
-    // 数値をロール文字列に変換するマッピング
-    const roleNumberToString: Record<number, RoleType> = {
-      1: 'super_admin',
-      2: 'admin',
-      3: 'manager',
-      4: 'engineer',
-    };
-
     // アクティブロールを設定
     if (savedActiveRole) {
       setActiveRoleState(savedActiveRole);
-    } else if (defaultRole && roleNumberToString[defaultRole] && validRoles.includes(roleNumberToString[defaultRole])) {
+    } else if (defaultRole && ROLE_VALUE_TO_STRING[defaultRole as RoleValueType] && validRoles.includes(ROLE_VALUE_TO_STRING[defaultRole as RoleValueType])) {
       // ユーザーのデフォルトロールが設定されており、利用可能なロールに含まれている場合
-      const defaultRoleString = roleNumberToString[defaultRole];
+      const defaultRoleString = ROLE_VALUE_TO_STRING[defaultRole as RoleValueType];
       setActiveRoleState(defaultRoleString);
       if (typeof window !== 'undefined') {
         sessionStorage.setItem(ACTIVE_ROLE_KEY, defaultRoleString);
@@ -130,7 +112,9 @@ export const ActiveRoleProvider: React.FC<ActiveRoleProviderProps> = ({ children
   // リストから最高権限のロールを選択
   const getHighestRoleFromList = (roles: RoleType[]): RoleType => {
     return roles.reduce((highest, current) => {
-      return ROLE_PRIORITY[current] < ROLE_PRIORITY[highest] ? current : highest;
+      const currentValue = ROLE_STRING_TO_VALUE[current];
+      const highestValue = ROLE_STRING_TO_VALUE[highest];
+      return currentValue < highestValue ? current : highest;
     });
   };
 
