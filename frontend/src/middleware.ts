@@ -77,9 +77,14 @@ export function middleware(request: NextRequest) {
   debugLog('Request path:', pathname);
   
   // パスがpublicPathsのいずれかに一致するか確認
-  const isPublicPath = publicPaths.some(path => 
-    pathname.startsWith(path)
-  );
+  const isPublicPath = publicPaths.some(path => {
+    // ルートパス（/）の場合は完全一致のみ許可
+    if (path === '/') {
+      return pathname === '/';
+    }
+    // その他のパスはプレフィックスマッチング
+    return pathname.startsWith(path);
+  });
   
   debugLog('Public path?', isPublicPath);
   
