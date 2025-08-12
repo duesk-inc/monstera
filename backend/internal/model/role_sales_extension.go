@@ -89,7 +89,7 @@ func AllRolesExtended() []Role {
 		RoleSuperAdmin,
 		RoleAdmin,
 		RoleManager,
-		RoleEmployee,
+		RoleEngineer,
 		RoleSalesManager,
 		RoleSalesRep,
 	}

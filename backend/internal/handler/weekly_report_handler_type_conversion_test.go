@@ -32,7 +32,7 @@ func TestGetUserRoleString(t *testing.T) {
 		},
 		{
 			name:         "*model.Role型のロール（Employee）",
-			roleValue:    func() *model.Role { r := model.RoleEmployee; return &r }(),
+			roleValue:    func() *model.Role { r := model.RoleEngineer; return &r }(),
 			expectedRole: "engineer",
 		},
 		{

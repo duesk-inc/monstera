@@ -281,7 +281,7 @@ func extractUserInfoFromToken(token string) (string, model.Role) {
 	} else if strings.Contains(token, "manager") {
 		return "manager-user-id", model.RoleManager
 	}
-	return "user-id", model.RoleEmployee
+	return "user-id", model.RoleEngineer
 }
 
 func isValidCSRFToken(token string) bool {

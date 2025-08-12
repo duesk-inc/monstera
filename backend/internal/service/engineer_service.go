@@ -186,7 +186,7 @@ func (s *engineerService) CreateEngineer(ctx context.Context, input CreateEngine
 		// デフォルトロール（Employee）を設定
 		userRole := &model.UserRole{
 			UserID: user.ID,
-			Role:   model.RoleEmployee,
+			Role:   model.RoleEngineer,
 		}
 		if err := tx.Create(userRole).Error; err != nil {
 			return err

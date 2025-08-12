@@ -25,7 +25,7 @@ type User struct {
 	PhoneNumber   string     `gorm:"size:20" json:"phone_number"`
 
 	// 権限・ロール
-	Role        Role  `gorm:"type:int;not null;default:4" json:"role"`        // 4 = RoleEmployee
+	Role        Role  `gorm:"type:int;not null;default:4" json:"role"`        // 4 = RoleEngineer
 	DefaultRole *Role `gorm:"type:int;default:null" json:"default_role"`
 
 	// 組織情報
@@ -105,7 +105,7 @@ func (u *User) CanManage(targetUser *User) bool {
 
 	// 管理者は一般ユーザーとマネージャーを管理可能
 	if u.Role == RoleAdmin {
-		return targetUser.Role == RoleEmployee || targetUser.Role == RoleManager
+		return targetUser.Role == RoleEngineer || targetUser.Role == RoleManager
 	}
 
 	// マネージャーは自分の部下のみ管理可能

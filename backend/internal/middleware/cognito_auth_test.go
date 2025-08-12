@@ -88,7 +88,7 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 		// モックリポジトリの設定
 		mockRepo := new(MockUserRepository)
 		userID := "test-cognito-sub" // IDはCognito Subとして使用
-		employeeRole := model.RoleEmployee
+		employeeRole := model.RoleEngineer
 		testUser := &model.User{
 			ID:          userID,
 			Email:       "test@example.com",

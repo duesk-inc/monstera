@@ -96,7 +96,7 @@ func (s *adminDashboardService) getStatistics(ctx context.Context, stats *dto.Da
 	// アクティブなエンジニア数
 	var activeEngineers int64
 	if err := s.db.WithContext(ctx).Model(&model.User{}).
-		Where("active = ? AND role IN (?) AND deleted_at IS NULL", true, []int{int(model.RoleEmployee)}).
+		Where("active = ? AND role IN (?) AND deleted_at IS NULL", true, []int{int(model.RoleEngineer)}).
 		Count(&activeEngineers).Error; err != nil {
 		s.logger.Error("Failed to count active engineers", zap.Error(err))
 		return err

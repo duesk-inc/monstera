@@ -67,7 +67,7 @@ func CreateTestEngineer(employeeNumber string) *model.User {
 		fmt.Sprintf("engineer%s@example.com", employeeNumber),
 		"太郎",
 		"山田",
-		model.RoleEmployee,
+		model.RoleEngineer,
 	)
 
 	// エンジニア固有のフィールドを設定
@@ -157,7 +157,7 @@ func CreateTestUserWithManager() (*model.User, *model.User) {
 		"user-with-manager@example.com",
 		"部下",
 		"太郎",
-		model.RoleEmployee,
+		model.RoleEngineer,
 	)
 	user.ManagerID = &manager.ID
 
