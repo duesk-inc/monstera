@@ -33,7 +33,7 @@ func TestGetUserRoleString(t *testing.T) {
 		{
 			name:         "*model.Role型のロール（Employee）",
 			roleValue:    func() *model.Role { r := model.RoleEmployee; return &r }(),
-			expectedRole: "employee",
+			expectedRole: "engineer",
 		},
 		{
 			name:         "*model.Role型のロール（Manager）",
@@ -113,9 +113,9 @@ func TestWeeklyReportHandlerTypeConversion(t *testing.T) {
 		{
 			name: "Contextに文字列ロールを設定",
 			setupContext: func(c *gin.Context) {
-				c.Set("role", "employee")
+				c.Set("role", "engineer")
 			},
-			expectedDebug: "employee",
+			expectedDebug: "engineer",
 		},
 		{
 			name: "Contextに*model.Role型を設定（Admin）",

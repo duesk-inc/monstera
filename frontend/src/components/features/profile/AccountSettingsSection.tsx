@@ -39,8 +39,7 @@ export const AccountSettingsSection: React.FC = () => {
     'super_admin': 1,
     'admin': 2,
     'manager': 3,
-    'employee': 4,
-    'user': 4, // userはemployeeと同じ
+    'engineer': 4
   };
 
   // 数値をロール文字列に変換するマッピング
@@ -48,7 +47,7 @@ export const AccountSettingsSection: React.FC = () => {
     1: 'super_admin',
     2: 'admin',
     3: 'manager',
-    4: 'employee',
+    4: 'engineer',
   };
 
   // 初期値の設定

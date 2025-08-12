@@ -14,7 +14,7 @@ export default function RootLayout({
 }) {
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
   const { activeRole } = useActiveRole();
-  const isEngineer = activeRole === 'employee' || activeRole === 'user';
+  const isEngineer = activeRole === 'engineer';
 
 
   const userMenuItems = (

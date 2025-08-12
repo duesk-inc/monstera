@@ -15,8 +15,11 @@ const (
 	RoleAdmin Role = 2
 	// RoleManager マネージャー
 	RoleManager Role = 3
-	// RoleEmployee 一般社員（デフォルト）
-	RoleEmployee Role = 4
+	// RoleEngineer エンジニア（デフォルト）
+	RoleEngineer Role = 4
+	// RoleEmployee 後方互換性のためのエイリアス（非推奨）
+	// Deprecated: Use RoleEngineer instead
+	RoleEmployee = RoleEngineer
 )
 
 // String ロールを文字列に変換
@@ -28,8 +31,8 @@ func (r Role) String() string {
 		return "admin"
 	case RoleManager:
 		return "manager"
-	case RoleEmployee:
-		return "employee"
+	case RoleEngineer:
+		return "engineer"
 	default:
 		return "unknown"
 	}
@@ -44,8 +47,8 @@ func (r Role) DisplayName() string {
 		return "管理者"
 	case RoleManager:
 		return "マネージャー"
-	case RoleEmployee:
-		return "一般社員"
+	case RoleEngineer:
+		return "エンジニア"
 	default:
 		return "不明"
 	}
@@ -68,13 +71,13 @@ func (r Role) IsManager() bool {
 
 // Valid ロールが有効かチェック
 func (r Role) Valid() bool {
-	return r >= RoleSuperAdmin && r <= RoleEmployee
+	return r >= RoleSuperAdmin && r <= RoleEngineer
 }
 
 // Scan データベースから読み取り
 func (r *Role) Scan(value interface{}) error {
 	if value == nil {
-		*r = RoleEmployee
+		*r = RoleEngineer
 		return nil
 	}
 
@@ -118,8 +121,8 @@ func ParseRole(s string) (Role, error) {
 		return RoleAdmin, nil
 	case "manager":
 		return RoleManager, nil
-	case "employee", "user": // 互換性のため"user"も受け入れる
-		return RoleEmployee, nil
+	case "engineer", "employee", "user": // 互換性のため"employee"と"user"も受け入れる
+		return RoleEngineer, nil
 	default:
 		return 0, fmt.Errorf("unknown role: %s", s)
 	}
@@ -131,7 +134,7 @@ func AllRoles() []Role {
 		RoleSuperAdmin,
 		RoleAdmin,
 		RoleManager,
-		RoleEmployee,
+		RoleEngineer,
 	}
 }
 

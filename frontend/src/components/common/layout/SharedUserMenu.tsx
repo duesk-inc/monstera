@@ -59,8 +59,7 @@ export const SharedUserMenu: React.FC<SharedUserMenuProps> = ({
           case 'super_admin': return 'スーパー管理者';
           case 'admin': return '管理者';
           case 'manager': return 'マネージャー';
-          case 'employee': return 'エンジニア';
-          case 'user': return 'エンジニア';
+          case 'engineer': return 'エンジニア';
           default: return role;
         }
       });
@@ -69,9 +68,10 @@ export const SharedUserMenu: React.FC<SharedUserMenuProps> = ({
     
     // 単一ロールの場合
     switch (user.role) {
+      case 'super_admin': return 'スーパー管理者';
       case 'admin': return '管理者';
       case 'manager': return 'マネージャー';
-      case 'user': return 'エンジニア';
+      case 'engineer': return 'エンジニア';
       default: return user.role;
     }
   };

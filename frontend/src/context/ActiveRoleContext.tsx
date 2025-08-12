@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // アクティブロールの型定義
-export type RoleType = 'super_admin' | 'admin' | 'manager' | 'employee' | 'user';
+export type RoleType = 'super_admin' | 'admin' | 'manager' | 'engineer';
 
 // アクティブロールコンテキストの型定義
 interface ActiveRoleContextType {
@@ -33,8 +33,7 @@ const ROLE_DISPLAY_NAMES: Record<RoleType, string> = {
   super_admin: 'スーパー管理者',
   admin: '管理者',
   manager: 'マネージャー',
-  employee: 'エンジニア',
-  user: 'エンジニア', // 互換性のため
+  engineer: 'エンジニア'
 };
 
 // ロールの優先順位（数値が小さいほど高権限）
@@ -42,8 +41,7 @@ const ROLE_PRIORITY: Record<RoleType, number> = {
   super_admin: 1,
   admin: 2,
   manager: 3,
-  employee: 4,
-  user: 4, // employeeと同等
+  engineer: 4
 };
 
 // アクティブロールプロバイダー
@@ -75,7 +73,7 @@ export const ActiveRoleProvider: React.FC<ActiveRoleProviderProps> = ({ children
     // 文字列配列をRoleType配列に変換
     const validRoles: RoleType[] = roles
       .filter((role): role is RoleType => 
-        ['super_admin', 'admin', 'manager', 'employee', 'user'].includes(role)
+        ['super_admin', 'admin', 'manager', 'engineer'].includes(role)
       );
 
     setAvailableRoles(validRoles);
@@ -94,7 +92,7 @@ export const ActiveRoleProvider: React.FC<ActiveRoleProviderProps> = ({ children
       1: 'super_admin',
       2: 'admin',
       3: 'manager',
-      4: 'employee',
+      4: 'engineer',
     };
 
     // アクティブロールを設定

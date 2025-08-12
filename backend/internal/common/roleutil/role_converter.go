@@ -10,8 +10,9 @@ import (
 var LegacyRoleMapping = map[string]model.Role{
 	"admin":    model.RoleAdmin,
 	"manager":  model.RoleManager,
-	"employee": model.RoleEmployee,
-	"user":     model.RoleEmployee, // 旧仕様の"user"は"employee"にマッピング
+	"engineer": model.RoleEngineer,
+	"employee": model.RoleEngineer, // 後方互換性のため"employee"も"engineer"にマッピング
+	"user":     model.RoleEngineer, // 旧仕様の"user"も"engineer"にマッピング
 }
 
 // ConvertLegacyRole 旧ロール文字列を新ロール型に変換
@@ -31,10 +32,10 @@ func ConvertToLegacyRole(role model.Role) string {
 		return "admin"
 	case model.RoleManager:
 		return "manager"
-	case model.RoleEmployee:
-		return "employee"
+	case model.RoleEngineer:
+		return "engineer"
 	default:
-		return "employee" // デフォルト
+		return "engineer" // デフォルト
 	}
 }
 
@@ -42,8 +43,9 @@ func ConvertToLegacyRole(role model.Role) string {
 var MigrationRoleMap = map[string]int{
 	"admin":    int(model.RoleAdmin),
 	"manager":  int(model.RoleManager),
-	"employee": int(model.RoleEmployee),
-	"user":     int(model.RoleEmployee),
+	"engineer": int(model.RoleEngineer),
+	"employee": int(model.RoleEngineer), // 後方互換性
+	"user":     int(model.RoleEngineer), // 後方互換性
 }
 
 // GetRoleValue データベース保存用の数値を取得
@@ -68,7 +70,7 @@ func CanAccessResource(userRole model.Role, resourceOwnerRole model.Role) bool {
 // GetHighestRole 複数のロールから最高権限を取得
 func GetHighestRole(roles []model.Role) model.Role {
 	if len(roles) == 0 {
-		return model.RoleEmployee
+		return model.RoleEngineer
 	}
 
 	highest := roles[0]

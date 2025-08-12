@@ -136,9 +136,9 @@ export const convertRoleNumberToString = (roleNumber: number): string => {
     1: 'super_admin',
     2: 'admin',
     3: 'manager',
-    4: 'employee'
+    4: 'engineer'
   };
-  return roleMap[roleNumber] || 'employee';
+  return roleMap[roleNumber] || 'engineer';
 };
 
 /**
@@ -155,7 +155,7 @@ export const convertToLocalUser = (user: {
   phone_number?: string | null;
 }): User => {
   // roleを文字列に変換
-  let roleString = 'employee';
+  let roleString = 'engineer';
   if (user.role) {
     roleString = typeof user.role === 'number' 
       ? convertRoleNumberToString(user.role) 
@@ -245,5 +245,5 @@ export const isManager = (): boolean => {
 
 // ユーザーがエンジニア権限を持っているかチェック
 export const isEngineer = (): boolean => {
-  return hasRole('employee') || hasRole('user');
+  return hasRole('engineer');
 }; 

@@ -67,7 +67,7 @@ export const useAuth = () => {
             email: userData.email,
             first_name: userData.firstName || '',
             last_name: userData.lastName || '',
-            role: userData.role || 'employee',
+            role: userData.role || 'engineer',
             roles: userData.roles,
             phone_number: userData.phoneNumber || ''
           };
@@ -164,7 +164,7 @@ export const useAuth = () => {
         email: localUser.email,
         first_name: localUser.firstName || '',
         last_name: localUser.lastName || '',
-        role: localUser.role || 'employee',
+        role: localUser.role || 'engineer',
         roles: localUser.roles,
         phone_number: localUser.phoneNumber || ''
       };
@@ -285,7 +285,7 @@ export const useAuth = () => {
           email: localUser.email,
           first_name: localUser.firstName || '',
           last_name: localUser.lastName || '',
-          role: localUser.role || 'employee',
+          role: localUser.role || 'engineer',
           roles: localUser.roles,
           phone_number: localUser.phoneNumber || '' // 型定義に合わせて修正
         };

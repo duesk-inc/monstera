@@ -41,8 +41,7 @@ const getRoleIcon = (role: RoleType) => {
       return <AdminIcon fontSize="small" sx={{ color: 'error.main' }} />;
     case 'manager':
       return <ManagerIcon fontSize="small" sx={{ color: 'warning.main' }} />;
-    case 'employee':
-    case 'user':
+    case 'engineer':
       return <PersonIcon fontSize="small" sx={{ color: 'primary.main' }} />;
     default:
       return <PersonIcon fontSize="small" />;
@@ -98,7 +97,7 @@ export const RoleSwitcher: React.FC<RoleSwitcherProps> = ({ onClose }) => {
       }
     } 
     // エンジニアロールの場合
-    else if (newRole === 'employee' || newRole === 'user') {
+    else if (newRole === 'engineer') {
       // 管理画面にいる場合はダッシュボードに遷移
       if (currentPath.startsWith('/admin')) {
         // 少し待機してからページ遷移（状態更新を確実にするため）

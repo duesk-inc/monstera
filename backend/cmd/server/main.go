@@ -91,6 +91,7 @@ func main() {
 	logger.Info("User repository created")
 	// ロガーをユーザーリポジトリに設定
 	userRepo.SetLogger(logger)
+	sessionRepo := internalRepo.NewSessionRepository(db, logger)
 	profileRepo := internalRepo.NewProfileRepository(db)
 	reportRepo := internalRepo.NewWeeklyReportRepository(db, logger)
 	workHoursRepo := internalRepo.NewWorkHoursRepository(db)
@@ -167,7 +168,7 @@ func main() {
 			cfg,
 			db,
 			userRepo,
-			nil, // TODO: pass sessionRepo when SessionRepository is implemented
+			sessionRepo,
 			logger,
 		)
 		if err != nil {

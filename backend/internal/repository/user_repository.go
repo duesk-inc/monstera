@@ -95,7 +95,7 @@ func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*mod
 	if r.Logger != nil {
 		r.Logger.Info("Getting user by email", zap.String("email", email))
 	}
-	err := r.DB.WithContext(ctx).Preload("UserRoles").First(&user, "email = ?", email).Error
+	err := r.DB.WithContext(ctx).First(&user, "email = ?", email).Error
 	if err != nil {
 		if r.Logger != nil {
 			r.Logger.Error("Failed to get user by email", zap.String("email", email), zap.Error(err))
@@ -111,7 +111,7 @@ func (r *UserRepositoryImpl) GetByCognitoSub(ctx context.Context, cognitoSub str
 	if r.Logger != nil {
 		r.Logger.Info("Getting user by Cognito sub", zap.String("cognito_sub", cognitoSub))
 	}
-	err := r.DB.WithContext(ctx).Preload("UserRoles").First(&user, "cognito_sub = ?", cognitoSub).Error
+	err := r.DB.WithContext(ctx).First(&user, "cognito_sub = ?", cognitoSub).Error
 	if err != nil {
 		if r.Logger != nil {
 			r.Logger.Error("Failed to get user by Cognito sub", zap.String("cognito_sub", cognitoSub), zap.Error(err))

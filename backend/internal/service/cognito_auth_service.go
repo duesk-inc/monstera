@@ -481,46 +481,8 @@ func (s *CognitoAuthService) syncUserWithDB(ctx context.Context, cognitoUser map
 				zap.String("email", email),
 				zap.Error(err),
 			)
-			// 新規ユーザーとして作成
-			roleStr := cognitoUser["custom:role"]
-			role := 4 // デフォルトはemployee
-			if roleStr != "" {
-				fmt.Sscanf(roleStr, "%d", &role)
-			}
-
-			// 名前を分割
-			name := cognitoUser["name"]
-			firstName := ""
-			lastName := ""
-			if name != "" {
-				// スペースで分割（簡易実装）
-				parts := splitName(name)
-				if len(parts) > 0 {
-					firstName = parts[0]
-				}
-				if len(parts) > 1 {
-					lastName = parts[1]
-				}
-			}
-
-			user = &model.User{
-				ID:             cognitoSub, // Cognito SubをIDとして使用
-				Email:          email,
-				FirstName:      firstName,
-				LastName:       lastName,
-				Name:           name, // Nameフィールドを追加
-				PhoneNumber:    cognitoUser["phone_number"],
-				Role:           model.Role(role),
-				Status:         "active",
-				Active:         true,
-				EngineerStatus: "active", // EngineerStatus を追加
-				CreatedAt:      time.Now(),
-				UpdatedAt:      time.Now(),
-			}
-
-			if err := s.userRepo.Create(ctx, user); err != nil {
-				return nil, fmt.Errorf("ユーザーの作成に失敗しました: %w", err)
-			}
+			// ユーザーが存在しない場合はエラーを返す（自動作成は行わない）
+			return nil, fmt.Errorf("ユーザーが見つかりません: email=%s, cognito_sub=%s", email, cognitoSub)
 		} else {
 			// 既存ユーザーのCognitoサブIDを更新
 			user.ID = cognitoSub

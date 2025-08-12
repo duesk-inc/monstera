@@ -25,8 +25,8 @@ type User struct {
 	PhoneNumber   string     `gorm:"size:20" json:"phone_number"`
 
 	// 権限・ロール
-	Role        Role  `gorm:"type:varchar(20);not null;default:'employee'" json:"role"`
-	DefaultRole *Role `gorm:"type:varchar(20);default:null" json:"default_role"`
+	Role        Role  `gorm:"type:int;not null;default:4" json:"role"`        // 4 = RoleEmployee
+	DefaultRole *Role `gorm:"type:int;default:null" json:"default_role"`
 
 	// 組織情報
 	DepartmentID *string `gorm:"type:varchar(36);column:department_id" json:"department_id"`
