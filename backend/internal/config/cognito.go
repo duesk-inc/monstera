@@ -10,6 +10,7 @@ import (
 type CognitoConfig struct {
 	Enabled      bool   `mapstructure:"COGNITO_ENABLED"`
 	AuthSkipMode bool   `mapstructure:"AUTH_SKIP_MODE"` // 開発用: 認証をスキップ
+	DevUserRole  int    `mapstructure:"DEV_USER_ROLE"`  // 開発用ユーザーのロール（デフォルト: 2=Admin）
 	Region       string `mapstructure:"COGNITO_REGION"`
 	UserPoolID   string `mapstructure:"COGNITO_USER_POOL_ID"`
 	ClientID     string `mapstructure:"COGNITO_CLIENT_ID"`

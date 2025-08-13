@@ -491,8 +491,14 @@ func validateRSAPublicKey(key *rsa.PublicKey) error {
 
 // setDevelopmentUser 開発環境用のダミーユーザーを設定
 func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
-	// 開発用のダミーユーザー情報
-	adminRole := model.RoleAdmin // Role型の定数を使用
+	// 環境変数から開発用ロールを取得（デフォルト: Admin）
+	devRole := model.Role(m.config.Cognito.DevUserRole)
+	
+	// ロールが有効範囲内かチェック
+	// Role定義: 0=Employee, 1=SuperAdmin, 2=Admin, 3=Sales
+	if devRole < 0 || devRole > 3 {
+		devRole = model.RoleAdmin // 無効な値の場合はAdminを使用
+	}
 
 	// IDを設定
 	userID := "00000000-0000-0000-0000-000000000001"
@@ -502,8 +508,8 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 		Email:       "dev@duesk.co.jp",
 		FirstName:   "開発",
 		LastName:    "ユーザー",
-		Role:        adminRole,  // Roleフィールドに直接設定
-		DefaultRole: &adminRole, // ポインタで設定
+		Role:        devRole,  // 環境変数から設定されたロール
+		DefaultRole: &devRole, // ポインタで設定
 		Status:      "active",
 	}
 
@@ -517,5 +523,5 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 
 	m.logger.Debug("開発用ユーザーを設定しました",
 		zap.String("email", devUser.Email),
-		zap.Int("role", int(adminRole)))
+		zap.Int("role", int(devRole)))
 }

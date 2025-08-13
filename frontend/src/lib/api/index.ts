@@ -1,5 +1,6 @@
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosInstance, AxiosRequestConfig } from 'axios';
-import { setAuthState, clearAuthState, getAccessToken, clearAllAuthData } from '@/utils/auth';
+// Cookie認証に移行したため、以下のimportは不要になりました
+// import { setAuthState, clearAuthState, getAccessToken, clearAllAuthData } from '@/utils/auth';
 import { refreshToken } from '@/lib/api/auth';
 import { API_TIMEOUTS, TIME_THRESHOLDS, UI_DELAYS } from '@/constants/delays';
 import { AUTH_STORAGE_KEYS } from '@/constants/storage';
@@ -58,10 +59,11 @@ export const getAuthClient = (): AxiosInstance => {
   // リクエストインターセプター
   client.interceptors.request.use(
     (config) => {
-      const token = getAccessToken();
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+      // Cookie認証に移行したため、トークンはHTTPOnly Cookieで自動送信される
+      // const token = getAccessToken();
+      // if (token) {
+      //   config.headers.Authorization = `Bearer ${token}`;
+      // }
       return config;
     },
     (error) => {
@@ -74,7 +76,8 @@ export const getAuthClient = (): AxiosInstance => {
     (response) => response,
     (error) => {
       if (error.response?.status === 401) {
-        clearAllAuthData();
+        // Cookie認証なので、サーバー側でCookieがクリアされる
+        // clearAllAuthData();
         window.location.href = '/login';
       }
       return Promise.reject(error);
@@ -99,8 +102,8 @@ const handleAuthError = (error: AxiosError) => {
   isRedirectInProgress = true;
   
   if (typeof window !== 'undefined') {
-    // 認証状態をクリア
-    clearAuthState();
+    // Cookie認証なので、認証状態のクリアは不要（サーバー側で処理）
+    // clearAuthState();
     
     // 現在のパスを保存（ダッシュボード画面でも保存する）
     const currentPath = window.location.pathname;
@@ -178,8 +181,8 @@ api.interceptors.response.use(
   (response: AxiosResponse) => {
     // 正常なレスポンスの場合は認証状態を更新
     if (response.config.url?.includes('/auth/login') || response.config.url?.includes('/auth/refresh')) {
-      // ログインまたはトークンリフレッシュのレスポンスの場合、認証状態を有効に設定
-      setAuthState(true);
+      // Cookie認証に移行したため、認証状態はサーバー側で管理される
+      // setAuthState(true);
     }
     
     return response;
@@ -200,16 +203,16 @@ api.interceptors.response.use(
         // リフレッシュトークンを使って新しいトークンを取得
         await refreshToken();
         
-        // 認証状態を更新
-        setAuthState(true);
+        // Cookie認証なので、認証状態の更新は不要
+        // setAuthState(true);
         
         // 元のリクエストを再試行
         originalRequest._isRetry = true;
         
         return axios(originalRequest);
       } catch {
-        // 認証状態をクリア
-        clearAuthState();
+        // Cookie認証なので、認証状態のクリアは不要
+        // clearAuthState();
         
         // リフレッシュトークンでの更新に失敗した場合は認証エラー処理
         return handleAuthError(error);
