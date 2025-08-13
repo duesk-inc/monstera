@@ -495,8 +495,8 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 	devRole := model.Role(m.config.Cognito.DevUserRole)
 	
 	// ロールが有効範囲内かチェック
-	// Role定義: 0=Employee, 1=SuperAdmin, 2=Admin, 3=Sales
-	if devRole < 0 || devRole > 3 {
+	// Role定義: 1=SuperAdmin, 2=Admin, 3=Manager, 4=Engineer
+	if devRole < 1 || devRole > 4 {
 		devRole = model.RoleAdmin // 無効な値の場合はAdminを使用
 	}
 

@@ -21,7 +21,7 @@ AUTH_SKIP_MODE=true
 SECURE_COOKIES=false                      # HTTPS環境ではtrueに設定
 COOKIE_SAME_SITE=lax                      # strict, lax, none から選択
 
-# 開発用ユーザーのロール (0:Employee, 1:SuperAdmin, 2:Admin, 3:Sales)
+# 開発用ユーザーのロール (1:SuperAdmin, 2:Admin, 3:Manager, 4:Engineer)
 DEV_USER_ROLE=2                            # デフォルト: Admin
 ```
 
@@ -186,7 +186,7 @@ Cookie認証への完全移行により、トークン管理はバックエン�
    - `GO_ENV=development`に設定
    - `COGNITO_ENABLED=false`に設定
    - `AUTH_SKIP_MODE=true`に設定
-   - `DEV_USER_ROLE`を適切な権限に設定（0-3）
+   - `DEV_USER_ROLE`を適切な権限に設定（1-4）
 
 3. Dockerコンテナを再起動:
    ```bash

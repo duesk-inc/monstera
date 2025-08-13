@@ -117,7 +117,7 @@ GO_ENV=development
 # 認証スキップモード（簡易開発用）
 COGNITO_ENABLED=false
 AUTH_SKIP_MODE=true
-DEV_USER_ROLE=2  # 0:Employee, 1:SuperAdmin, 2:Admin, 3:Sales
+DEV_USER_ROLE=2  # 1:SuperAdmin, 2:Admin, 3:Manager, 4:Engineer
 
 # Cookie設定（開発環境）
 SECURE_COOKIES=false
@@ -151,7 +151,7 @@ aws cognito-idp describe-user-pool-client \
 | COGNITO_ENDPOINT | エミュレーターURL | 設定可 | 設定不可 | 設定不可 |
 | SECURE_COOKIES | Cookie Secure | false | true | true |
 | COOKIE_SAME_SITE | SameSite属性 | lax | strict | strict |
-| DEV_USER_ROLE | 開発用ロール | 0-3 | - | - |
+| DEV_USER_ROLE | 開発用ロール | 1-4 | - | - |
 
 ### 環境判定ロジック
 

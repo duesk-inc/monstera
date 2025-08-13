@@ -959,7 +959,7 @@ func LoginRateLimitMiddleware(rateLimiter RateLimiter) gin.HandlerFunc {
 GO_ENV=development
 COGNITO_ENABLED=false
 AUTH_SKIP_MODE=true
-DEV_USER_ROLE=2  # 0:Employee, 1:SuperAdmin, 2:Admin, 3:Sales
+DEV_USER_ROLE=2  # 1:SuperAdmin, 2:Admin, 3:Manager, 4:Engineer
 ```
 
 #### 実装詳細
@@ -1047,7 +1047,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 | COGNITO_CLIENT_SECRET | シークレット | 任意 | staging用 | 本番用 |
 | SECURE_COOKIES | Cookie Secure | false | true | true |
 | COOKIE_SAME_SITE | SameSite属性 | lax | strict | strict |
-| DEV_USER_ROLE | 開発用ロール | 0-3 | - | - |
+| DEV_USER_ROLE | 開発用ロール | 1-4 | - | - |
 
 ---
 
