@@ -95,32 +95,59 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 
 ```go
 // 認証ハンドラーでのCookie設定
-func (h *AuthHandler) setCookies(c *gin.Context, response *service.AuthResponse) {
+func (h *AuthHandler) setAuthCookies(c *gin.Context, accessToken, refreshToken string) {
     // HTTPOnly Cookieにアクセストークンを設定
     c.SetCookie(
         "access_token",
-        response.AccessToken,
+        accessToken,
         3600, // 1時間
         "/",
-        h.cfg.Server.CookieDomain,
-        h.cfg.Server.SecureCookies, // HTTPSのみ
-        true,                        // HTTPOnly
+        "",
+        h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
+        true,                         // JavaScriptからアクセス不可（HTTPOnly）
     )
     
     // リフレッシュトークンもHTTPOnly Cookieに設定
     c.SetCookie(
         "refresh_token",
-        response.RefreshToken,
+        refreshToken,
         604800, // 7日間
-        "/api/v1/auth/refresh", // リフレッシュエンドポイントのみ
-        h.cfg.Server.CookieDomain,
-        h.cfg.Server.SecureCookies,
-        true,
+        "/",
+        "",
+        h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
+        true,                         // JavaScriptからアクセス不可（HTTPOnly）
     )
-    
-    c.Header("X-Auth-Expiry", response.ExpiresAt.Format(time.RFC3339))
+}
+
+// Cookie削除の実装
+func (h *AuthHandler) clearAuthCookies(c *gin.Context) {
+    c.SetCookie(
+        "access_token",
+        "",
+        -1,
+        "/",
+        "",
+        h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
+        true,                         // JavaScriptからアクセス不可（HTTPOnly）
+    )
+    c.SetCookie(
+        "refresh_token",
+        "",
+        -1,
+        "/",
+        "",
+        h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
+        true,                         // JavaScriptからアクセス不可（HTTPOnly）
+    )
 }
 ```
+
+**重要なセキュリティ設定:**
+- `SECURE_COOKIES`: 環境変数でCookieのSecure属性を制御
+  - 開発環境（HTTP）: `false`に設定
+  - 本番環境（HTTPS）: `true`に設定（必須）
+- `HTTPOnly`: 常に`true`（XSS攻撃対策）
+- 将来的には`SameSite`属性も追加予定（CSRF攻撃対策）
 
 #### ユーザー登録
 
@@ -782,6 +809,7 @@ services:
 # COGNITO_USER_POOL_ID=local_7221v1tw
 # COGNITO_CLIENT_ID=62h69i1tpbn9rmh83xmtjyj4b
 # COGNITO_CLIENT_SECRET=47c44j2dkj2y4tkf777zqgpiw
+# SECURE_COOKIES=false  # 開発環境はHTTPなのでfalse
 
 # 本番環境 (.env.production)
 COGNITO_ENABLED=true
@@ -790,7 +818,16 @@ COGNITO_USER_POOL_ID=ap-northeast-1_xxxxxxxxx
 COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxx
 COGNITO_CLIENT_SECRET=xxxxxxxxxxxxxxxxxxxxxxxxxx
 # COGNITO_ENDPOINTは設定しない（AWSの本番エンドポイントを使用）
+SECURE_COOKIES=true  # 本番環境はHTTPSなので必ずtrue
 ```
+
+#### Cookie設定の詳細
+
+| 環境変数 | 開発環境 | 本番環境 | 説明 |
+|---------|---------|---------|------|
+| `SECURE_COOKIES` | `false` | `true` | CookieのSecure属性制御（HTTPSでのみ送信） |
+| `SESSION_SECURE` | `false` | `true` | セッションCookieのSecure属性 |
+| `SESSION_SAME_SITE` | `lax` | `strict` | SameSite属性（将来実装） |
 
 ```go
 func LoginRateLimitMiddleware(rateLimiter RateLimiter) gin.HandlerFunc {

@@ -233,8 +233,8 @@ func (h *AuthHandler) setAuthCookies(c *gin.Context, accessToken, refreshToken s
 		3600, // 1時間
 		"/",
 		"",
-		false, // HTTPSの場合はtrueに
-		true,  // JavaScriptからアクセス不可
+		h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
+		true,                         // JavaScriptからアクセス不可（HTTPOnly）
 	)
 	c.SetCookie(
 		"refresh_token",
@@ -242,8 +242,8 @@ func (h *AuthHandler) setAuthCookies(c *gin.Context, accessToken, refreshToken s
 		604800, // 7日間
 		"/",
 		"",
-		false, // HTTPSの場合はtrueに
-		true,  // JavaScriptからアクセス不可
+		h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
+		true,                         // JavaScriptからアクセス不可（HTTPOnly）
 	)
 }
 
@@ -255,8 +255,8 @@ func (h *AuthHandler) clearAuthCookies(c *gin.Context) {
 		-1,
 		"/",
 		"",
-		false,
-		true,
+		h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
+		true,                         // JavaScriptからアクセス不可（HTTPOnly）
 	)
 	c.SetCookie(
 		"refresh_token",
@@ -264,7 +264,7 @@ func (h *AuthHandler) clearAuthCookies(c *gin.Context) {
 		-1,
 		"/",
 		"",
-		false,
-		true,
+		h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
+		true,                         // JavaScriptからアクセス不可（HTTPOnly）
 	)
 }

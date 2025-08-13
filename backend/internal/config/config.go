@@ -25,9 +25,10 @@ type Config struct {
 
 // ServerConfig サーバー関連の設定
 type ServerConfig struct {
-	Port         string
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
+	Port          string
+	ReadTimeout   time.Duration
+	WriteTimeout  time.Duration
+	SecureCookies bool // HTTPS環境でのCookie設定
 }
 
 // DatabaseConfig データベース接続情報
@@ -293,6 +294,7 @@ func Load(envFile ...string) (*Config, error) {
 	readTimeout, _ := strconv.Atoi(getEnv("SERVER_READ_TIMEOUT", "30"))
 	writeTimeout, _ := strconv.Atoi(getEnv("SERVER_WRITE_TIMEOUT", "30"))
 	corsMaxAge, _ := strconv.Atoi(getEnv("CORS_MAX_AGE", "300"))
+	secureCookies, _ := strconv.ParseBool(getEnv("SECURE_COOKIES", "false"))
 
 	// Email設定の読み込み
 	emailEnabled, _ := strconv.ParseBool(getEnv("EMAIL_ENABLED", "false"))
@@ -318,9 +320,10 @@ func Load(envFile ...string) (*Config, error) {
 
 	config := &Config{
 		Server: ServerConfig{
-			Port:         getEnv("SERVER_PORT", "8080"),
-			ReadTimeout:  time.Duration(readTimeout) * time.Second,
-			WriteTimeout: time.Duration(writeTimeout) * time.Second,
+			Port:          getEnv("SERVER_PORT", "8080"),
+			ReadTimeout:   time.Duration(readTimeout) * time.Second,
+			WriteTimeout:  time.Duration(writeTimeout) * time.Second,
+			SecureCookies: secureCookies,
 		},
 		Database: DatabaseConfig{
 			Host:            getEnv("DB_HOST", "localhost"),
