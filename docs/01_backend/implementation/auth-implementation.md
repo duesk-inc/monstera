@@ -15,7 +15,8 @@ Monsteraプロジェクトでは、AWS Cognitoを活用した認証システム�
 - **セッション管理**: セキュアなセッション制御
 - **ロールベースアクセス制御**: RBAC実装（数値ベース）
 - **監査ログ**: セキュリティイベントの記録
-- **Cookie認証**: HTTPOnly Cookieによるセキュアなトークン管理
+- **Cookie認証**: HTTPOnly + SameSite Cookieによるセキュアなトークン管理
+- **エラーコード標準化**: 一貫したエラーコード体系（AUTH_001〜）
 
 ### 認証フロー
 
@@ -41,12 +42,42 @@ Monsteraプロジェクトでは、AWS Cognitoを活用した認証システム�
 // Cognito設定
 type CognitoConfig struct {
     Enabled          bool          // Cognito認証の有効化
+    AuthSkipMode     bool          // 開発用: 認証をスキップ
+    DevUserRole      int           // 開発用ユーザーのロール（デフォルト: 2=Admin）
     Region           string        // AWSリージョン
     UserPoolID       string        // ユーザープールID
     ClientID         string        // クライアントID
     ClientSecret     string        // クライアントシークレット
-    Endpoint         string        // ローカル開発用エンドポイント
+    Endpoint         string        // ローカル開発用エンドポイント（開発環境のみ）
+    Environment      string        // 実行環境: development, staging, production
     JWKCacheDuration time.Duration // JWKキャッシュ期間（デフォルト: 1時間）
+}
+
+// 環境判定メソッド
+func (c *CognitoConfig) IsDevelopment() bool {
+    return c.Environment == "development" || c.Environment == "dev" || c.Environment == ""
+}
+
+func (c *CognitoConfig) IsProduction() bool {
+    return c.Environment == "production" || c.Environment == "prod"
+}
+
+func (c *CognitoConfig) IsStaging() bool {
+    return c.Environment == "staging" || c.Environment == "stage"
+}
+
+// 設定検証
+func (c *CognitoConfig) IsValid() bool {
+    if !c.Enabled {
+        return true // 無効化されている場合は検証をスキップ
+    }
+    
+    // 本番環境ではCOGNITO_ENDPOINTを設定できない
+    if c.IsProduction() && c.Endpoint != "" {
+        return false
+    }
+    
+    return c.Region != "" && c.UserPoolID != "" && c.ClientID != "" && c.ClientSecret != ""
 }
 ```
 
@@ -94,51 +125,76 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 #### Cookie認証の実装
 
 ```go
-// 認証ハンドラーでのCookie設定
+// 認証ハンドラーでのCookie設定（SameSite属性対応）
 func (h *AuthHandler) setAuthCookies(c *gin.Context, accessToken, refreshToken string) {
-    // HTTPOnly Cookieにアクセストークンを設定
-    c.SetCookie(
-        "access_token",
-        accessToken,
-        3600, // 1時間
-        "/",
-        "",
-        h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
-        true,                         // JavaScriptからアクセス不可（HTTPOnly）
-    )
+    // SameSite属性の設定
+    sameSite := http.SameSiteLaxMode // デフォルト
+    switch h.cfg.Server.CookieSameSite {
+    case "strict":
+        sameSite = http.SameSiteStrictMode
+    case "none":
+        sameSite = http.SameSiteNoneMode
+    case "lax":
+        sameSite = http.SameSiteLaxMode
+    }
     
-    // リフレッシュトークンもHTTPOnly Cookieに設定
-    c.SetCookie(
-        "refresh_token",
-        refreshToken,
-        604800, // 7日間
-        "/",
-        "",
-        h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
-        true,                         // JavaScriptからアクセス不可（HTTPOnly）
-    )
+    // アクセストークンCookie
+    http.SetCookie(c.Writer, &http.Cookie{
+        Name:     "access_token",
+        Value:    accessToken,
+        Path:     "/",
+        MaxAge:   3600, // 1時間
+        HttpOnly: true,
+        Secure:   h.cfg.Server.SecureCookies,
+        SameSite: sameSite,
+    })
+    
+    // リフレッシュトークンCookie
+    http.SetCookie(c.Writer, &http.Cookie{
+        Name:     "refresh_token",
+        Value:    refreshToken,
+        Path:     "/",
+        MaxAge:   604800, // 7日間
+        HttpOnly: true,
+        Secure:   h.cfg.Server.SecureCookies,
+        SameSite: sameSite,
+    })
 }
 
 // Cookie削除の実装
 func (h *AuthHandler) clearAuthCookies(c *gin.Context) {
-    c.SetCookie(
-        "access_token",
-        "",
-        -1,
-        "/",
-        "",
-        h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
-        true,                         // JavaScriptからアクセス不可（HTTPOnly）
-    )
-    c.SetCookie(
-        "refresh_token",
-        "",
-        -1,
-        "/",
-        "",
-        h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
-        true,                         // JavaScriptからアクセス不可（HTTPOnly）
-    )
+    // SameSite属性の設定
+    sameSite := http.SameSiteLaxMode
+    switch h.cfg.Server.CookieSameSite {
+    case "strict":
+        sameSite = http.SameSiteStrictMode
+    case "none":
+        sameSite = http.SameSiteNoneMode
+    case "lax":
+        sameSite = http.SameSiteLaxMode
+    }
+    
+    // アクセストークンCookieをクリア
+    http.SetCookie(c.Writer, &http.Cookie{
+        Name:     "access_token",
+        Value:    "",
+        Path:     "/",
+        MaxAge:   -1,
+        HttpOnly: true,
+        Secure:   h.cfg.Server.SecureCookies,
+        SameSite: sameSite,
+    })
+    
+    // リフレッシュトークンCookieをクリア
+    http.SetCookie(c.Writer, &http.Cookie{
+        Name:     "refresh_token",
+        Value:    "",
+        Path:     "/",
+        MaxAge:   -1,
+        HttpOnly: true,
+        Secure:   h.cfg.Server.SecureCookies,
+        SameSite: sameSite,
+    })
 }
 ```
 
@@ -147,7 +203,10 @@ func (h *AuthHandler) clearAuthCookies(c *gin.Context) {
   - 開発環境（HTTP）: `false`に設定
   - 本番環境（HTTPS）: `true`に設定（必須）
 - `HTTPOnly`: 常に`true`（XSS攻撃対策）
-- 将来的には`SameSite`属性も追加予定（CSRF攻撃対策）
+- `COOKIE_SAME_SITE`: CSRF攻撃対策
+  - `strict`: 最も厳格（本番環境推奨）
+  - `lax`: バランス型（開発環境デフォルト）
+  - `none`: クロスサイト許可（Secure必須）
 
 #### ユーザー登録
 
@@ -889,6 +948,107 @@ func LoginRateLimitMiddleware(rateLimiter RateLimiter) gin.HandlerFunc {
 }
 ```
 
+### 10. 開発モード認証スキップ
+
+開発環境での効率的な開発のため、認証スキップモードを実装しています。
+
+#### 設定方法
+
+```env
+# 開発環境での認証スキップ
+GO_ENV=development
+COGNITO_ENABLED=false
+AUTH_SKIP_MODE=true
+DEV_USER_ROLE=2  # 0:Employee, 1:SuperAdmin, 2:Admin, 3:Sales
+```
+
+#### 実装詳細
+
+```go
+// middleware/cognito_auth.go
+func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
+    // 設定可能な開発用ロール
+    devRole := model.Role(m.config.Cognito.DevUserRole)
+    if devRole < 0 || devRole > 3 {
+        devRole = model.RoleAdmin // デフォルト
+    }
+    
+    devUser := &model.User{
+        ID:        "dev-user-001",
+        Email:     "dev@duesk.co.jp",
+        FirstName: "Development",
+        LastName:  "User",
+        Role:      devRole,
+        Status:    model.UserStatusActive,
+    }
+    
+    c.Set("user", devUser)
+    c.Set("user_id", devUser.ID)
+    c.Set("email", devUser.Email)
+    c.Set("role", devUser.Role)
+}
+```
+
+### 11. エラーコード標準化
+
+認証関連のエラーは標準化されたコード体系に従います。
+
+#### エラーコード体系
+
+```go
+// internal/message/codes.go
+
+// 認証関連エラーコード (AUTH_XXX)
+const (
+    ErrCodeUnauthorized      = "AUTH_001"  // 認証失敗
+    ErrCodeTokenExpired      = "AUTH_002"  // トークン期限切れ
+    ErrCodeInvalidToken      = "AUTH_003"  // 無効なトークン
+    ErrCodePermissionDenied  = "AUTH_004"  // 権限不足
+    ErrCodeAccountLocked     = "AUTH_005"  // アカウントロック
+    ErrCodePasswordReset     = "AUTH_006"  // パスワードリセット必要
+)
+
+// エラーレスポンス形式
+type ErrorResponse struct {
+    Code    string      `json:"code"`
+    Message string      `json:"message"`
+    Details interface{} `json:"details,omitempty"`
+}
+```
+
+#### 使用例
+
+```go
+// handler/auth_handler.go
+func (h *AuthHandler) Login(c *gin.Context) {
+    // ...
+    
+    if err != nil {
+        HandleErrorWithCode(c, message.ErrCodeUnauthorized, 
+            message.MsgInvalidCredentials, h.logger, err)
+        return
+    }
+    
+    // ...
+}
+```
+
+### 12. 環境変数一覧
+
+| 変数名 | 説明 | 開発 | ステージング | 本番 |
+|--------|------|------|------------|------|
+| GO_ENV | 実行環境 | development | staging | production |
+| COGNITO_ENABLED | Cognito有効化 | false/true | true | true |
+| AUTH_SKIP_MODE | 認証スキップ | true/false | false | false |
+| COGNITO_ENDPOINT | エミュレータURL | 設定可 | 設定不可 | 設定不可 |
+| COGNITO_REGION | AWSリージョン | ap-northeast-1 | ap-northeast-1 | ap-northeast-1 |
+| COGNITO_USER_POOL_ID | プールID | 任意 | staging用 | 本番用 |
+| COGNITO_CLIENT_ID | クライアントID | 任意 | staging用 | 本番用 |
+| COGNITO_CLIENT_SECRET | シークレット | 任意 | staging用 | 本番用 |
+| SECURE_COOKIES | Cookie Secure | false | true | true |
+| COOKIE_SAME_SITE | SameSite属性 | lax | strict | strict |
+| DEV_USER_ROLE | 開発用ロール | 0-3 | - | - |
+
 ---
 
 ## 関連ドキュメント
@@ -896,5 +1056,8 @@ func LoginRateLimitMiddleware(rateLimiter RateLimiter) gin.HandlerFunc {
 - [バックエンド仕様書](./backend-specification.md)
 - [ハンドラー実装仕様書](./backend-handler-implementation.md)
 - [サービス実装仕様書](./backend-service-implementation.md)
+- [認証設定ガイド](../../05_architecture/authentication-setup.md)
+- [Cognitoアプリケーションクライアント設定](../../04_development/cognito-app-client-setup.md)
+- [エラーコード標準](../../06_standards/error-code-standard.md)
 - [リポジトリ実装仕様書](./backend-repository-implementation.md)
 - [テスト実装ガイド](./backend-testing-guide.md) 
