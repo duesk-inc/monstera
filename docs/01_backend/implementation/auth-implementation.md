@@ -825,9 +825,45 @@ SECURE_COOKIES=true  # 本番環境はHTTPSなので必ずtrue
 
 | 環境変数 | 開発環境 | 本番環境 | 説明 |
 |---------|---------|---------|------|
+| `GO_ENV` | `development` | `production` | 実行環境の明示的な指定 |
 | `SECURE_COOKIES` | `false` | `true` | CookieのSecure属性制御（HTTPSでのみ送信） |
+| `COOKIE_SAME_SITE` | `lax` | `strict` | SameSite属性（CSRF攻撃対策） |
 | `SESSION_SECURE` | `false` | `true` | セッションCookieのSecure属性 |
-| `SESSION_SAME_SITE` | `lax` | `strict` | SameSite属性（将来実装） |
+| `SESSION_SAME_SITE` | `lax` | `strict` | セッションSameSite属性 |
+
+#### 環境判定とCognito設定
+
+**環境判定の改善**
+```go
+// 環境判定メソッド
+func (c *CognitoConfig) IsDevelopment() bool {
+    return c.Environment == "development" || c.Environment == "dev" || c.Environment == ""
+}
+
+func (c *CognitoConfig) IsProduction() bool {
+    return c.Environment == "production" || c.Environment == "prod"
+}
+
+// COGNITO_ENDPOINTの検証
+if c.IsProduction() && c.Endpoint != "" {
+    // エラー: 本番環境ではCOGNITO_ENDPOINTを設定してはいけない
+    return false
+}
+```
+
+**SameSite属性の実装**
+```go
+// SameSite属性の設定
+sameSite := http.SameSiteLaxMode // デフォルト
+switch h.cfg.Server.CookieSameSite {
+case "strict":
+    sameSite = http.SameSiteStrictMode  // 厳格（同一サイトのみ）
+case "none":
+    sameSite = http.SameSiteNoneMode    // 制限なし（Secure必須）
+case "lax":
+    sameSite = http.SameSiteLaxMode     // 緩い（安全なナビゲーション許可）
+}
+```
 
 ```go
 func LoginRateLimitMiddleware(rateLimiter RateLimiter) gin.HandlerFunc {

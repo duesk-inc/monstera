@@ -25,10 +25,11 @@ type Config struct {
 
 // ServerConfig サーバー関連の設定
 type ServerConfig struct {
-	Port          string
-	ReadTimeout   time.Duration
-	WriteTimeout  time.Duration
-	SecureCookies bool // HTTPS環境でのCookie設定
+	Port           string
+	ReadTimeout    time.Duration
+	WriteTimeout   time.Duration
+	SecureCookies  bool   // HTTPS環境でのCookie設定
+	CookieSameSite string // Cookie SameSite属性: strict, lax, none
 }
 
 // DatabaseConfig データベース接続情報
@@ -320,10 +321,11 @@ func Load(envFile ...string) (*Config, error) {
 
 	config := &Config{
 		Server: ServerConfig{
-			Port:          getEnv("SERVER_PORT", "8080"),
-			ReadTimeout:   time.Duration(readTimeout) * time.Second,
-			WriteTimeout:  time.Duration(writeTimeout) * time.Second,
-			SecureCookies: secureCookies,
+			Port:           getEnv("SERVER_PORT", "8080"),
+			ReadTimeout:    time.Duration(readTimeout) * time.Second,
+			WriteTimeout:   time.Duration(writeTimeout) * time.Second,
+			SecureCookies:  secureCookies,
+			CookieSameSite: getEnv("COOKIE_SAME_SITE", "lax"),
 		},
 		Database: DatabaseConfig{
 			Host:            getEnv("DB_HOST", "localhost"),
@@ -412,6 +414,7 @@ func Load(envFile ...string) (*Config, error) {
 			ClientID:     getEnv("COGNITO_CLIENT_ID", ""),
 			ClientSecret: getEnv("COGNITO_CLIENT_SECRET", ""),
 			Endpoint:     getEnv("COGNITO_ENDPOINT", ""),
+			Environment:  getEnv("GO_ENV", "development"),
 		},
 	}
 

@@ -14,7 +14,8 @@ type CognitoConfig struct {
 	UserPoolID   string `mapstructure:"COGNITO_USER_POOL_ID"`
 	ClientID     string `mapstructure:"COGNITO_CLIENT_ID"`
 	ClientSecret string `mapstructure:"COGNITO_CLIENT_SECRET"`
-	Endpoint     string `mapstructure:"COGNITO_ENDPOINT"` // ローカル開発用
+	Endpoint     string `mapstructure:"COGNITO_ENDPOINT"` // ローカル開発用（Cognito Local使用時のみ設定）
+	Environment  string `mapstructure:"GO_ENV"`          // 実行環境: development, staging, production
 
 	// トークン設定
 	TokenExpiration time.Duration // アクセストークンの有効期限（デフォルト: 1時間）
@@ -29,26 +30,58 @@ func (c *CognitoConfig) IsValid() bool {
 		return true // 無効化されている場合は検証をスキップ
 	}
 
-	return c.Region != "" &&
-		c.UserPoolID != "" &&
-		c.ClientID != "" &&
-		c.ClientSecret != ""
+	// 基本的な必須フィールドのチェック
+	if c.Region == "" || c.UserPoolID == "" || c.ClientID == "" || c.ClientSecret == "" {
+		return false
+	}
+
+	// 環境とEndpointの整合性チェック
+	if c.IsProduction() && c.Endpoint != "" {
+		// 本番環境ではCOGNITO_ENDPOINTを設定してはいけない
+		return false
+	}
+
+	// Endpointが設定されている場合はURLの妥当性をチェック
+	if c.Endpoint != "" {
+		if _, err := url.Parse(c.Endpoint); err != nil {
+			return false
+		}
+	}
+
+	return true
+}
+
+// IsDevelopment 開発環境かどうかを判定
+func (c *CognitoConfig) IsDevelopment() bool {
+	return c.Environment == "development" || c.Environment == "dev" || c.Environment == ""
+}
+
+// IsProduction 本番環境かどうかを判定
+func (c *CognitoConfig) IsProduction() bool {
+	return c.Environment == "production" || c.Environment == "prod"
+}
+
+// IsStaging ステージング環境かどうかを判定
+func (c *CognitoConfig) IsStaging() bool {
+	return c.Environment == "staging" || c.Environment == "stage"
 }
 
 // GetJWKURL JWKエンドポイントURLを取得
 func (c *CognitoConfig) GetJWKURL() string {
-	if c.Endpoint != "" {
-		// ローカル開発環境
+	// 開発環境かつEndpointが設定されている場合のみローカルCognitoを使用
+	if c.IsDevelopment() && c.Endpoint != "" {
+		// ローカル開発環境（Cognito Local）
 		return c.Endpoint + "/" + c.UserPoolID + "/.well-known/jwks.json"
 	}
-	// 本番環境
+	// 本番環境、ステージング環境、またはEndpointが設定されていない開発環境
 	return "https://cognito-idp." + c.Region + ".amazonaws.com/" + c.UserPoolID + "/.well-known/jwks.json"
 }
 
 // GetIssuer Issuerを取得
 func (c *CognitoConfig) GetIssuer() string {
-	if c.Endpoint != "" {
-		// ローカル開発環境
+	// 開発環境かつEndpointが設定されている場合のみローカルCognitoを使用
+	if c.IsDevelopment() && c.Endpoint != "" {
+		// ローカル開発環境（Cognito Local）
 		// COGNITO_ENDPOINTをパースしてissuerを生成
 		u, err := url.Parse(c.Endpoint)
 		if err != nil {
@@ -75,7 +108,7 @@ func (c *CognitoConfig) GetIssuer() string {
 		}
 		return fmt.Sprintf("http://%s/%s", host, c.UserPoolID)
 	}
-	// 本番環境
+	// 本番環境、ステージング環境、またはEndpointが設定されていない開発環境
 	return "https://cognito-idp." + c.Region + ".amazonaws.com/" + c.UserPoolID
 }
 

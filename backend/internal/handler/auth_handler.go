@@ -227,44 +227,72 @@ func (h *AuthHandler) Me(c *gin.Context) {
 
 // setAuthCookies トークンをクッキーに設定
 func (h *AuthHandler) setAuthCookies(c *gin.Context, accessToken, refreshToken string) {
-	c.SetCookie(
-		"access_token",
-		accessToken,
-		3600, // 1時間
-		"/",
-		"",
-		h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
-		true,                         // JavaScriptからアクセス不可（HTTPOnly）
-	)
-	c.SetCookie(
-		"refresh_token",
-		refreshToken,
-		604800, // 7日間
-		"/",
-		"",
-		h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
-		true,                         // JavaScriptからアクセス不可（HTTPOnly）
-	)
+	// SameSite属性の設定
+	sameSite := http.SameSiteLaxMode // デフォルト
+	switch h.cfg.Server.CookieSameSite {
+	case "strict":
+		sameSite = http.SameSiteStrictMode
+	case "none":
+		sameSite = http.SameSiteNoneMode
+	case "lax":
+		sameSite = http.SameSiteLaxMode
+	}
+
+	// アクセストークンCookie
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "access_token",
+		Value:    accessToken,
+		Path:     "/",
+		MaxAge:   3600, // 1時間
+		HttpOnly: true,
+		Secure:   h.cfg.Server.SecureCookies,
+		SameSite: sameSite,
+	})
+
+	// リフレッシュトークンCookie
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    refreshToken,
+		Path:     "/",
+		MaxAge:   604800, // 7日間
+		HttpOnly: true,
+		Secure:   h.cfg.Server.SecureCookies,
+		SameSite: sameSite,
+	})
 }
 
 // clearAuthCookies 認証クッキーをクリア
 func (h *AuthHandler) clearAuthCookies(c *gin.Context) {
-	c.SetCookie(
-		"access_token",
-		"",
-		-1,
-		"/",
-		"",
-		h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
-		true,                         // JavaScriptからアクセス不可（HTTPOnly）
-	)
-	c.SetCookie(
-		"refresh_token",
-		"",
-		-1,
-		"/",
-		"",
-		h.cfg.Server.SecureCookies, // 環境変数SECURE_COOKIESで制御
-		true,                         // JavaScriptからアクセス不可（HTTPOnly）
-	)
+	// SameSite属性の設定
+	sameSite := http.SameSiteLaxMode // デフォルト
+	switch h.cfg.Server.CookieSameSite {
+	case "strict":
+		sameSite = http.SameSiteStrictMode
+	case "none":
+		sameSite = http.SameSiteNoneMode
+	case "lax":
+		sameSite = http.SameSiteLaxMode
+	}
+
+	// アクセストークンCookieをクリア
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   h.cfg.Server.SecureCookies,
+		SameSite: sameSite,
+	})
+
+	// リフレッシュトークンCookieをクリア
+	http.SetCookie(c.Writer, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   h.cfg.Server.SecureCookies,
+		SameSite: sameSite,
+	})
 }
