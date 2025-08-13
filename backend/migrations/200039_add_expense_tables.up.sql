@@ -21,7 +21,7 @@ END$$;
 CREATE TABLE IF NOT EXISTS expense_approvals (
     id VARCHAR(36) PRIMARY KEY,
     expense_id VARCHAR(36) NOT NULL,
-    approver_id VARCHAR(36) NOT NULL,
+    approver_id VARCHAR(255) NOT NULL,
     approval_type approval_type_enum NOT NULL,
     approval_order INT NOT NULL DEFAULT 1,
     status approval_status_enum DEFAULT 'pending' NOT NULL,
@@ -60,10 +60,10 @@ CREATE TABLE IF NOT EXISTS expense_limits (
     limit_type expense_limit_type_enum NOT NULL,
     limit_scope VARCHAR(20) NOT NULL DEFAULT 'company' CHECK (limit_scope IN ('company', 'department', 'user')),
     amount INT NOT NULL,
-    user_id VARCHAR(36) NULL,
+    user_id VARCHAR(255) NULL,
     department_id VARCHAR(36) NULL,
     effective_from TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
-    created_by VARCHAR(36) NOT NULL,
+    created_by VARCHAR(255) NOT NULL,
     created_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     CONSTRAINT fk_expense_limits_created_by FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -81,7 +81,7 @@ CREATE INDEX IF NOT EXISTS idx_expense_limits_dept_type_effective ON expense_lim
 -- 4. 集計テーブル
 CREATE TABLE IF NOT EXISTS expense_summaries (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     year INT NOT NULL,
     month INT NOT NULL,
     total_amount INT NOT NULL DEFAULT 0,

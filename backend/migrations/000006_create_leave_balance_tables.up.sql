@@ -1,7 +1,7 @@
 -- ユーザー別休暇付与テーブル作成
 CREATE TABLE IF NOT EXISTS user_leave_balances (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     leave_type_id VARCHAR(36) NOT NULL,
     fiscal_year INT NOT NULL,
     total_days DECIMAL(5,1) NOT NULL DEFAULT 0.0,
@@ -19,7 +19,7 @@ CREATE INDEX idx_user_leave_balances_leave_type_id ON user_leave_balances(leave_
 -- 振替特別休暇の付与履歴管理テーブルの作成
 CREATE TABLE IF NOT EXISTS substitute_leave_grants (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     grant_date DATE NOT NULL,
     granted_days DECIMAL(5,1) NOT NULL DEFAULT 0.0,
     used_days DECIMAL(5,1) NOT NULL DEFAULT 0.0,

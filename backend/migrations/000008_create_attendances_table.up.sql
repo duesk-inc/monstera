@@ -1,7 +1,7 @@
 -- Attendances テーブル作成
 CREATE TABLE IF NOT EXISTS attendances (
   id VARCHAR(36) PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
   date TIMESTAMP NOT NULL,
   status VARCHAR(20) DEFAULT 'present' NOT NULL CHECK (status IN ('present', 'absent', 'late', 'early_leave', 'paid_leave', 'unpaid_leave', 'holiday')),
   start_time TIMESTAMP NULL,

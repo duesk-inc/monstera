@@ -57,7 +57,7 @@ DECLARE
     cert_gcp_ace_id VARCHAR(36) := 'd0eebc99-9c0b-4ef8-bb6d-6bb9bd380d10';
     
     -- 経費承認者設定ID
-    approver_manager_id VARCHAR(36);
+    approver_manager_id VARCHAR(255);
     approver_executive_id VARCHAR(36);
     
     -- 現在年

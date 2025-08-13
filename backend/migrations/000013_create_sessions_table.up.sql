@@ -1,7 +1,7 @@
 -- セッションテーブルの作成
 CREATE TABLE IF NOT EXISTS sessions (
   id VARCHAR(36) NOT NULL PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
   refresh_token TEXT NOT NULL,
   user_agent VARCHAR(255),
   ip_address VARCHAR(45),

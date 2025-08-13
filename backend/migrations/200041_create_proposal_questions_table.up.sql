@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS proposal_questions (
     proposal_id VARCHAR(36) NOT NULL, -- 提案ID
     question_text TEXT NOT NULL, -- 質問内容
     response_text TEXT, -- 回答内容
-    sales_user_id VARCHAR(36), -- 営業担当者ID
+    sales_user_id VARCHAR(255), -- 営業担当者ID
     is_responded BOOLEAN NOT NULL DEFAULT FALSE, -- 回答済みフラグ
     responded_at TIMESTAMP(3), -- 回答日時
     created_at TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'), -- 作成日時

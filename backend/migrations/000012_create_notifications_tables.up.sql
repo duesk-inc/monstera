@@ -26,7 +26,7 @@ COMMENT ON COLUMN notifications.updated_at IS '更新日時';
 COMMENT ON COLUMN notifications.deleted_at IS '削除日時';
 CREATE TABLE IF NOT EXISTS user_notifications (
   id VARCHAR(36) PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
   notification_id VARCHAR(36) NOT NULL,
   is_read BOOLEAN NOT NULL DEFAULT FALSE,
   read_at TIMESTAMP(3),
@@ -52,7 +52,7 @@ CREATE INDEX idx_user_notification ON user_notifications (user_id, notification_
 CREATE INDEX idx_user_read_status ON user_notifications (user_id, is_read);
 CREATE TABLE IF NOT EXISTS notification_settings (
   id VARCHAR(36) PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
   notification_type VARCHAR(20) NOT NULL CHECK (notification_type IN ('leave', 'expense', 'weekly', 'project', 'system')),
   is_enabled BOOLEAN NOT NULL DEFAULT TRUE,
   email_enabled BOOLEAN NOT NULL DEFAULT FALSE,

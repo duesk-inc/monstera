@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS project_groups (
     group_name VARCHAR(255) NOT NULL, -- グループ名
     client_id VARCHAR(36) NOT NULL, -- 取引先ID
     description TEXT, -- 説明
-    created_by VARCHAR(36) NOT NULL, -- 作成者ID
+    created_by VARCHAR(255) NOT NULL, -- 作成者ID
     created_at TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     deleted_at TIMESTAMP(3) NULL,

@@ -54,7 +54,7 @@ ON CONFLICT (id) DO NOTHING;
 -- Profiles テーブル作成
 CREATE TABLE IF NOT EXISTS profiles (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     education TEXT,
     nearest_station VARCHAR(100),
     can_travel INT NOT NULL DEFAULT 3, -- 出張可否: 1=可能, 2=不可, 3=要相談
@@ -73,7 +73,7 @@ COMMENT ON COLUMN profiles.can_travel IS '出張可否: 1=可能, 2=不可, 3=�
 CREATE TABLE IF NOT EXISTS work_histories (
     id VARCHAR(36) PRIMARY KEY,
     profile_id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     project_name VARCHAR(255) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NULL,
@@ -197,7 +197,7 @@ CREATE INDEX idx_business_experiences_deleted_at ON business_experiences(deleted
 CREATE TABLE IF NOT EXISTS profile_histories (
     id VARCHAR(36) PRIMARY KEY,
     profile_id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     education TEXT,
     nearest_station VARCHAR(100),
     can_travel INT NOT NULL DEFAULT 3,
@@ -213,7 +213,7 @@ CREATE TABLE IF NOT EXISTS work_history_histories (
     id VARCHAR(36) PRIMARY KEY,
     history_id VARCHAR(36) NOT NULL,
     profile_history_id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     project_name VARCHAR(255) NOT NULL,
     start_date DATE NOT NULL,
     end_date DATE NULL,

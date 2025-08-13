@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS weekly_reports (
   id VARCHAR(36) PRIMARY KEY,
   -- 基本情報
-  user_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
   start_date DATE NOT NULL,
   end_date DATE NOT NULL,
   status VARCHAR(20) DEFAULT 'draft' NOT NULL CHECK (status IN ('draft', 'submitted', 'approved', 'rejected')),
@@ -21,12 +21,12 @@ CREATE TABLE IF NOT EXISTS weekly_reports (
   client_work_hours DECIMAL(5,2) DEFAULT 0,
   submitted_at TIMESTAMP NULL,
   manager_comment TEXT,
-  commented_by VARCHAR(36),
+  commented_by VARCHAR(255),
   commented_at TIMESTAMP(3),
   -- 統合: 200010から追加カラム
   department_id VARCHAR(36),
   department_name VARCHAR(100),
-  manager_id VARCHAR(36),
+  manager_id VARCHAR(255),
   submission_deadline DATE,
   is_late_submission BOOLEAN NOT NULL DEFAULT FALSE,
   revision_count INT NOT NULL DEFAULT 0,

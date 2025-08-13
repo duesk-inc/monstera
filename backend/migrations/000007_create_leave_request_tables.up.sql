@@ -1,14 +1,14 @@
 -- 休暇申請テーブル作成
 CREATE TABLE IF NOT EXISTS leave_requests (
   id VARCHAR(36) PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
   leave_type_id VARCHAR(36) NOT NULL,
   request_date DATE NOT NULL,
   is_hourly_based BOOLEAN NOT NULL DEFAULT FALSE,
   reason TEXT,
   total_days DECIMAL(5,1) NOT NULL,
   status VARCHAR(20) DEFAULT 'pending' NOT NULL CHECK (status IN ('pending', 'approved', 'rejected', 'cancelled')),
-  approver_id VARCHAR(36),
+  approver_id VARCHAR(255),
   processed_at TIMESTAMP NULL,
   rejection_reason TEXT,
   created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),

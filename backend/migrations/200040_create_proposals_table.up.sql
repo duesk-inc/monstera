@@ -12,7 +12,7 @@ END$$;
 CREATE TABLE IF NOT EXISTS proposals (
     id VARCHAR(36) PRIMARY KEY,
     project_id VARCHAR(36) NOT NULL, -- monstera_poc.projects.id参照
-    user_id VARCHAR(36) NOT NULL, -- エンジニアID
+    user_id VARCHAR(255) NOT NULL, -- エンジニアID
     status proposal_status NOT NULL DEFAULT 'proposed', -- 提案ステータス
     responded_at TIMESTAMP(3), -- 回答日時
     created_at TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'), -- 作成日時

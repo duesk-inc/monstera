@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS departments (
     id VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::text),
     name VARCHAR(100) NOT NULL, -- 部署名
     parent_id VARCHAR(36), -- 親部署ID
-    manager_id VARCHAR(36), -- 部署責任者ID
+    manager_id VARCHAR(255), -- 部署責任者ID
     sort_order INT NOT NULL DEFAULT 0, -- 表示順
     is_active BOOLEAN NOT NULL DEFAULT TRUE, -- 有効フラグ
     created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),

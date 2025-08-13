@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS scheduled_jobs (
     timeout_seconds INT DEFAULT 3600, -- タイムアウト（秒）
     max_retries INT DEFAULT 3, -- 最大再試行回数
     retry_count INT DEFAULT 0, -- 現在の再試行回数
-    created_by VARCHAR(36) NOT NULL, -- 作成者ID
+    created_by VARCHAR(255) NOT NULL, -- 作成者ID
     created_at TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     deleted_at TIMESTAMP(3) NULL,

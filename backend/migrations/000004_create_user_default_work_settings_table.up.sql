@@ -1,7 +1,7 @@
 -- ユーザーのデフォルト勤務時間設定テーブル作成
 CREATE TABLE IF NOT EXISTS user_default_work_settings (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     -- 平日のデフォルト設定
     weekday_start_time VARCHAR(10) NOT NULL DEFAULT '09:00',
     weekday_end_time VARCHAR(10) NOT NULL DEFAULT '18:00',

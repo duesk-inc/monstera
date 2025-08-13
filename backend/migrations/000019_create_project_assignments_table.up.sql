@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS project_assignments (
     id VARCHAR(36) PRIMARY KEY,
     -- 基本情報
     project_id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     role VARCHAR(100),
     start_date DATE NOT NULL,
     end_date DATE,

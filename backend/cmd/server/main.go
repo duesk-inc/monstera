@@ -162,8 +162,12 @@ func main() {
 
 	// サービスの作成
 	var authSvc service.AuthService
-	if cfg.Cognito.Enabled {
-		logger.Info("Cognito認証が有効です")
+	if cfg.Cognito.Enabled || cfg.Cognito.AuthSkipMode {
+		if cfg.Cognito.AuthSkipMode {
+			logger.Info("開発モード（AUTH_SKIP_MODE）が有効です")
+		} else {
+			logger.Info("Cognito認証が有効です")
+		}
 		cognitoAuthSvc, err := service.NewCognitoAuthService(
 			cfg,
 			db,

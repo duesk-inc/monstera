@@ -6,7 +6,7 @@
 
 CREATE TABLE IF NOT EXISTS expenses (
   id VARCHAR(36) PRIMARY KEY,
-  user_id VARCHAR(36) NOT NULL,
+  user_id VARCHAR(255) NOT NULL,
   title VARCHAR(255) NOT NULL,
   category VARCHAR(50) NOT NULL,
   category_id VARCHAR(36),
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS expenses (
   status VARCHAR(20) DEFAULT 'draft' NOT NULL CHECK (status IN ('draft', 'submitted', 'approved', 'rejected', 'paid', 'cancelled', 'expired', 'closed')),
   description TEXT,
   receipt_url VARCHAR(255),
-  approver_id VARCHAR(36) NULL,
+  approver_id VARCHAR(255) NULL,
   approved_at TIMESTAMP(3) NULL,
   paid_at TIMESTAMP(3) NULL,
   -- 統合: 200047から期限関連フィールド
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS expense_deadline_settings (
     default_deadline_days INT NOT NULL DEFAULT 30,
     reminder_days_before INT NOT NULL DEFAULT 3,
     auto_expire_enabled BOOLEAN DEFAULT TRUE,
-    created_by VARCHAR(36) NOT NULL,
+    created_by VARCHAR(255) NOT NULL,
     created_at TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     PRIMARY KEY (id),

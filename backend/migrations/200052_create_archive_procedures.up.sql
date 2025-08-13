@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS archive_statistics (
     total_records INTEGER DEFAULT 0,
     archived_records INTEGER DEFAULT 0,
     failed_records INTEGER DEFAULT 0,
-    executed_by VARCHAR(36) NOT NULL,
+    executed_by VARCHAR(255) NOT NULL,
     execution_method VARCHAR(50),
     archive_reason VARCHAR(50),
     status VARCHAR(20) DEFAULT 'pending',

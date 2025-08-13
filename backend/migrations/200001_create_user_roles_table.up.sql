@@ -1,6 +1,6 @@
 -- user_rolesテーブルの作成（多対多のロール管理）
 CREATE TABLE IF NOT EXISTS user_roles (
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     role SMALLINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (user_id, role),

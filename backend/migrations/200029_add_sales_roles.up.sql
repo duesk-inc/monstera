@@ -101,7 +101,7 @@ INSERT INTO sales_role_permissions (role_type, resource, action, scope) VALUES
 CREATE TABLE IF NOT EXISTS sales_teams (
     id VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::text),
     team_name VARCHAR(100) NOT NULL,
-    manager_id VARCHAR(36) NOT NULL,
+    manager_id VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     deleted_at TIMESTAMP NULL,
@@ -115,7 +115,7 @@ CREATE INDEX idx_sales_teams_manager ON sales_teams(manager_id);
 -- 営業チームメンバーテーブル
 CREATE TABLE IF NOT EXISTS sales_team_members (
     team_id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     joined_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     PRIMARY KEY (team_id, user_id),
     

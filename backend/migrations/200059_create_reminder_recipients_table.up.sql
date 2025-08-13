@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS reminder_recipients (
     id VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::text),
     reminder_history_id VARCHAR(36) NOT NULL, -- リマインド履歴ID
-    recipient_id VARCHAR(36) NOT NULL, -- 受信者ID
+    recipient_id VARCHAR(255) NOT NULL, -- 受信者ID
     recipient_email VARCHAR(255) NOT NULL, -- 受信者メールアドレス
     recipient_name VARCHAR(200) NOT NULL, -- 受信者名
     department_name VARCHAR(100), -- 所属部署名（送信時点）

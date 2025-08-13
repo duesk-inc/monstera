@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS invoices (
     paid_date DATE,
     payment_method VARCHAR(50),
     notes TEXT,
-    created_by VARCHAR(36),
+    created_by VARCHAR(255),
     -- 統合: 200034から経理機能用カラム
     freee_invoice_id INT,
     freee_company_id INT DEFAULT 12078529,

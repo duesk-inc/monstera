@@ -2,8 +2,8 @@
 
 DO $$
 DECLARE
-    admin_user_id VARCHAR(36);
-    daichiro_user_id VARCHAR(36);
+    admin_user_id VARCHAR(255);
+    daichiro_user_id VARCHAR(255);
 BEGIN
     -- Get admin@duesk.co.jp user ID
     SELECT id INTO admin_user_id FROM users WHERE email = 'admin@duesk.co.jp' LIMIT 1;

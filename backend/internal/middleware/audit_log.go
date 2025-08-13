@@ -92,8 +92,8 @@ func AuditLogMiddleware(auditService service.AuditLogService, logger *zap.Logger
 			if isImportantUnauthenticatedAction(c) {
 				// ログイン失敗の場合は未認証として記録
 				if c.Writer.Status() >= 400 {
-					// システムユーザーのCognito Sub形式のID
-					userID = "system-00000000-0000-0000-0000-000000000000"
+					// システムユーザーのCognito Sub形式のID（36文字）
+					userID = "00000000-0000-0000-0000-000000000000"
 				} else {
 					// ログイン成功の場合は再度ユーザーIDを取得
 					userIDInterface, exists = c.Get("user_id")

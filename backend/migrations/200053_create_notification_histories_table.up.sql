@@ -1,8 +1,8 @@
 -- 通知履歴テーブルの作成（パフォーマンス最適化版）
 CREATE TABLE IF NOT EXISTS notification_histories (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
-    recipient_id VARCHAR(36) NOT NULL,
-    sender_id VARCHAR(36) NOT NULL,
+    recipient_id VARCHAR(255) NOT NULL,
+    sender_id VARCHAR(255) NOT NULL,
     notification_type VARCHAR(50) NOT NULL,
     title VARCHAR(200) NOT NULL,
     message TEXT NOT NULL,

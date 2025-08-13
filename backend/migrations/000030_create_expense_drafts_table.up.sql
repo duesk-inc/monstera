@@ -1,7 +1,7 @@
 -- 経費申請下書きテーブルの作成
 CREATE TABLE IF NOT EXISTS expense_drafts (
     id VARCHAR(36) NOT NULL PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     data JSON NOT NULL, -- 下書きデータ（JSON形式）
     saved_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'), -- 保存日時
     expires_at TIMESTAMP NOT NULL, -- 有効期限

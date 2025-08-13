@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS clients (
     address VARCHAR(255),
     notes TEXT,
     -- 統合: 200028から営業管理用カラム
-    primary_sales_rep_id VARCHAR(36),
+    primary_sales_rep_id VARCHAR(255),
     business_status business_status_enum DEFAULT 'active',
     company_size company_size_enum,
     industry_type VARCHAR(100),

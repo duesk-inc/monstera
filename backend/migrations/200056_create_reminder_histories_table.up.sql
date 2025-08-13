@@ -1,7 +1,7 @@
 -- リマインド送信履歴テーブルの作成
 CREATE TABLE IF NOT EXISTS reminder_histories (
     id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid()::text,
-    sender_id VARCHAR(36) NOT NULL,
+    sender_id VARCHAR(255) NOT NULL,
     reminder_type VARCHAR(50) NOT NULL,
     target_week_start DATE NOT NULL,
     target_week_end DATE NOT NULL,

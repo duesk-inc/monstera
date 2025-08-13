@@ -7,7 +7,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -574,77 +573,20 @@ func (s *CognitoAuthService) loginDevelopmentMode(ctx context.Context, email, us
 		zap.String("email", email),
 	)
 	
-	// メールアドレスに基づいてロールを決定
-	var role model.Role
-	var firstName, lastName string
-	var userID string
-	
-	switch email {
-	case "super_admin@duesk.co.jp":
-		role = model.RoleSuperAdmin
-		firstName = "スーパー"
-		lastName = "管理者"
-		userID = "dev-00000000-0000-0000-0000-000000000001"
-	case "admin@duesk.co.jp":
-		role = model.RoleAdmin
-		firstName = "システム"
-		lastName = "管理者"
-		userID = "dev-00000000-0000-0000-0000-000000000002"
-	case "manager@duesk.co.jp":
-		role = model.RoleManager
-		firstName = "プロジェクト"
-		lastName = "マネージャー"
-		userID = "dev-00000000-0000-0000-0000-000000000003"
-	case "engineer_test@duesk.co.jp":
-		role = model.RoleEngineer
-		firstName = "開発"
-		lastName = "エンジニア"
-		userID = "dev-00000000-0000-0000-0000-000000000004"
-	default:
-		// デフォルトはEngineer
-		role = model.RoleEngineer
-		firstName = "開発"
-		lastName = "ユーザー"
-		userID = "dev-00000000-0000-0000-0000-000000000099"
-		// メールアドレスから名前を推測
-		if strings.Contains(email, "@") {
-			parts := strings.Split(email, "@")
-			firstName = parts[0]
-		}
+	// DBからユーザーを取得
+	user, err := s.userRepo.GetByEmail(ctx, email)
+	if err != nil || user == nil {
+		s.logger.Error("開発モードのユーザーが見つかりません",
+			zap.String("email", email),
+			zap.Error(err),
+		)
+		return nil, fmt.Errorf("ユーザーが見つかりません: %s", email)
 	}
 	
-	// 開発用ユーザー情報を作成
-	user := &model.User{
-		ID:          userID,
-		Email:       email,
-		FirstName:   firstName,
-		LastName:    lastName,
-		Role:        role,
-		DefaultRole: &role,
-		Status:      "active",
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
-	}
-	
-	// DBにユーザーが存在しない場合は作成
-	existingUser, err := s.userRepo.GetByEmail(ctx, email)
-	if err != nil || existingUser == nil {
-		// ユーザーが存在しない場合は作成
-		if err := s.userRepo.Create(ctx, user); err != nil {
-			s.logger.Warn("開発用ユーザーの作成に失敗（既存の可能性）",
-				zap.Error(err),
-				zap.String("email", email),
-			)
-			// エラーが発生しても続行（既に存在する場合など）
-		}
-	} else {
-		// 既存ユーザーを使用
-		user = existingUser
-	}
-	
-	// 開発用の固定トークンを生成
-	accessToken := fmt.Sprintf("dev-access-token-%s-%d", userID, time.Now().Unix())
-	refreshToken := fmt.Sprintf("dev-refresh-token-%s-%d", userID, time.Now().Unix())
+	// 開発用の固定トークンを生成（JWT風の3セグメント形式）
+	timestamp := time.Now().Unix()
+	accessToken := fmt.Sprintf("dev.%s.%d", user.ID, timestamp)
+	refreshToken := fmt.Sprintf("dev-refresh.%s.%d", user.ID, timestamp)
 	
 	// セッション作成
 	session := &model.Session{
@@ -668,7 +610,7 @@ func (s *CognitoAuthService) loginDevelopmentMode(ctx context.Context, email, us
 	return &AuthResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
-		IDToken:      fmt.Sprintf("dev-id-token-%s", userID),
+		IDToken:      fmt.Sprintf("dev-id.%s.%d", user.ID, timestamp),
 		ExpiresAt:    time.Now().Add(time.Hour),
 		User:         user,
 	}, nil

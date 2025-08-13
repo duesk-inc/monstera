@@ -173,7 +173,7 @@ ON CONFLICT DO NOTHING;
 CREATE TABLE IF NOT EXISTS accounting_departments (
     id VARCHAR(36) PRIMARY KEY,
     department_name VARCHAR(100) NOT NULL,
-    manager_id VARCHAR(36) NOT NULL,
+    manager_id VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
@@ -187,7 +187,7 @@ CREATE INDEX IF NOT EXISTS idx_accounting_dept_manager ON accounting_departments
 -- 経理部門メンバーテーブル
 CREATE TABLE IF NOT EXISTS accounting_department_members (
     department_id VARCHAR(36) NOT NULL,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(255) NOT NULL,
     role_type accounting_role_type_enum NOT NULL,
     joined_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     PRIMARY KEY (department_id, user_id),

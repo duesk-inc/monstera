@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS sales_activities (
     client_id VARCHAR(36) NOT NULL, -- 取引先ID
     project_id VARCHAR(36), -- 関連案件ID
     activity_type activity_type NOT NULL, -- 活動タイプ
-    target_user_id VARCHAR(36), -- 対象エンジニアID
-    sales_rep_id VARCHAR(36), -- 担当営業ID
+    target_user_id VARCHAR(255), -- 対象エンジニアID
+    sales_rep_id VARCHAR(255), -- 担当営業ID
     status sales_status DEFAULT 'planning', -- ステータス
     probability INT DEFAULT 0, -- 成約確率（%）
     estimated_monthly_amount DECIMAL(10, 2), -- 予想月額

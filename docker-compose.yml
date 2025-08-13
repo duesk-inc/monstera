@@ -132,7 +132,7 @@ services:
       REDIS_KEY_PREFIX: "monstera:"
       # Authentication Configuration
       COGNITO_ENABLED: ${COGNITO_ENABLED:-true} # Set to false for development
-      AUTH_SKIP_MODE: ${AUTH_SKIP_MODE:-false} # Skip authentication in development
+      AUTH_SKIP_MODE: ${AUTH_SKIP_MODE:-true} # Skip authentication in development
       # Cognito Configuration
       COGNITO_REGION: ${COGNITO_REGION:-ap-northeast-1}
       COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID}

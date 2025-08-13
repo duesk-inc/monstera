@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS reminder_settings (
     escalation_days INT DEFAULT 14, -- エスカレーション日数
     reminder_time VARCHAR(5) DEFAULT '09:00', -- リマインド送信時刻（HH:MM）
     include_manager BOOLEAN DEFAULT TRUE, -- マネージャーをCCに含める
-    updated_by VARCHAR(36) NOT NULL,
+    updated_by VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     deleted_at TIMESTAMP NULL,

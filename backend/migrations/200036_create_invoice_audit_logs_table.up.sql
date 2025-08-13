@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS invoice_audit_logs (
     action invoice_audit_action NOT NULL, -- アクション
     old_values JSON, -- 変更前データ
     new_values JSON, -- 変更後データ
-    changed_by VARCHAR(36), -- 変更者ID
+    changed_by VARCHAR(255), -- 変更者ID
     changed_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3), -- 変更日時
     freee_invoice_id INT, -- freee請求書ID
     notes TEXT, -- 備考

@@ -16,7 +16,7 @@ END $$;
 -- 延長確認管理テーブル
 CREATE TABLE IF NOT EXISTS contract_extensions (
     id VARCHAR(36) PRIMARY KEY DEFAULT (gen_random_uuid()::text),
-    engineer_id VARCHAR(36) NOT NULL,
+    engineer_id VARCHAR(255) NOT NULL,
     project_id VARCHAR(36), -- 現在参画中の案件
     
     -- 契約情報
@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS contract_extensions (
     created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     deleted_at TIMESTAMP NULL,
-    created_by VARCHAR(36),
-    updated_by VARCHAR(36),
+    created_by VARCHAR(255),
+    updated_by VARCHAR(255),
     
     -- 外部キー制約
     CONSTRAINT fk_contract_extensions_engineer FOREIGN KEY (engineer_id) REFERENCES users(id) ON DELETE RESTRICT
@@ -67,8 +67,8 @@ CREATE TABLE IF NOT EXISTS contract_extension_settings (
     notification_channels JSONB, -- 通知チャンネル ['email', 'slack']
     created_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
-    created_by VARCHAR(36),
-    updated_by VARCHAR(36)
+    created_by VARCHAR(255),
+    updated_by VARCHAR(255)
 );
 
 -- デフォルト設定の挿入

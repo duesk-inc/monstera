@@ -16,10 +16,10 @@ END$$;
 CREATE TABLE IF NOT EXISTS expense_approver_settings (
     id VARCHAR(36) PRIMARY KEY,
     approval_type approval_type_enum NOT NULL, -- 承認タイプ
-    approver_id VARCHAR(36) NOT NULL, -- 承認者のユーザーID
+    approver_id VARCHAR(255) NOT NULL, -- 承認者のユーザーID
     is_active BOOLEAN DEFAULT true, -- 有効フラグ
     priority INT DEFAULT 1, -- 優先順位（同じ承認タイプ内での順序）
-    created_by VARCHAR(36) NOT NULL, -- 作成者ID
+    created_by VARCHAR(255) NOT NULL, -- 作成者ID
     created_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     updated_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'),
     CONSTRAINT uk_approver_type UNIQUE (approval_type, approver_id),
@@ -44,9 +44,9 @@ CREATE TABLE IF NOT EXISTS expense_approver_setting_histories (
     id VARCHAR(36) PRIMARY KEY,
     setting_id VARCHAR(36) NOT NULL, -- 設定ID
     approval_type approval_type_enum NOT NULL, -- 承認タイプ
-    approver_id VARCHAR(36) NOT NULL, -- 承認者ID
+    approver_id VARCHAR(255) NOT NULL, -- 承認者ID
     action approver_action_enum NOT NULL, -- 操作種別
-    changed_by VARCHAR(36) NOT NULL, -- 変更者ID
+    changed_by VARCHAR(255) NOT NULL, -- 変更者ID
     changed_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP(3) AT TIME ZONE 'Asia/Tokyo'), -- 変更日時
     old_value JSON, -- 変更前の値
     new_value JSON, -- 変更後の値
