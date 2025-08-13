@@ -491,24 +491,56 @@ func validateRSAPublicKey(key *rsa.PublicKey) error {
 
 // setDevelopmentUser 開発環境用のダミーユーザーを設定
 func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
-	// 環境変数から開発用ロールを取得（デフォルト: Admin）
-	devRole := model.Role(m.config.Cognito.DevUserRole)
-	
-	// ロールが有効範囲内かチェック
-	// Role定義: 1=SuperAdmin, 2=Admin, 3=Manager, 4=Engineer
-	if devRole < 1 || devRole > 4 {
-		devRole = model.RoleAdmin // 無効な値の場合はAdminを使用
+	// リクエストからメールアドレスを取得（ログイン時に渡されるメールアドレス）
+	email := c.GetString("auth_email")
+	if email == "" {
+		// デフォルトのメールアドレス
+		email = "dev@duesk.co.jp"
 	}
-
-	// IDを設定
-	userID := "00000000-0000-0000-0000-000000000001"
+	
+	// メールアドレスに基づいてロールを決定
+	var devRole model.Role
+	var firstName, lastName string
+	var userID string
+	
+	switch email {
+	case "super_admin@duesk.co.jp":
+		devRole = model.RoleSuperAdmin
+		firstName = "スーパー"
+		lastName = "管理者"
+		userID = "00000000-0000-0000-0000-000000000001"
+	case "admin@duesk.co.jp":
+		devRole = model.RoleAdmin
+		firstName = "システム"
+		lastName = "管理者"
+		userID = "00000000-0000-0000-0000-000000000002"
+	case "manager@duesk.co.jp":
+		devRole = model.RoleManager
+		firstName = "プロジェクト"
+		lastName = "マネージャー"
+		userID = "00000000-0000-0000-0000-000000000003"
+	case "engineer_test@duesk.co.jp":
+		devRole = model.RoleEngineer
+		firstName = "開発"
+		lastName = "エンジニア"
+		userID = "00000000-0000-0000-0000-000000000004"
+	default:
+		// デフォルトまたは環境変数から開発用ロールを取得
+		devRole = model.Role(m.config.Cognito.DevUserRole)
+		if devRole < 1 || devRole > 4 {
+			devRole = model.RoleAdmin // 無効な値の場合はAdminを使用
+		}
+		firstName = "開発"
+		lastName = "ユーザー"
+		userID = "00000000-0000-0000-0000-000000000099"
+	}
 
 	devUser := &model.User{
 		ID:          userID,
-		Email:       "dev@duesk.co.jp",
-		FirstName:   "開発",
-		LastName:    "ユーザー",
-		Role:        devRole,  // 環境変数から設定されたロール
+		Email:       email,
+		FirstName:   firstName,
+		LastName:    lastName,
+		Role:        devRole,
 		DefaultRole: &devRole, // ポインタで設定
 		Status:      "active",
 	}
@@ -519,9 +551,10 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 	c.Set("email", devUser.Email)
 	c.Set("role", devUser.DefaultRole)         // 互換性のため
 	c.Set("roles", []model.Role{devUser.Role}) // 複数ロール対応
-	c.Set("cognito_sub", "dev-user-sub")
+	c.Set("cognito_sub", "dev-user-sub-" + userID)
 
 	m.logger.Debug("開発用ユーザーを設定しました",
 		zap.String("email", devUser.Email),
+		zap.String("name", firstName + " " + lastName),
 		zap.Int("role", int(devRole)))
 }

@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -25,6 +26,7 @@ import (
 type AuthResponse struct {
 	AccessToken  string      `json:"access_token"`
 	RefreshToken string      `json:"refresh_token"`
+	IDToken      string      `json:"id_token,omitempty"`
 	ExpiresAt    time.Time   `json:"expires_at"`
 	User         *model.User `json:"user"`
 }
@@ -137,6 +139,11 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 		zap.String("user_agent", userAgent),
 		zap.String("ip_address", ipAddress),
 	)
+	
+	// 開発モード（AUTH_SKIP_MODE）の場合
+	if s.cfg.Cognito.AuthSkipMode {
+		return s.loginDevelopmentMode(ctx, email, userAgent, ipAddress)
+	}
 
 	// Cognito Localの場合でも通常のInitiateAuthを使用
 	if false && s.cfg.Cognito.Endpoint != "" {
@@ -559,4 +566,110 @@ func (s *CognitoAuthService) VerifySMSCode(ctx context.Context, userID string, c
 func (s *CognitoAuthService) UseBackupCode(ctx context.Context, userID string, code string) error {
 	// バックアップコードを使用する場合は実装
 	return fmt.Errorf("backup codes are not implemented yet")
+}
+
+// loginDevelopmentMode 開発モード用のログイン処理
+func (s *CognitoAuthService) loginDevelopmentMode(ctx context.Context, email, userAgent, ipAddress string) (*AuthResponse, error) {
+	s.logger.Info("開発モードログイン処理",
+		zap.String("email", email),
+	)
+	
+	// メールアドレスに基づいてロールを決定
+	var role model.Role
+	var firstName, lastName string
+	var userID string
+	
+	switch email {
+	case "super_admin@duesk.co.jp":
+		role = model.RoleSuperAdmin
+		firstName = "スーパー"
+		lastName = "管理者"
+		userID = "dev-00000000-0000-0000-0000-000000000001"
+	case "admin@duesk.co.jp":
+		role = model.RoleAdmin
+		firstName = "システム"
+		lastName = "管理者"
+		userID = "dev-00000000-0000-0000-0000-000000000002"
+	case "manager@duesk.co.jp":
+		role = model.RoleManager
+		firstName = "プロジェクト"
+		lastName = "マネージャー"
+		userID = "dev-00000000-0000-0000-0000-000000000003"
+	case "engineer_test@duesk.co.jp":
+		role = model.RoleEngineer
+		firstName = "開発"
+		lastName = "エンジニア"
+		userID = "dev-00000000-0000-0000-0000-000000000004"
+	default:
+		// デフォルトはEngineer
+		role = model.RoleEngineer
+		firstName = "開発"
+		lastName = "ユーザー"
+		userID = "dev-00000000-0000-0000-0000-000000000099"
+		// メールアドレスから名前を推測
+		if strings.Contains(email, "@") {
+			parts := strings.Split(email, "@")
+			firstName = parts[0]
+		}
+	}
+	
+	// 開発用ユーザー情報を作成
+	user := &model.User{
+		ID:          userID,
+		Email:       email,
+		FirstName:   firstName,
+		LastName:    lastName,
+		Role:        role,
+		DefaultRole: &role,
+		Status:      "active",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
+	}
+	
+	// DBにユーザーが存在しない場合は作成
+	existingUser, err := s.userRepo.GetByEmail(ctx, email)
+	if err != nil || existingUser == nil {
+		// ユーザーが存在しない場合は作成
+		if err := s.userRepo.Create(ctx, user); err != nil {
+			s.logger.Warn("開発用ユーザーの作成に失敗（既存の可能性）",
+				zap.Error(err),
+				zap.String("email", email),
+			)
+			// エラーが発生しても続行（既に存在する場合など）
+		}
+	} else {
+		// 既存ユーザーを使用
+		user = existingUser
+	}
+	
+	// 開発用の固定トークンを生成
+	accessToken := fmt.Sprintf("dev-access-token-%s-%d", userID, time.Now().Unix())
+	refreshToken := fmt.Sprintf("dev-refresh-token-%s-%d", userID, time.Now().Unix())
+	
+	// セッション作成
+	session := &model.Session{
+		ID:           uuid.New().String(),
+		UserID:       user.ID,
+		RefreshToken: refreshToken,
+		UserAgent:    userAgent,
+		IPAddress:    ipAddress,
+		ExpiresAt:    time.Now().Add(7 * 24 * time.Hour), // 7日間
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+	
+	if err := s.sessionRepo.Create(ctx, session); err != nil {
+		s.logger.Warn("開発用セッションの作成に失敗",
+			zap.Error(err),
+			zap.String("user_id", user.ID),
+		)
+	}
+	
+	return &AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		IDToken:      fmt.Sprintf("dev-id-token-%s", userID),
+		ExpiresAt:    time.Now().Add(time.Hour),
+		User:         user,
+	}, nil
 }
