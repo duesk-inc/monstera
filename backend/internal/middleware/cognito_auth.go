@@ -75,23 +75,12 @@ func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// デバッグログ追加
 		m.logger.Info("AuthRequired called",
-			zap.Bool("Cognito.Enabled", m.config.Cognito.Enabled),
-			zap.Bool("Cognito.AuthSkipMode", m.config.Cognito.AuthSkipMode))
+			zap.Bool("Cognito.Enabled", m.config.Cognito.Enabled))
 
-		// Cognitoが無効な場合
+		// Cognitoが無効な場合のみ開発モードを使用
 		if !m.config.Cognito.Enabled {
-			m.logger.Info("Cognito is disabled")
-			// 認証スキップモードの場合は開発用ユーザーを設定
-			if m.config.Cognito.AuthSkipMode {
-				m.logger.Info("Setting development user")
-				m.setDevelopmentUser(c)
-			}
-			c.Next()
-			return
-		}
-
-		// 開発用: 認証スキップモード
-		if m.config.Cognito.AuthSkipMode {
+			m.logger.Info("Cognito is disabled - using development mode")
+			// 開発モードを使用（Cognitoが無効なら自動的に開発モード）
 			m.setDevelopmentUser(c)
 			c.Next()
 			return
@@ -139,12 +128,10 @@ func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 // OptionalAuth 認証が任意のエンドポイント用のミドルウェア
 func (m *CognitoAuthMiddleware) OptionalAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Cognitoが無効な場合
+		// Cognitoが無効な場合のみ開発モードを使用
 		if !m.config.Cognito.Enabled {
-			// 認証スキップモードの場合は開発用ユーザーを設定
-			if m.config.Cognito.AuthSkipMode {
-				m.setDevelopmentUser(c)
-			}
+			// 開発モードを使用（任意認証でもユーザー情報を設定）
+			m.setDevelopmentUser(c)
 			c.Next()
 			return
 		}
@@ -493,68 +480,66 @@ func validateRSAPublicKey(key *rsa.PublicKey) error {
 func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 	// リクエストからメールアドレスを取得（ログイン時に渡されるメールアドレス）
 	email := c.GetString("auth_email")
+	
+	// auth_emailが設定されていない場合（通常の認証済みリクエスト）
 	if email == "" {
-		// デフォルトのメールアドレス
-		email = "dev@duesk.co.jp"
-	}
-	
-	// メールアドレスに基づいてロールを決定
-	var devRole model.Role
-	var firstName, lastName string
-	var userID string
-	
-	switch email {
-	case "super_admin@duesk.co.jp":
-		devRole = model.RoleSuperAdmin
-		firstName = "スーパー"
-		lastName = "管理者"
-		userID = "00000000-0000-0000-0000-000000000001"
-	case "admin@duesk.co.jp":
-		devRole = model.RoleAdmin
-		firstName = "システム"
-		lastName = "管理者"
-		userID = "00000000-0000-0000-0000-000000000002"
-	case "manager@duesk.co.jp":
-		devRole = model.RoleManager
-		firstName = "プロジェクト"
-		lastName = "マネージャー"
-		userID = "00000000-0000-0000-0000-000000000003"
-	case "engineer_test@duesk.co.jp":
-		devRole = model.RoleEngineer
-		firstName = "開発"
-		lastName = "エンジニア"
-		userID = "00000000-0000-0000-0000-000000000004"
-	default:
-		// デフォルトまたは環境変数から開発用ロールを取得
-		devRole = model.Role(m.config.Cognito.DevUserRole)
-		if devRole < 1 || devRole > 4 {
-			devRole = model.RoleAdmin // 無効な値の場合はAdminを使用
+		// アクセストークンから取得を試みる
+		token := m.extractToken(c)
+		if token != "" && strings.HasPrefix(token, "dev.") {
+			// dev.{user_id}.{timestamp} 形式からユーザーIDを抽出
+			parts := strings.Split(token, ".")
+			if len(parts) >= 2 {
+				userID := parts[1]
+				// データベースからユーザーを取得
+				ctx := c.Request.Context()
+				user, err := m.userRepo.GetByID(ctx, userID)
+				if err == nil && user != nil {
+					// データベースから取得したユーザー情報を設定
+					c.Set("user", user)
+					c.Set("user_id", user.ID)
+					c.Set("email", user.Email)
+					c.Set("role", user.DefaultRole)
+					c.Set("roles", []model.Role{user.Role})
+					c.Set("cognito_sub", user.ID)
+					
+					m.logger.Debug("開発用ユーザーを設定しました（DB取得）",
+						zap.String("email", user.Email),
+						zap.String("user_id", user.ID),
+						zap.Int("role", int(user.Role)))
+					return
+				}
+			}
 		}
-		firstName = "開発"
-		lastName = "ユーザー"
-		userID = "00000000-0000-0000-0000-000000000099"
+		
+		// トークンがない、または無効な場合はログインページへのアクセスとみなしスキップ
+		m.logger.Debug("開発モード: 認証情報なし（ログインページアクセス等）")
+		return
+	}
+	
+	// ログイン時: データベースから実際のユーザーを取得
+	ctx := c.Request.Context()
+	user, err := m.userRepo.GetByEmail(ctx, email)
+	if err != nil || user == nil {
+		m.logger.Warn("開発環境でユーザーが見つかりません", 
+			zap.String("email", email),
+			zap.Error(err))
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"error": "ユーザーが見つかりません",
+			"code": "AUTH_001",
+		})
+		return
 	}
 
-	devUser := &model.User{
-		ID:          userID,
-		Email:       email,
-		FirstName:   firstName,
-		LastName:    lastName,
-		Role:        devRole,
-		DefaultRole: &devRole, // ポインタで設定
-		Status:      "active",
-	}
-
-	// コンテキストにユーザー情報を設定
-	c.Set("user", devUser)
-	c.Set("user_id", devUser.ID)
-	c.Set("email", devUser.Email)
-	c.Set("role", devUser.DefaultRole)         // 互換性のため
-	c.Set("roles", []model.Role{devUser.Role}) // 複数ロール対応
-	c.Set("cognito_sub", "dev-user-sub-" + userID)
+	// データベースから取得したユーザー情報を設定
+	c.Set("user", user)
+	c.Set("user_id", user.ID)
+	c.Set("email", user.Email)
+	c.Set("role", user.DefaultRole)
+	c.Set("roles", []model.Role{user.Role})
+	c.Set("cognito_sub", user.ID)
 
 	m.logger.Debug("開発用ユーザーを設定しました",
-		zap.String("email", devUser.Email),
-		zap.String("name", firstName + " " + lastName),
-		zap.Int("role", int(devRole)))
+		zap.String("email", user.Email),
+		zap.String("user_id", user.ID),
+		zap.Int("role", int(user.Role)))
 }

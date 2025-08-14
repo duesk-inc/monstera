@@ -8,8 +8,11 @@ import (
 
 // User ユーザーモデル（Cognito Sub主キー版）
 type User struct {
-	// Cognito Sub を主キーとして使用
-	ID    string `gorm:"type:varchar(255);primary_key" json:"id"` // Cognito Sub
+	// User.ID には以下の形式のIDが格納される:
+	// - Cognito認証時: Cognito Sub形式 (region:uuid)
+	// - 開発モード時: UUID形式
+	// 注意: cognito_subという別カラムは存在しない
+	ID    string `gorm:"type:varchar(255);primary_key" json:"id"`
 	Email string `gorm:"size:255;not null;unique" json:"email"`
 	// Passwordフィールドは削除（Cognito認証のみ）
 

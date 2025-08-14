@@ -7,8 +7,13 @@ BEGIN
 END $$;
 
 -- Users テーブル作成（全カラム統合版）
+-- ID管理方針:
+-- - idカラムにはCognito SubまたはUUIDが格納される
+-- - Cognito認証時: region:uuid形式 (例: ap-northeast-1:123e4567-e89b-12d3-a456-426614174000)
+-- - 開発モード時: UUID形式 (例: 37f4ba88-80e1-7053-57f9-84c245af87df)
+-- - cognito_subという別カラムは存在しない（idカラムに統一）
 CREATE TABLE IF NOT EXISTS users (
-  id VARCHAR(255) PRIMARY KEY,
+  id VARCHAR(255) PRIMARY KEY, -- Cognito SubまたはUUIDを格納
   email VARCHAR(255) UNIQUE NOT NULL,
   -- password削除: Cognito認証に完全移行
   first_name VARCHAR(100) NOT NULL,

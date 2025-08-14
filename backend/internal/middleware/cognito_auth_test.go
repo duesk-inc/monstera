@@ -133,7 +133,7 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 		c.Set("email", testUser.Email)
 		c.Set("role", *testUser.DefaultRole)
 		c.Set("roles", testUser.Roles)
-		c.Set("cognito_sub", "test-cognito-sub")
+		c.Set("cognito_sub", userID) // user.IDと同じ値を設定（実際の動作と一致）
 
 		// 検証内容
 		userIDValue, exists := c.Get("user_id")
@@ -156,7 +156,7 @@ func TestCognitoAuthMiddleware(t *testing.T) {
 
 		cognitoSub, exists := c.Get("cognito_sub")
 		assert.True(t, exists, "cognito_sub should exist in context")
-		assert.Equal(t, "test-cognito-sub", cognitoSub)
+		assert.Equal(t, userID, cognitoSub) // user.IDと同じ値であることを確認
 
 		handlerCalled = true
 

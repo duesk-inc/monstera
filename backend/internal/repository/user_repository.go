@@ -106,12 +106,16 @@ func (r *UserRepositoryImpl) GetByEmail(ctx context.Context, email string) (*mod
 }
 
 // GetByCognitoSub CognitoサブIDでユーザーを取得
+// 注意: データベースのidカラムを検索する（cognito_subカラムは存在しない）
+// cognitoSubパラメータには以下の形式が渡される:
+// - Cognito認証時: region:uuid形式
+// - 開発モード時: UUID形式
 func (r *UserRepositoryImpl) GetByCognitoSub(ctx context.Context, cognitoSub string) (*model.User, error) {
 	var user model.User
 	if r.Logger != nil {
 		r.Logger.Info("Getting user by Cognito sub", zap.String("cognito_sub", cognitoSub))
 	}
-	err := r.DB.WithContext(ctx).First(&user, "cognito_sub = ?", cognitoSub).Error
+	err := r.DB.WithContext(ctx).First(&user, "id = ?", cognitoSub).Error
 	if err != nil {
 		if r.Logger != nil {
 			r.Logger.Error("Failed to get user by Cognito sub", zap.String("cognito_sub", cognitoSub), zap.Error(err))

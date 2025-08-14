@@ -57,7 +57,6 @@ func (suite *ExpenseRepositoryTestSuite) SetupSuite() {
 		CREATE TABLE users (
 			id TEXT PRIMARY KEY,
 			email TEXT NOT NULL,
-			cognito_sub TEXT,
 			first_name TEXT NOT NULL,
 			last_name TEXT NOT NULL,
 			name TEXT,
@@ -166,8 +165,8 @@ func (suite *ExpenseRepositoryTestSuite) SetupTest() {
 func (suite *ExpenseRepositoryTestSuite) TestExpenseRepository_Create() {
 	// テストユーザーの作成
 	userID := uuid.New().String()
-	suite.db.Exec("INSERT INTO users (id, email, cognito_sub, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-		userID, "test@duesk.co.jp", "test-cognito-sub", "Test", "User", "Test User", time.Now(), time.Now())
+	suite.db.Exec("INSERT INTO users (id, email, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		userID, "test@duesk.co.jp", "Test", "User", "Test User", time.Now(), time.Now())
 
 	// テスト用経費申請
 	expense := &model.Expense{

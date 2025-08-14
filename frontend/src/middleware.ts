@@ -74,6 +74,12 @@ const getCognitoTokenFromCookies = (request: NextRequest): { token: string | nul
 export function middleware(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
   
+  // 静的ファイルの拡張子をチェックして早期リターン
+  const staticFileExtensions = ['.svg', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.css', '.js', '.woff', '.woff2', '.ttf', '.otf', '.pdf', '.txt', '.ico'];
+  if (staticFileExtensions.some(ext => pathname.endsWith(ext))) {
+    return NextResponse.next();
+  }
+  
   debugLog('Request path:', pathname);
   
   // パスがpublicPathsのいずれかに一致するか確認

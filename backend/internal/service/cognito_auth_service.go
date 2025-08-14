@@ -139,8 +139,8 @@ func (s *CognitoAuthService) Login(ctx context.Context, email, password, userAge
 		zap.String("ip_address", ipAddress),
 	)
 	
-	// 開発モード（AUTH_SKIP_MODE）の場合
-	if s.cfg.Cognito.AuthSkipMode {
+	// 開発モード（COGNITO_ENABLEDがfalse）の場合
+	if !s.cfg.Cognito.Enabled {
 		return s.loginDevelopmentMode(ctx, email, userAgent, ipAddress)
 	}
 

@@ -8,6 +8,8 @@ DECLARE
     admin_user_id VARCHAR(255) := 'c754ea38-50c1-7073-43f0-680d98538caa';
     user1_id VARCHAR(255) := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
     user2_id VARCHAR(255) := 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13';
+    -- システムユーザー（監査ログ用）
+    system_user_id VARCHAR(255) := '00000000-0000-0000-0000-000000000000';
 BEGIN
     -- エンジニアテストユーザー（開発環境用）
     INSERT INTO users (
@@ -26,11 +28,17 @@ BEGIN
         'Engineer',
         'Test',
         '',
-        0,  -- Employee
-        1,  -- Active
+        4,  -- Engineer role
+        'active',  -- Active status (文字列)
         NOW(), 
         NOW()
-    ) ON CONFLICT (id) DO NOTHING;
+    ) ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        role = EXCLUDED.role,
+        status = EXCLUDED.status,
+        updated_at = NOW();
 
     -- 管理者ユーザー（Cognito Sub設定済み想定）
     INSERT INTO users (
@@ -50,10 +58,16 @@ BEGIN
         'User',
         '',
         2,  -- Admin
-        1,  -- Active
+        'active',  -- Active status (文字列)
         NOW(), 
         NOW()
-    ) ON CONFLICT (id) DO NOTHING;
+    ) ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        role = EXCLUDED.role,
+        status = EXCLUDED.status,
+        updated_at = NOW();
 
     -- 一般ユーザー1（Cognito Sub設定済み想定）
     INSERT INTO users (
@@ -72,11 +86,17 @@ BEGIN
         'Taro',
         'Tanaka',
         '',
-        0,  -- Employee
-        1,  -- Active
+        4,  -- Engineer role
+        'active',  -- Active status (文字列)
         NOW(), 
         NOW()
-    ) ON CONFLICT (id) DO NOTHING;
+    ) ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        role = EXCLUDED.role,
+        status = EXCLUDED.status,
+        updated_at = NOW();
 
     -- 一般ユーザー2（Cognito Sub設定済み想定）
     INSERT INTO users (
@@ -96,12 +116,48 @@ BEGIN
         'Hanako',
         'Sato',
         '',
-        0,  -- Employee
-        1,  -- Active
+        4,  -- Engineer role
+        'active',  -- Active status (文字列)
         'female',
         NOW(), 
         NOW()
-    ) ON CONFLICT (id) DO NOTHING;
+    ) ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        role = EXCLUDED.role,
+        status = EXCLUDED.status,
+        gender = EXCLUDED.gender,
+        updated_at = NOW();
+
+    -- システムユーザー（監査ログ用）
+    INSERT INTO users (
+        id,
+        email, 
+        first_name, 
+        last_name, 
+        phone_number,
+        role,
+        status,
+        created_at, 
+        updated_at
+    ) VALUES (
+        system_user_id,
+        'system@duesk.co.jp',
+        'System',
+        'User',
+        '',
+        4,  -- Engineer role
+        'active',  -- Active status (文字列)
+        NOW(), 
+        NOW()
+    ) ON CONFLICT (id) DO UPDATE SET
+        email = EXCLUDED.email,
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        role = EXCLUDED.role,
+        status = EXCLUDED.status,
+        updated_at = NOW();
 
     -- プロフィールとの関連付けに必要な場合は、profilesテーブルにも挿入
     -- （既存のプロフィールデータがあれば、user_idを更新）

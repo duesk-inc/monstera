@@ -62,8 +62,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
-  // 初回マウント時に認証状態を確認
+  // 初回マウント時に認証状態を確認（ログイン画面以外で実行）
   useEffect(() => {
+    // ログイン画面では認証チェックをスキップ
+    if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+      setIsLoading(false);
+      return;
+    }
     refreshAuth();
   }, [refreshAuth]);
 

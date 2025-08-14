@@ -408,7 +408,6 @@ func Load(envFile ...string) (*Config, error) {
 		},
 		Cognito: CognitoConfig{
 			Enabled:      getEnv("COGNITO_ENABLED", "false") == "true",
-			AuthSkipMode: getEnv("AUTH_SKIP_MODE", "false") == "true",
 			DevUserRole:  getEnvInt("DEV_USER_ROLE", 2), // デフォルト: 2=Admin
 			Region:       getEnv("COGNITO_REGION", "us-east-1"),
 			UserPoolID:   getEnv("COGNITO_USER_POOL_ID", ""),

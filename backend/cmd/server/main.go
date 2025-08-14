@@ -162,9 +162,10 @@ func main() {
 
 	// サービスの作成
 	var authSvc service.AuthService
-	if cfg.Cognito.Enabled || cfg.Cognito.AuthSkipMode {
-		if cfg.Cognito.AuthSkipMode {
-			logger.Info("開発モード（AUTH_SKIP_MODE）が有効です")
+	// Cognito認証サービスは常に作成する（有効/無効は内部で判定）
+	if true {
+		if !cfg.Cognito.Enabled {
+			logger.Info("開発モード（COGNITO_ENABLEDがfalse）が有効です")
 		} else {
 			logger.Info("Cognito認証が有効です")
 		}
@@ -578,8 +579,7 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 
 	// 認証ミドルウェアの初期化 - Cognito認証に統一
 	logger.Info("Initializing CognitoAuthMiddleware",
-		zap.Bool("Cognito.Enabled", cfg.Cognito.Enabled),
-		zap.Bool("Cognito.AuthSkipMode", cfg.Cognito.AuthSkipMode))
+		zap.Bool("Cognito.Enabled", cfg.Cognito.Enabled))
 	cognitoMiddleware := middleware.NewCognitoAuthMiddleware(cfg, userRepo, logger)
 	if cognitoMiddleware == nil {
 		logger.Fatal("Failed to initialize CognitoAuthMiddleware")

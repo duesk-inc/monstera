@@ -5,7 +5,6 @@
 INSERT INTO users (
     id, 
     email,
-    cognito_sub,
     first_name,
     last_name,
     name,
@@ -21,7 +20,6 @@ INSERT INTO users (
 ) VALUES (
     '00000000-0000-0000-0000-000000000000',  -- システムID（36文字のUUID形式）
     'system@internal',
-    '00000000-0000-0000-0000-000000000000',
     'System',
     'User',
     'System User',
