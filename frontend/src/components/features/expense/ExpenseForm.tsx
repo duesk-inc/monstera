@@ -217,7 +217,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({
   }, [validateForm]);
 
   // 領収書アップロードハンドラー
-  const handleReceiptChange = useCallback((url: string | null, s3Key: string | null) => {
+  const handleReceiptChange = useCallback((url: string | null, s3Key: string | null, fileName?: string | null) => {
     setFormData(prev => ({
       ...prev,
       receiptUrl: url || undefined,

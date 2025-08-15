@@ -16,7 +16,6 @@ import {
   Delete as DeleteIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
-  Visibility as VisibilityIcon,
 } from '@mui/icons-material';
 import { 
   generateUploadURL, 
@@ -46,7 +45,8 @@ const HTTP_OK = 200;
 interface ReceiptUploaderProps {
   value?: string; // アップロード済みファイルのURL
   s3Key?: string; // S3キー
-  onChange: (url: string | null, s3Key: string | null) => void;
+  fileName?: string; // アップロード済みファイルの名前
+  onChange: (url: string | null, s3Key: string | null, fileName?: string | null) => void;
   disabled?: boolean;
   required?: boolean;
   error?: string;
@@ -60,6 +60,7 @@ interface ReceiptUploaderProps {
 export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
   value,
   s3Key,
+  fileName,
   onChange,
   disabled = false,
   required = false,
@@ -80,7 +81,7 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
     
     try {
       await deleteUploadedFile({ s3_key: s3Key });
-      onChange(null, null);
+      onChange(null, null, null);
       showSuccess('ファイルを削除しました');
     } catch (error) {
       handleSubmissionError(error, 'ファイルの削除');
@@ -184,7 +185,7 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
       });
 
       // 成功時の処理
-      onChange(uploadResponse.uploadUrl, uploadResponse.s3Key);
+      onChange(uploadResponse.uploadUrl, uploadResponse.s3Key, file.name);
       showSuccess(EXPENSE_MESSAGES.UPLOAD_SUCCESS);
       
       // プログレス状態をクリア
@@ -298,8 +299,53 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
     );
   }
 
+  // ファイル名から表示用の名前を生成（長い場合は省略）
+  const getDisplayFileName = (name: string | undefined): string => {
+    if (!name) {
+      // ファイル名がない場合はURLから推測
+      if (value) {
+        try {
+          const url = new URL(value);
+          const pathSegments = url.pathname.split('/');
+          const encodedName = pathSegments[pathSegments.length - 1] || 'ファイル';
+          // URLエンコードされた日本語ファイル名をデコード
+          name = decodeURIComponent(encodedName);
+        } catch {
+          name = 'ファイル';
+        }
+      } else {
+        return 'ファイル';
+      }
+    }
+    
+    // S3等でタイムスタンプが付与されている場合は除去
+    // 形式: 1234567890_originalfilename.ext -> originalfilename.ext
+    const timestampPattern = /^\d{10}_/;
+    if (timestampPattern.test(name)) {
+      name = name.replace(timestampPattern, '');
+    }
+    
+    // 拡張子を分離
+    const lastDotIndex = name.lastIndexOf('.');
+    const nameWithoutExt = lastDotIndex > 0 ? name.substring(0, lastDotIndex) : name;
+    const extension = lastDotIndex > 0 ? name.substring(lastDotIndex) : '';
+    
+    // ファイル名が長すぎる場合は省略（日本語文字も考慮）
+    const maxLength = 60;  // 表示領域を最大限活用するため大きく設定
+    if (name.length > maxLength) {
+      const truncatedName = nameWithoutExt.length > (maxLength - extension.length - 3) 
+        ? nameWithoutExt.substring(0, maxLength - extension.length - 3) + '...' 
+        : nameWithoutExt;
+      return truncatedName + extension;
+    }
+    
+    return name;
+  };
+
   // アップロード済みファイルの表示
   if (value && s3Key) {
+    const displayFileName = getDisplayFileName(fileName);
+    
     return (
       <Box>
         <Typography variant="subtitle1" gutterBottom>
@@ -307,31 +353,41 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
         </Typography>
         
         <Paper sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CheckCircleIcon color="success" />
-              <Typography variant="body2">
-                ファイルがアップロード済みです
-              </Typography>
-            </Box>
-            
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton
-                size="small"
-                onClick={() => window.open(value, '_blank')}
-                title="ファイルを表示"
-              >
-                <VisibilityIcon />
-              </IconButton>
-              <IconButton
-                size="small"
-                onClick={handleDelete}
-                disabled={disabled}
-                title="ファイルを削除"
-              >
-                <DeleteIcon />
-              </IconButton>
-            </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CheckCircleIcon color="success" sx={{ flexShrink: 0, mr: 0.5 }} />
+            <Typography 
+              variant="body2" 
+              component="a"
+              href={value}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{ 
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                flex: '1 1 auto',
+                minWidth: 0,  // オーバーフローが正しく動作するように
+                maxWidth: 'calc(100% - 60px)',  // アイコン分を除いた最大幅
+                textDecoration: 'none',
+                color: 'primary.main',
+                cursor: 'pointer',
+                '&:hover': {
+                  textDecoration: 'underline',
+                }
+              }}
+              title={fileName || displayFileName}
+            >
+              {displayFileName}
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={handleDelete}
+              disabled={disabled}
+              title="ファイルを削除"
+              sx={{ flexShrink: 0, ml: 'auto' }}
+            >
+              <DeleteIcon />
+            </IconButton>
           </Box>
         </Paper>
       </Box>
@@ -386,7 +442,10 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
         <Button
           variant="outlined"
           startIcon={<AttachFileIcon />}
-          onClick={handleButtonClick}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleButtonClick();
+          }}
           disabled={disabled}
           sx={{ mb: 1 }}
         >
