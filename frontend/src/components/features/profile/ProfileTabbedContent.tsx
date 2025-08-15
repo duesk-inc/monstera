@@ -18,6 +18,8 @@ import { ProfileActionButtons } from '@/components/common/ProfileActionButtons';
 import { TabContainer } from '@/components/common/layout';
 import { CommonTabPanel } from '@/components/common/CommonTabPanel';
 import { useActiveRole } from '@/context/ActiveRoleContext';
+import { useAuth } from '@/hooks/useAuth';
+import { isMultiRoleEnabled } from '@/utils/roleUtils';
 
 interface ProfileTabbedContentProps {
   profile: UserProfile | null;
@@ -42,6 +44,13 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
 }) => {
   const [currentTab, setCurrentTab] = useState(0);
   const { availableRoles } = useActiveRole();
+  const { user } = useAuth();
+  const multiRoleEnabled = isMultiRoleEnabled();
+  
+  // Feature Flagによるロール情報の切り替え
+  const userRoles = multiRoleEnabled 
+    ? availableRoles 
+    : user ? [user.role] : [];  // 単一ロールモードでは配列ではなく単一値
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);

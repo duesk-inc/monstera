@@ -88,11 +88,13 @@ export const ActiveRoleProvider: React.FC<ActiveRoleProviderProps> = ({ children
         sessionStorage.setItem(ACTIVE_ROLE_KEY, defaultRoleString);
       }
     } else if (validRoles.length > 0) {
-      // 最高権限のロールをデフォルトに設定
-      const highestRole = getHighestRoleFromList(validRoles);
-      setActiveRoleState(highestRole);
+      // 単一ロールの場合はそれを使用、複数ロールの場合は最高権限を使用
+      const defaultActiveRole = validRoles.length === 1 
+        ? validRoles[0] 
+        : getHighestRoleFromList(validRoles);
+      setActiveRoleState(defaultActiveRole);
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem(ACTIVE_ROLE_KEY, highestRole);
+        sessionStorage.setItem(ACTIVE_ROLE_KEY, defaultActiveRole);
       }
     }
   };

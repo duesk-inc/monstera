@@ -7,6 +7,8 @@ import EngineerSidebar from '@/components/ui/EngineerSidebar';
 import { SharedLayoutWrapper } from '@/components/common/layout';
 import { useActiveRole } from '@/context/ActiveRoleContext';
 import { ROLES } from '@/constants/roles';
+import { useAuth } from '@/hooks/useAuth';
+import { isMultiRoleEnabled } from '@/utils/roleUtils';
 
 export default function RootLayout({
   children,
@@ -15,7 +17,13 @@ export default function RootLayout({
 }) {
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
   const { activeRole } = useActiveRole();
-  const isEngineer = activeRole === ROLES.ENGINEER;
+  const { currentUserRole } = useAuth();
+  const multiRoleEnabled = isMultiRoleEnabled();
+  
+  // Feature Flagによるロール判定の切り替え
+  const isEngineer = multiRoleEnabled 
+    ? activeRole === ROLES.ENGINEER  // 複数ロールモード
+    : currentUserRole === 4;         // 単一ロールモード（Engineer=4）
 
 
   const userMenuItems = (

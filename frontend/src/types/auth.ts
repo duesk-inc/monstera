@@ -65,4 +65,49 @@ export interface ErrorResponse {
 // ログアウトレスポンス
 export interface LogoutResponse {
   message: string;
+}
+
+// ========================================
+// 単一ロールシステム用の新しい型定義
+// Phase 1で追加、Phase 2で既存の型と置き換え
+// ========================================
+
+// 単一ロール用ユーザー情報（フロントエンド内部で使用）
+export interface SingleRoleUser {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: number;              // 数値型のロール (1-4)
+  phone_number?: string | null;
+}
+
+// 単一ロール用APIレスポンスのユーザー情報
+export interface SingleRoleApiUser {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  role: number;              // 数値型のロール (1-4)
+  phone_number?: string | null;
+  active?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// 単一ロール用ログイン成功時のレスポンス
+export interface SingleRoleLoginResponse {
+  user: SingleRoleApiUser;
+  access_token: string;
+  refresh_token?: string;
+  message: string;
+  redirect_to?: string;
+}
+
+// 単一ロール用リフレッシュトークンのレスポンス
+export interface SingleRoleRefreshTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  user?: SingleRoleApiUser;
+  message?: string;
 } 
