@@ -183,6 +183,8 @@ services:
       - NEXT_TELEMETRY_DISABLED=1
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
+      # 単一ロールシステム移行用フラグ
+      - ENABLE_MULTI_ROLE=false
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     volumes:
