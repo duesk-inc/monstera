@@ -41,6 +41,10 @@ export const ATTENDANCE_API = {
 
 export const LEAVE_API = {
   BASE: `/api/${API_VERSION}/leave`,
+  TYPES: `/api/${API_VERSION}/leave/types`,
+  BALANCES: `/api/${API_VERSION}/leave/balances`,
+  REQUESTS: `/api/${API_VERSION}/leave/requests`,
+  CREATE: `/api/${API_VERSION}/leave/requests`,
   APPLY: `/api/${API_VERSION}/leave/apply`,
   LIST: `/api/${API_VERSION}/leave/list`,
   APPROVE: `/api/${API_VERSION}/leave/approve`,
