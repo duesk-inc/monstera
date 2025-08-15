@@ -254,6 +254,8 @@ export const SUCCESS_MESSAGE_TEMPLATES = {
   FILE_UPLOADED: "ファイルをアップロードしました。",
   EXPORT_COMPLETED: "エクスポートが完了しました。",
   IMPORT_COMPLETED: "インポートが完了しました。",
+  TEMP_DATA_LOADED: (params: { formattedDate: string }) => 
+    `${params.formattedDate}に一時保存されたデータを読み込みました。`,
 } as const;
 
 // 統合成功メッセージ
@@ -263,6 +265,7 @@ export const SUCCESS_MESSAGES = {
   LOGIN_SUCCESS: "ログインしました。",
   LOGOUT_SUCCESS: "ログアウトしました。",
   PROFILE_UPDATED: "プロフィールを更新しました。",
+  PROFILE_TEMP_SAVED: "プロフィールを一時保存しました。",
   PASSWORD_CHANGED: "パスワードを変更しました。",
   // 週報関連
   WEEKLY_REPORT_SUBMITTED: "週報を提出しました。",
