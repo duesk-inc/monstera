@@ -5,12 +5,11 @@
  */
 
 import { useAuth as useAuthContext } from '@/context/AuthContext';
-import { useActiveRole } from '@/context/ActiveRoleContext';
+// Phase 4: ActiveRoleContextは削除済み
 import { useCallback, useMemo } from 'react';
 import { LoginRequest, User } from '@/types/auth';
 // Phase 3: convertRoleNumberToString は不要になった
 import { 
-  isMultiRoleEnabled, 
   hasPermission as hasPermissionUtil,
   isAdmin as isAdminUtil,
   isManager as isManagerUtil,
@@ -19,22 +18,16 @@ import {
 
 export const useAuth = () => {
   const authContext = useAuthContext();
-  const { initializeActiveRole, activeRole } = useActiveRole();
-  const multiRoleEnabled = isMultiRoleEnabled();
+  // Phase 4: Feature Flagは削除（常に単一ロールモード）
 
   // ログイン関数をラップして、ActiveRole初期化を含める
   const login = useCallback(async (credentials: LoginRequest) => {
     const result = await authContext.login(credentials);
     
-    if (result.success && authContext.user && multiRoleEnabled) {
-      // Phase 3: 複数ロールモードの場合のみActiveRoleProviderを初期化
-      // 後方互換性のためrolesフィールドをチェック
-      const userRoles = authContext.user.roles || [];
-      initializeActiveRole(userRoles, authContext.user.default_role);
-    }
+    // Phase 4: ActiveRole初期化は削除
     
     return result;
-  }, [authContext, initializeActiveRole]);
+  }, [authContext]);
 
   // 初期化関数（互換性のため）
   const initializeAuth = useCallback(() => {
@@ -45,22 +38,9 @@ export const useAuth = () => {
   const currentUserRole = useMemo(() => {
     if (!authContext.user) return null;
     
-    if (!multiRoleEnabled) {
-      // 単一ロールモード: 数値のroleを直接使用
-      if (typeof authContext.user.role === 'number') {
-        return authContext.user.role;
-      }
-      // Phase 3: roleは数値に統一されたので変換不要
-      return authContext.user.role;
-    } else {
-      // 複数ロールモード: activeRoleを使用
-      if (activeRole) {
-        return roleStringToNumber(activeRole);
-      }
-      // フォールバック
-      return authContext.user.role;
-    }
-  }, [authContext.user, activeRole, multiRoleEnabled]);
+    // Phase 4: 単一ロールシステムに統一
+    return authContext.user.role;
+  }, [authContext.user]);
 
   // 権限チェック関数（Feature Flagで切り替え）
   const hasPermission = useCallback((requiredRole: number): boolean => {
@@ -99,7 +79,5 @@ export const useAuth = () => {
     hasPermission,
     isAdmin,
     isManager,
-    // Feature Flag
-    multiRoleEnabled,
   };
 };

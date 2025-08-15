@@ -98,15 +98,9 @@ export const isValidRole = (roleNumber: number): boolean => {
 };
 
 /**
- * Feature Flag: マルチロール機能が有効かチェック
- * @returns 環境変数ENABLE_MULTI_ROLEがtrueの場合true
+ * @deprecated Phase 4: Feature Flagは削除されました
+ * 常にfalseを返します
  */
 export const isMultiRoleEnabled = (): boolean => {
-  if (typeof window === 'undefined') {
-    // サーバーサイドの場合
-    return process.env.ENABLE_MULTI_ROLE === 'true';
-  }
-  // クライアントサイドの場合（Next.jsのpublicEnvを使用する場合）
-  // 現在はサーバーサイドの環境変数のみ対応
   return false;
 };

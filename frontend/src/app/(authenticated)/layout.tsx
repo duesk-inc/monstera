@@ -6,7 +6,6 @@ import AdminSidebar from '@/components/ui/AdminSidebar';
 import EngineerSidebar from '@/components/ui/EngineerSidebar';
 import { SharedLayoutWrapper } from '@/components/common/layout';
 import { useAuth } from '@/hooks/useAuth';
-import { isManager as isManagerUtil } from '@/utils/roleUtils';
 
 export default function RootLayout({
   children,
@@ -14,11 +13,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
-  const { currentUserRole, multiRoleEnabled } = useAuth();
+  const { currentUserRole } = useAuth();
   
-  // 単一ロールシステムでのロール判定
-  // Feature Flagがfalseの場合は常に単一ロールモード
-  const isEngineer = !multiRoleEnabled && currentUserRole === 4;
+  // Phase 4: 単一ロールシステムでのロール判定
+  const isEngineer = currentUserRole === 4;  // Engineer = 4
 
 
   const userMenuItems = (

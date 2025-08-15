@@ -7,7 +7,7 @@ import AdminSidebar from '@/components/ui/AdminSidebar';
 import { SharedLayoutWrapper } from '@/components/common/layout';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { ADMIN_ROLES, RoleType } from '@/constants/roles';
+import { isAdmin as isAdminRole } from '@/utils/roleUtils';
 
 export default function AdminLayout({
   children,
@@ -21,11 +21,8 @@ export default function AdminLayout({
   // 管理者権限チェック
   useEffect(() => {
     if (!isLoading && user) {
-      const hasAdminRole = user.roles ? 
-        user.roles.some(role => ADMIN_ROLES.includes(role as RoleType)) :
-        ADMIN_ROLES.includes(user.role as RoleType);
-      
-      if (!hasAdminRole) {
+      // Phase 4: 単一ロールシステムでの権限チェック
+      if (!isAdminRole(user.role)) {
         router.push('/dashboard');
       }
     }

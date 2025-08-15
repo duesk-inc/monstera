@@ -8,15 +8,12 @@ import theme from '@/theme/theme';
 import AuthErrorHandler from '@/components/common/AuthErrorHandler';
 import { ToastProvider, GlobalErrorBoundary } from '@/components/common';
 import { AuthProvider } from '@/context/AuthContext';
-import { ActiveRoleProvider } from '@/context/ActiveRoleContext';
-import { isMultiRoleEnabled } from '@/utils/roleUtils';
+// Phase 4: ActiveRoleProviderとFeature Flagは削除
 import { queryClient } from '@/lib/query-client';
 import { QueryErrorBoundary } from '@/components/common/QueryErrorBoundary';
 
 // Providerコンポーネント
 export function Providers({ children }: { children: ReactNode }) {
-  const multiRoleEnabled = isMultiRoleEnabled();
-
   return (
     <GlobalErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -25,18 +22,9 @@ export function Providers({ children }: { children: ReactNode }) {
           <ToastProvider>
             <AuthErrorHandler />
             <AuthProvider>
-              {/* Feature Flag: 複数ロールモードが有効な場合のみActiveRoleProviderを使用 */}
-              {multiRoleEnabled ? (
-                <ActiveRoleProvider>
-                  <QueryErrorBoundary>
-                    {children}
-                  </QueryErrorBoundary>
-                </ActiveRoleProvider>
-              ) : (
-                <QueryErrorBoundary>
-                  {children}
-                </QueryErrorBoundary>
-              )}
+              <QueryErrorBoundary>
+                {children}
+              </QueryErrorBoundary>
             </AuthProvider>
           </ToastProvider>
         </ThemeProvider>

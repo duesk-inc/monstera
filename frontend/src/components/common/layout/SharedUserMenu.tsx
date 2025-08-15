@@ -9,7 +9,7 @@ import {
 } from '@mui/icons-material';
 import { User } from '@/types/auth';
 import { UserAvatar } from './UserAvatar';
-import { RoleSwitcher } from '@/components/ui/RoleSwitcher';
+// Phase 4: RoleSwitcherは削除済み
 import { ROLES, ROLE_DISPLAY_NAMES, RoleType } from '@/constants/roles';
 
 interface SharedUserMenuProps {
@@ -53,17 +53,14 @@ export const SharedUserMenu: React.FC<SharedUserMenuProps> = ({
   const getRoleDisplay = () => {
     if (!user) return '';
     
-    // 複数ロールがある場合
-    if (user.roles && user.roles.length > 0) {
-      const roleLabels = user.roles.map(role => {
-        // ROLE_DISPLAY_NAMESを使用して表示名を取得
-        return ROLE_DISPLAY_NAMES[role as RoleType] || role;
-      });
-      return roleLabels.join(' / ');
-    }
-    
-    // 単一ロールの場合
-    return ROLE_DISPLAY_NAMES[user.role as RoleType] || user.role;
+    // Phase 4: 単一ロールシステムに統一
+    const roleMap: Record<number, string> = {
+      1: 'スーパー管理者',
+      2: '管理者',
+      3: 'マネージャー',
+      4: 'エンジニア'
+    };
+    return roleMap[user.role] || 'ユーザー';
   };
 
   return (
@@ -139,7 +136,7 @@ export const SharedUserMenu: React.FC<SharedUserMenuProps> = ({
             </MenuItem>
           </Box>
           
-          <RoleSwitcher onClose={onClose} />
+          {/* Phase 4: RoleSwitcherは削除済み */}
           
           {additionalMenuItems && (
             <>
