@@ -12,8 +12,15 @@ export const NOTIFICATION_API = {
 
 export const PROFILE_API = {
   BASE: `/api/${API_VERSION}/profile`,
-  UPDATE: `/api/${API_VERSION}/profile/update`,
+  GET: `/api/${API_VERSION}/profile`,
+  UPDATE: `/api/${API_VERSION}/profile`,
+  WITH_HISTORY: `/api/${API_VERSION}/profile/with-work-history`,
+  TEMP_SAVE: `/api/${API_VERSION}/profile/temp-save`,
   AVATAR: `/api/${API_VERSION}/profile/avatar`,
+  HISTORY: `/api/${API_VERSION}/profile/history`,
+  LATEST_HISTORY: `/api/${API_VERSION}/profile/history`,
+  TECHNOLOGY_CATEGORIES: `/api/${API_VERSION}/profile/technology-categories`,
+  COMMON_CERTIFICATIONS: `/api/${API_VERSION}/profile/common-certifications`,
 } as const;
 
 export const WEEKLY_REPORT_API = {

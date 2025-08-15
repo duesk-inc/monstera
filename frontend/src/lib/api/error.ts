@@ -126,6 +126,10 @@ export const handleApiError = (
         case 403:
           return new Error(`${resourceName}へのアクセスが拒否されました`);
         case 404:
+          // より適切なメッセージに変更
+          if (resourceName.includes('更新') || resourceName.includes('保存')) {
+            return new Error(`${resourceName}の処理に失敗しました。サーバーエラーの可能性があります`);
+          }
           return new Error(`${resourceName}が見つかりません`);
         case 500:
           return new Error(`サーバーエラーが発生しました`);
