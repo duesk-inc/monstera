@@ -5,8 +5,7 @@ import { MenuItem, Typography, Avatar } from '@mui/material';
 import AdminSidebar from '@/components/ui/AdminSidebar';
 import EngineerSidebar from '@/components/ui/EngineerSidebar';
 import { SharedLayoutWrapper } from '@/components/common/layout';
-import { useActiveRole } from '@/context/ActiveRoleContext';
-import { ROLES } from '@/constants/roles';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function RootLayout({
   children,
@@ -14,8 +13,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
-  const { activeRole } = useActiveRole();
-  const isEngineer = activeRole === ROLES.ENGINEER;
+  const { currentUserRole, user } = useAuth();
+  
+  // Phase 4: 単一ロールシステムでのロール判定
+  const isEngineer = currentUserRole === 4;  // Engineer = 4
+  
+  // デバッグ用ログ
+  if (DEBUG_MODE && user) {
+    console.log('Auth Debug:', {
+      email: user.email,
+      role: user.role,
+      currentUserRole,
+      isEngineer,
+      sidebarType: isEngineer ? 'Engineer' : 'Admin'
+    });
+  }
 
 
   const userMenuItems = (

@@ -152,8 +152,7 @@ func (r *engineerRepository) FindEngineers(ctx context.Context, filters Engineer
 	}
 
 	// Preload
-	query = query.Preload("UserRoles").
-		Preload("DepartmentRelation")
+	query = query.Preload("DepartmentRelation")
 
 	// データ取得
 	if err := query.Find(&users).Error; err != nil {

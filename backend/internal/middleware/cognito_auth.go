@@ -80,8 +80,17 @@ func (m *CognitoAuthMiddleware) AuthRequired() gin.HandlerFunc {
 		// Cognitoが無効な場合のみ開発モードを使用
 		if !m.config.Cognito.Enabled {
 			m.logger.Info("Cognito is disabled - using development mode")
+			// デバッグ: トークンの確認
+			token := m.extractToken(c)
+			m.logger.Info("Development mode token check", zap.String("token", token))
 			// 開発モードを使用（Cognitoが無効なら自動的に開発モード）
 			m.setDevelopmentUser(c)
+			// デバッグ: 設定されたユーザー情報の確認
+			if user, exists := c.Get("user"); exists {
+				m.logger.Info("User set in development mode", zap.Any("user", user))
+			} else {
+				m.logger.Warn("No user set in development mode")
+			}
 			c.Next()
 			return
 		}
@@ -498,7 +507,7 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 					c.Set("user", user)
 					c.Set("user_id", user.ID)
 					c.Set("email", user.Email)
-					c.Set("role", user.DefaultRole)
+					c.Set("role", user.Role)  // 単一ロールシステム: DefaultRoleではなくRoleを使用
 					c.Set("roles", []model.Role{user.Role})
 					c.Set("cognito_sub", user.ID)
 					
@@ -534,7 +543,7 @@ func (m *CognitoAuthMiddleware) setDevelopmentUser(c *gin.Context) {
 	c.Set("user", user)
 	c.Set("user_id", user.ID)
 	c.Set("email", user.Email)
-	c.Set("role", user.DefaultRole)
+	c.Set("role", user.Role)  // 単一ロールシステム: DefaultRoleではなくRoleを使用
 	c.Set("roles", []model.Role{user.Role})
 	c.Set("cognito_sub", user.ID)
 

@@ -17,7 +17,7 @@ import ExpenseProfileSection from '@/components/profile/ExpenseProfileSection';
 import { ProfileActionButtons } from '@/components/common/ProfileActionButtons';
 import { TabContainer } from '@/components/common/layout';
 import { CommonTabPanel } from '@/components/common/CommonTabPanel';
-import { useActiveRole } from '@/context/ActiveRoleContext';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProfileTabbedContentProps {
   profile: UserProfile | null;
@@ -41,7 +41,7 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
   isTempSaved,
 }) => {
   const [currentTab, setCurrentTab] = useState(0);
-  const { availableRoles } = useActiveRole();
+  const { user } = useAuth();
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
@@ -87,18 +87,7 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
     },
   ];
 
-  // 複数ロールを持つユーザーの場合のみアカウント設定タブを追加
-  if (availableRoles.length > 1) {
-    tabs.push({
-      label: (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SettingsIcon fontSize="small" />
-          アカウント設定
-        </Box>
-      ),
-      value: 4
-    });
-  }
+  // Phase 4: 単一ロールシステムではアカウント設定タブは不要
 
   // タブヘッダーのアクション（モバイル用）
   const headerActions = (
@@ -159,14 +148,7 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
           </Box>
         </CommonTabPanel>
 
-        {/* アカウント設定タブ（複数ロールを持つユーザーのみ） */}
-        {availableRoles.length > 1 && (
-          <CommonTabPanel value={currentTab} index={4} prefix="profile">
-            <Box sx={{ px: 3 }}>
-              <AccountSettingsSection />
-            </Box>
-          </CommonTabPanel>
-        )}
+        {/* Phase 4: アカウント設定タブは削除 */}
       </TabContainer>
 
       {/* 操作ボタン - デスクトップではタブ外側右下に配置 */}
