@@ -41,7 +41,7 @@ import {
   Close as CloseIcon,
   GetApp as GetAppIcon,
 } from '@mui/icons-material';
-import { useImportEngineersCSV, useExportEngineersCSV } from '@/hooks/admin/useEngineersQuery';
+import { useImportEngineersCSV, useEngineerMutations } from '@/hooks/admin/useEngineersQuery';
 import { useToast } from '@/components/common/Toast/ToastProvider';
 import { EngineerStatus } from '@/types/engineer';
 import { ENGINEER_STATUS_LABELS } from '@/constants/engineer';
@@ -306,12 +306,14 @@ export const CsvExportTab: React.FC = () => {
     },
   });
   const [showOptionsDialog, setShowOptionsDialog] = useState(false);
-  const { exportCSV, isExporting } = useExportEngineersCSV();
+  const { exportCSV } = useEngineerMutations();
+  const [isExporting, setIsExporting] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const handleExport = async () => {
     try {
-      const blob = await exportCSV(exportOptions);
+      setIsExporting(true);
+      const blob = await exportCSV(exportOptions, `engineers_${new Date().toISOString().split('T')[0]}.csv`);
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -321,6 +323,9 @@ export const CsvExportTab: React.FC = () => {
       showSuccess('CSVファイルをダウンロードしました');
     } catch (error) {
       console.error('Export failed:', error);
+      showError('CSVエクスポートに失敗しました');
+    } finally {
+      setIsExporting(false);
     }
   };
 
