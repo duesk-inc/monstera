@@ -62,10 +62,6 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
       path: "/skill-sheet",
     },
     {
-      title: "職務経歴",
-      path: "/work-history",
-    },
-    {
       title: "提案管理",
       path: "/proposals",
     },

@@ -86,10 +86,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
           title: "スキルシート",
           path: "/admin/engineers/skill-sheets",
         },
-        {
-          title: "職務経歴管理",
-          path: "/admin/engineers/work-history",
-        },
       ],
     },
     {
