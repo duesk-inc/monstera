@@ -1,4 +1,5 @@
 // 認証関連の型定義
+// Phase 3: 単一ロールシステムに統一
 
 // ログイン時のリクエスト
 export interface LoginRequest {
@@ -12,10 +13,11 @@ export interface User {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  role: string;              // 互換性のため残す（最高権限のロール）
-  roles?: string[];          // 複数ロール対応（文字列配列）
-  default_role?: number;     // デフォルトロール（1:super_admin, 2:admin, 3:manager, 4:employee）
+  role: number;              // 数値型のロール (1-4)
   phone_number?: string | null;
+  // 後方互換性のため一時的に保持（Phase 4で削除予定）
+  roles?: string[];          // @deprecated
+  default_role?: number;     // @deprecated
 }
 
 // APIレスポンスのユーザー情報
@@ -24,19 +26,19 @@ export interface ApiUser {
   email: string;
   first_name: string | null;
   last_name: string | null;
-  role: number;              // APIは数値で返す
-  roles?: number[];          // APIは数値配列で返す
-  default_role?: number;
+  role: number;              // 数値型のロール (1-4)
   phone_number?: string | null;
-  // その他のフィールド
   active?: boolean;
   created_at?: string;
   updated_at?: string;
+  // 後方互換性のため一時的に保持（Phase 4で削除予定）
+  roles?: number[];          // @deprecated
+  default_role?: number;     // @deprecated
 }
 
 // ログイン成功時のレスポンス
 export interface LoginResponse {
-  user: ApiUser;             // APIはApiUser型で返す
+  user: ApiUser;
   access_token: string;
   refresh_token?: string;
   message: string;
@@ -52,7 +54,7 @@ export interface RefreshTokenRequest {
 export interface RefreshTokenResponse {
   access_token: string;
   refresh_token?: string;
-  user?: ApiUser;            // APIはApiUser型で返す
+  user?: ApiUser;
   message?: string;
 }
 
@@ -68,46 +70,17 @@ export interface LogoutResponse {
 }
 
 // ========================================
-// 単一ロールシステム用の新しい型定義
-// Phase 1で追加、Phase 2で既存の型と置き換え
+// 以下の型はPhase 3で統合済みのため、Phase 4で削除予定
 // ========================================
 
-// 単一ロール用ユーザー情報（フロントエンド内部で使用）
-export interface SingleRoleUser {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  role: number;              // 数値型のロール (1-4)
-  phone_number?: string | null;
-}
+// @deprecated - Use User instead
+export type SingleRoleUser = User;
 
-// 単一ロール用APIレスポンスのユーザー情報
-export interface SingleRoleApiUser {
-  id: string;
-  email: string;
-  first_name: string | null;
-  last_name: string | null;
-  role: number;              // 数値型のロール (1-4)
-  phone_number?: string | null;
-  active?: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+// @deprecated - Use ApiUser instead
+export type SingleRoleApiUser = ApiUser;
 
-// 単一ロール用ログイン成功時のレスポンス
-export interface SingleRoleLoginResponse {
-  user: SingleRoleApiUser;
-  access_token: string;
-  refresh_token?: string;
-  message: string;
-  redirect_to?: string;
-}
+// @deprecated - Use LoginResponse instead
+export type SingleRoleLoginResponse = LoginResponse;
 
-// 単一ロール用リフレッシュトークンのレスポンス
-export interface SingleRoleRefreshTokenResponse {
-  access_token: string;
-  refresh_token?: string;
-  user?: SingleRoleApiUser;
-  message?: string;
-} 
+// @deprecated - Use RefreshTokenResponse instead
+export type SingleRoleRefreshTokenResponse = RefreshTokenResponse; 

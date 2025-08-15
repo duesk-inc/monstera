@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, convertToLocalUser } from '@/utils/auth-new';
+import { User } from '@/types/auth';
+import { convertToLocalUser } from '@/utils/auth-new';
 import { login as apiLogin, logout as apiLogout, getCurrentUser } from '@/lib/api/auth';
 import { LoginRequest } from '@/types/auth';
 import { DebugLogger } from '@/lib/debug/logger';
@@ -44,10 +45,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await getCurrentUser();
       
       if (response && response.user) {
-        const localUser = convertToLocalUser(response.user);
-        setUser(localUser);
+        // Phase 3: 単一ロールシステムでは変換不要
+        setUser(response.user as User);
         setIsAuthenticated(true);
-        debugLog('認証状態確認成功:', localUser.email);
+        debugLog('認証状態確認成功:', response.user.email);
       } else {
         setUser(null);
         setIsAuthenticated(false);
@@ -82,8 +83,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await apiLogin(credentials);
       
       if (response && response.user) {
-        const localUser = convertToLocalUser(response.user);
-        setUser(localUser);
+        // Phase 3: 単一ロールシステムでは変換不要
+        setUser(response.user as User);
         setIsAuthenticated(true);
         debugLog('ログイン成功:', response.user.email);
         

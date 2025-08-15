@@ -7,8 +7,8 @@
 import { useAuth as useAuthContext } from '@/context/AuthContext';
 import { useActiveRole } from '@/context/ActiveRoleContext';
 import { useCallback, useMemo } from 'react';
-import { LoginRequest, SingleRoleUser } from '@/types/auth';
-import { convertRoleNumberToString } from '@/utils/auth-new';
+import { LoginRequest, User } from '@/types/auth';
+// Phase 3: convertRoleNumberToString は不要になった
 import { 
   isMultiRoleEnabled, 
   hasPermission as hasPermissionUtil,
@@ -26,15 +26,11 @@ export const useAuth = () => {
   const login = useCallback(async (credentials: LoginRequest) => {
     const result = await authContext.login(credentials);
     
-    if (result.success && authContext.user) {
-      // ActiveRoleProviderを初期化
-      const userRoles = authContext.user.roles && authContext.user.roles.length > 0 
-        ? authContext.user.roles 
-        : [typeof authContext.user.role === 'string' 
-            ? authContext.user.role 
-            : convertRoleNumberToString(Number(authContext.user.role))];
-      
-      initializeActiveRole(userRoles, authContext.user.defaultRole);
+    if (result.success && authContext.user && multiRoleEnabled) {
+      // Phase 3: 複数ロールモードの場合のみActiveRoleProviderを初期化
+      // 後方互換性のためrolesフィールドをチェック
+      const userRoles = authContext.user.roles || [];
+      initializeActiveRole(userRoles, authContext.user.default_role);
     }
     
     return result;
@@ -54,15 +50,15 @@ export const useAuth = () => {
       if (typeof authContext.user.role === 'number') {
         return authContext.user.role;
       }
-      // 文字列の場合は変換
-      return roleStringToNumber(authContext.user.role);
+      // Phase 3: roleは数値に統一されたので変換不要
+      return authContext.user.role;
     } else {
       // 複数ロールモード: activeRoleを使用
       if (activeRole) {
         return roleStringToNumber(activeRole);
       }
       // フォールバック
-      return roleStringToNumber(authContext.user.role);
+      return authContext.user.role;
     }
   }, [authContext.user, activeRole, multiRoleEnabled]);
 
@@ -82,17 +78,14 @@ export const useAuth = () => {
     return isManagerUtil(currentUserRole);
   }, [currentUserRole]);
 
-  // 単一ロール用のユーザー情報を提供（段階的移行用）
-  const singleRoleUser: SingleRoleUser | null = useMemo(() => {
+  // Phase 3: 単一ロール用のユーザー情報（User型を直接使用）
+  const singleRoleUser: User | null = useMemo(() => {
     if (!authContext.user) return null;
     
+    // Phase 3: User型はroleが数値に統一された
     return {
-      id: authContext.user.id,
-      email: authContext.user.email,
-      first_name: authContext.user.first_name,
-      last_name: authContext.user.last_name,
+      ...authContext.user,
       role: currentUserRole || 4, // デフォルトはEngineer
-      phone_number: authContext.user.phone_number,
     };
   }, [authContext.user, currentUserRole]);
 

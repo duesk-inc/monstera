@@ -3,17 +3,7 @@
  * LocalStorageを使用せず、サーバー側のCookieとAPIのみで認証状態を管理
  */
 
-// ユーザー基本情報の型
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: string;         // 互換性のため残す（最高権限のロール）
-  roles?: string[];     // 複数ロール対応
-  defaultRole?: number; // デフォルトロール（1:super_admin, 2:admin, 3:manager, 4:employee）
-  phoneNumber?: string;
-}
+// Phase 3: auth.tsのUser型を使用するため、この定義は削除
 
 // デバッグモード
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
@@ -40,79 +30,55 @@ export const convertRoleNumberToString = (roleNumber: number): string => {
 
 /**
  * APIから取得したユーザー情報をローカル用に変換
+ * Phase 3: 単一ロールシステムでは変換不要のため、シンプルにパススルー
  */
-export const convertToLocalUser = (user: { 
-  id: string; 
-  email: string; 
-  first_name?: string | null; 
-  last_name?: string | null; 
-  role?: string | number;
-  roles?: (string | number)[];
-  default_role?: number;
-  phone_number?: string | null;
-}): User => {
-  // roleを文字列に変換
-  let roleString = 'engineer';
-  if (user.role) {
-    roleString = typeof user.role === 'number' 
-      ? convertRoleNumberToString(user.role) 
-      : user.role;
-  }
-
-  // rolesを文字列配列に変換
-  let rolesArray: string[] = [roleString];
-  if (user.roles && Array.isArray(user.roles)) {
-    rolesArray = user.roles.map(r => 
-      typeof r === 'number' ? convertRoleNumberToString(r) : r
-    );
-  }
-
-  return {
-    id: user.id,
-    email: user.email,
-    firstName: user.first_name || '',
-    lastName: user.last_name || '',
-    role: roleString,
-    roles: rolesArray,
-    defaultRole: user.default_role,
-    phoneNumber: user.phone_number || ''
-  };
+export const convertToLocalUser = (user: any): any => {
+  // Phase 3: 単一ロールシステムでは変換不要
+  // APIからのデータをそのまま返す
+  return user;
 };
 
+// Phase 3: 権限チェック関数はroleUtils.tsに移行済み
+// 後方互換性のためのエイリアスとして残す
+
+import { User } from '@/types/auth';
+import { 
+  isAdmin as isAdminUtil,
+  isManager as isManagerUtil,
+  roleStringToNumber 
+} from '@/utils/roleUtils';
+
 /**
- * ユーザーが特定のロールを持っているかチェック
+ * @deprecated Use roleUtils.hasPermission instead
  */
 export const hasRole = (user: User | null, role: string): boolean => {
   if (!user) return false;
-  
-  // 複数ロールがある場合はその中からチェック
-  if (user.roles && user.roles.length > 0) {
-    return user.roles.includes(role);
-  }
-  
-  // 互換性のため単一ロールもチェック
-  return user.role === role;
+  const roleNum = roleStringToNumber(role);
+  return user.role === roleNum;
 };
 
 /**
- * ユーザーが管理者権限を持っているかチェック
+ * @deprecated Use roleUtils.isAdmin instead
  */
 export const isAdmin = (user: User | null): boolean => {
-  return hasRole(user, 'admin') || hasRole(user, 'super_admin');
+  if (!user) return false;
+  return isAdminUtil(user.role);
 };
 
 /**
- * ユーザーがマネージャー権限を持っているかチェック
+ * @deprecated Use roleUtils.isManager instead
  */
 export const isManager = (user: User | null): boolean => {
-  return hasRole(user, 'manager') || isAdmin(user);
+  if (!user) return false;
+  return isManagerUtil(user.role);
 };
 
 /**
- * ユーザーがエンジニア権限を持っているかチェック
+ * @deprecated Use roleUtils.isEngineer instead
  */
 export const isEngineer = (user: User | null): boolean => {
-  return hasRole(user, 'engineer');
+  if (!user) return false;
+  return user.role === 4; // Engineer = 4
 };
 
 // LocalStorage関連の関数は削除
