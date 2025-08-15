@@ -115,7 +115,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
       >
         <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
           <Box display="flex" justifyContent="center" alignItems="center" minHeight={CARD_DIMENSIONS.MIN_HEIGHT}>
-            <CircularProgress size={PROGRESS_DIMENSIONS.CIRCULAR_SIZE.SMALL} />
+            <CircularProgress size={PROGRESS_DIMENSIONS.CIRCULAR.SIZE.SM} />
           </Box>
         </CardContent>
       </Card>
@@ -198,7 +198,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
               variant="determinate" 
               value={getProgressValue()}
               sx={{
-                height: PROGRESS_DIMENSIONS.HEIGHT.MD,
+                height: PROGRESS_DIMENSIONS.LINEAR.HEIGHT,
                 borderRadius: BORDER_RADIUS.SM,
                 bgcolor: 'grey.200',
                 '& .MuiLinearProgress-bar': {

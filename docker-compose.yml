@@ -131,7 +131,7 @@ services:
       REDIS_DB: 0
       REDIS_KEY_PREFIX: "monstera:"
       # Authentication Configuration
-      COGNITO_ENABLED: ${COGNITO_ENABLED:-true} # Set to true for production with Cognito
+      COGNITO_ENABLED: ${COGNITO_ENABLED:-false} # Set to false for local development
       # Cognito Configuration
       COGNITO_REGION: ${COGNITO_REGION:-ap-northeast-1}
       COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID}
