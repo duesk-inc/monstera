@@ -63,7 +63,7 @@ func (r *UserRepositoryImpl) Create(ctx context.Context, user *model.User) error
 // FindByID IDでユーザーを検索
 func (r *UserRepositoryImpl) FindByID(id string) (*model.User, error) {
 	var user model.User
-	err := r.DB.Preload("UserRoles").First(&user, "id = ?", id).Error
+	err := r.DB.First(&user, "id = ?", id).Error
 	if err != nil {
 		if r.Logger != nil {
 			r.Logger.Error("Failed to find user by ID", zap.String("id", id), zap.Error(err))
@@ -79,7 +79,7 @@ func (r *UserRepositoryImpl) GetByID(ctx context.Context, id string) (*model.Use
 	if r.Logger != nil {
 		r.Logger.Info("Getting user by ID", zap.String("id", id))
 	}
-	err := r.DB.WithContext(ctx).Preload("UserRoles").First(&user, "id = ?", id).Error
+	err := r.DB.WithContext(ctx).First(&user, "id = ?", id).Error
 	if err != nil {
 		if r.Logger != nil {
 			r.Logger.Error("Failed to get user by ID", zap.String("id", id), zap.Error(err))
@@ -143,7 +143,7 @@ func (r *UserRepositoryImpl) FindByEmail(email string) (*model.User, error) {
 	if r.Logger != nil {
 		r.Logger.Info("Finding user by email", zap.String("email", email))
 	}
-	err := r.DB.Preload("UserRoles").First(&user, "email = ?", email).Error
+	err := r.DB.First(&user, "email = ?", email).Error
 	if err != nil {
 		if r.Logger != nil {
 			r.Logger.Error("Failed to find user by email", zap.String("email", email), zap.Error(err))
@@ -172,7 +172,7 @@ func (r *UserRepositoryImpl) List(offset, limit int) ([]model.User, int64, error
 	}
 
 	// ユーザー一覧を取得
-	err := r.DB.Preload("UserRoles").Offset(offset).Limit(limit).Order("created_at DESC").Find(&users).Error
+	err := r.DB.Offset(offset).Limit(limit).Order("created_at DESC").Find(&users).Error
 	if err != nil {
 		return nil, 0, err
 	}
@@ -183,12 +183,9 @@ func (r *UserRepositoryImpl) List(offset, limit int) ([]model.User, int64, error
 // FindByRole ロールでユーザーを検索
 func (r *UserRepositoryImpl) FindByRole(role model.Role) ([]model.User, error) {
 	var users []model.User
-	// user_rolesテーブルから指定されたロールを持つユーザーを検索
+	// 単一ロールシステム: usersテーブルのroleカラムを直接検索
 	err := r.DB.
-		Preload("UserRoles").
-		Joins("JOIN user_roles ON users.id = user_roles.user_id").
-		Where("user_roles.role = ?", role).
-		Group("users.id").
+		Where("role = ?", role).
 		Find(&users).Error
 	if err != nil {
 		return nil, err
