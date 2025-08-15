@@ -3,21 +3,19 @@ import { Box } from '@mui/material';
 import { 
   School as SchoolIcon,
   CardMembership as CertificationIcon,
-  Description as DescriptionIcon,
-  Settings as SettingsIcon,
-  AccountBalanceWallet as WalletIcon
+  Description as DescriptionIcon
 } from '@mui/icons-material';
 import { UseFormReturn } from 'react-hook-form';
 import { UserProfile, ProfileFormData } from '@/types/profile';
 import { BasicInfoSection } from './BasicInfoSection';
 import { CertificationsSection } from './CertificationsSection';
 import { AppealPointsSection } from './AppealPointsSection';
-import { AccountSettingsSection } from './AccountSettingsSection';
-import ExpenseProfileSection from '@/components/profile/ExpenseProfileSection';
+
+
 import { ProfileActionButtons } from '@/components/common/ProfileActionButtons';
 import { TabContainer } from '@/components/common/layout';
 import { CommonTabPanel } from '@/components/common/CommonTabPanel';
-import { useAuth } from '@/hooks/useAuth';
+
 
 interface ProfileTabbedContentProps {
   profile: UserProfile | null;
@@ -41,7 +39,7 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
   isTempSaved,
 }) => {
   const [currentTab, setCurrentTab] = useState(0);
-  const { user } = useAuth();
+
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
@@ -75,16 +73,7 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
         </Box>
       ), 
       value: 2 
-    },
-    { 
-      label: (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <WalletIcon fontSize="small" />
-          経費申請履歴
-        </Box>
-      ), 
-      value: 3 
-    },
+    }
   ];
 
   // Phase 4: 単一ロールシステムではアカウント設定タブは不要
@@ -141,12 +130,6 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
           </Box>
         </CommonTabPanel>
 
-        {/* 経費申請履歴タブ */}
-        <CommonTabPanel value={currentTab} index={3} prefix="profile">
-          <Box sx={{ px: 3 }}>
-            <ExpenseProfileSection />
-          </Box>
-        </CommonTabPanel>
 
         {/* Phase 4: アカウント設定タブは削除 */}
       </TabContainer>

@@ -50,10 +50,6 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
       path: "/weekly-report",
     },
     {
-      title: "勤怠管理",
-      path: "/attendance",
-    },
-    {
       title: "経費申請",
       path: "/expenses",
     },
