@@ -7,13 +7,15 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import theme from '@/theme/theme';
 import AuthErrorHandler from '@/components/common/AuthErrorHandler';
 import { ToastProvider, GlobalErrorBoundary } from '@/components/common';
-import { ActiveRoleProvider } from '@/context/ActiveRoleContext';
 import { AuthProvider } from '@/context/AuthContext';
+import { ActiveRoleProvider } from '@/context/ActiveRoleContext';
+import { isMultiRoleEnabled } from '@/utils/roleUtils';
 import { queryClient } from '@/lib/query-client';
 import { QueryErrorBoundary } from '@/components/common/QueryErrorBoundary';
 
 // Providerコンポーネント
 export function Providers({ children }: { children: ReactNode }) {
+  const multiRoleEnabled = isMultiRoleEnabled();
 
   return (
     <GlobalErrorBoundary>
@@ -23,11 +25,18 @@ export function Providers({ children }: { children: ReactNode }) {
           <ToastProvider>
             <AuthErrorHandler />
             <AuthProvider>
-              <ActiveRoleProvider>
+              {/* Feature Flag: 複数ロールモードが有効な場合のみActiveRoleProviderを使用 */}
+              {multiRoleEnabled ? (
+                <ActiveRoleProvider>
+                  <QueryErrorBoundary>
+                    {children}
+                  </QueryErrorBoundary>
+                </ActiveRoleProvider>
+              ) : (
                 <QueryErrorBoundary>
                   {children}
                 </QueryErrorBoundary>
-              </ActiveRoleProvider>
+              )}
             </AuthProvider>
           </ToastProvider>
         </ThemeProvider>

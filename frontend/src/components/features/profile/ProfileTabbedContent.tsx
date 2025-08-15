@@ -17,9 +17,8 @@ import ExpenseProfileSection from '@/components/profile/ExpenseProfileSection';
 import { ProfileActionButtons } from '@/components/common/ProfileActionButtons';
 import { TabContainer } from '@/components/common/layout';
 import { CommonTabPanel } from '@/components/common/CommonTabPanel';
-import { useActiveRole } from '@/context/ActiveRoleContext';
 import { useAuth } from '@/hooks/useAuth';
-import { isMultiRoleEnabled } from '@/utils/roleUtils';
+import { getRoleDisplayName } from '@/utils/roleUtils';
 
 interface ProfileTabbedContentProps {
   profile: UserProfile | null;
@@ -43,14 +42,7 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
   isTempSaved,
 }) => {
   const [currentTab, setCurrentTab] = useState(0);
-  const { availableRoles } = useActiveRole();
-  const { user } = useAuth();
-  const multiRoleEnabled = isMultiRoleEnabled();
-  
-  // Feature Flagによるロール情報の切り替え
-  const userRoles = multiRoleEnabled 
-    ? availableRoles 
-    : user ? [user.role] : [];  // 単一ロールモードでは配列ではなく単一値
+  const { currentUserRole, multiRoleEnabled } = useAuth();
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
@@ -96,8 +88,9 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
     },
   ];
 
-  // 複数ロールを持つユーザーの場合のみアカウント設定タブを追加
-  if (availableRoles.length > 1) {
+  // 複数ロールモードが有効な場合のみアカウント設定タブを追加
+  // 単一ロールモードではロール切り替えが不要なため表示しない
+  if (multiRoleEnabled) {
     tabs.push({
       label: (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -168,8 +161,8 @@ export const ProfileTabbedContent: React.FC<ProfileTabbedContentProps> = ({
           </Box>
         </CommonTabPanel>
 
-        {/* アカウント設定タブ（複数ロールを持つユーザーのみ） */}
-        {availableRoles.length > 1 && (
+        {/* アカウント設定タブ（複数ロールモードが有効な場合のみ） */}
+        {multiRoleEnabled && (
           <CommonTabPanel value={currentTab} index={4} prefix="profile">
             <Box sx={{ px: 3 }}>
               <AccountSettingsSection />
