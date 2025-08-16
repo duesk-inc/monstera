@@ -34,9 +34,11 @@ export const WEEKLY_REPORT_API = {
 } as const;
 
 export const SKILL_SHEET_API = {
-  BASE: `/api/${API_VERSION}/skill-sheets`,
-  CREATE: `/api/${API_VERSION}/skill-sheets`,
-  UPDATE: `/api/${API_VERSION}/skill-sheets`,
+  BASE: `/api/${API_VERSION}/skill-sheet`,
+  GET: `/api/${API_VERSION}/skill-sheet`,
+  CREATE: `/api/${API_VERSION}/skill-sheet`,
+  UPDATE: `/api/${API_VERSION}/skill-sheet`,
+  TEMP_SAVE: `/api/${API_VERSION}/skill-sheet/temp-save`,
   LIST: `/api/${API_VERSION}/skill-sheets`,
 } as const;
 
