@@ -178,6 +178,8 @@ export const SkillSheetFilterableContent: React.FC<SkillSheetFilterableContentPr
         }
         expandedItems={expandedItems}
         onExpandedChange={setExpandedItems}
+        userId={skillSheet?.userId}
+        profileId={skillSheet?.profileId}
       />
 
       {/* 技術スキル概要セクション */}

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, TextField, Stack, Divider, IconButton, Chip, FormHelperText, Stepper, Step, StepLabel, useTheme, useMediaQuery, Alert, Tooltip, FormControlLabel, Switch, LinearProgress, Fade } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, TextField, Stack, Divider, IconButton, Chip, FormHelperText, Stepper, Step, StepLabel, useTheme, useMediaQuery, Alert, Tooltip, FormControlLabel, Switch, LinearProgress, Fade, Button, CircularProgress } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
   Close as CloseIcon,
@@ -15,6 +15,8 @@ import {
   Autorenew as AutorenewIcon,
   Restore as RestoreIcon,
   Clear as ClearIcon,
+  Save as SaveIcon,
+  CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material';
 import { UseFormReturn, Controller, useWatch } from 'react-hook-form';
 import { SkillSheetFormData } from '@/types/skillSheet';
@@ -28,9 +30,14 @@ import {
 import { TechnologyInput } from '@/components/common/forms/TechnologyInput';
 import ActionButton from '@/components/common/ActionButton';
 import { useWorkHistoryDraft } from '@/hooks/skillSheet/useWorkHistoryDraft';
+import { useWorkHistoryMutation } from '@/hooks/useWorkHistoryMutation';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { getCareerMinDate } from '@/constants/date';
+import { features } from '@/config/features';
+import { formatDateForApi } from '@/lib/api/workHistory';
+import type { WorkHistoryCreateRequest, WorkHistoryUpdateRequest } from '@/types/workHistory';
+import { useSession } from 'next-auth/react';
 
 // 担当工程オプション
 const processOptions = [
@@ -72,6 +79,9 @@ interface WorkHistoryEditDialogProps {
   formMethods: UseFormReturn<SkillSheetFormData>;
   workHistoryIndex: number;
   isNew?: boolean;
+  workHistoryId?: string;
+  userId?: string;
+  profileId?: string;
 }
 
 /**
@@ -206,12 +216,16 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
   formMethods,
   workHistoryIndex,
   isNew = false,
+  workHistoryId,
+  userId,
+  profileId,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeStep, setActiveStep] = useState(0);
   const [showDraftRestoreDialog, setShowDraftRestoreDialog] = useState(false);
   const [showClearDraftDialog, setShowClearDraftDialog] = useState(false);
+  const [isSavingIndividually, setIsSavingIndividually] = useState(false);
 
   const { 
     control, 
@@ -219,7 +233,12 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
     formState: { errors },
     watch,
     trigger,
+    getValues,
   } = formMethods;
+  
+  // 個別保存用のミューテーション
+  const { create, update, isLoading: isMutating } = useWorkHistoryMutation();
+  const { data: session } = useSession();
 
   // 下書き管理フックを使用
   const {
@@ -315,6 +334,112 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
       onClose();
     }
   }, [workHistoryIndex, trigger, onSave, onClose, clearDraft]);
+
+  // 個別保存処理（フィーチャーフラグ対応）
+  const handleIndividualSave = useCallback(async () => {
+    if (!features.individualWorkHistorySave) {
+      // フィーチャーフラグが無効の場合は通常の保存処理
+      return handleSave();
+    }
+
+    // 全フィールドの検証
+    const isValid = await trigger([
+      `workHistory.${workHistoryIndex}.projectName`,
+      `workHistory.${workHistoryIndex}.startDate`,
+      `workHistory.${workHistoryIndex}.industry`,
+      `workHistory.${workHistoryIndex}.projectOverview`,
+      `workHistory.${workHistoryIndex}.responsibilities`,
+      `workHistory.${workHistoryIndex}.achievements`,
+      `workHistory.${workHistoryIndex}.processes`,
+      `workHistory.${workHistoryIndex}.teamSize`,
+      `workHistory.${workHistoryIndex}.role`,
+    ] as any);
+
+    if (!isValid) return;
+
+    setIsSavingIndividually(true);
+
+    try {
+      const workHistoryData = getValues(`workHistory.${workHistoryIndex}`);
+      
+      // APIリクエスト用のデータを準備
+      const requestData = {
+        user_id: userId || session?.user?.id || '',
+        profile_id: profileId || '',
+        project_name: workHistoryData.projectName,
+        start_date: workHistoryData.startDate ? formatDateForApi(workHistoryData.startDate) : '',
+        end_date: workHistoryData.endDate ? formatDateForApi(workHistoryData.endDate) : null,
+        industry: workHistoryData.industry || 7,
+        project_overview: workHistoryData.projectOverview || null,
+        responsibilities: workHistoryData.responsibilities || null,
+        achievements: workHistoryData.achievements || null,
+        remarks: workHistoryData.remarks || null,
+        team_size: workHistoryData.teamSize || null,
+        role: workHistoryData.role || '',
+        processes: workHistoryData.processes?.map(String) || [],
+        technologies: [
+          ...(workHistoryData.programmingLanguages || []).map((lang: string) => ({
+            category_id: 'programming',
+            technology_name: lang
+          })),
+          ...(workHistoryData.serversDatabases || []).map((db: string) => ({
+            category_id: 'database',
+            technology_name: db
+          })),
+          ...(workHistoryData.tools || []).map((tool: string) => ({
+            category_id: 'tool',
+            technology_name: tool
+          }))
+        ].filter(tech => tech.technology_name)
+      };
+
+      if (isNew) {
+        // 新規作成
+        await create(requestData as WorkHistoryCreateRequest, {
+          onSuccess: () => {
+            clearDraft();
+            onSave();
+            onClose();
+          },
+          showToast: true
+        });
+      } else if (workHistoryId) {
+        // 更新
+        await update(workHistoryId, requestData as WorkHistoryUpdateRequest, {
+          onSuccess: () => {
+            clearDraft();
+            onSave();
+            onClose();
+          },
+          showToast: true,
+          optimistic: true
+        });
+      } else {
+        // IDがない場合は通常の保存処理
+        handleSave();
+      }
+    } catch (error) {
+      console.error('Failed to save work history individually:', error);
+    } finally {
+      setIsSavingIndividually(false);
+    }
+  }, [
+    features.individualWorkHistorySave,
+    handleSave,
+    workHistoryIndex,
+    trigger,
+    getValues,
+    userId,
+    profileId,
+    session,
+    isNew,
+    workHistoryId,
+    create,
+    update,
+    clearDraft,
+    onSave,
+    onClose
+  ]);
 
   // 下書きを復元
   const handleRestoreDraft = useCallback(() => {
@@ -743,14 +868,38 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
             buttonType="secondary"
             onClick={handleBack}
             sx={{ mr: 'auto' }}
+            disabled={isAutoSaving || isSavingIndividually || isMutating}
           >
             戻る
           </ActionButton>
         )}
         
+        {/* フィーチャーフラグが有効な場合は個別保存ボタンを表示 */}
+        {features.individualWorkHistorySave && activeStep === steps.length - 1 && (
+          <Tooltip title="この職務経歴のみを保存">
+            <Button
+              variant="outlined"
+              onClick={() => handleIndividualSave()}
+              disabled={isAutoSaving || isSavingIndividually || isMutating}
+              startIcon={isSavingIndividually || isMutating ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+              sx={{ 
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'action.hover',
+                  borderColor: 'primary.dark',
+                }
+              }}
+            >
+              {isSavingIndividually || isMutating ? '保存中...' : '個別保存'}
+            </Button>
+          </Tooltip>
+        )}
+        
         <ActionButton
           buttonType="secondary"
           onClick={onClose}
+          disabled={isSavingIndividually || isMutating}
         >
           キャンセル
         </ActionButton>
@@ -759,15 +908,17 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
           <ActionButton
             buttonType="primary"
             onClick={handleNext}
+            disabled={isAutoSaving || isSavingIndividually || isMutating}
           >
             次へ
           </ActionButton>
         ) : (
           <ActionButton
             buttonType="primary"
-            onClick={handleSave}
+            onClick={features.individualWorkHistorySave ? handleIndividualSave : handleSave}
+            disabled={isAutoSaving || isSavingIndividually || isMutating}
           >
-            保存
+            {features.individualWorkHistorySave && !isSavingIndividually ? '保存して閉じる' : '保存'}
           </ActionButton>
         )}
       </DialogActions>

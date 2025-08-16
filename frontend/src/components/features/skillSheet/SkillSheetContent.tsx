@@ -31,6 +31,8 @@ export const SkillSheetContent: React.FC<SkillSheetContentProps> = ({
       {/* 職務経歴セクション */}
       <WorkHistoryContentCards 
         formMethods={formMethods}
+        userId={skillSheet?.userId}
+        profileId={skillSheet?.profileId}
       />
 
       {/* 技術スキル概要セクション */}

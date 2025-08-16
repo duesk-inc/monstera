@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Box, Typography, TextField, Stack, IconButton, FormControl, InputLabel, Chip, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Typography, TextField, Stack, IconButton, FormControl, InputLabel, Chip, useMediaQuery, useTheme, Tooltip } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import { 
   Work as WorkIcon,
@@ -9,6 +9,7 @@ import {
   Business as BusinessIcon,
   Group as GroupIcon,
   Add as AddIcon,
+  DeleteSweep as DeleteSweepIcon,
 } from '@mui/icons-material';
 import { UseFormReturn, useWatch } from 'react-hook-form';
 import { SkillSheetFormData } from '@/types/skillSheet';
@@ -20,6 +21,10 @@ import { WorkHistoryEditDialog } from './WorkHistoryEditDialog';
 import ActionButton from '@/components/common/ActionButton';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { useWorkHistoryMutation } from '@/hooks/useWorkHistoryMutation';
+import { features } from '@/config/features';
+import { useSession } from 'next-auth/react';
+import { toast } from 'react-hot-toast';
 
 // 担当工程オプション
 const processOptions = [
@@ -47,6 +52,8 @@ interface WorkHistoryContentCardsProps {
   filteredIndices?: number[];
   expandedItems?: boolean[];
   onExpandedChange?: (expanded: boolean[]) => void;
+  userId?: string;
+  profileId?: string;
 }
 
 /**
@@ -58,6 +65,8 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
   filteredIndices,
   expandedItems,
   onExpandedChange,
+  userId,
+  profileId,
 }) => {
   const { 
     control, 
@@ -69,6 +78,10 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { data: session } = useSession();
+  
+  // 個別削除用のミューテーション
+  const { delete: deleteWorkHistory, isDeleting } = useWorkHistoryMutation();
 
   // 編集ダイアログの状態
   const [editDialog, setEditDialog] = useState<{
@@ -156,12 +169,41 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
   }, [getValues, setValue]);
 
   // 職務経歴の削除ハンドラー
-  const handleDeleteWorkHistory = useCallback((index: number) => {
+  const handleDeleteWorkHistory = useCallback(async (index: number) => {
     const currentValues = getValues('workHistory') || [];
-    const newValues = currentValues.filter((_, i) => i !== index);
-    setValue('workHistory', newValues);
+    const targetHistory = currentValues[index];
+    
+    // フィーチャーフラグが有効で、IDがある場合は個別削除
+    if (features.individualWorkHistorySave && targetHistory?.id) {
+      try {
+        await deleteWorkHistory(
+          targetHistory.id,
+          userId || session?.user?.id || '',
+          {
+            onSuccess: () => {
+              // 成功したらフォームからも削除
+              const newValues = currentValues.filter((_, i) => i !== index);
+              setValue('workHistory', newValues);
+              toast.success('職務経歴を削除しました');
+            },
+            onError: (error) => {
+              toast.error(`削除に失敗しました: ${error.message}`);
+            },
+            showToast: false,
+            confirm: false // 確認ダイアログは既に表示済み
+          }
+        );
+      } catch (error) {
+        console.error('Failed to delete work history:', error);
+      }
+    } else {
+      // フィーチャーフラグが無効またはIDがない場合は従来の削除
+      const newValues = currentValues.filter((_, i) => i !== index);
+      setValue('workHistory', newValues);
+    }
+    
     setDeleteConfirmDialog({ isOpen: false, targetIndex: -1 });
-  }, [getValues, setValue]);
+  }, [getValues, setValue, features.individualWorkHistorySave, deleteWorkHistory, userId, session]);
 
   // 編集ダイアログを開く
   const handleOpenEditDialog = useCallback((index: number) => {
@@ -660,6 +702,9 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
           formMethods={formMethods}
           workHistoryIndex={editDialog.index}
           isNew={editDialog.isNew}
+          workHistoryId={workHistoryFields?.[editDialog.index]?.id}
+          userId={userId || session?.user?.id}
+          profileId={profileId}
         />
       )}
 
