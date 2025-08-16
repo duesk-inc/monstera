@@ -56,7 +56,7 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
 }) => {
   const [technologyCategories, setTechnologyCategories] = useState<TechnologyCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [inputValue, setInputValue] = useState(value || '');
+  const [inputValue, setInputValue] = useState('');
 
   // 技術カテゴリーマスタを取得
   useEffect(() => {
@@ -87,12 +87,10 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
     fetchData();
   }, []);
 
-  // 入力値が変更されたら親コンポーネントに通知
+  // valueが変更されたらinputValueも同期（初期値設定とリセット時のため）
   useEffect(() => {
-    if (inputValue !== value) {
-      onChange(inputValue);
-    }
-  }, [inputValue, onChange, value]);
+    setInputValue(value || '');
+  }, [value]);
 
   // 該当カテゴリーの技術リストを取得
   const technologyOptions = useMemo(() => {
@@ -120,8 +118,12 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
         onChange(newValue || '');
       }}
       inputValue={inputValue}
-      onInputChange={(_, newInputValue) => {
+      onInputChange={(_, newInputValue, reason) => {
         setInputValue(newInputValue);
+        // ユーザーが直接入力した場合のみ、親コンポーネントに通知
+        if (reason === 'input') {
+          onChange(newInputValue);
+        }
       }}
       options={technologyOptions}
       filterOptions={(options, state) => {
