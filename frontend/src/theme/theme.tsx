@@ -63,6 +63,7 @@ const theme = createTheme({
     divider: 'rgba(0, 0, 0, 0.08)',
   },
   typography: {
+    fontSize: 14, // 基本フォントサイズ（px）
     fontFamily: [
       'Hiragino Sans',
       'Hiragino Kaku Gothic ProN',
@@ -186,6 +187,13 @@ const theme = createTheme({
         },
         colorAction: {
           color: alpha(PRIMARY_COLOR.main, 0.54),
+        },
+      },
+    },
+    MuiStepIcon: {
+      styleOverrides: {
+        text: {
+          fontSize: '0.75rem', // 12px
         },
       },
     },
