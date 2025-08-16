@@ -23,8 +23,7 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useWorkHistoryMutation } from '@/hooks/useWorkHistoryMutation';
 import { features } from '@/config/features';
-import { useSession } from 'next-auth/react';
-import { toast } from 'react-hot-toast';
+import { useToast } from '@/components/common';
 
 // 担当工程オプション
 const processOptions = [
@@ -78,7 +77,7 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { data: session } = useSession();
+  const { showSuccess, showError } = useToast();
   
   // 個別削除用のミューテーション
   const { delete: deleteWorkHistory, isDeleting } = useWorkHistoryMutation();
@@ -178,16 +177,16 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
       try {
         await deleteWorkHistory(
           targetHistory.id,
-          userId || session?.user?.id || '',
+          userId || '',
           {
             onSuccess: () => {
               // 成功したらフォームからも削除
               const newValues = currentValues.filter((_, i) => i !== index);
               setValue('workHistory', newValues);
-              toast.success('職務経歴を削除しました');
+              showSuccess('職務経歴を削除しました');
             },
             onError: (error) => {
-              toast.error(`削除に失敗しました: ${error.message}`);
+              showError(`削除に失敗しました: ${error.message}`);
             },
             showToast: false,
             confirm: false // 確認ダイアログは既に表示済み
@@ -203,7 +202,7 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
     }
     
     setDeleteConfirmDialog({ isOpen: false, targetIndex: -1 });
-  }, [getValues, setValue, features.individualWorkHistorySave, deleteWorkHistory, userId, session]);
+  }, [getValues, setValue, features.individualWorkHistorySave, deleteWorkHistory, userId, showSuccess, showError]);
 
   // 編集ダイアログを開く
   const handleOpenEditDialog = useCallback((index: number) => {
@@ -703,7 +702,7 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
           workHistoryIndex={editDialog.index}
           isNew={editDialog.isNew}
           workHistoryId={workHistoryFields?.[editDialog.index]?.id}
-          userId={userId || session?.user?.id}
+          userId={userId}
           profileId={profileId}
         />
       )}

@@ -149,19 +149,7 @@ export const isDevelopmentFeature = (featureName: keyof FeatureFlags): boolean =
   return isDev && features[featureName]
 }
 
-/**
- * フィーチャーフラグに基づく条件付きレンダリング用コンポーネント
- */
-export const Feature: React.FC<{
-  name: keyof FeatureFlags
-  children: React.ReactNode
-  fallback?: React.ReactNode
-}> = ({ name, children, fallback = null }) => {
-  if (features[name]) {
-    return <>{children}</>
-  }
-  return <>{fallback}</>
-}
+
 
 /**
  * フィーチャーフラグのログ出力（デバッグ用）

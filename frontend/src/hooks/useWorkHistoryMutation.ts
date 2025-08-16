@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
-import { mutate } from 'swr'
-import { toast } from 'react-hot-toast'
+import { useQueryClient } from '@tanstack/react-query'
+import { useToast } from '@/components/common'
 import { workHistoryApi, WorkHistoryApiError } from '@/lib/api/workHistory'
 import type { 
   WorkHistory, 
@@ -16,6 +16,8 @@ import {
  * 職務経歴の作成・更新・削除を行うカスタムフック
  */
 export const useWorkHistoryMutation = () => {
+  const queryClient = useQueryClient()
+  const { showSuccess, showError } = useToast()
   const [isCreating, setIsCreating] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -39,22 +41,13 @@ export const useWorkHistoryMutation = () => {
       const workHistory = await workHistoryApi.create(data)
       
       // キャッシュを更新
-      await mutate(
-        getWorkHistoryListCacheKey(data.user_id),
-        async (current: any) => {
-          if (!current) return current
-          return {
-            ...current,
-            work_histories: [workHistory, ...current.work_histories],
-            total: current.total + 1
-          }
-        },
-        false
-      )
+      await queryClient.invalidateQueries({ 
+        queryKey: [getWorkHistoryListCacheKey(data.user_id)] 
+      })
       
       // 成功通知
       if (options?.showToast !== false) {
-        toast.success('職務経歴を作成しました')
+        showSuccess('職務経歴を作成しました')
       }
       
       options?.onSuccess?.(workHistory)
@@ -64,7 +57,7 @@ export const useWorkHistoryMutation = () => {
       setError(error)
       
       if (options?.showToast !== false) {
-        toast.error(error.message)
+        showError(error.message)
       }
       
       options?.onError?.(error)
@@ -72,7 +65,7 @@ export const useWorkHistoryMutation = () => {
     } finally {
       setIsCreating(false)
     }
-  }, [])
+  }, [queryClient, showSuccess, showError])
 
   /**
    * 職務経歴を更新
@@ -93,31 +86,30 @@ export const useWorkHistoryMutation = () => {
     try {
       // 楽観的更新
       if (options?.optimistic) {
-        await mutate(
-          getWorkHistoryCacheKey(id),
-          async (current: WorkHistory | undefined) => {
+        queryClient.setQueryData(
+          [getWorkHistoryCacheKey(id)],
+          (current: WorkHistory | undefined) => {
             if (!current) return current
             return { ...current, ...data }
-          },
-          false
+          }
         )
       }
 
       await workHistoryApi.update(id, data)
       
       // キャッシュを再取得
-      await mutate(getWorkHistoryCacheKey(id))
+      await queryClient.invalidateQueries({ 
+        queryKey: [getWorkHistoryCacheKey(id)] 
+      })
       
       // 一覧キャッシュも更新
-      await mutate(
-        (key: string) => key.startsWith('/api/v1/work-history?'),
-        undefined,
-        { revalidate: true }
-      )
+      await queryClient.invalidateQueries({ 
+        queryKey: ['work-history-list'] 
+      })
       
       // 成功通知
       if (options?.showToast !== false) {
-        toast.success('職務経歴を更新しました')
+        showSuccess('職務経歴を更新しました')
       }
       
       options?.onSuccess?.()
@@ -127,11 +119,13 @@ export const useWorkHistoryMutation = () => {
       
       // 楽観的更新をロールバック
       if (options?.optimistic) {
-        await mutate(getWorkHistoryCacheKey(id))
+        await queryClient.invalidateQueries({ 
+          queryKey: [getWorkHistoryCacheKey(id)] 
+        })
       }
       
       if (options?.showToast !== false) {
-        toast.error(error.message)
+        showError(error.message)
       }
       
       options?.onError?.(error)
@@ -139,7 +133,7 @@ export const useWorkHistoryMutation = () => {
     } finally {
       setIsUpdating(false)
     }
-  }, [])
+  }, [queryClient, showSuccess, showError])
 
   /**
    * 職務経歴を削除
@@ -168,25 +162,18 @@ export const useWorkHistoryMutation = () => {
       await workHistoryApi.delete(id)
       
       // キャッシュから削除
-      await mutate(
-        getWorkHistoryListCacheKey(userId),
-        async (current: any) => {
-          if (!current) return current
-          return {
-            ...current,
-            work_histories: current.work_histories.filter((wh: WorkHistory) => wh.id !== id),
-            total: current.total - 1
-          }
-        },
-        false
-      )
+      await queryClient.invalidateQueries({ 
+        queryKey: [getWorkHistoryListCacheKey(userId)] 
+      })
       
       // 個別キャッシュも削除
-      await mutate(getWorkHistoryCacheKey(id), undefined, false)
+      await queryClient.invalidateQueries({ 
+        queryKey: [getWorkHistoryCacheKey(id)] 
+      })
       
       // 成功通知
       if (options?.showToast !== false) {
-        toast.success('職務経歴を削除しました')
+        showSuccess('職務経歴を削除しました')
       }
       
       options?.onSuccess?.()
@@ -195,7 +182,7 @@ export const useWorkHistoryMutation = () => {
       setError(error)
       
       if (options?.showToast !== false) {
-        toast.error(error.message)
+        showError(error.message)
       }
       
       options?.onError?.(error)
@@ -203,7 +190,7 @@ export const useWorkHistoryMutation = () => {
     } finally {
       setIsDeleting(false)
     }
-  }, [])
+  }, [queryClient, showSuccess, showError])
 
   /**
    * 職務経歴を一括作成
@@ -224,16 +211,14 @@ export const useWorkHistoryMutation = () => {
       
       // キャッシュを更新（最初のユーザーIDを使用）
       if (data.length > 0) {
-        await mutate(
-          getWorkHistoryListCacheKey(data[0].user_id),
-          undefined,
-          { revalidate: true }
-        )
+        await queryClient.invalidateQueries({ 
+          queryKey: [getWorkHistoryListCacheKey(data[0].user_id)] 
+        })
       }
       
       // 成功通知
       if (options?.showToast !== false) {
-        toast.success(`${workHistories.length}件の職務経歴を作成しました`)
+        showSuccess(`${workHistories.length}件の職務経歴を作成しました`)
       }
       
       options?.onSuccess?.(workHistories)
@@ -243,7 +228,7 @@ export const useWorkHistoryMutation = () => {
       setError(error)
       
       if (options?.showToast !== false) {
-        toast.error(error.message)
+        showError(error.message)
       }
       
       options?.onError?.(error)
@@ -251,7 +236,7 @@ export const useWorkHistoryMutation = () => {
     } finally {
       setIsCreating(false)
     }
-  }, [])
+  }, [queryClient, showSuccess, showError])
 
   /**
    * 職務経歴を一括削除
@@ -280,29 +265,20 @@ export const useWorkHistoryMutation = () => {
       await workHistoryApi.bulkDelete(ids)
       
       // キャッシュを更新
-      await mutate(
-        getWorkHistoryListCacheKey(userId),
-        async (current: any) => {
-          if (!current) return current
-          return {
-            ...current,
-            work_histories: current.work_histories.filter(
-              (wh: WorkHistory) => !ids.includes(wh.id)
-            ),
-            total: current.total - ids.length
-          }
-        },
-        false
-      )
+      await queryClient.invalidateQueries({ 
+        queryKey: [getWorkHistoryListCacheKey(userId)] 
+      })
       
       // 個別キャッシュも削除
       for (const id of ids) {
-        await mutate(getWorkHistoryCacheKey(id), undefined, false)
+        await queryClient.invalidateQueries({ 
+          queryKey: [getWorkHistoryCacheKey(id)] 
+        })
       }
       
       // 成功通知
       if (options?.showToast !== false) {
-        toast.success(`${ids.length}件の職務経歴を削除しました`)
+        showSuccess(`${ids.length}件の職務経歴を削除しました`)
       }
       
       options?.onSuccess?.()
@@ -311,7 +287,7 @@ export const useWorkHistoryMutation = () => {
       setError(error)
       
       if (options?.showToast !== false) {
-        toast.error(error.message)
+        showError(error.message)
       }
       
       options?.onError?.(error)
@@ -319,7 +295,7 @@ export const useWorkHistoryMutation = () => {
     } finally {
       setIsDeleting(false)
     }
-  }, [])
+  }, [queryClient, showSuccess, showError])
 
   return {
     create,
@@ -359,7 +335,7 @@ export const useWorkHistoryExport = () => {
       
       // 成功通知
       if (options?.showToast !== false) {
-        toast.success('エクスポートを開始しました')
+        showSuccess('エクスポートを開始しました')
       }
       
       // ダウンロードURLを開く
@@ -372,7 +348,7 @@ export const useWorkHistoryExport = () => {
       setError(error)
       
       if (options?.showToast !== false) {
-        toast.error(error.message)
+        showError(error.message)
       }
       
       options?.onError?.(error)
@@ -380,7 +356,7 @@ export const useWorkHistoryExport = () => {
     } finally {
       setIsExporting(false)
     }
-  }, [])
+  }, [queryClient, showSuccess, showError])
 
   return {
     exportWorkHistory,

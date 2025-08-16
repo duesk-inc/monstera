@@ -37,7 +37,7 @@ import { getCareerMinDate } from '@/constants/date';
 import { features } from '@/config/features';
 import { formatDateForApi } from '@/lib/api/workHistory';
 import type { WorkHistoryCreateRequest, WorkHistoryUpdateRequest } from '@/types/workHistory';
-import { useSession } from 'next-auth/react';
+// useSessionは不要 - userIdとprofileIdはpropsから取得
 
 // 担当工程オプション
 const processOptions = [
@@ -238,7 +238,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
   
   // 個別保存用のミューテーション
   const { create, update, isLoading: isMutating } = useWorkHistoryMutation();
-  const { data: session } = useSession();
+  // userIdはpropsから取得
 
   // 下書き管理フックを使用
   const {
@@ -364,7 +364,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
       
       // APIリクエスト用のデータを準備
       const requestData = {
-        user_id: userId || session?.user?.id || '',
+        user_id: userId || '',
         profile_id: profileId || '',
         project_name: workHistoryData.projectName,
         start_date: workHistoryData.startDate ? formatDateForApi(workHistoryData.startDate) : '',
@@ -431,7 +431,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
     getValues,
     userId,
     profileId,
-    session,
+
     isNew,
     workHistoryId,
     create,

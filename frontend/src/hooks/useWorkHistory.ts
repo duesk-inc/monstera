@@ -1,31 +1,29 @@
-import useSWR, { SWRConfiguration } from 'swr'
+import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { workHistoryApi } from '@/lib/api/workHistory'
 import type { WorkHistory, WorkHistoryListResponse } from '@/types/workHistory'
 
 /**
  * 職務経歴を取得するカスタムフック
  * @param id 職務経歴ID
- * @param options SWR設定オプション
+ * @param options React Query設定オプション
  */
 export const useWorkHistory = (
   id: string | null | undefined,
-  options?: SWRConfiguration
+  options?: UseQueryOptions<WorkHistory>
 ) => {
-  const { data, error, isLoading, mutate } = useSWR<WorkHistory>(
-    id ? `/api/v1/work-history/${id}` : null,
-    () => workHistoryApi.get(id!),
-    {
-      revalidateOnFocus: false,
-      ...options
-    }
-  )
+  const { data, error, isLoading, refetch } = useQuery<WorkHistory>({
+    queryKey: ['work-history', id],
+    queryFn: () => workHistoryApi.get(id!),
+    enabled: !!id,
+    ...options
+  })
 
   return {
     workHistory: data,
     isLoading,
     isError: !!error,
     error,
-    mutate
+    refetch
   }
 }
 
@@ -34,22 +32,20 @@ export const useWorkHistory = (
  * @param userId ユーザーID
  * @param page ページ番号
  * @param limit 1ページあたりの件数
- * @param options SWR設定オプション
+ * @param options React Query設定オプション
  */
 export const useWorkHistoryList = (
   userId: string | null | undefined,
   page: number = 1,
   limit: number = 20,
-  options?: SWRConfiguration
+  options?: UseQueryOptions<WorkHistoryListResponse>
 ) => {
-  const { data, error, isLoading, mutate } = useSWR<WorkHistoryListResponse>(
-    userId ? `/api/v1/work-history?user_id=${userId}&page=${page}&limit=${limit}` : null,
-    () => workHistoryApi.list(userId!, page, limit),
-    {
-      revalidateOnFocus: false,
-      ...options
-    }
-  )
+  const { data, error, isLoading, refetch } = useQuery<WorkHistoryListResponse>({
+    queryKey: ['work-history-list', userId, page, limit],
+    queryFn: () => workHistoryApi.list(userId!, page, limit),
+    enabled: !!userId,
+    ...options
+  })
 
   return {
     workHistories: data?.work_histories || [],
@@ -60,34 +56,32 @@ export const useWorkHistoryList = (
     isLoading,
     isError: !!error,
     error,
-    mutate
+    refetch
   }
 }
 
 /**
  * 職務経歴サマリーを取得するカスタムフック
  * @param userId ユーザーID
- * @param options SWR設定オプション
+ * @param options React Query設定オプション
  */
 export const useWorkHistorySummary = (
   userId: string | null | undefined,
-  options?: SWRConfiguration
+  options?: UseQueryOptions
 ) => {
-  const { data, error, isLoading, mutate } = useSWR(
-    userId ? `/api/v1/work-history/users/${userId}/summary` : null,
-    () => workHistoryApi.getSummary(userId!),
-    {
-      revalidateOnFocus: false,
-      ...options
-    }
-  )
+  const { data, error, isLoading, refetch } = useQuery({
+    queryKey: ['work-history-summary', userId],
+    queryFn: () => workHistoryApi.getSummary(userId!),
+    enabled: !!userId,
+    ...options
+  })
 
   return {
     summary: data,
     isLoading,
     isError: !!error,
     error,
-    mutate
+    refetch
   }
 }
 
@@ -95,7 +89,7 @@ export const useWorkHistorySummary = (
  * 職務経歴の検索を行うカスタムフック
  * @param params 検索パラメータ
  * @param enabled 検索を有効にするかどうか
- * @param options SWR設定オプション
+ * @param options React Query設定オプション
  */
 export const useWorkHistorySearch = (
   params: {
@@ -107,7 +101,7 @@ export const useWorkHistorySearch = (
     limit?: number
   },
   enabled: boolean = true,
-  options?: SWRConfiguration
+  options?: UseQueryOptions<WorkHistoryListResponse>
 ) => {
   const queryString = new URLSearchParams()
   
@@ -120,14 +114,12 @@ export const useWorkHistorySearch = (
   if (params.page) queryString.append('page', params.page.toString())
   if (params.limit) queryString.append('limit', params.limit.toString())
 
-  const { data, error, isLoading, mutate } = useSWR<WorkHistoryListResponse>(
-    enabled ? `/api/v1/work-history/search?${queryString.toString()}` : null,
-    () => workHistoryApi.search(params),
-    {
-      revalidateOnFocus: false,
-      ...options
-    }
-  )
+  const { data, error, isLoading, refetch } = useQuery<WorkHistoryListResponse>({
+    queryKey: ['work-history-search', params],
+    queryFn: () => workHistoryApi.search(params),
+    enabled: enabled,
+    ...options
+  })
 
   return {
     searchResults: data?.work_histories || [],
@@ -138,22 +130,21 @@ export const useWorkHistorySearch = (
     isLoading,
     isError: !!error,
     error,
-    mutate
+    refetch
   }
 }
 
 /**
  * 職務経歴のキャッシュキーを生成
  */
-export const getWorkHistoryCacheKey = (id: string) => `/api/v1/work-history/${id}`
+export const getWorkHistoryCacheKey = (id: string) => `work-history-${id}`
 
 /**
  * 職務経歴一覧のキャッシュキーを生成
  */
 export const getWorkHistoryListCacheKey = (userId: string, page?: number, limit?: number) => {
-  const params = new URLSearchParams()
-  params.append('user_id', userId)
-  if (page) params.append('page', page.toString())
-  if (limit) params.append('limit', limit.toString())
-  return `/api/v1/work-history?${params.toString()}`
+  if (page && limit) {
+    return `work-history-list-${userId}-${page}-${limit}`
+  }
+  return `work-history-list-${userId}`
 }
