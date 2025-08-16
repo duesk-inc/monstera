@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
+	"github.com/duesk/monstera/internal/dto"
+	"github.com/duesk/monstera/internal/service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"go.uber.org/zap"
@@ -11,14 +14,16 @@ import (
 
 // WorkHistoryHandler 職務経歴ハンドラー
 type WorkHistoryHandler struct {
-	workHistoryEnhancedService  interface{} // TODO: 適切なサービスインターフェースに置き換える
-	technologySuggestionService interface{} // TODO: 適切なサービスインターフェースに置き換える
+	workHistoryCRUDService      service.WorkHistoryCRUDService      // 個別CRUD操作用サービス
+	workHistoryEnhancedService  interface{}                         // 拡張機能用サービス
+	technologySuggestionService interface{}                         // 技術候補提案サービス
 	logger                      *zap.Logger
 }
 
 // NewWorkHistoryHandler WorkHistoryHandlerのインスタンスを生成
-func NewWorkHistoryHandler(workHistoryEnhancedService interface{}, technologySuggestionService interface{}, logger *zap.Logger) *WorkHistoryHandler {
+func NewWorkHistoryHandler(workHistoryCRUDService service.WorkHistoryCRUDService, workHistoryEnhancedService interface{}, technologySuggestionService interface{}, logger *zap.Logger) *WorkHistoryHandler {
 	return &WorkHistoryHandler{
+		workHistoryCRUDService:      workHistoryCRUDService,
 		workHistoryEnhancedService:  workHistoryEnhancedService,
 		technologySuggestionService: technologySuggestionService,
 		logger:                      logger,
@@ -28,6 +33,10 @@ func NewWorkHistoryHandler(workHistoryEnhancedService interface{}, technologySug
 // GetWorkHistories 職務経歴一覧を取得
 func (h *WorkHistoryHandler) GetWorkHistories(c *gin.Context) {
 	userID := c.Query("user_id")
+	if userID == "" {
+		RespondError(c, http.StatusBadRequest, "ユーザーIDが必要です")
+		return
+	}
 
 	// ページネーションパラメータ
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -40,10 +49,18 @@ func (h *WorkHistoryHandler) GetWorkHistories(c *gin.Context) {
 		limit = 20
 	}
 
-	// TODO: 実装予定
+	// サービスを呼び出して職務経歴一覧を取得
+	ctx := context.Background()
+	workHistories, total, err := h.workHistoryCRUDService.GetByUserID(ctx, userID, page, limit)
+	if err != nil {
+		h.logger.Error("Failed to get work histories", zap.Error(err))
+		RespondError(c, http.StatusInternalServerError, "職務経歴一覧の取得に失敗しました")
+		return
+	}
+
 	RespondSuccess(c, http.StatusOK, "", gin.H{
-		"work_histories": []interface{}{},
-		"total":          0,
+		"work_histories": workHistories,
+		"total":          total,
 		"page":           page,
 		"limit":          limit,
 		"user_id":        userID,
@@ -58,35 +75,47 @@ func (h *WorkHistoryHandler) GetWorkHistory(c *gin.Context) {
 		return
 	}
 
-	// TODO: 実装予定
+	// サービスを呼び出して職務経歴を取得
+	ctx := context.Background()
+	workHistory, err := h.workHistoryCRUDService.GetByID(ctx, historyID)
+	if err != nil {
+		h.logger.Error("Failed to get work history", zap.Error(err))
+		RespondError(c, http.StatusInternalServerError, "職務経歴の取得に失敗しました")
+		return
+	}
+
+	if workHistory == nil {
+		RespondError(c, http.StatusNotFound, "職務経歴が見つかりません")
+		return
+	}
+
 	RespondSuccess(c, http.StatusOK, "", gin.H{
-		"work_history": nil,
+		"work_history": workHistory,
 	})
 }
 
 // CreateWorkHistory 職務経歴を作成
 func (h *WorkHistoryHandler) CreateWorkHistory(c *gin.Context) {
-	var req struct {
-		UserID           string   `json:"user_id" binding:"required"`
-		CompanyName      string   `json:"company_name" binding:"required"`
-		ProjectName      string   `json:"project_name" binding:"required"`
-		StartDate        string   `json:"start_date" binding:"required"`
-		EndDate          string   `json:"end_date"`
-		Role             string   `json:"role" binding:"required"`
-		Description      string   `json:"description" binding:"required"`
-		Technologies     []string `json:"technologies"`
-		Responsibilities []string `json:"responsibilities"`
-		Achievements     []string `json:"achievements"`
-	}
+	var req dto.WorkHistoryCreateRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Error("Failed to bind request", zap.Error(err))
 		RespondError(c, http.StatusBadRequest, "リクエストが不正です")
 		return
 	}
 
-	// TODO: 実装予定
+	// サービスを呼び出して職務経歴を作成
+	ctx := context.Background()
+	workHistory, err := h.workHistoryCRUDService.Create(ctx, &req)
+	if err != nil {
+		h.logger.Error("Failed to create work history", zap.Error(err))
+		RespondError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
 	RespondSuccess(c, http.StatusCreated, "職務経歴を作成しました", gin.H{
-		"work_history_id": uuid.New().String(),
+		"work_history_id": workHistory.ID,
+		"work_history":    workHistory,
 	})
 }
 
@@ -98,25 +127,26 @@ func (h *WorkHistoryHandler) UpdateWorkHistory(c *gin.Context) {
 		return
 	}
 
-	var req struct {
-		CompanyName      *string   `json:"company_name"`
-		ProjectName      *string   `json:"project_name"`
-		StartDate        *string   `json:"start_date"`
-		EndDate          *string   `json:"end_date"`
-		Role             *string   `json:"role"`
-		Description      *string   `json:"description"`
-		Technologies     *[]string `json:"technologies"`
-		Responsibilities *[]string `json:"responsibilities"`
-		Achievements     *[]string `json:"achievements"`
-	}
+	var req dto.WorkHistoryUpdateRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
+		h.logger.Error("Failed to bind request", zap.Error(err))
 		RespondError(c, http.StatusBadRequest, "リクエストが不正です")
 		return
 	}
 
-	// TODO: 実装予定
-	RespondSuccess(c, http.StatusOK, "職務経歴を更新しました", nil)
+	// サービスを呼び出して職務経歴を更新
+	ctx := context.Background()
+	err := h.workHistoryCRUDService.Update(ctx, historyID, &req)
+	if err != nil {
+		h.logger.Error("Failed to update work history", zap.Error(err))
+		RespondError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "職務経歴を更新しました", gin.H{
+		"work_history_id": historyID,
+	})
 }
 
 // DeleteWorkHistory 職務経歴を削除
@@ -127,8 +157,18 @@ func (h *WorkHistoryHandler) DeleteWorkHistory(c *gin.Context) {
 		return
 	}
 
-	// TODO: 実装予定
-	RespondSuccess(c, http.StatusOK, "職務経歴を削除しました", nil)
+	// サービスを呼び出して職務経歴を削除
+	ctx := context.Background()
+	err := h.workHistoryCRUDService.Delete(ctx, historyID)
+	if err != nil {
+		h.logger.Error("Failed to delete work history", zap.Error(err))
+		RespondError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	RespondSuccess(c, http.StatusOK, "職務経歴を削除しました", gin.H{
+		"work_history_id": historyID,
+	})
 }
 
 // GetUserWorkHistorySummary ユーザーの職務経歴サマリーを取得

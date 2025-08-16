@@ -121,17 +121,19 @@ type WorkHistorySummaryResponse struct {
 
 // WorkHistoryCreateRequest 職務経歴作成リクエスト
 type WorkHistoryCreateRequest struct {
+	UserID           string                         `json:"user_id" validate:"required"`
+	ProfileID        string                         `json:"profile_id" validate:"required"`
 	ProjectName      string                         `json:"project_name" validate:"required,max=255"`
 	StartDate        string                         `json:"start_date" validate:"required"`
 	EndDate          *string                        `json:"end_date,omitempty"`
-	Industry         string                         `json:"industry" validate:"required"`
+	Industry         int32                          `json:"industry" validate:"required,min=1,max=7"`
 	CompanyName      *string                        `json:"company_name,omitempty" validate:"omitempty,max=255"`
 	ProjectOverview  *string                        `json:"project_overview,omitempty" validate:"omitempty,max=2000"`
 	Responsibilities *string                        `json:"responsibilities,omitempty" validate:"omitempty,max=2000"`
 	Achievements     *string                        `json:"achievements,omitempty" validate:"omitempty,max=2000"`
 	Remarks          *string                        `json:"remarks,omitempty" validate:"omitempty,max=1000"`
 	TeamSize         *int32                         `json:"team_size,omitempty" validate:"omitempty,min=1,max=1000"`
-	Role             string                         `json:"role" validate:"required"`
+	Role             string                         `json:"role" validate:"required,max=100"`
 	Processes        []string                       `json:"processes" validate:"dive,required"`
 	Technologies     []WorkHistoryTechnologyRequest `json:"technologies" validate:"dive,required"`
 }
