@@ -417,32 +417,32 @@ export const FONT_SIZE_SPECIAL = {
 
 // タイポグラフィバリアント（Material-UI風）
 export const TYPOGRAPHY_VARIANTS = {
-  H1: HEADING_STYLES.H1,
-  H2: HEADING_STYLES.H2,
-  H3: HEADING_STYLES.H3,
-  H4: HEADING_STYLES.H4,
-  H5: HEADING_STYLES.H5,
-  H6: HEADING_STYLES.H6,
-  BODY1: BODY_STYLES.MEDIUM,
-  BODY2: BODY_STYLES.SMALL,
-  SUBTITLE1: {
+  h1: HEADING_STYLES.H1,
+  h2: HEADING_STYLES.H2,
+  h3: HEADING_STYLES.H3,
+  h4: HEADING_STYLES.H4,
+  h5: HEADING_STYLES.H5,
+  h6: HEADING_STYLES.H6,
+  body1: BODY_STYLES.MEDIUM,
+  body2: BODY_STYLES.SMALL,
+  subtitle1: {
     fontSize: FONT_SIZES.LG,
     fontWeight: FONT_WEIGHTS.NORMAL,
     lineHeight: LINE_HEIGHTS.NORMAL,
   },
-  SUBTITLE2: {
+  subtitle2: {
     fontSize: FONT_SIZES.SM,
     fontWeight: FONT_WEIGHTS.MEDIUM,
     lineHeight: LINE_HEIGHTS.NORMAL,
   },
-  CAPTION: CAPTION_STYLES.MEDIUM,
-  BUTTON: {
+  caption: CAPTION_STYLES.MEDIUM,
+  button: {
     fontSize: FONT_SIZES.SM,
     fontWeight: FONT_WEIGHTS.MEDIUM,
     lineHeight: LINE_HEIGHTS.NORMAL,
     textTransform: TEXT_TRANSFORMS.UPPERCASE,
   },
-  OVERLINE: {
+  overline: {
     fontSize: FONT_SIZES.XS,
     fontWeight: FONT_WEIGHTS.NORMAL,
     lineHeight: LINE_HEIGHTS.NORMAL,
