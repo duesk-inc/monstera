@@ -1,6 +1,10 @@
 // API Base Configuration
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-export const API_VERSION = 'v1';
+// 新しい分離された環境変数を使用（後方互換性も維持）
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8080';
+const LEGACY_URL = process.env.NEXT_PUBLIC_API_URL;
+
+export const API_BASE_URL = LEGACY_URL ? LEGACY_URL.replace(/\/api\/v\d+$/, '') : API_HOST;
+export const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 
 // API Endpoints
 export const NOTIFICATION_API = {

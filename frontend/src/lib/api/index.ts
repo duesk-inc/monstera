@@ -6,7 +6,12 @@ import { API_TIMEOUTS, TIME_THRESHOLDS, UI_DELAYS } from '@/constants/delays';
 import { AUTH_STORAGE_KEYS } from '@/constants/storage';
 
 // API基本設定
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+// 新しい分離された環境変数を使用（後方互換性も維持）
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8080';
+const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
+const LEGACY_URL = process.env.NEXT_PUBLIC_API_URL;
+
+export const API_BASE_URL = LEGACY_URL || `${API_HOST}/api/${API_VERSION}`;
 
 // 認証エラーが発生したページのパスを保存するキー
 const AUTH_ERROR_PAGE_KEY = AUTH_STORAGE_KEYS.AUTH_ERROR_PAGE;

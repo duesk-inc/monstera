@@ -5,7 +5,12 @@
 import axios from 'axios';
 
 // APIベースURL
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+// 新しい分離された環境変数を使用（後方互換性も維持）
+const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8080';
+const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
+const LEGACY_URL = process.env.NEXT_PUBLIC_API_URL;
+
+export const API_BASE_URL = LEGACY_URL || `${API_HOST}/api/${API_VERSION}`;
 
 // API設定
 export const API_CONFIG = {
