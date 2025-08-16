@@ -1,9 +1,8 @@
 import React from 'react';
-import { Box, Alert, Chip } from '@mui/material';
+import { Box, Alert, Chip, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { SkillSheet, SkillSheetFormData } from '@/types/skillSheet';
-import { ProfileActionButtons } from '@/components/common/ProfileActionButtons';
 import { PageHeader } from '@/components/common/layout';
 
 interface SkillSheetHeaderProps {
@@ -58,14 +57,15 @@ export const SkillSheetHeader: React.FC<SkillSheetHeaderProps> = ({
         }}
       />
       
-      {/* 保存ボタン */}
-      <ProfileActionButtons
-        onTempSave={onTempSave}
-        onSubmit={onSubmit}
-        isSubmitting={isSubmitting}
-        isTempSaved={isTempSaved}
-        variant="header"
-        isDirty={isDirty}
+      {/* 個別保存モードの表示 */}
+      <Chip
+        label="個別保存モード"
+        size="small"
+        color="success"
+        variant="filled"
+        sx={{
+          fontWeight: 600,
+        }}
       />
     </Box>
   );

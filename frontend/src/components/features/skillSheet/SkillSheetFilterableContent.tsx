@@ -4,7 +4,6 @@ import { UseFormReturn } from 'react-hook-form';
 import { SkillSheet, SkillSheetFormData, WorkHistory } from '@/types/skillSheet';
 import { WorkHistoryContentCards } from './WorkHistoryContentCards';
 // import { TechnicalSkillsSection } from './TechnicalSkillsSection'; // 管理者機能のため一時的にコメントアウト
-import { ProfileActionButtons } from '@/components/common/ProfileActionButtons';
 import { FilterBar } from '@/components/common/layout';
 
 // 業種オプション（WorkHistoryContentCards.tsxと同じ定義）
@@ -196,16 +195,21 @@ export const SkillSheetFilterableContent: React.FC<SkillSheetFilterableContentPr
         </Box>
       )} */}
 
-      {/* フッターアクションボタン */}
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
-        <ProfileActionButtons
-          onTempSave={onTempSave}
-          onSubmit={onSubmit}
-          isSubmitting={isSubmitting}
-          isTempSaved={isTempSaved}
-          variant="footer"
-          isDirty={isDirty}
-        />
+      {/* 個別保存モードの説明 */}
+      <Box sx={{ 
+        mt: 4, 
+        p: 2, 
+        bgcolor: 'success.light',
+        borderRadius: 1,
+        border: '1px solid',
+        borderColor: 'success.main',
+      }}>
+        <Typography variant="body2" color="success.dark" fontWeight={600}>
+          個別保存モード
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          各職務経歴の保存ボタンを使用して個別に保存してください。
+        </Typography>
       </Box>
     </Box>
   );

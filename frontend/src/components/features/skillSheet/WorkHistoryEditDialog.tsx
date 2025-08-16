@@ -16,7 +16,6 @@ import {
   Restore as RestoreIcon,
   Clear as ClearIcon,
   Save as SaveIcon,
-  CloudUpload as CloudUploadIcon,
 } from '@mui/icons-material';
 import { UseFormReturn, Controller, useWatch } from 'react-hook-form';
 import { SkillSheetFormData } from '@/types/skillSheet';
@@ -34,7 +33,6 @@ import { useWorkHistoryMutation } from '@/hooks/useWorkHistoryMutation';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { getCareerMinDate } from '@/constants/date';
-import { features } from '@/config/features';
 import { formatDateForApi } from '@/lib/api/workHistory';
 import type { WorkHistoryCreateRequest, WorkHistoryUpdateRequest } from '@/types/workHistory';
 // useSessionは不要 - userIdとprofileIdはpropsから取得
@@ -225,6 +223,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
   const [activeStep, setActiveStep] = useState(0);
   const [showDraftRestoreDialog, setShowDraftRestoreDialog] = useState(false);
   const [showClearDraftDialog, setShowClearDraftDialog] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [isSavingIndividually, setIsSavingIndividually] = useState(false);
 
   const { 
@@ -335,12 +334,8 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
     }
   }, [workHistoryIndex, trigger, onSave, onClose, clearDraft]);
 
-  // 個別保存処理（フィーチャーフラグ対応）
+  // 個別保存処理
   const handleIndividualSave = useCallback(async () => {
-    if (!features.individualWorkHistorySave) {
-      // フィーチャーフラグが無効の場合は通常の保存処理
-      return handleSave();
-    }
 
     // 全フィールドの検証
     const isValid = await trigger([
@@ -399,7 +394,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
           onSuccess: () => {
             clearDraft();
             onSave();
-            onClose();
+            // ダイアログは開いたままにする
           },
           showToast: true
         });
@@ -409,7 +404,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
           onSuccess: () => {
             clearDraft();
             onSave();
-            onClose();
+            // ダイアログは開いたままにする
           },
           showToast: true,
           optimistic: true
@@ -424,7 +419,6 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
       setIsSavingIndividually(false);
     }
   }, [
-    features.individualWorkHistorySave,
     handleSave,
     workHistoryIndex,
     trigger,
@@ -440,6 +434,12 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
     onSave,
     onClose
   ]);
+
+  // 確認後の保存処理
+  const handleConfirmSave = useCallback(async () => {
+    setShowSaveConfirm(false);
+    await handleIndividualSave();
+  }, [handleIndividualSave]);
 
   // 下書きを復元
   const handleRestoreDraft = useCallback(() => {
@@ -874,28 +874,6 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
           </ActionButton>
         )}
         
-        {/* フィーチャーフラグが有効な場合は個別保存ボタンを表示 */}
-        {features.individualWorkHistorySave && activeStep === steps.length - 1 && (
-          <Tooltip title="この職務経歴のみを保存">
-            <Button
-              variant="outlined"
-              onClick={() => handleIndividualSave()}
-              disabled={isAutoSaving || isSavingIndividually || isMutating}
-              startIcon={isSavingIndividually || isMutating ? <CircularProgress size={16} /> : <CloudUploadIcon />}
-              sx={{ 
-                borderColor: 'primary.main',
-                color: 'primary.main',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                  borderColor: 'primary.dark',
-                }
-              }}
-            >
-              {isSavingIndividually || isMutating ? '保存中...' : '個別保存'}
-            </Button>
-          </Tooltip>
-        )}
-        
         <ActionButton
           buttonType="secondary"
           onClick={onClose}
@@ -915,10 +893,10 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
         ) : (
           <ActionButton
             buttonType="primary"
-            onClick={features.individualWorkHistorySave ? handleIndividualSave : handleSave}
+            onClick={() => setShowSaveConfirm(true)}
             disabled={isAutoSaving || isSavingIndividually || isMutating}
           >
-            {features.individualWorkHistorySave && !isSavingIndividually ? '保存して閉じる' : '保存'}
+            {!isSavingIndividually ? '保存する' : '保存中...'}
           </ActionButton>
         )}
       </DialogActions>
@@ -959,6 +937,17 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
         confirmColor="error"
         onConfirm={handleClearDraft}
         onCancel={() => setShowClearDraftDialog(false)}
+      />
+
+      {/* 保存確認ダイアログ */}
+      <ConfirmDialog
+        open={showSaveConfirm}
+        title="職務経歴の保存"
+        message="編集中の職務経歴を保存しますか？"
+        confirmText="保存"
+        cancelText="キャンセル"
+        onConfirm={handleConfirmSave}
+        onCancel={() => setShowSaveConfirm(false)}
       />
     </Dialog>
   );

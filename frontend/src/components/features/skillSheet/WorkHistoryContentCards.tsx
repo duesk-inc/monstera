@@ -22,7 +22,6 @@ import ActionButton from '@/components/common/ActionButton';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useWorkHistoryMutation } from '@/hooks/useWorkHistoryMutation';
-import { features } from '@/config/features';
 import { useToast } from '@/components/common';
 
 // 担当工程オプション
@@ -172,8 +171,8 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
     const currentValues = getValues('workHistory') || [];
     const targetHistory = currentValues[index];
     
-    // フィーチャーフラグが有効で、IDがある場合は個別削除
-    if (features.individualWorkHistorySave && targetHistory?.id) {
+    // IDがある場合は個別削除
+    if (targetHistory?.id) {
       try {
         await deleteWorkHistory(
           targetHistory.id,
@@ -196,13 +195,13 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
         console.error('Failed to delete work history:', error);
       }
     } else {
-      // フィーチャーフラグが無効またはIDがない場合は従来の削除
+      // IDがない場合はフォームから削除
       const newValues = currentValues.filter((_, i) => i !== index);
       setValue('workHistory', newValues);
     }
     
     setDeleteConfirmDialog({ isOpen: false, targetIndex: -1 });
-  }, [getValues, setValue, features.individualWorkHistorySave, deleteWorkHistory, userId, showSuccess, showError]);
+  }, [getValues, setValue, deleteWorkHistory, userId, showSuccess, showError]);
 
   // 編集ダイアログを開く
   const handleOpenEditDialog = useCallback((index: number) => {
@@ -463,36 +462,41 @@ export const WorkHistoryContentCards: React.FC<WorkHistoryContentCardsProps> = R
             
             {/* アクションボタン */}
             <Box sx={{ display: 'flex', gap: 1, flexShrink: 0 }}>
-              <IconButton 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleOpenEditDialog(actualIndex);
-                }}
-                size={isMobile ? "medium" : "small"}
-                color="primary"
-                sx={{ 
-                  minWidth: isMobile ? 44 : 32,
-                  minHeight: isMobile ? 44 : 32 
-                }}
-              >
-                <EditIcon />
-              </IconButton>
-              <IconButton 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDeleteConfirmDialog({ 
-                    isOpen: true, 
-                    targetIndex: actualIndex 
-                  });
-                }}
-                size={isMobile ? "medium" : "small"}
-                sx={{ 
-                  minWidth: isMobile ? 44 : 32,
-                  minHeight: isMobile ? 44 : 32 
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
+              <Tooltip title="編集">
+                <IconButton 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenEditDialog(actualIndex);
+                  }}
+                  size={isMobile ? "medium" : "small"}
+                  color="primary"
+                  sx={{ 
+                    minWidth: isMobile ? 44 : 32,
+                    minHeight: isMobile ? 44 : 32 
+                  }}
+                >
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="削除">
+                <IconButton 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteConfirmDialog({ 
+                      isOpen: true, 
+                      targetIndex: actualIndex 
+                    });
+                  }}
+                  size={isMobile ? "medium" : "small"}
+                  color="error"
+                  sx={{ 
+                    minWidth: isMobile ? 44 : 32,
+                    minHeight: isMobile ? 44 : 32 
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
             </Box>
           </Box>
         );
