@@ -95,7 +95,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
     queryKey: ['notifications', tabValue === 0 ? 'unread' : 'all'],
     queryFn: async () => {
       const params = tabValue === 0 ? { status: 'unread' } : {};
-      const response = await apiClient.get('/api/v1/notifications', { params });
+      const response = await apiClient.get('/notifications', { params });
       return response.data.notifications || [];
     },
     enabled: open,
@@ -104,7 +104,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   // 既読にする
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationIds: string[]) => {
-      await apiClient.put('/api/v1/notifications/read', {
+      await apiClient.put('/notifications/read', {
         notification_ids: notificationIds,
       });
     },
@@ -117,7 +117,7 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   // 全て既読にする
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      await apiClient.put('/api/v1/notifications/read-all');
+      await apiClient.put('/notifications/read-all');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });

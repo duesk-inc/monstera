@@ -19,7 +19,7 @@ export const NotificationBadge: React.FC<NotificationBadgeProps> = ({
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/notifications/unread-count');
+      const response = await apiClient.get('/notifications/unread-count');
       return response.data.count || 0;
     },
     refetchInterval: 30000, // 30秒ごとに更新

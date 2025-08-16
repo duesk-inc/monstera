@@ -119,7 +119,7 @@ export default function ApprovalReminderPage() {
   const { data: configData, refetch: refetchConfig } = useQuery<GetApprovalReminderConfigResponse>({
     queryKey: ['approval-reminder-config'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/admin/approval-reminder/config');
+      const response = await apiClient.get('/admin/approval-reminder/config');
       return response.data;
     },
   });
@@ -127,7 +127,7 @@ export default function ApprovalReminderPage() {
   // 設定更新
   const updateConfigMutation = useMutation({
     mutationFn: async (data: Partial<typeof editConfig>) => {
-      const response = await apiClient.put('/api/v1/admin/approval-reminder/config', data);
+      const response = await apiClient.put('/admin/approval-reminder/config', data);
       return response.data;
     },
     onSuccess: () => {
@@ -143,7 +143,7 @@ export default function ApprovalReminderPage() {
   // スケジューラー開始
   const startSchedulerMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post('/api/v1/admin/approval-reminder/scheduler/start');
+      const response = await apiClient.post('/admin/approval-reminder/scheduler/start');
       return response.data;
     },
     onSuccess: () => {
@@ -158,7 +158,7 @@ export default function ApprovalReminderPage() {
   // スケジューラー停止
   const stopSchedulerMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiClient.post('/api/v1/admin/approval-reminder/scheduler/stop');
+      const response = await apiClient.post('/admin/approval-reminder/scheduler/stop');
       return response.data;
     },
     onSuccess: () => {
@@ -174,7 +174,7 @@ export default function ApprovalReminderPage() {
   const executeReminderMutation = useMutation({
     mutationFn: async (dryRun: boolean) => {
       const response = await apiClient.post<ExecuteApprovalReminderResponse>(
-        '/api/v1/admin/approval-reminder/execute',
+        '/admin/approval-reminder/execute',
         { dry_run: dryRun }
       );
       return response.data;

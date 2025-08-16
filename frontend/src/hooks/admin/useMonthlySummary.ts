@@ -40,7 +40,7 @@ export const useMonthlySummary = ({ year, month, departmentId }: UseMonthlySumma
         }
 
         const response = await apiClient.get<MonthlySummaryResponse>(
-          `/api/v1/admin/weekly-reports/monthly-summary?${params.toString()}`
+          `/admin/weekly-reports/monthly-summary?${params.toString()}`
         );
 
         return response.data;
@@ -111,7 +111,7 @@ export const useMonthlySummaryExport = () => {
       });
 
       const response = await apiClient.get(
-        `/api/v1/admin/weekly-reports/export?${params.toString()}`,
+        `/admin/weekly-reports/export?${params.toString()}`,
         {
           responseType: 'blob',
         }

@@ -37,7 +37,7 @@ export const useNotifications = () => {
   } = useQuery<NotificationResponse>({
     queryKey: QUERY_KEYS.NOTIFICATIONS.UNREAD,
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/notifications/unread');
+      const response = await apiClient.get('/notifications/unread');
       return response.data;
     },
     enabled: !!user && isPollingEnabled,

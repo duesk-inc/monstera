@@ -120,7 +120,7 @@ export default function LeaveRequestList() {
   const { data: leaveTypes } = useQuery<LeaveTypeResponse[]>({
     queryKey: ['leave-types'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/leave/types');
+      const response = await apiClient.get('/leave/types');
       return response.data.data;
     },
   });
@@ -191,7 +191,7 @@ export default function LeaveRequestList() {
   const bulkApproveMutation = useMutation({
     mutationFn: async (requestIds: string[]) => {
       const response = await apiClient.post(
-        '/api/v1/admin/engineers/leave/requests/bulk-approve',
+        '/admin/engineers/leave/requests/bulk-approve',
         { request_ids: requestIds }
       );
       return response.data;

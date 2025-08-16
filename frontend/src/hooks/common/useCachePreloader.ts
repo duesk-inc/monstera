@@ -21,7 +21,7 @@ export const useCachePreloader = () => {
       await cacheUtils.prefetchQuery(
         [...QUERY_KEYS.DEPARTMENTS],
         async () => {
-          const response = await apiClient.get('/api/v1/departments');
+          const response = await apiClient.get('/departments');
           return response.data;
         },
         CACHE_STRATEGIES.MASTER_DATA
@@ -31,7 +31,7 @@ export const useCachePreloader = () => {
       await cacheUtils.prefetchQuery(
         [...QUERY_KEYS.ROLES],
         async () => {
-          const response = await apiClient.get('/api/v1/roles');
+          const response = await apiClient.get('/roles');
           return response.data;
         },
         CACHE_STRATEGIES.MASTER_DATA
@@ -74,7 +74,7 @@ export const useCachePreloader = () => {
         await cacheUtils.prefetchQuery(
           [...QUERY_KEYS.ALERT_SETTINGS],
           async () => {
-            const response = await apiClient.get('/api/v1/admin/alert-settings');
+            const response = await apiClient.get('/admin/alert-settings');
             return response.data;
           },
           CACHE_STRATEGIES.ALERT_SETTINGS

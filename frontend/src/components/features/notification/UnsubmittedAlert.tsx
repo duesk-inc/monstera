@@ -18,7 +18,7 @@ export const UnsubmittedAlert: React.FC<UnsubmittedAlertProps> = ({ onClose }) =
   const { data: unsubmittedData } = useQuery({
     queryKey: ['unsubmitted', 'summary'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/weekly-reports/unsubmitted/summary');
+      const response = await apiClient.get('/weekly-reports/unsubmitted/summary');
       return response.data;
     },
     refetchInterval: 60000, // 1分ごとに更新

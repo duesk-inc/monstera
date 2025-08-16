@@ -35,7 +35,7 @@ export const useExportJob = (options?: UseExportJobOptions) => {
     CreateExportJobRequest
   >({
     mutationFn: async (request) => {
-      const response = await apiClient.post('/api/v1/admin/engineers/weekly-reports/export-job', request);
+      const response = await apiClient.post('/admin/engineers/weekly-reports/export-job', request);
       return response.data;
     },
     onSuccess: (data) => {

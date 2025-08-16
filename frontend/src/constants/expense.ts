@@ -218,13 +218,13 @@ export const EXPENSE_DISPLAY_CONFIG = {
 
 // API エンドポイント
 export const EXPENSE_API_ENDPOINTS = {
-  EXPENSES: "/api/v1/expenses",
-  CATEGORIES: "/api/v1/expenses/categories",
-  RECEIPTS: "/api/v1/expenses/receipts",
-  REPORTS: "/api/v1/expenses/reports",
-  APPROVALS: "/api/v1/expenses/approvals",
-  EXPORTS: "/api/v1/expenses/exports",
-  TEMPLATES: "/api/v1/expenses/templates",
+  EXPENSES: "/expenses",
+  CATEGORIES: "/expenses/categories",
+  RECEIPTS: "/expenses/receipts",
+  REPORTS: "/expenses/reports",
+  APPROVALS: "/expenses/approvals",
+  EXPORTS: "/expenses/exports",
+  TEMPLATES: "/expenses/templates",
 } as const;
 
 // 経費メッセージ

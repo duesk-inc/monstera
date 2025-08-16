@@ -3,43 +3,43 @@
 // API エンドポイント定数
 export const API_ENDPOINTS = {
   // ダッシュボード
-  DASHBOARD: "/api/v1/accounting/dashboard",
-  MONTHLY_TREND: "/api/v1/accounting/dashboard/monthly-trend",
-  CLIENT_RANKING: "/api/v1/accounting/dashboard/client-ranking",
+  DASHBOARD: "/accounting/dashboard",
+  MONTHLY_TREND: "/accounting/dashboard/monthly-trend",
+  CLIENT_RANKING: "/accounting/dashboard/client-ranking",
 
   // プロジェクトグループ
-  PROJECT_GROUPS: "/api/v1/accounting/project-groups",
-  PROJECT_GROUP_DETAIL: (id: string) => `/api/v1/accounting/project-groups/${id}`,
+  PROJECT_GROUPS: "/accounting/project-groups",
+  PROJECT_GROUP_DETAIL: (id: string) => `/accounting/project-groups/${id}`,
 
   // 請求処理
-  BILLING_PREVIEW: "/api/v1/accounting/billing/preview",
-  BILLING_PREVIEWS: "/api/v1/accounting/billing/previews",
-  BILLING_PROCESS: "/api/v1/accounting/billing/process",
-  BILLING_SCHEDULE: "/api/v1/accounting/billing/schedule",
-  BILLING_HISTORY: "/api/v1/accounting/billing/history",
+  BILLING_PREVIEW: "/accounting/billing/preview",
+  BILLING_PREVIEWS: "/accounting/billing/previews",
+  BILLING_PROCESS: "/accounting/billing/process",
+  BILLING_SCHEDULE: "/accounting/billing/schedule",
+  BILLING_HISTORY: "/accounting/billing/history",
 
   // freee連携
-  FREEE_AUTH_URL: "/api/v1/accounting/freee/auth-url",
-  FREEE_CALLBACK: "/api/v1/accounting/freee/callback",
-  FREEE_DISCONNECT: "/api/v1/accounting/freee/disconnect",
-  FREEE_SYNC: "/api/v1/accounting/freee/sync",
-  FREEE_PARTNERS: "/api/v1/accounting/freee/partners",
-  FREEE_INVOICES: "/api/v1/accounting/freee/invoices",
+  FREEE_AUTH_URL: "/accounting/freee/auth-url",
+  FREEE_CALLBACK: "/accounting/freee/callback",
+  FREEE_DISCONNECT: "/accounting/freee/disconnect",
+  FREEE_SYNC: "/accounting/freee/sync",
+  FREEE_PARTNERS: "/accounting/freee/partners",
+  FREEE_INVOICES: "/accounting/freee/invoices",
 
   // スケジュール
-  SCHEDULES: "/api/v1/accounting/schedules",
-  SCHEDULE_DETAIL: (id: string) => `/api/v1/accounting/schedules/${id}`,
-  SCHEDULE_EXECUTE: (id: string) => `/api/v1/accounting/schedules/${id}/execute`,
+  SCHEDULES: "/accounting/schedules",
+  SCHEDULE_DETAIL: (id: string) => `/accounting/schedules/${id}`,
+  SCHEDULE_EXECUTE: (id: string) => `/accounting/schedules/${id}/execute`,
 
   // バッチジョブ
-  BATCH_JOBS: "/api/v1/accounting/batch-jobs",
-  BATCH_JOB_DETAIL: (id: string) => `/api/v1/accounting/batch-jobs/${id}`,
-  BATCH_JOB_CANCEL: (id: string) => `/api/v1/accounting/batch-jobs/${id}/cancel`,
+  BATCH_JOBS: "/accounting/batch-jobs",
+  BATCH_JOB_DETAIL: (id: string) => `/accounting/batch-jobs/${id}`,
+  BATCH_JOB_CANCEL: (id: string) => `/accounting/batch-jobs/${id}/cancel`,
 
   // エクスポート
-  EXPORT_BILLING: "/api/v1/accounting/export/billing",
-  EXPORT_PROJECT_GROUPS: "/api/v1/accounting/export/project-groups",
-  EXPORT_FREEE_DATA: "/api/v1/accounting/export/freee-data",
+  EXPORT_BILLING: "/accounting/export/billing",
+  EXPORT_PROJECT_GROUPS: "/accounting/export/project-groups",
+  EXPORT_FREEE_DATA: "/accounting/export/freee-data",
 } as const;
 
 // 請求書ステータス

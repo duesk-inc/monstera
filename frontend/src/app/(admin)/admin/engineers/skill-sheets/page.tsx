@@ -78,7 +78,7 @@ export default function SkillSheetManagement() {
   const handleDownloadPDF = async (engineerId: string) => {
     setDownloading(engineerId);
     try {
-      const response = await axios.get(`/api/v1/admin/engineers/skill-sheets/${engineerId}/pdf`, {
+      const response = await axios.get(`/admin/engineers/skill-sheets/${engineerId}/pdf`, {
         responseType: 'blob',
       });
 

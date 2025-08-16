@@ -64,7 +64,7 @@ export default function ExpenseApproverSettings() {
   // 承認者設定を取得
   const fetchSettings = async () => {
     try {
-      const response = await fetch('/api/v1/admin/expense-approvers', {
+      const response = await fetch('/admin/expense-approvers', {
         headers: getAuthHeaders(),
       });
       if (!response.ok) throw new Error('Failed to fetch settings');
@@ -81,7 +81,7 @@ export default function ExpenseApproverSettings() {
   // ユーザー一覧を取得
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/v1/admin/users', {
+      const response = await fetch('/admin/users', {
         headers: getAuthHeaders(),
       });
       if (!response.ok) throw new Error('Failed to fetch users');
@@ -130,8 +130,8 @@ export default function ExpenseApproverSettings() {
   const handleSave = async () => {
     try {
       const url = editingId
-        ? `/api/v1/admin/expense-approvers/${editingId}`
-        : '/api/v1/admin/expense-approvers';
+        ? `/admin/expense-approvers/${editingId}`
+        : '/admin/expense-approvers';
       const method = editingId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -165,7 +165,7 @@ export default function ExpenseApproverSettings() {
     if (!window.confirm('この承認者設定を削除しますか？')) return;
 
     try {
-      const response = await fetch(`/api/v1/admin/expense-approvers/${id}`, {
+      const response = await fetch(`/admin/expense-approvers/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
@@ -183,7 +183,7 @@ export default function ExpenseApproverSettings() {
   // 優先順位変更
   const handlePriorityChange = async (id: string, newPriority: number) => {
     try {
-      const response = await fetch(`/api/v1/admin/expense-approvers/${id}/priority`, {
+      const response = await fetch(`/admin/expense-approvers/${id}/priority`, {
         method: 'PATCH',
         headers: {
           ...getAuthHeaders(),

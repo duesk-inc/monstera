@@ -8,60 +8,60 @@ export const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 
 // API Endpoints
 export const NOTIFICATION_API = {
-  BASE: `/api/${API_VERSION}/notifications`,
-  USER_NOTIFICATIONS: `/api/${API_VERSION}/notifications/user`,
-  MARK_READ: `/api/${API_VERSION}/notifications/mark-read`,
-  SETTINGS: `/api/${API_VERSION}/notifications/settings`,
+  BASE: `/notifications`,
+  USER_NOTIFICATIONS: `/notifications/user`,
+  MARK_READ: `/notifications/mark-read`,
+  SETTINGS: `/notifications/settings`,
 } as const;
 
 export const PROFILE_API = {
-  BASE: `/api/${API_VERSION}/profile`,
-  GET: `/api/${API_VERSION}/profile`,
-  UPDATE: `/api/${API_VERSION}/profile`,
-  WITH_HISTORY: `/api/${API_VERSION}/profile/with-work-history`,
-  TEMP_SAVE: `/api/${API_VERSION}/profile/temp-save`,
-  AVATAR: `/api/${API_VERSION}/profile/avatar`,
-  HISTORY: `/api/${API_VERSION}/profile/history`,
-  LATEST_HISTORY: `/api/${API_VERSION}/profile/history`,
-  TECHNOLOGY_CATEGORIES: `/api/${API_VERSION}/profile/technology-categories`,
-  COMMON_CERTIFICATIONS: `/api/${API_VERSION}/profile/common-certifications`,
+  BASE: `/profile`,
+  GET: `/profile`,
+  UPDATE: `/profile`,
+  WITH_HISTORY: `/profile/with-work-history`,
+  TEMP_SAVE: `/profile/temp-save`,
+  AVATAR: `/profile/avatar`,
+  HISTORY: `/profile/history`,
+  LATEST_HISTORY: `/profile/history`,
+  TECHNOLOGY_CATEGORIES: `/profile/technology-categories`,
+  COMMON_CERTIFICATIONS: `/profile/common-certifications`,
 } as const;
 
 export const WEEKLY_REPORT_API = {
-  BASE: `/api/${API_VERSION}/weekly-reports`,
-  CREATE: `/api/${API_VERSION}/weekly-reports`,
-  UPDATE: `/api/${API_VERSION}/weekly-reports/:id`,
-  LIST: `/api/${API_VERSION}/weekly-reports`,
-  DETAIL: `/api/${API_VERSION}/weekly-reports/:id`,
-  SUBMIT: `/api/${API_VERSION}/weekly-reports/:id/submit`,
-  TEMPLATE: `/api/${API_VERSION}/weekly-reports/default-settings`,
+  BASE: `/weekly-reports`,
+  CREATE: `/weekly-reports`,
+  UPDATE: `/weekly-reports/:id`,
+  LIST: `/weekly-reports`,
+  DETAIL: `/weekly-reports/:id`,
+  SUBMIT: `/weekly-reports/:id/submit`,
+  TEMPLATE: `/weekly-reports/default-settings`,
 } as const;
 
 export const SKILL_SHEET_API = {
-  BASE: `/api/${API_VERSION}/skill-sheet`,
-  GET: `/api/${API_VERSION}/skill-sheet`,
-  CREATE: `/api/${API_VERSION}/skill-sheet`,
-  UPDATE: `/api/${API_VERSION}/skill-sheet`,
-  TEMP_SAVE: `/api/${API_VERSION}/skill-sheet/temp-save`,
-  LIST: `/api/${API_VERSION}/skill-sheets`,
+  BASE: `/skill-sheet`,
+  GET: `/skill-sheet`,
+  CREATE: `/skill-sheet`,
+  UPDATE: `/skill-sheet`,
+  TEMP_SAVE: `/skill-sheet/temp-save`,
+  LIST: `/skill-sheets`,
 } as const;
 
 export const ATTENDANCE_API = {
-  BASE: `/api/${API_VERSION}/attendance`,
-  CLOCK_IN: `/api/${API_VERSION}/attendance/clock-in`,
-  CLOCK_OUT: `/api/${API_VERSION}/attendance/clock-out`,
+  BASE: `/attendance`,
+  CLOCK_IN: `/attendance/clock-in`,
+  CLOCK_OUT: `/attendance/clock-out`,
 } as const;
 
 export const LEAVE_API = {
-  BASE: `/api/${API_VERSION}/leave`,
-  TYPES: `/api/${API_VERSION}/leave/types`,
-  BALANCES: `/api/${API_VERSION}/leave/balances`,
-  REQUESTS: `/api/${API_VERSION}/leave/requests`,
-  CREATE: `/api/${API_VERSION}/leave/requests`,
-  APPLY: `/api/${API_VERSION}/leave/apply`,
-  LIST: `/api/${API_VERSION}/leave/list`,
-  APPROVE: `/api/${API_VERSION}/leave/approve`,
-  REJECT: `/api/${API_VERSION}/leave/reject`,
+  BASE: `/leave`,
+  TYPES: `/leave/types`,
+  BALANCES: `/leave/balances`,
+  REQUESTS: `/leave/requests`,
+  CREATE: `/leave/requests`,
+  APPLY: `/leave/apply`,
+  LIST: `/leave/list`,
+  APPROVE: `/leave/approve`,
+  REJECT: `/leave/reject`,
 } as const;
 
 // Type exports

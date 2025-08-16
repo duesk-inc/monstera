@@ -74,7 +74,7 @@ export const useWeeklyReportData = (): UseWeeklyReportDataReturn => {
           description: '週報データ取得' 
         },
         { 
-          url: '/api/v1/weekly-reports/current', 
+          url: '/weekly-reports/current', 
           method: 'GET'
         }
       );
@@ -311,7 +311,7 @@ export const useWeeklyReportData = (): UseWeeklyReportDataReturn => {
           description: '週報下書き保存' 
         },
         { 
-          url: '/api/v1/weekly-reports/draft', 
+          url: '/weekly-reports/draft', 
           method: 'POST',
           requestData: report,
           convertedRequestData: apiReport
@@ -386,7 +386,7 @@ export const useWeeklyReportData = (): UseWeeklyReportDataReturn => {
           description: '週報提出' 
         },
         { 
-          url: '/api/v1/weekly-reports/submit', 
+          url: '/weekly-reports/submit', 
           method: 'POST',
           requestData: report,
           convertedRequestData: apiReport

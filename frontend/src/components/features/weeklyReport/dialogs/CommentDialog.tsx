@@ -45,7 +45,7 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
 
     try {
       await apiClient.post(
-        `/api/v1/admin/engineers/weekly-reports/${report.id}/comment`,
+        `/admin/engineers/weekly-reports/${report.id}/comment`,
         { comment }
       );
       

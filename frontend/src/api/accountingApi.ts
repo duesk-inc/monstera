@@ -94,7 +94,7 @@ export const getClientBillingRanking = async (
  */
 export const getClients = async (): Promise<Client[]> => {
   const response = await apiClient.get<ApiResponse<Client[]>>(
-    "/api/v1/accounting/clients",
+    "/accounting/clients",
   );
   return response.data.data;
 };
@@ -104,7 +104,7 @@ export const getClients = async (): Promise<Client[]> => {
  */
 export const getProjects = async (): Promise<Project[]> => {
   const response = await apiClient.get<ApiResponse<Project[]>>(
-    "/api/v1/accounting/projects",
+    "/accounting/projects",
   );
   return response.data.data;
 };
@@ -352,7 +352,7 @@ export const getFreeeInvoices = async (params?: {
 export const getFreeeConfig = async (): Promise<FreeConfig | null> => {
   try {
     const response = await apiClient.get<ApiResponse<FreeConfig>>(
-      "/api/v1/accounting/freee/config",
+      "/accounting/freee/config",
     );
     return response.data.data;
   } catch (error: any) {
@@ -618,7 +618,7 @@ export const pollFreeSyncProgress = async (
   const checkProgress = async () => {
     try {
       const response = await apiClient.get<ApiResponse<FreeSyncLog>>(
-        "/api/v1/accounting/freee/sync/latest",
+        "/accounting/freee/sync/latest",
       );
       const log = response.data.data;
       onProgress(log);
@@ -723,7 +723,7 @@ export const processBillingBatch = async (
  */
 export const testApiConnection = async (): Promise<boolean> => {
   try {
-    await apiClient.get("/api/v1/accounting/health");
+    await apiClient.get("/accounting/health");
     return true;
   } catch {
     return false;
@@ -781,7 +781,7 @@ export const getInvoiceHistory = async (params?: {
   status?: string;
 }): Promise<Invoice[]> => {
   const response = await apiClient.get<ApiResponse<Invoice[]>>(
-    "/api/v1/accounting/invoices",
+    "/accounting/invoices",
     { params }
   );
   return response.data.data;
@@ -792,7 +792,7 @@ export const getInvoiceHistory = async (params?: {
  */
 export const getInvoiceSummary = async (): Promise<InvoiceSummary> => {
   const response = await apiClient.get<ApiResponse<InvoiceSummary>>(
-    "/api/v1/accounting/invoices/summary"
+    "/accounting/invoices/summary"
   );
   return response.data.data;
 };
@@ -819,7 +819,7 @@ export const bulkInvoiceAction = async (
   invoiceIds: UUID[]
 ): Promise<BulkActionResult> => {
   const response = await apiClient.post<ApiResponse<BulkActionResult>>(
-    "/api/v1/accounting/invoices/bulk",
+    "/accounting/invoices/bulk",
     { action, invoiceIds }
   );
   return response.data.data;

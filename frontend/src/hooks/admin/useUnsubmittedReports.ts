@@ -43,7 +43,7 @@ export const useUnsubmittedReports = (params: UnsubmittedReportsParams = {}) => 
   } = useQuery({
     queryKey: ['unsubmitted-reports', params],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/admin/weekly-reports/unsubmitted', {
+      const response = await apiClient.get('/admin/weekly-reports/unsubmitted', {
         params,
       });
       return response.data;
@@ -54,7 +54,7 @@ export const useUnsubmittedReports = (params: UnsubmittedReportsParams = {}) => 
   const { data: summaryData } = useQuery({
     queryKey: ['unsubmitted-summary'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/admin/weekly-reports/unsubmitted/summary');
+      const response = await apiClient.get('/admin/weekly-reports/unsubmitted/summary');
       return response.data;
     },
   });
@@ -62,7 +62,7 @@ export const useUnsubmittedReports = (params: UnsubmittedReportsParams = {}) => 
   // リマインド送信
   const sendRemindersMutation = useMutation({
     mutationFn: async (userIds: string[]) => {
-      const response = await apiClient.post('/api/v1/admin/weekly-reports/remind', {
+      const response = await apiClient.post('/admin/weekly-reports/remind', {
         user_ids: userIds,
         message: '週報の提出をお願いします。',
       });

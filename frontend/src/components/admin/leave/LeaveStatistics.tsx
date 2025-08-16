@@ -116,7 +116,7 @@ export default function LeaveStatistics() {
   const { data: users } = useQuery<User[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const response = await apiClient.get('/api/v1/admin/users');
+      const response = await apiClient.get('/admin/users');
       return response.data.items;
     },
   });

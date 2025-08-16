@@ -258,15 +258,15 @@ export const PERFORMANCE_CRITERIA = {
 
 // API エンドポイント
 export const SALES_API_ENDPOINTS = {
-  TEAMS: "/api/v1/sales/teams",
-  MEMBERS: "/api/v1/sales/members",
-  TARGETS: "/api/v1/sales/targets",
-  PERFORMANCE: "/api/v1/sales/performance",
-  REPORTS: "/api/v1/sales/reports",
-  ACTIVITIES: "/api/v1/sales/activities",
-  CUSTOMERS: "/api/v1/sales/customers",
-  DEALS: "/api/v1/sales/deals",
-  FORECASTS: "/api/v1/sales/forecasts",
+  TEAMS: "/sales/teams",
+  MEMBERS: "/sales/members",
+  TARGETS: "/sales/targets",
+  PERFORMANCE: "/sales/performance",
+  REPORTS: "/sales/reports",
+  ACTIVITIES: "/sales/activities",
+  CUSTOMERS: "/sales/customers",
+  DEALS: "/sales/deals",
+  FORECASTS: "/sales/forecasts",
 } as const;
 
 // 金額タイプ
@@ -405,14 +405,14 @@ export const EMAIL_TEMPLATE_VARIABLES = {
 
 // 営業エンドポイント
 export const SALES_ENDPOINTS = {
-  PROPOSALS: "/api/v1/sales/proposals",
-  CAMPAIGNS: "/api/v1/sales/campaigns",
-  INTERVIEWS: "/api/v1/sales/interviews",
-  EXTENSIONS: "/api/v1/sales/extensions",
-  POC_PROJECTS: "/api/v1/sales/poc-projects",
-  EMAIL_TEMPLATES: "/api/v1/sales/email-templates",
-  EMAIL_CAMPAIGNS: "/api/v1/sales/email-campaigns",
-  USERS: "/api/v1/sales/users",
+  PROPOSALS: "/sales/proposals",
+  CAMPAIGNS: "/sales/campaigns",
+  INTERVIEWS: "/sales/interviews",
+  EXTENSIONS: "/sales/extensions",
+  POC_PROJECTS: "/sales/poc-projects",
+  EMAIL_TEMPLATES: "/sales/email-templates",
+  EMAIL_CAMPAIGNS: "/sales/email-campaigns",
+  USERS: "/sales/users",
 } as const;
 
 // 営業権限
