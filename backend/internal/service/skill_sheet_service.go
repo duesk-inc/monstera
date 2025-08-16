@@ -370,6 +370,17 @@ func (s *SkillSheetService) UpdateUserSkillSheetWithDTO(userID string, request d
 			}
 		}
 
+		// Industry値のバリデーション（1-7の範囲でなければ「その他」に設定）
+		industry := workReq.Industry
+		if industry < 1 || industry > 7 {
+			// 無効な値の場合は「その他」（ID=7）を設定
+			industry = 7
+			s.logger.Warn("無効なindustry値を「その他」に設定",
+				zap.Int32("original_value", workReq.Industry),
+				zap.Int32("new_value", industry),
+				zap.String("project_name", workReq.ProjectName))
+		}
+
 		workHistory := model.WorkHistory{
 			ID:               uuid.New().String(),
 			ProfileID:        profile.ID,
@@ -377,7 +388,7 @@ func (s *SkillSheetService) UpdateUserSkillSheetWithDTO(userID string, request d
 			ProjectName:      workReq.ProjectName,
 			StartDate:        startDate,
 			EndDate:          endDate,
-			Industry:         workReq.Industry,
+			Industry:         industry,
 			ProjectOverview:  workReq.ProjectOverview,
 			Responsibilities: workReq.Responsibilities,
 			Achievements:     workReq.Achievements,
