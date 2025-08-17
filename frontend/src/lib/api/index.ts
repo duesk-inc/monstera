@@ -246,14 +246,71 @@ export {
 export { getApiEnvironment, validateApiEnvironment } from '@/lib/api/config/env';
 export type { ApiEnvironmentConfig } from '@/lib/api/config/env';
 
-// エラーハンドリング
-export { handleApiError, isAbortError, AbortError } from '@/lib/api/error';
+// エラーハンドリング（レガシー）
+export { isAbortError, AbortError } from '@/lib/api/error';
+
+// 統一エラーハンドリング
+export { 
+  handleApiError, 
+  handleApiErrorSilently, 
+  handleRetryableApiError,
+  globalApiErrorHandler,
+  type ErrorHandlingOptions 
+} from '@/lib/api/error/handler';
+
+export {
+  ApiErrorCode,
+  type StandardErrorResponse,
+  type ValidationErrorResponse,
+  type ExtendedErrorInfo,
+  type ErrorDetails,
+  type ValidationErrorDetail,
+  ErrorSeverity,
+  createErrorResponse,
+  createValidationErrorResponse,
+  getErrorMessage,
+  getErrorCodeFromStatus,
+  getErrorSeverity,
+  isStandardErrorResponse,
+  isValidationErrorResponse,
+} from '@/lib/api/types/error';
 
 // API設定（config.tsから）
 export { API_CONFIG, endpoints } from '@/lib/api/config';
 
 // リトライ設定
 export { isRetryableError, calculateRetryDelay, queryRetryConfig } from '@/lib/api/retry-config';
+
+// 統一型定義
+export type {
+  ApiResponse,
+  ApiErrorResponse,
+  PaginatedResponse,
+  PaginationMeta,
+  ExtendedApiConfig,
+  TypedApiClient,
+  ApiMethod,
+  ApiEndpoint,
+  ApiEndpoints,
+  TypedApiRequest,
+  ApiHookResult,
+  BatchApiRequest,
+  BatchApiResponse,
+  ApiCacheEntry,
+  SafeApiResponse,
+  PresetConfigMap,
+} from '@/lib/api/types/unified';
+
+export {
+  isApiErrorResponse,
+  isPaginatedResponse,
+  handleApiResponse,
+  getTypedPresetConfig,
+} from '@/lib/api/types/unified';
+
+// プリセットタイプ
+export type { ApiClientPresetType } from '@/lib/api/factory';
+export { createPresetApiClient, getPublicApiClient, getUploadApiClient, getBatchApiClient, getRealtimeApiClient } from '@/lib/api/factory';
 
 /**
  * 推奨される使い方:
@@ -263,4 +320,9 @@ export { isRetryableError, calculateRetryDelay, queryRetryConfig } from '@/lib/a
  * または
  * 
  * import { apiClient, handleApiError } from '@/lib/api';
+ * 
+ * プリセットベース:
+ * 
+ * import { createPresetApiClient } from '@/lib/api';
+ * const client = createPresetApiClient('auth');
  */ 

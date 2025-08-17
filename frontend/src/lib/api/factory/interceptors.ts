@@ -4,7 +4,8 @@
  */
 
 import { AxiosInstance, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { handleApiError } from '@/lib/api/error';
+import { handleApiError, handleApiErrorSilently, ErrorHandlingOptions } from '@/lib/api/error/handler';
+import { StandardErrorResponse } from '@/lib/api/types/error';
 import { DebugLogger } from '@/lib/debug/logger';
 
 export type InterceptorType = 'auth' | 'retry' | 'logging' | 'error' | 'custom';
@@ -249,8 +250,9 @@ export class InterceptorManager {
   /**
    * エラーハンドリングインターセプターの設定
    * @param client Axiosインスタンス
+   * @param options エラーハンドリングオプション
    */
-  setupErrorHandling(client: AxiosInstance): void {
+  setupErrorHandling(client: AxiosInstance, options?: ErrorHandlingOptions): void {
     if (!this.registerOnce(client, 'error')) {
       return;
     }
@@ -261,25 +263,38 @@ export class InterceptorManager {
     const responseId = client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
-        // 統一エラーハンドリング
-        const handledError = handleApiError(error);
+        // すでに処理済みのエラーはスキップ
+        if ((error as any)._handled) {
+          return Promise.reject(error);
+        }
 
-        // エラー情報をログ
-        DebugLogger.apiError({
-          category: 'API',
-          operation: 'エラーハンドリング'
-        }, {
-          type: handledError.type,
-          message: handledError.message,
-          status: handledError.status,
-          url: error.config?.url
+        // 統一エラーハンドリング
+        const handledError: StandardErrorResponse = handleApiError(error, {
+          showNotification: true,
+          logError: true,
+          throwError: false,
+          ...options,
         });
+
+        // エラー情報をログ（グローバルハンドラーでログ済みの場合はスキップ）
+        if (!options?.logError) {
+          DebugLogger.apiError({
+            category: 'API',
+            operation: 'エラーハンドリング'
+          }, {
+            code: handledError.error.code,
+            message: handledError.error.message,
+            status: handledError.status,
+            url: error.config?.url
+          });
+        }
 
         // 処理済みエラーとしてマーク
         (error as any)._handled = true;
         (error as any)._handledError = handledError;
 
-        return Promise.reject(error);
+        // 標準エラーレスポンスを返す
+        return Promise.reject(handledError);
       }
     );
 

@@ -7,17 +7,19 @@ import {
   createApiClient as factoryCreateApiClient 
 } from '@/lib/api/client';
 import { getApiEnvironment } from '@/lib/api/config/env';
+import { getUnifiedApiConfig } from '@/lib/api/config/unified';
 
 // APIベースURL（後方互換性のため維持）
 const envConfig = getApiEnvironment();
 export const API_BASE_URL = envConfig.baseUrl;
 
-// API設定（後方互換性のため維持）
+// API設定（統一設定から取得、後方互換性のため維持）
+const unifiedConfig = getUnifiedApiConfig({ baseURL: API_BASE_URL });
 export const API_CONFIG = {
-  baseURL: API_BASE_URL,
-  timeout: 30000,
-  withCredentials: true,
-  headers: {
+  baseURL: unifiedConfig.baseURL || API_BASE_URL,
+  timeout: unifiedConfig.timeout || 30000,
+  withCredentials: unifiedConfig.withCredentials,
+  headers: unifiedConfig.headers || {
     'Content-Type': 'application/json',
   },
 };

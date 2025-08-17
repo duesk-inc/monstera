@@ -3,7 +3,7 @@
  */
 
 import axios from 'axios';
-import { createApiClient } from '@/lib/api/client';
+import { createPresetApiClient } from '@/lib/api/factory';
 import { API_BASE_URL } from '@/constants/api';
 import { 
   LoginRequest, 
@@ -33,9 +33,8 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
     });
 
     // APIクライアントを作成（認証前なのでgetAuthClientは使わない）
-    const client = createApiClient({
+    const client = createPresetApiClient('auth', {
       baseURL: API_BASE_URL,
-      withCredentials: true, // CORS リクエストでクッキーを送信
     });
 
     // ログインリクエスト
@@ -109,9 +108,8 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
     }, 'トークンリフレッシュ処理を開始');
 
     // APIクライアントを作成
-    const client = createApiClient({
+    const client = createPresetApiClient('auth', {
       baseURL: API_BASE_URL,
-      withCredentials: true, // CORS リクエストでクッキーを送信
     });
 
     // リフレッシュトークンリクエスト（セキュアなクッキーはバックエンドで自動的に使用される）
@@ -180,9 +178,8 @@ export const logout = async (): Promise<LogoutResponse> => {
     }
     
     // APIクライアントを作成
-    const client = createApiClient({
+    const client = createPresetApiClient('auth', {
       baseURL: API_BASE_URL,
-      withCredentials: true,
     });
     
     // ログアウトリクエスト
@@ -237,9 +234,8 @@ export const getCurrentUser = async () => {
     }, '現在のユーザー情報取得を開始');
 
     // APIクライアントを作成
-    const client = createApiClient({
+    const client = createPresetApiClient('auth', {
       baseURL: API_BASE_URL,
-      withCredentials: true,
     });
     
     // 現在のユーザー情報を取得
