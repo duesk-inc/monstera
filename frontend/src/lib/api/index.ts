@@ -42,19 +42,11 @@ interface ApiClientOptions extends AxiosRequestConfig {
 
 const DEFAULT_TIMEOUT = API_TIMEOUTS.DEFAULT;
 
-// 認証済みAPIクライアントを取得（ファクトリを使用）
+// 認証済みAPIクライアントを取得（ファクトリから取得済みのインスタンスを返す）
 export const getAuthClient = (): AxiosInstance => {
-  // ファクトリから認証機能付きクライアントを生成
-  return createApiClient({
-    timeout: DEFAULT_TIMEOUT,
-    withCredentials: true,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest', // CSRF対策
-    },
-    enableLogging: process.env.NODE_ENV === 'development',
-    enableRetry: true,
-  });
+  // ファクトリから取得済みのキャッシュされたインスタンスを返す
+  // これにより、毎回新しいインスタンスを作成する問題を解決
+  return api;
 };
 
 /**
