@@ -42,7 +42,7 @@ import {
 } from 'recharts';
 import { format, startOfYear, endOfYear } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import apiClient from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 
 interface LeaveStatistics {
   totalRequests: number;
@@ -105,8 +105,9 @@ export default function LeaveStatistics() {
         params.append('month', String(month));
       }
 
+      const apiClient = createPresetApiClient('admin');
       const response = await apiClient.get(
-        `/api/v1/admin/engineers/leave/statistics?${params}`
+        `/engineers/leave/statistics?${params}`
       );
       return response.data.data;
     },
@@ -116,7 +117,8 @@ export default function LeaveStatistics() {
   const { data: users } = useQuery<User[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const response = await apiClient.get('/admin/users');
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/users');
       return response.data.items;
     },
   });
@@ -126,8 +128,9 @@ export default function LeaveStatistics() {
     queryKey: ['admin-user-leave-statistics', selectedUser?.id, year],
     queryFn: async () => {
       if (!selectedUser) return null;
+      const apiClient = createPresetApiClient('admin');
       const response = await apiClient.get(
-        `/api/v1/admin/engineers/leave/statistics/users/${selectedUser.id}?year=${year}`
+        `/engineers/leave/statistics/users/${selectedUser.id}?year=${year}`
       );
       return response.data.data;
     },

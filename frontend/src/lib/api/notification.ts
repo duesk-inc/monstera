@@ -1,4 +1,5 @@
-import { getAuthClient } from '@/lib/api';
+// Migrated to new API client system
+import { createPresetApiClient } from '@/lib/api';
 import { 
   UserNotificationListResponse,
   UserNotificationList,
@@ -46,7 +47,7 @@ export const getUserNotifications = async (
   offset: number = 0,
   signal?: AbortSignal
 ): Promise<UserNotificationList> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     logDev('通知一覧取得 - リクエスト送信', { limit, offset });
     const options = {
@@ -76,7 +77,7 @@ export const getUserNotifications = async (
  * @param signal AbortSignal
  */
 export const markNotificationsAsRead = async (notificationIds: string[], signal?: AbortSignal): Promise<void> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     logDev('通知既読化 - リクエスト送信', { notificationIds });
     const options = {
@@ -107,7 +108,7 @@ export const markNotificationsAsRead = async (notificationIds: string[], signal?
  * @returns 通知設定レスポンス
  */
 export const getNotificationSettings = async (signal?: AbortSignal): Promise<NotificationSettingsList> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     logDev('通知設定取得 - リクエスト送信');
     const options = {
@@ -140,7 +141,7 @@ export const updateNotificationSetting = async (
   request: UpdateNotificationSettingRequest,
   signal?: AbortSignal
 ): Promise<NotificationSetting> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     logDev('通知設定更新 - リクエスト送信', request);
     const options = {
@@ -190,7 +191,7 @@ export const updateBasicNotificationSetting = async (
  * @returns Slack設定
  */
 export const getSlackSettings = async (signal?: AbortSignal): Promise<SlackSettings> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     logDev('Slack設定取得 - リクエスト送信');
     const options = {
@@ -222,7 +223,7 @@ export const updateSlackSettings = async (
   settings: SlackSettings,
   signal?: AbortSignal
 ): Promise<SlackSettings> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     logDev('Slack設定更新 - リクエスト送信', settings);
     const options = {
@@ -254,7 +255,7 @@ export const testSlackConnection = async (
   webhookUrl: string,
   signal?: AbortSignal
 ): Promise<{ success: boolean; message: string }> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     logDev('Slack接続テスト - リクエスト送信', { webhookUrl });
     const options = {

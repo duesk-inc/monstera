@@ -1,6 +1,7 @@
+// Migrated to new API client system
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 import type { 
   ExportJob, 
   CreateExportJobRequest, 
@@ -35,7 +36,8 @@ export const useExportJob = (options?: UseExportJobOptions) => {
     CreateExportJobRequest
   >({
     mutationFn: async (request) => {
-      const response = await apiClient.post('/admin/engineers/weekly-reports/export-job', request);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.post('/engineers/weekly-reports/export-job', request);
       return response.data;
     },
     onSuccess: (data) => {
@@ -55,7 +57,8 @@ export const useExportJob = (options?: UseExportJobOptions) => {
     queryKey: ['exportJob', activeJobId],
     queryFn: async () => {
       if (!activeJobId) throw new Error('No active job');
-      const response = await apiClient.get(`/api/v1/admin/export/${activeJobId}/status`);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get(`/export/${activeJobId}/status`);
       return response.data;
     },
     enabled: !!activeJobId && isPolling,
@@ -119,7 +122,8 @@ export const useExportJob = (options?: UseExportJobOptions) => {
     if (!activeJobId) return;
     
     try {
-      await apiClient.put(`/api/v1/admin/export/${activeJobId}/cancel`);
+      const apiClient = createPresetApiClient('admin');
+      await apiClient.put(`/export/${activeJobId}/cancel`);
       setIsPolling(false);
       showSuccess('エクスポートをキャンセルしました');
     } catch (error) {

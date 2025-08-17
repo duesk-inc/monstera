@@ -1,7 +1,11 @@
-import axios from '@/lib/axios';
+// Migrated to new API client system
+import { createPresetApiClient } from '@/lib/api';
 
-// 管理者APIのベースパス
-const ADMIN_BASE_PATH = '/api/v1/admin';
+// 管理者APIクライアント（adminプリセット使用）
+const adminClient = createPresetApiClient('admin');
+
+// 管理者APIのベースパス（新システムではプリセットで自動付与されるため簡略化）
+const ADMIN_BASE_PATH = '/admin';
 
 // APIエラークラス
 export class ApiError extends Error {
@@ -34,7 +38,7 @@ export const handleApiError = (error: any): never => {
 // 共通のGETリクエスト
 export const adminGet = async <T>(path: string, params?: any): Promise<T> => {
   try {
-    const response = await axios.get(`${ADMIN_BASE_PATH}${path}`, { params });
+    const response = await adminClient.get(`${ADMIN_BASE_PATH}${path}`, { params });
     return response.data;
   } catch (error) {
     handleApiError(error);
@@ -44,7 +48,7 @@ export const adminGet = async <T>(path: string, params?: any): Promise<T> => {
 // 共通のPOSTリクエスト
 export const adminPost = async <T>(path: string, data?: any): Promise<T> => {
   try {
-    const response = await axios.post(`${ADMIN_BASE_PATH}${path}`, data);
+    const response = await adminClient.post(`${ADMIN_BASE_PATH}${path}`, data);
     return response.data;
   } catch (error) {
     handleApiError(error);
@@ -54,7 +58,7 @@ export const adminPost = async <T>(path: string, data?: any): Promise<T> => {
 // 共通のPUTリクエスト
 export const adminPut = async <T>(path: string, data?: any): Promise<T> => {
   try {
-    const response = await axios.put(`${ADMIN_BASE_PATH}${path}`, data);
+    const response = await adminClient.put(`${ADMIN_BASE_PATH}${path}`, data);
     return response.data;
   } catch (error) {
     handleApiError(error);
@@ -64,7 +68,7 @@ export const adminPut = async <T>(path: string, data?: any): Promise<T> => {
 // 共通のDELETEリクエスト
 export const adminDelete = async <T>(path: string): Promise<T> => {
   try {
-    const response = await axios.delete(`${ADMIN_BASE_PATH}${path}`);
+    const response = await adminClient.delete(`${ADMIN_BASE_PATH}${path}`);
     return response.data;
   } catch (error) {
     handleApiError(error);
@@ -74,7 +78,7 @@ export const adminDelete = async <T>(path: string): Promise<T> => {
 // ファイルダウンロード用のリクエスト
 export const adminDownload = async (path: string, filename: string, params?: any): Promise<void> => {
   try {
-    const response = await axios.get(`${ADMIN_BASE_PATH}${path}`, {
+    const response = await adminClient.get(`${ADMIN_BASE_PATH}${path}`, {
       params,
       responseType: 'blob',
     });

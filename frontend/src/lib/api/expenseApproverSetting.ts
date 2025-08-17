@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { createPresetApiClient } from '@/lib/api';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import { DebugLogger } from '../debug/logger';
 
@@ -82,7 +82,8 @@ export const expenseApproverSettingApi = {
       DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Getting approver settings', { approvalType });
 
       const params = approvalType ? { approval_type: approvalType } : {};
-      const response = await apiClient.get('/admin/expense-approvers', { 
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/expense-approvers', { 
         params,
         timeout: 30000,
       });
@@ -111,7 +112,8 @@ export const expenseApproverSettingApi = {
       });
 
       const payload = convertCamelToSnake(request);
-      const response = await apiClient.post('/admin/expense-approvers', payload);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.post('/expense-approvers', payload);
       const result = convertSnakeToCamel<ExpenseApproverSetting>(response.data);
 
       DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Approver setting created successfully', {
@@ -140,7 +142,8 @@ export const expenseApproverSettingApi = {
       });
 
       const payload = convertCamelToSnake(request);
-      const response = await apiClient.put(`/admin/expense-approvers/${settingId}`, payload);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.put(`/expense-approvers/${settingId}`, payload);
       const result = convertSnakeToCamel<ExpenseApproverSetting>(response.data);
 
       DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Approver setting updated successfully', {
@@ -162,7 +165,8 @@ export const expenseApproverSettingApi = {
     try {
       DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Deleting approver setting', { settingId });
 
-      await apiClient.delete(`/admin/expense-approvers/${settingId}`);
+      const apiClient = createPresetApiClient('admin');
+      await apiClient.delete(`/expense-approvers/${settingId}`);
 
       DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Approver setting deleted successfully', {
         settingId,
@@ -183,7 +187,8 @@ export const expenseApproverSettingApi = {
       DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Getting approver setting histories', { filters });
 
       const params = convertCamelToSnake(filters);
-      const response = await apiClient.get('/admin/expense-approvers/histories', { 
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/expense-approvers/histories', { 
         params,
         timeout: 30000,
       });

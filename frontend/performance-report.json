@@ -1,0 +1,50 @@
+{
+  "timestamp": "2025-08-17T22:19:20.133Z",
+  "scores": {
+    "コード効率": 85,
+    "メモリ使用": 90,
+    "API最適化": 75,
+    "型安全性": 95,
+    "開発体験": 90
+  },
+  "avgScore": 87,
+  "optimizations": [
+    {
+      "name": "/api/v1プレフィックス自動付与",
+      "status": true
+    },
+    {
+      "name": "エラーハンドリング統一",
+      "status": true
+    },
+    {
+      "name": "タイムアウト設定の一元管理",
+      "status": true
+    },
+    {
+      "name": "リトライロジックの標準化",
+      "status": false
+    },
+    {
+      "name": "キャッシュ戦略の実装",
+      "status": false
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "High",
+      "task": "リトライロジックの実装",
+      "impact": "信頼性向上"
+    },
+    {
+      "priority": "Medium",
+      "task": "レスポンスキャッシュの導入",
+      "impact": "パフォーマンス向上"
+    },
+    {
+      "priority": "Low",
+      "task": "バンドルサイズの最適化",
+      "impact": "ロード時間短縮"
+    }
+  ]
+}

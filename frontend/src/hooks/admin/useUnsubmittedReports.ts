@@ -1,5 +1,6 @@
+// Migrated to new API client system
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 
 interface UnsubmittedReportsParams {
   department_id?: string;
@@ -43,7 +44,8 @@ export const useUnsubmittedReports = (params: UnsubmittedReportsParams = {}) => 
   } = useQuery({
     queryKey: ['unsubmitted-reports', params],
     queryFn: async () => {
-      const response = await apiClient.get('/admin/weekly-reports/unsubmitted', {
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/weekly-reports/unsubmitted', {
         params,
       });
       return response.data;
@@ -54,7 +56,8 @@ export const useUnsubmittedReports = (params: UnsubmittedReportsParams = {}) => 
   const { data: summaryData } = useQuery({
     queryKey: ['unsubmitted-summary'],
     queryFn: async () => {
-      const response = await apiClient.get('/admin/weekly-reports/unsubmitted/summary');
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/weekly-reports/unsubmitted/summary');
       return response.data;
     },
   });
@@ -62,7 +65,8 @@ export const useUnsubmittedReports = (params: UnsubmittedReportsParams = {}) => 
   // リマインド送信
   const sendRemindersMutation = useMutation({
     mutationFn: async (userIds: string[]) => {
-      const response = await apiClient.post('/admin/weekly-reports/remind', {
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.post('/weekly-reports/remind', {
         user_ids: userIds,
         message: '週報の提出をお願いします。',
       });

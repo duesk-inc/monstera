@@ -1,0 +1,5 @@
+File,Status,PresetImport,PresetCalls,MigrationComment,NoOldImport,NoGetAuthClient,NoApiV1Prefix
+src/lib/api/leave.ts,MIGRATED,true,true,true,true,true,true
+src/lib/api/skillSheet.ts,MIGRATED,true,true,true,true,true,true
+src/lib/api/weeklyReport.ts,MIGRATED,true,true,true,true,true,true
+src/lib/api/sales/index.ts,MIGRATED,true,true,true,true,true,true

@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { createPresetApiClient } from '@/lib/api';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import { DebugLogger } from '../debug/logger';
 
@@ -42,7 +42,8 @@ export const expenseSummaryApi = {
       });
 
       const queryParams = convertCamelToSnake(params);
-
+      
+      const apiClient = createPresetApiClient('auth');
       const response = await apiClient.get('/expenses/summary', {
         params: queryParams,
         timeout: 15000,

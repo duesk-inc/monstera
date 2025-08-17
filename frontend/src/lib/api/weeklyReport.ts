@@ -1,4 +1,5 @@
-import { getAuthClient } from '@/lib/api';
+// Migrated to new API client system
+import { createPresetApiClient, handleApiError } from '@/lib/api';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
 import { WEEKLY_REPORT_API, API_VERSION } from '@/constants/api';
 import { DEFAULT_WORK_TIME } from '@/constants/defaultWorkTime';
@@ -9,7 +10,6 @@ import {
   ListWeeklyReportsResponse,
   ApiResponseBase
 } from '@/types/weeklyReport';
-import { handleApiError, AbortError } from '@/lib/api/error';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import axios from 'axios';
 import { DebugLogger, DEBUG_CATEGORIES, DEBUG_OPERATIONS } from '@/lib/debug/logger';
@@ -21,7 +21,7 @@ export const listWeeklyReports = async (
   filters: { status?: string; startDate?: string; endDate?: string; search?: string; userId?: string } = {}
 ): Promise<ListWeeklyReportsResponse> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     
     // クエリパラメータを構築
     const params = new URLSearchParams({
@@ -103,7 +103,7 @@ export const getCurrentWeeklyReport = async (signal?: AbortSignal): Promise<ApiW
 // 週報を作成
 export const createWeeklyReport = async (weeklyReport: ApiWeeklyReport): Promise<ApiWeeklyReport> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     
     // デバッグログ: リクエスト開始
     DebugLogger.apiStart(
@@ -214,7 +214,7 @@ export const createWeeklyReport = async (weeklyReport: ApiWeeklyReport): Promise
 // 週報を更新
 export const updateWeeklyReport = async (id: string, weeklyReport: ApiWeeklyReport): Promise<ApiWeeklyReport> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const endpoint = WEEKLY_REPORT_API.UPDATE.replace(':id', id);
     
     // デバッグログ: リクエスト開始
@@ -329,7 +329,7 @@ export const updateWeeklyReport = async (id: string, weeklyReport: ApiWeeklyRepo
 // 週報を提出
 export const submitWeeklyReport = async (id: string): Promise<ApiWeeklyReport> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const endpoint = WEEKLY_REPORT_API.SUBMIT.replace(':id', id);
     const response = await client.post(endpoint);
     
@@ -358,7 +358,7 @@ export const submitWeeklyReport = async (id: string): Promise<ApiWeeklyReport> =
 // 週報を削除
 export const deleteWeeklyReport = async (id: string): Promise<void> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const endpoint = WEEKLY_REPORT_API.UPDATE.replace(':id', id); // DELETEは同じエンドポイントを使用
     await client.delete(endpoint);
   } catch (error) {
@@ -379,7 +379,7 @@ export const calculateWorkHours = async (
   breakTime: number
 ): Promise<number> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const response = await client.post(`${API_VERSION.V1}/calculate-work-hours`, {
       startTime,
       endTime,
@@ -400,7 +400,7 @@ export const calculateWorkHours = async (
 // 週報をコピー
 export const copyWeeklyReport = async (id: string): Promise<ApiWeeklyReport> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const response = await client.post(`${WEEKLY_REPORT_API.LIST}/${id}/copy`);
     
     // convertSnakeToCamelを使用してレスポンスを変換
@@ -485,7 +485,7 @@ export const saveAndSubmitWeeklyReport = async (weeklyReport: ApiWeeklyReport): 
 // 日付範囲から週報を取得
 export const getWeeklyReportByDateRange = async (startDate: string, endDate: string, signal?: AbortSignal): Promise<ApiWeeklyReport | null> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const params = new URLSearchParams({
       start_date: startDate,
       end_date: endDate
@@ -530,7 +530,7 @@ export const getWeeklyReportByDateRange = async (startDate: string, endDate: str
 // ユーザーのデフォルト勤務時間設定を取得する関数
 export const getUserDefaultWorkSettings = async (): Promise<DefaultWorkTimeSettings> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const response = await client.get(WEEKLY_REPORT_API.TEMPLATE);
 
     const data = response.data;
@@ -589,7 +589,7 @@ export const saveUserDefaultWorkSettings = async (settings: DefaultWorkTimeSetti
     };
     
     // axiosクライアントを使用
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const response = await client.post(WEEKLY_REPORT_API.TEMPLATE, normalizedSettings);
     
     // 新しい設定をバックエンドのレスポンスから取得するか、送信した設定を変換して返す

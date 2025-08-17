@@ -1,6 +1,7 @@
+// Migrated to new API client system
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { QUERY_KEYS } from '@/constants/cache';
 
@@ -37,7 +38,8 @@ export const useNotifications = () => {
   } = useQuery<NotificationResponse>({
     queryKey: QUERY_KEYS.NOTIFICATIONS.UNREAD,
     queryFn: async () => {
-      const response = await apiClient.get('/notifications/unread');
+      const client = createPresetApiClient('auth');
+      const response = await client.get('/notifications/unread');
       return response.data;
     },
     enabled: !!user && isPollingEnabled,
@@ -50,7 +52,8 @@ export const useNotifications = () => {
   // 通知を既読にする
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
-      const response = await apiClient.put(`/api/v1/notifications/${notificationId}/read`);
+      const client = createPresetApiClient('auth');
+      const response = await client.put(`/notifications/${notificationId}/read`);
       return response.data;
     },
     onSuccess: () => {
@@ -62,9 +65,10 @@ export const useNotifications = () => {
   // 全ての通知を既読にする
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
+      const client = createPresetApiClient('auth');
       const unreadNotifications = notificationData?.notifications || [];
       const promises = unreadNotifications.map((notification) =>
-        apiClient.put(`/api/v1/notifications/${notification.id}/read`)
+        client.put(`/notifications/${notification.id}/read`)
       );
       return Promise.all(promises);
     },

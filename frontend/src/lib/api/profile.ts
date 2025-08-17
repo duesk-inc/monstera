@@ -1,4 +1,5 @@
-import { getAuthClient } from '@/lib/api';
+// Migrated to new API client system
+import { createPresetApiClient } from '@/lib/api';
 import { handleApiError, AbortError } from '@/lib/api/error';
 import { UserProfile, ProfileFormData, ProfileWithWorkHistory, ProfileHistory, TechnologyCategory } from '@/types/profile';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
@@ -12,10 +13,10 @@ import { DebugLogger, DEBUG_CATEGORIES, DEBUG_OPERATIONS } from '@/lib/debug/log
 export const fetchProfile = async (signal?: AbortSignal): Promise<UserProfile> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.READ, description: 'プロフィール取得' },
-    { method: 'GET', url: '/api/v1/profile' }
+    { method: 'GET', url: '/profile' }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     // より長いタイムアウトを設定
     const options = { 
@@ -71,10 +72,10 @@ export const fetchProfile = async (signal?: AbortSignal): Promise<UserProfile> =
 export const fetchProfileWithWorkHistory = async (signal?: AbortSignal): Promise<ProfileWithWorkHistory> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.READ, description: 'プロフィール・職務経歴取得' },
-    { method: 'GET', url: '/api/v1/profile/with-work-history' }
+    { method: 'GET', url: '/profile/with-work-history' }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     // より長いタイムアウトを設定
     const options = { 
@@ -122,10 +123,10 @@ export const fetchProfileWithWorkHistory = async (signal?: AbortSignal): Promise
 export const updateProfile = async (data: ProfileFormData): Promise<void> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.UPDATE, description: 'プロフィール更新' },
-    { method: 'PUT', url: '/api/v1/profile', requestData: data }
+    { method: 'PUT', url: '/profile', requestData: data }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     // 日付データを文字列に変換（基本プロフィールのみ）
     const convertedData = {
@@ -199,10 +200,10 @@ export const updateProfile = async (data: ProfileFormData): Promise<void> => {
 export const tempSaveProfile = async (data: ProfileFormData): Promise<void> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.CREATE, description: 'プロフィール一時保存' },
-    { method: 'POST', url: '/api/v1/profile/temp-save', requestData: data }
+    { method: 'POST', url: '/profile/temp-save', requestData: data }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     // 日付データを文字列に変換（基本プロフィールのみ）
     const convertedData = {
@@ -277,10 +278,10 @@ export const tempSaveProfile = async (data: ProfileFormData): Promise<void> => {
 export const fetchProfileHistory = async (version: number, signal?: AbortSignal): Promise<ProfileHistory> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.READ, description: 'プロフィール履歴取得' },
-    { method: 'GET', url: `/api/v1/profile/history?version=${version}` }
+    { method: 'GET', url: `/profile/history?version=${version}` }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     const response = await client.get(`${PROFILE_API.HISTORY}?version=${version}`, { signal });
     
@@ -312,10 +313,10 @@ export const fetchProfileHistory = async (version: number, signal?: AbortSignal)
 export const fetchLatestProfileHistory = async (signal?: AbortSignal): Promise<ProfileHistory> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.READ, description: '最新プロフィール履歴取得' },
-    { method: 'GET', url: '/api/v1/profile/history' }
+    { method: 'GET', url: '/profile/history' }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     const response = await client.get(PROFILE_API.LATEST_HISTORY, { signal });
     
@@ -347,10 +348,10 @@ export const fetchLatestProfileHistory = async (signal?: AbortSignal): Promise<P
 export const fetchTechnologyCategories = async (signal?: AbortSignal): Promise<TechnologyCategory[]> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.READ, description: '技術カテゴリ取得' },
-    { method: 'GET', url: '/api/v1/profile/technology-categories' }
+    { method: 'GET', url: '/profile/technology-categories' }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     const response = await client.get(PROFILE_API.TECHNOLOGY_CATEGORIES, { signal });
     
@@ -382,10 +383,10 @@ export const fetchTechnologyCategories = async (signal?: AbortSignal): Promise<T
 export const fetchCommonCertifications = async (signal?: AbortSignal): Promise<any[]> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.READ, description: 'よく使う資格一覧取得' },
-    { method: 'GET', url: '/api/v1/profile/common-certifications' }
+    { method: 'GET', url: '/profile/common-certifications' }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     const response = await client.get(PROFILE_API.COMMON_CERTIFICATIONS, { signal });
     

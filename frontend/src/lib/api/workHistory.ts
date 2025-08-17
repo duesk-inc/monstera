@@ -1,4 +1,5 @@
-import apiClient from '@/lib/api'
+// Migrated to new API client system
+import { createPresetApiClient } from '@/lib/api';
 import type { 
   WorkHistory, 
   WorkHistoryCreateRequest, 
@@ -17,7 +18,8 @@ export const workHistoryApi = {
    * @returns 職務経歴データ
    */
   get: async (id: string): Promise<WorkHistory> => {
-    const response = await apiClient.get(`/work-history/${id}`)
+    const client = createPresetApiClient('auth');
+    const response = await client.get(`/work-history/${id}`)
     return response.data.work_history
   },
 
@@ -33,7 +35,8 @@ export const workHistoryApi = {
     page: number = 1, 
     limit: number = 20
   ): Promise<WorkHistoryListResponse> => {
-    const response = await apiClient.get('/work-history', {
+    const client = createPresetApiClient('auth');
+    const response = await client.get('/work-history', {
       params: {
         user_id: userId,
         page,
@@ -49,7 +52,8 @@ export const workHistoryApi = {
    * @returns 作成された職務経歴
    */
   create: async (data: WorkHistoryCreateRequest): Promise<WorkHistory> => {
-    const response = await apiClient.post('/work-history', data)
+    const client = createPresetApiClient('auth');
+    const response = await client.post('/work-history', data)
     return response.data.work_history
   },
 
@@ -60,7 +64,8 @@ export const workHistoryApi = {
    * @returns 更新結果
    */
   update: async (id: string, data: WorkHistoryUpdateRequest): Promise<void> => {
-    await apiClient.put(`/work-history/${id}`, data)
+    const client = createPresetApiClient('auth');
+    await client.put(`/work-history/${id}`, data)
   },
 
   /**
@@ -69,7 +74,8 @@ export const workHistoryApi = {
    * @returns 削除結果
    */
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/work-history/${id}`)
+    const client = createPresetApiClient('auth');
+    await client.delete(`/work-history/${id}`)
   },
 
   /**
@@ -78,7 +84,8 @@ export const workHistoryApi = {
    * @returns 作成された職務経歴配列
    */
   bulkCreate: async (data: WorkHistoryCreateRequest[]): Promise<WorkHistory[]> => {
-    const response = await apiClient.post('/work-history/bulk', { work_histories: data })
+    const client = createPresetApiClient('auth');
+    const response = await client.post('/work-history/bulk', { work_histories: data })
     return response.data.work_histories
   },
 
@@ -88,7 +95,8 @@ export const workHistoryApi = {
    * @returns 更新結果
    */
   bulkUpdate: async (data: Array<WorkHistoryUpdateRequest & { id: string }>): Promise<void> => {
-    await apiClient.put('/work-history/bulk', { work_histories: data })
+    const client = createPresetApiClient('auth');
+    await client.put('/work-history/bulk', { work_histories: data })
   },
 
   /**
@@ -97,7 +105,8 @@ export const workHistoryApi = {
    * @returns 削除結果
    */
   bulkDelete: async (ids: string[]): Promise<void> => {
-    await apiClient.delete('/work-history/bulk', { data: { ids } })
+    const client = createPresetApiClient('auth');
+    await client.delete('/work-history/bulk', { data: { ids } })
   },
 
   /**
@@ -113,7 +122,8 @@ export const workHistoryApi = {
     page?: number
     limit?: number
   }): Promise<WorkHistoryListResponse> => {
-    const response = await apiClient.get('/work-history/search', { params })
+    const client = createPresetApiClient('auth');
+    const response = await client.get('/work-history/search', { params })
     return response.data
   },
 
@@ -123,7 +133,8 @@ export const workHistoryApi = {
    * @returns サマリー情報
    */
   getSummary: async (userId: string): Promise<any> => {
-    const response = await apiClient.get(`/work-history/users/${userId}/summary`)
+    const client = createPresetApiClient('auth');
+    const response = await client.get(`/work-history/users/${userId}/summary`)
     return response.data
   },
 
@@ -134,7 +145,8 @@ export const workHistoryApi = {
    * @returns ダウンロードURL
    */
   export: async (userId: string, format: 'pdf' | 'excel' | 'word' = 'pdf'): Promise<{ download_url: string; expires_at: string }> => {
-    const response = await apiClient.post('/work-history/export', null, {
+    const client = createPresetApiClient('auth');
+    const response = await client.post('/work-history/export', null, {
       params: {
         user_id: userId,
         format

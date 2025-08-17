@@ -41,7 +41,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useToast } from '@/components/common/Toast';
-import apiClient from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 import { LEAVE_REQUEST_STATUS } from '@/constants/leave';
 
 interface LeaveRequest {
@@ -120,6 +120,7 @@ export default function LeaveRequestList() {
   const { data: leaveTypes } = useQuery<LeaveTypeResponse[]>({
     queryKey: ['leave-types'],
     queryFn: async () => {
+      const apiClient = createPresetApiClient('auth');
       const response = await apiClient.get('/leave/types');
       return response.data.data;
     },
@@ -149,8 +150,9 @@ export default function LeaveRequestList() {
         params.append('end_date', format(filters.endDate, 'yyyy-MM-dd'));
       }
 
+      const apiClient = createPresetApiClient('admin');
       const response = await apiClient.get(
-        `/api/v1/admin/engineers/leave/requests?${params}`
+        `/engineers/leave/requests?${params}`
       );
       return response.data;
     },
@@ -159,7 +161,8 @@ export default function LeaveRequestList() {
   // Mutations
   const approveMutation = useMutation({
     mutationFn: async (requestId: string) => {
-      await apiClient.put(`/api/v1/admin/engineers/leave/requests/${requestId}/approve`);
+      const apiClient = createPresetApiClient('admin');
+      await apiClient.put(`/engineers/leave/requests/${requestId}/approve`);
     },
     onSuccess: () => {
       showSuccess('休暇申請を承認しました');
@@ -172,7 +175,8 @@ export default function LeaveRequestList() {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ requestId, reason }: { requestId: string; reason: string }) => {
-      await apiClient.put(`/api/v1/admin/engineers/leave/requests/${requestId}/reject`, {
+      const apiClient = createPresetApiClient('admin');
+      await apiClient.put(`/engineers/leave/requests/${requestId}/reject`, {
         reason,
       });
     },
@@ -190,8 +194,9 @@ export default function LeaveRequestList() {
 
   const bulkApproveMutation = useMutation({
     mutationFn: async (requestIds: string[]) => {
+      const apiClient = createPresetApiClient('admin');
       const response = await apiClient.post(
-        '/admin/engineers/leave/requests/bulk-approve',
+        '/engineers/leave/requests/bulk-approve',
         { request_ids: requestIds }
       );
       return response.data;

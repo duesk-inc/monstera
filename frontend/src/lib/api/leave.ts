@@ -1,4 +1,5 @@
-import { getAuthClient } from '@/lib/api';
+// Migrated to new API client system
+import { createPresetApiClient } from '@/lib/api';
 import { ATTENDANCE_API, LEAVE_API } from '@/constants/api';
 import { handleApiError, AbortError } from './error';
 import {
@@ -28,7 +29,7 @@ export type {
  * @returns 休暇種別一覧
  */
 export const getLeaveTypes = async (signal?: AbortSignal): Promise<LeaveType[]> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     const options = {
       signal,
@@ -60,7 +61,7 @@ export const getLeaveTypes = async (signal?: AbortSignal): Promise<LeaveType[]> 
  * @returns ユーザーの休暇残日数一覧
  */
 export const getUserLeaveBalances = async (signal?: AbortSignal): Promise<UserLeaveBalance[]> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     const options = {
       signal,
@@ -94,7 +95,7 @@ export const getUserLeaveBalances = async (signal?: AbortSignal): Promise<UserLe
  * @returns 休暇申請レスポンス
  */
 export const createLeaveRequest = async (data: LeaveRequestRequest): Promise<void> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     const snakeData = convertCamelToSnake(data);
     
@@ -147,7 +148,7 @@ export const createLeaveRequest = async (data: LeaveRequestRequest): Promise<voi
  * @returns ユーザーの休暇申請一覧
  */
 export const getLeaveRequests = async (signal?: AbortSignal): Promise<LeaveRequestResponse[]> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     const options = {
       signal,
@@ -186,7 +187,7 @@ export const getLeaveRequests = async (signal?: AbortSignal): Promise<LeaveReque
  */
 export const getHolidaysByYear = async (year?: number): Promise<Holiday[]> => {
   try {
-    const client = getAuthClient();
+    const client = createPresetApiClient('auth');
     const response = await client.get(ATTENDANCE_API.HOLIDAYS, {
       params: year ? { year } : {}
     });

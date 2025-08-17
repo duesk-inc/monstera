@@ -1,5 +1,6 @@
 'use client';
 
+// Migrated to new API client system
 import React, { useState } from 'react';
 import {
   Drawer,
@@ -30,7 +31,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import { apiClient } from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 import { useToast } from '@/components/common/Toast';
 
 interface NotificationPanelProps {
@@ -94,8 +95,9 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   const { data, isLoading, error } = useQuery({
     queryKey: ['notifications', tabValue === 0 ? 'unread' : 'all'],
     queryFn: async () => {
+      const client = createPresetApiClient('auth');
       const params = tabValue === 0 ? { status: 'unread' } : {};
-      const response = await apiClient.get('/notifications', { params });
+      const response = await client.get('/notifications', { params });
       return response.data.notifications || [];
     },
     enabled: open,
@@ -104,7 +106,8 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   // 既読にする
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationIds: string[]) => {
-      await apiClient.put('/notifications/read', {
+      const client = createPresetApiClient('auth');
+      await client.put('/notifications/read', {
         notification_ids: notificationIds,
       });
     },
@@ -117,7 +120,8 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   // 全て既読にする
   const markAllAsReadMutation = useMutation({
     mutationFn: async () => {
-      await apiClient.put('/notifications/read-all');
+      const client = createPresetApiClient('auth');
+      await client.put('/notifications/read-all');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });

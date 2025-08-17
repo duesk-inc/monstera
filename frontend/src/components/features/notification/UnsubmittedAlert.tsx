@@ -1,11 +1,12 @@
 'use client';
 
+// Migrated to new API client system
 import React from 'react';
 import { Alert, Box, Typography, Button } from '@mui/material';
 import { Warning as WarningIcon } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 
 interface UnsubmittedAlertProps {
   onClose?: () => void;
@@ -18,7 +19,8 @@ export const UnsubmittedAlert: React.FC<UnsubmittedAlertProps> = ({ onClose }) =
   const { data: unsubmittedData } = useQuery({
     queryKey: ['unsubmitted', 'summary'],
     queryFn: async () => {
-      const response = await apiClient.get('/weekly-reports/unsubmitted/summary');
+      const client = createPresetApiClient('auth');
+      const response = await client.get('/weekly-reports/unsubmitted/summary');
       return response.data;
     },
     refetchInterval: 60000, // 1分ごとに更新

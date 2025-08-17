@@ -1,4 +1,5 @@
-import { getAuthClient } from './index';
+// Migrated to new API client system
+import { createPresetApiClient } from '@/lib/api';
 import { handleApiError } from '@/lib/api/error/handler';
 import { DebugLogger } from '@/lib/debug/logger';
 
@@ -47,7 +48,7 @@ export interface UpdateDefaultRoleRequest {
  * @returns Promise<void>
  */
 export const updateDefaultRole = async (defaultRole: number | null): Promise<void> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   
   try {
     DebugLogger.apiRequest({
@@ -88,7 +89,7 @@ export const updateDefaultRole = async (defaultRole: number | null): Promise<voi
  * @returns ユーザー一覧
  */
 export const getUsers = async (params?: GetUsersParams): Promise<GetUsersResponse> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   
   try {
     DebugLogger.apiRequest({

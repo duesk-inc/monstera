@@ -1,6 +1,7 @@
 // 営業関連のAPIクライアント
 
-import { apiClient } from '@/lib/api';
+// Migrated to new API client system
+import { createPresetApiClient } from '@/lib/api';
 import { SALES_ENDPOINTS } from '@/constants/sales';
 import type {
   Proposal,
@@ -30,6 +31,7 @@ import type {
 export const proposalApi = {
   // 提案一覧取得
   getList: async (filter?: ProposalListFilter): Promise<PaginatedResponse<Proposal>> => {
+    const client = createPresetApiClient('auth');
     const params = new URLSearchParams();
     if (filter) {
       Object.entries(filter).forEach(([key, value]) => {
@@ -42,8 +44,8 @@ export const proposalApi = {
         }
       });
     }
-    
-    const response = await apiClient.get<PaginatedResponse<Proposal>>(
+
+    const response = await client.get<PaginatedResponse<Proposal>>(
       `${SALES_ENDPOINTS.proposals}?${params.toString()}`
     );
     return response.data;
@@ -51,7 +53,8 @@ export const proposalApi = {
 
   // 提案詳細取得
   getById: async (id: string): Promise<Proposal> => {
-    const response = await apiClient.get<ApiResponse<Proposal>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<Proposal>>(
       SALES_ENDPOINTS.proposalDetail(id)
     );
     return response.data.data!;
@@ -59,7 +62,8 @@ export const proposalApi = {
 
   // 提案作成
   create: async (data: CreateProposalRequest): Promise<Proposal> => {
-    const response = await apiClient.post<ApiResponse<Proposal>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.post<ApiResponse<Proposal>>(
       SALES_ENDPOINTS.proposals,
       data
     );
@@ -68,7 +72,8 @@ export const proposalApi = {
 
   // 提案更新
   update: async (id: string, data: Partial<CreateProposalRequest>): Promise<Proposal> => {
-    const response = await apiClient.put<ApiResponse<Proposal>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.put<ApiResponse<Proposal>>(
       SALES_ENDPOINTS.proposalDetail(id),
       data
     );
@@ -77,17 +82,20 @@ export const proposalApi = {
 
   // ステータス更新
   updateStatus: async (id: string, status: string): Promise<void> => {
-    await apiClient.put(SALES_ENDPOINTS.proposalStatus(id), { status });
+    const client = createPresetApiClient('auth');
+    await client.put(SALES_ENDPOINTS.proposalStatus(id), { status });
   },
 
   // 提案削除
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(SALES_ENDPOINTS.proposalDetail(id));
+    const client = createPresetApiClient('auth');
+    await client.delete(SALES_ENDPOINTS.proposalDetail(id));
   },
 
   // エンジニア別アクティブ提案取得
   getActiveByEngineer: async (engineerId: string): Promise<Proposal[]> => {
-    const response = await apiClient.get<ApiResponse<Proposal[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<Proposal[]>>(
       SALES_ENDPOINTS.activeProposalsByEngineer(engineerId)
     );
     return response.data.data || [];
@@ -95,14 +103,16 @@ export const proposalApi = {
 
   // 並行提案情報取得
   getParallel: async (): Promise<any> => {
-    const response = await apiClient.get(SALES_ENDPOINTS.parallelProposals);
+    const client = createPresetApiClient('auth');
+    const response = await client.get(SALES_ENDPOINTS.parallelProposals);
     return response.data;
   },
 
   // 提案統計取得
   getStatistics: async (clientId?: string): Promise<ProposalStatistics> => {
+    const client = createPresetApiClient('auth');
     const params = clientId ? `?client_id=${clientId}` : '';
-    const response = await apiClient.get<ProposalStatistics>(
+    const response = await client.get<ProposalStatistics>(
       `${SALES_ENDPOINTS.proposalStatistics}${params}`
     );
     return response.data;
@@ -110,7 +120,8 @@ export const proposalApi = {
 
   // 期限間近の提案取得
   getUpcomingDeadlines: async (days: number = 7): Promise<Proposal[]> => {
-    const response = await apiClient.get<ApiResponse<Proposal[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<Proposal[]>>(
       `${SALES_ENDPOINTS.upcomingDeadlines}?days=${days}`
     );
     return response.data.data || [];
@@ -121,6 +132,7 @@ export const proposalApi = {
 export const contractExtensionApi = {
   // 延長確認一覧取得
   getList: async (filter?: any): Promise<PaginatedResponse<ContractExtension>> => {
+    const client = createPresetApiClient('auth');
     const params = new URLSearchParams();
     if (filter) {
       Object.entries(filter).forEach(([key, value]) => {
@@ -129,8 +141,8 @@ export const contractExtensionApi = {
         }
       });
     }
-    
-    const response = await apiClient.get<PaginatedResponse<ContractExtension>>(
+
+    const response = await client.get<PaginatedResponse<ContractExtension>>(
       `${SALES_ENDPOINTS.extensions}?${params.toString()}`
     );
     return response.data;
@@ -138,7 +150,8 @@ export const contractExtensionApi = {
 
   // 延長確認詳細取得
   getById: async (id: string): Promise<ContractExtension> => {
-    const response = await apiClient.get<ApiResponse<ContractExtension>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<ContractExtension>>(
       SALES_ENDPOINTS.extensionDetail(id)
     );
     return response.data.data!;
@@ -146,7 +159,8 @@ export const contractExtensionApi = {
 
   // 延長確認作成
   create: async (data: any): Promise<ContractExtension> => {
-    const response = await apiClient.post<ApiResponse<ContractExtension>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.post<ApiResponse<ContractExtension>>(
       SALES_ENDPOINTS.extensions,
       data
     );
@@ -155,7 +169,8 @@ export const contractExtensionApi = {
 
   // 延長確認更新
   update: async (id: string, data: any): Promise<ContractExtension> => {
-    const response = await apiClient.put<ApiResponse<ContractExtension>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.put<ApiResponse<ContractExtension>>(
       SALES_ENDPOINTS.extensionDetail(id),
       data
     );
@@ -164,17 +179,20 @@ export const contractExtensionApi = {
 
   // ステータス更新
   updateStatus: async (id: string, status: string): Promise<void> => {
-    await apiClient.put(SALES_ENDPOINTS.extensionStatus(id), { status });
+    const client = createPresetApiClient('auth');
+    await client.put(SALES_ENDPOINTS.extensionStatus(id), { status });
   },
 
   // 延長確認削除
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(SALES_ENDPOINTS.extensionDetail(id));
+    const client = createPresetApiClient('auth');
+    await client.delete(SALES_ENDPOINTS.extensionDetail(id));
   },
 
   // 延長確認対象者取得
   getTargets: async (): Promise<ExtensionTarget[]> => {
-    const response = await apiClient.get<ApiResponse<ExtensionTarget[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<ExtensionTarget[]>>(
       SALES_ENDPOINTS.extensionTargets
     );
     return response.data.data || [];
@@ -182,7 +200,8 @@ export const contractExtensionApi = {
 
   // エンジニア別最新延長確認取得
   getLatestByEngineer: async (engineerId: string): Promise<ContractExtension> => {
-    const response = await apiClient.get<ApiResponse<ContractExtension>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<ContractExtension>>(
       SALES_ENDPOINTS.latestExtensionByEngineer(engineerId)
     );
     return response.data.data!;
@@ -190,7 +209,8 @@ export const contractExtensionApi = {
 
   // 未確認の延長確認取得
   getPending: async (): Promise<ContractExtension[]> => {
-    const response = await apiClient.get<ApiResponse<ContractExtension[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<ContractExtension[]>>(
       SALES_ENDPOINTS.pendingExtensions
     );
     return response.data.data || [];
@@ -198,12 +218,14 @@ export const contractExtensionApi = {
 
   // 自動作成実行
   autoCreate: async (): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.autoCreateExtensions);
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.autoCreateExtensions);
   },
 
   // 設定取得
   getSettings: async (): Promise<ContractExtensionSettings> => {
-    const response = await apiClient.get<ApiResponse<ContractExtensionSettings>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<ContractExtensionSettings>>(
       SALES_ENDPOINTS.extensionSettings
     );
     return response.data.data!;
@@ -211,7 +233,8 @@ export const contractExtensionApi = {
 
   // 設定更新
   updateSettings: async (settings: ContractExtensionSettings): Promise<void> => {
-    await apiClient.put(SALES_ENDPOINTS.extensionSettings, settings);
+    const client = createPresetApiClient('auth');
+    await client.put(SALES_ENDPOINTS.extensionSettings, settings);
   }
 };
 
@@ -219,6 +242,7 @@ export const contractExtensionApi = {
 export const interviewApi = {
   // 面談一覧取得
   getList: async (filter?: any): Promise<PaginatedResponse<InterviewSchedule>> => {
+    const client = createPresetApiClient('auth');
     const params = new URLSearchParams();
     if (filter) {
       Object.entries(filter).forEach(([key, value]) => {
@@ -227,8 +251,8 @@ export const interviewApi = {
         }
       });
     }
-    
-    const response = await apiClient.get<PaginatedResponse<InterviewSchedule>>(
+
+    const response = await client.get<PaginatedResponse<InterviewSchedule>>(
       `${SALES_ENDPOINTS.interviews}?${params.toString()}`
     );
     return response.data;
@@ -236,7 +260,8 @@ export const interviewApi = {
 
   // 面談詳細取得
   getById: async (id: string): Promise<InterviewSchedule> => {
-    const response = await apiClient.get<ApiResponse<InterviewSchedule>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<InterviewSchedule>>(
       SALES_ENDPOINTS.interviewDetail(id)
     );
     return response.data.data!;
@@ -244,7 +269,8 @@ export const interviewApi = {
 
   // 面談作成
   create: async (data: any): Promise<InterviewSchedule> => {
-    const response = await apiClient.post<ApiResponse<InterviewSchedule>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.post<ApiResponse<InterviewSchedule>>(
       SALES_ENDPOINTS.interviews,
       data
     );
@@ -253,7 +279,8 @@ export const interviewApi = {
 
   // 面談更新
   update: async (id: string, data: any): Promise<InterviewSchedule> => {
-    const response = await apiClient.put<ApiResponse<InterviewSchedule>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.put<ApiResponse<InterviewSchedule>>(
       SALES_ENDPOINTS.interviewDetail(id),
       data
     );
@@ -262,17 +289,20 @@ export const interviewApi = {
 
   // ステータス更新
   updateStatus: async (id: string, status: string): Promise<void> => {
-    await apiClient.put(SALES_ENDPOINTS.interviewStatus(id), { status });
+    const client = createPresetApiClient('auth');
+    await client.put(SALES_ENDPOINTS.interviewStatus(id), { status });
   },
 
   // 面談削除
   delete: async (id: string): Promise<void> => {
-    await apiClient.delete(SALES_ENDPOINTS.interviewDetail(id));
+    const client = createPresetApiClient('auth');
+    await client.delete(SALES_ENDPOINTS.interviewDetail(id));
   },
 
   // カレンダービュー取得
   getCalendarView: async (startDate: string, endDate: string): Promise<CalendarEvent[]> => {
-    const response = await apiClient.get<ApiResponse<CalendarEvent[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<CalendarEvent[]>>(
       `${SALES_ENDPOINTS.calendarView}?start_date=${startDate}&end_date=${endDate}`
     );
     return response.data.data || [];
@@ -280,7 +310,8 @@ export const interviewApi = {
 
   // 今後の面談取得
   getUpcoming: async (): Promise<InterviewSchedule[]> => {
-    const response = await apiClient.get<ApiResponse<InterviewSchedule[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<InterviewSchedule[]>>(
       SALES_ENDPOINTS.upcomingInterviews
     );
     return response.data.data || [];
@@ -288,7 +319,8 @@ export const interviewApi = {
 
   // 提案別面談取得
   getByProposal: async (proposalId: string): Promise<InterviewSchedule[]> => {
-    const response = await apiClient.get<ApiResponse<InterviewSchedule[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<InterviewSchedule[]>>(
       SALES_ENDPOINTS.interviewsByProposal(proposalId)
     );
     return response.data.data || [];
@@ -296,7 +328,8 @@ export const interviewApi = {
 
   // 重複チェック
   checkConflicts: async (data: any): Promise<ConflictCheckResult> => {
-    const response = await apiClient.post<ConflictCheckResult>(
+    const client = createPresetApiClient('auth');
+    const response = await client.post<ConflictCheckResult>(
       SALES_ENDPOINTS.checkConflicts,
       data
     );
@@ -305,13 +338,15 @@ export const interviewApi = {
 
   // リマインダー設定取得
   getReminderSettings: async (): Promise<any> => {
-    const response = await apiClient.get(SALES_ENDPOINTS.interviewReminderSettings);
+    const client = createPresetApiClient('auth');
+    const response = await client.get(SALES_ENDPOINTS.interviewReminderSettings);
     return response.data;
   },
 
   // リマインダー設定更新
   updateReminderSettings: async (settings: any): Promise<void> => {
-    await apiClient.put(SALES_ENDPOINTS.interviewReminderSettings, settings);
+    const client = createPresetApiClient('auth');
+    await client.put(SALES_ENDPOINTS.interviewReminderSettings, settings);
   }
 };
 
@@ -320,6 +355,7 @@ export const emailApi = {
   // テンプレート管理
   templates: {
     getList: async (filter?: any): Promise<PaginatedResponse<EmailTemplate>> => {
+      const client = createPresetApiClient('auth');
       const params = new URLSearchParams();
       if (filter) {
         Object.entries(filter).forEach(([key, value]) => {
@@ -328,22 +364,24 @@ export const emailApi = {
           }
         });
       }
-      
-      const response = await apiClient.get<PaginatedResponse<EmailTemplate>>(
+
+      const response = await client.get<PaginatedResponse<EmailTemplate>>(
         `${SALES_ENDPOINTS.emailTemplates}?${params.toString()}`
       );
       return response.data;
     },
 
     getById: async (id: string): Promise<EmailTemplate> => {
-      const response = await apiClient.get<ApiResponse<EmailTemplate>>(
+      const client = createPresetApiClient('auth');
+      const response = await client.get<ApiResponse<EmailTemplate>>(
         SALES_ENDPOINTS.emailTemplateDetail(id)
       );
       return response.data.data!;
     },
 
     create: async (data: any): Promise<EmailTemplate> => {
-      const response = await apiClient.post<ApiResponse<EmailTemplate>>(
+      const client = createPresetApiClient('auth');
+      const response = await client.post<ApiResponse<EmailTemplate>>(
         SALES_ENDPOINTS.emailTemplates,
         data
       );
@@ -351,7 +389,8 @@ export const emailApi = {
     },
 
     update: async (id: string, data: any): Promise<EmailTemplate> => {
-      const response = await apiClient.put<ApiResponse<EmailTemplate>>(
+      const client = createPresetApiClient('auth');
+      const response = await client.put<ApiResponse<EmailTemplate>>(
         SALES_ENDPOINTS.emailTemplateDetail(id),
         data
       );
@@ -359,13 +398,15 @@ export const emailApi = {
     },
 
     delete: async (id: string): Promise<void> => {
-      await apiClient.delete(SALES_ENDPOINTS.emailTemplateDetail(id));
+      const client = createPresetApiClient('auth');
+      await client.delete(SALES_ENDPOINTS.emailTemplateDetail(id));
     }
   },
 
   // キャンペーン管理
   campaigns: {
     getList: async (filter?: any): Promise<PaginatedResponse<EmailCampaign>> => {
+      const client = createPresetApiClient('auth');
       const params = new URLSearchParams();
       if (filter) {
         Object.entries(filter).forEach(([key, value]) => {
@@ -374,22 +415,24 @@ export const emailApi = {
           }
         });
       }
-      
-      const response = await apiClient.get<PaginatedResponse<EmailCampaign>>(
+
+      const response = await client.get<PaginatedResponse<EmailCampaign>>(
         `${SALES_ENDPOINTS.emailCampaigns}?${params.toString()}`
       );
       return response.data;
     },
 
     getById: async (id: string): Promise<EmailCampaign> => {
-      const response = await apiClient.get<ApiResponse<EmailCampaign>>(
+      const client = createPresetApiClient('auth');
+      const response = await client.get<ApiResponse<EmailCampaign>>(
         SALES_ENDPOINTS.emailCampaignDetail(id)
       );
       return response.data.data!;
     },
 
     create: async (data: any): Promise<EmailCampaign> => {
-      const response = await apiClient.post<ApiResponse<EmailCampaign>>(
+      const client = createPresetApiClient('auth');
+      const response = await client.post<ApiResponse<EmailCampaign>>(
         SALES_ENDPOINTS.emailCampaigns,
         data
       );
@@ -397,7 +440,8 @@ export const emailApi = {
     },
 
     update: async (id: string, data: any): Promise<EmailCampaign> => {
-      const response = await apiClient.put<ApiResponse<EmailCampaign>>(
+      const client = createPresetApiClient('auth');
+      const response = await client.put<ApiResponse<EmailCampaign>>(
         SALES_ENDPOINTS.emailCampaignDetail(id),
         data
       );
@@ -405,22 +449,26 @@ export const emailApi = {
     },
 
     delete: async (id: string): Promise<void> => {
-      await apiClient.delete(SALES_ENDPOINTS.emailCampaignDetail(id));
+      const client = createPresetApiClient('auth');
+      await client.delete(SALES_ENDPOINTS.emailCampaignDetail(id));
     },
 
     send: async (id: string): Promise<void> => {
-      await apiClient.post(SALES_ENDPOINTS.sendCampaign(id));
+      const client = createPresetApiClient('auth');
+      await client.post(SALES_ENDPOINTS.sendCampaign(id));
     },
 
     getStats: async (id: string): Promise<CampaignStats> => {
-      const response = await apiClient.get<CampaignStats>(
+      const client = createPresetApiClient('auth');
+      const response = await client.get<CampaignStats>(
         SALES_ENDPOINTS.campaignStats(id)
       );
       return response.data;
     },
 
     getHistory: async (id: string): Promise<any[]> => {
-      const response = await apiClient.get<ApiResponse<any[]>>(
+      const client = createPresetApiClient('auth');
+      const response = await client.get<ApiResponse<any[]>>(
         SALES_ENDPOINTS.campaignHistory(id)
       );
       return response.data.data || [];
@@ -429,15 +477,18 @@ export const emailApi = {
 
   // メール送信
   sendProposal: async (data: any): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.sendProposalEmail, data);
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.sendProposalEmail, data);
   },
 
   sendInterviewConfirmation: async (interviewId: string): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.sendInterviewConfirmation(interviewId));
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.sendInterviewConfirmation(interviewId));
   },
 
   sendExtensionRequest: async (extensionId: string): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.sendExtensionRequest(extensionId));
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.sendExtensionRequest(extensionId));
   }
 };
 
@@ -445,36 +496,43 @@ export const emailApi = {
 export const pocSyncApi = {
   // 同期処理
   syncAll: async (): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.syncAll);
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.syncAll);
   },
 
   syncProject: async (pocProjectId: string): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.syncProject(pocProjectId));
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.syncProject(pocProjectId));
   },
 
   forceSync: async (): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.forceSync);
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.forceSync);
   },
 
   runScheduled: async (): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.scheduledSync);
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.scheduledSync);
   },
 
   // 状況管理
   getStatus: async (): Promise<any> => {
-    const response = await apiClient.get(SALES_ENDPOINTS.syncStatus);
+    const client = createPresetApiClient('auth');
+    const response = await client.get(SALES_ENDPOINTS.syncStatus);
     return response.data;
   },
 
   getUnsynced: async (): Promise<PocProject[]> => {
-    const response = await apiClient.get<ApiResponse<PocProject[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<PocProject[]>>(
       SALES_ENDPOINTS.unsyncedProjects
     );
     return response.data.data || [];
   },
 
   getHistory: async (limit: number = 50): Promise<SyncHistory[]> => {
-    const response = await apiClient.get<ApiResponse<SyncHistory[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<SyncHistory[]>>(
       `${SALES_ENDPOINTS.syncHistory}?limit=${limit}`
     );
     return response.data.data || [];
@@ -482,7 +540,8 @@ export const pocSyncApi = {
 
   // プロジェクト管理
   createProject: async (data: any): Promise<PocProject> => {
-    const response = await apiClient.post<ApiResponse<PocProject>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.post<ApiResponse<PocProject>>(
       SALES_ENDPOINTS.pocProjects,
       data
     );
@@ -490,7 +549,8 @@ export const pocSyncApi = {
   },
 
   updateProject: async (id: string, data: any): Promise<PocProject> => {
-    const response = await apiClient.put<ApiResponse<PocProject>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.put<ApiResponse<PocProject>>(
       SALES_ENDPOINTS.pocProjectDetail(id),
       data
     );
@@ -499,14 +559,16 @@ export const pocSyncApi = {
 
   // 設定管理
   getSettings: async (): Promise<SyncSettings> => {
-    const response = await apiClient.get<ApiResponse<SyncSettings>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<SyncSettings>>(
       SALES_ENDPOINTS.pocSyncSettings
     );
     return response.data.data!;
   },
 
   updateSettings: async (settings: SyncSettings): Promise<void> => {
-    await apiClient.put(SALES_ENDPOINTS.pocSyncSettings, settings);
+    const client = createPresetApiClient('auth');
+    await client.put(SALES_ENDPOINTS.pocSyncSettings, settings);
   }
 };
 
@@ -514,6 +576,7 @@ export const pocSyncApi = {
 export const salesTeamApi = {
   // メンバー管理
   getMembers: async (filter?: any): Promise<PaginatedResponse<SalesTeamMember>> => {
+    const client = createPresetApiClient('auth');
     const params = new URLSearchParams();
     if (filter) {
       Object.entries(filter).forEach(([key, value]) => {
@@ -522,44 +585,51 @@ export const salesTeamApi = {
         }
       });
     }
-    
-    const response = await apiClient.get<PaginatedResponse<SalesTeamMember>>(
+
+    const response = await client.get<PaginatedResponse<SalesTeamMember>>(
       `${SALES_ENDPOINTS.teamMembers}?${params.toString()}`
     );
     return response.data;
   },
 
   addMember: async (data: any): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.teamMembers, data);
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.teamMembers, data);
   },
 
   removeMember: async (userId: string): Promise<void> => {
-    await apiClient.delete(SALES_ENDPOINTS.teamMemberDetail(userId));
+    const client = createPresetApiClient('auth');
+    await client.delete(SALES_ENDPOINTS.teamMemberDetail(userId));
   },
 
   updateMemberRole: async (userId: string, role: string): Promise<void> => {
-    await apiClient.put(SALES_ENDPOINTS.teamMemberRole(userId), { role });
+    const client = createPresetApiClient('auth');
+    await client.put(SALES_ENDPOINTS.teamMemberRole(userId), { role });
   },
 
   // 権限管理
   getUserPermissions: async (userId?: string): Promise<SalesPermission[]> => {
-    const response = await apiClient.get<ApiResponse<SalesPermission[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<SalesPermission[]>>(
       SALES_ENDPOINTS.userPermissions(userId)
     );
     return response.data.data || [];
   },
 
   grantPermission: async (data: any): Promise<void> => {
-    await apiClient.post(SALES_ENDPOINTS.grantPermission, data);
+    const client = createPresetApiClient('auth');
+    await client.post(SALES_ENDPOINTS.grantPermission, data);
   },
 
   revokePermission: async (permissionId: string): Promise<void> => {
-    await apiClient.delete(SALES_ENDPOINTS.revokePermission(permissionId));
+    const client = createPresetApiClient('auth');
+    await client.delete(SALES_ENDPOINTS.revokePermission(permissionId));
   },
 
   // アクセス制御
   checkPermission: async (data: any): Promise<boolean> => {
-    const response = await apiClient.post<{ has_permission: boolean }>(
+    const client = createPresetApiClient('auth');
+    const response = await client.post<{ has_permission: boolean }>(
       SALES_ENDPOINTS.checkPermission,
       data
     );
@@ -567,7 +637,8 @@ export const salesTeamApi = {
   },
 
   checkAccess: async (data: any): Promise<boolean> => {
-    const response = await apiClient.post<{ can_access: boolean }>(
+    const client = createPresetApiClient('auth');
+    const response = await client.post<{ can_access: boolean }>(
       SALES_ENDPOINTS.checkAccess,
       data
     );
@@ -576,21 +647,24 @@ export const salesTeamApi = {
 
   // アクセス可能データ取得
   getAccessibleProposals: async (): Promise<Proposal[]> => {
-    const response = await apiClient.get<ApiResponse<Proposal[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<Proposal[]>>(
       SALES_ENDPOINTS.accessibleProposals
     );
     return response.data.data || [];
   },
 
   getAccessibleInterviews: async (): Promise<InterviewSchedule[]> => {
-    const response = await apiClient.get<ApiResponse<InterviewSchedule[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<InterviewSchedule[]>>(
       SALES_ENDPOINTS.accessibleInterviews
     );
     return response.data.data || [];
   },
 
   getAccessibleExtensions: async (): Promise<ContractExtension[]> => {
-    const response = await apiClient.get<ApiResponse<ContractExtension[]>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<ContractExtension[]>>(
       SALES_ENDPOINTS.accessibleExtensions
     );
     return response.data.data || [];
@@ -598,14 +672,16 @@ export const salesTeamApi = {
 
   // 設定管理
   getSettings: async (): Promise<SalesTeamSettings> => {
-    const response = await apiClient.get<ApiResponse<SalesTeamSettings>>(
+    const client = createPresetApiClient('auth');
+    const response = await client.get<ApiResponse<SalesTeamSettings>>(
       SALES_ENDPOINTS.teamSettings
     );
     return response.data.data!;
   },
 
   updateSettings: async (settings: SalesTeamSettings): Promise<void> => {
-    await apiClient.put(SALES_ENDPOINTS.teamSettings, settings);
+    const client = createPresetApiClient('auth');
+    await client.put(SALES_ENDPOINTS.teamSettings, settings);
   }
 };
 

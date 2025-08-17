@@ -1,0 +1,168 @@
+{
+  "summary": {
+    "totalFiles": 51,
+    "migratedFiles": 32,
+    "partialFiles": 0,
+    "failedFiles": 0
+  },
+  "byCategory": {
+    "Business Logic": {
+      "total": 5,
+      "migrated": 5,
+      "partial": 0,
+      "failed": 0,
+      "files": [
+        {
+          "name": "leave.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        },
+        {
+          "name": "skillSheet.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        },
+        {
+          "name": "weeklyReport.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        },
+        {
+          "name": "index.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        },
+        {
+          "name": "workHistory.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        }
+      ]
+    },
+    "Admin APIs": {
+      "total": 3,
+      "migrated": 3,
+      "partial": 0,
+      "failed": 0,
+      "files": [
+        {
+          "name": "index.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        },
+        {
+          "name": "adminExpense.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用"
+          ]
+        },
+        {
+          "name": "expenseApproverSetting.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用"
+          ]
+        }
+      ]
+    },
+    "Core APIs": {
+      "total": 3,
+      "migrated": 3,
+      "partial": 0,
+      "failed": 0,
+      "files": [
+        {
+          "name": "profile.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        },
+        {
+          "name": "user.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        },
+        {
+          "name": "notification.ts",
+          "status": "migrated",
+          "issues": [],
+          "successes": [
+            "✓ createPresetApiClient使用",
+            "✓ 移行コメントあり"
+          ]
+        }
+      ]
+    },
+    "UI Components": {
+      "total": 20,
+      "migrated": 17,
+      "partial": 0,
+      "failed": 0,
+      "files": []
+    },
+    "Custom Hooks": {
+      "total": 20,
+      "migrated": 4,
+      "partial": 0,
+      "failed": 0,
+      "files": []
+    }
+  },
+  "issues": [],
+  "successes": [
+    "leave.ts: ✓ createPresetApiClient使用",
+    "leave.ts: ✓ 移行コメントあり",
+    "skillSheet.ts: ✓ createPresetApiClient使用",
+    "skillSheet.ts: ✓ 移行コメントあり",
+    "weeklyReport.ts: ✓ createPresetApiClient使用",
+    "weeklyReport.ts: ✓ 移行コメントあり",
+    "index.ts: ✓ createPresetApiClient使用",
+    "index.ts: ✓ 移行コメントあり",
+    "workHistory.ts: ✓ createPresetApiClient使用",
+    "workHistory.ts: ✓ 移行コメントあり",
+    "index.ts: ✓ createPresetApiClient使用",
+    "index.ts: ✓ 移行コメントあり",
+    "adminExpense.ts: ✓ createPresetApiClient使用",
+    "expenseApproverSetting.ts: ✓ createPresetApiClient使用",
+    "profile.ts: ✓ createPresetApiClient使用",
+    "profile.ts: ✓ 移行コメントあり",
+    "user.ts: ✓ createPresetApiClient使用",
+    "user.ts: ✓ 移行コメントあり",
+    "notification.ts: ✓ createPresetApiClient使用",
+    "notification.ts: ✓ 移行コメントあり"
+  ]
+}
