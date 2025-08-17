@@ -4,8 +4,9 @@ import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosInst
 import { refreshToken } from '@/lib/api/auth';
 import { API_TIMEOUTS, TIME_THRESHOLDS, UI_DELAYS } from '@/constants/delays';
 import { AUTH_STORAGE_KEYS } from '@/constants/storage';
+import { apiClient as factoryClient, createApiClient } from '@/lib/api/client';
 
-// API基本設定
+// API基本設定（後方互換性のため維持）
 // 新しい分離された環境変数を使用（後方互換性も維持）
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8080';
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
@@ -31,17 +32,8 @@ const debugLog = (...args: unknown[]) => {
   }
 };
 
-// APIクライアントの設定
-export const api = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true, // CORSリクエストでクッキーを送信
-  headers: {
-    'Content-Type': 'application/json',
-    'X-Requested-With': 'XMLHttpRequest', // CSRF対策
-  },
-  // タイムアウト設定
-  timeout: API_TIMEOUTS.SHORT,
-});
+// APIクライアントの設定（ファクトリから取得）
+export const api = factoryClient;
 
 interface ApiClientOptions extends AxiosRequestConfig {
   signal?: AbortSignal;
@@ -50,46 +42,19 @@ interface ApiClientOptions extends AxiosRequestConfig {
 
 const DEFAULT_TIMEOUT = API_TIMEOUTS.DEFAULT;
 
-// 認証済みAPIクライアントを取得
+// 認証済みAPIクライアントを取得（ファクトリを使用）
 export const getAuthClient = (): AxiosInstance => {
-  const client = axios.create({
-    baseURL: API_BASE_URL,
+  // ファクトリから認証機能付きクライアントを生成
+  return createApiClient({
     timeout: DEFAULT_TIMEOUT,
     withCredentials: true,
     headers: {
       'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest', // CSRF対策
     },
+    enableLogging: process.env.NODE_ENV === 'development',
+    enableRetry: true,
   });
-
-  // リクエストインターセプター
-  client.interceptors.request.use(
-    (config) => {
-      // Cookie認証に移行したため、トークンはHTTPOnly Cookieで自動送信される
-      // const token = getAccessToken();
-      // if (token) {
-      //   config.headers.Authorization = `Bearer ${token}`;
-      // }
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
-
-  // レスポンスインターセプター
-  client.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response?.status === 401) {
-        // Cookie認証なので、サーバー側でCookieがクリアされる
-        // clearAllAuthData();
-        window.location.href = '/login';
-      }
-      return Promise.reject(error);
-    }
-  );
-
-  return client;
 };
 
 /**
@@ -161,7 +126,13 @@ const handleAuthError = (error: AxiosError) => {
   return Promise.reject(error);
 };
 
-// リクエストインターセプター
+// 型拡張：リトライフラグを追加
+interface ExtendedInternalAxiosRequestConfig extends InternalAxiosRequestConfig {
+  _isRetry?: boolean;
+}
+
+// 追加のインターセプター設定（認証関連）
+// ファクトリで生成されたクライアントに追加の認証処理を設定
 api.interceptors.request.use(
   (config) => {
     // 本番環境では Referer と Origin のチェックを追加
@@ -176,20 +147,9 @@ api.interceptors.request.use(
   }
 );
 
-// 型拡張：リトライフラグを追加
-interface ExtendedInternalAxiosRequestConfig extends InternalAxiosRequestConfig {
-  _isRetry?: boolean;
-}
-
-// レスポンスインターセプター
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    // 正常なレスポンスの場合は認証状態を更新
-    if (response.config.url?.includes('/auth/login') || response.config.url?.includes('/auth/refresh')) {
-      // Cookie認証に移行したため、認証状態はサーバー側で管理される
-      // setAuthState(true);
-    }
-    
+    // 正常なレスポンスの場合（認証関連のレスポンスは特別な処理なし）
     return response;
   },
   async (error: AxiosError) => {
@@ -200,25 +160,19 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
     
-    // 401エラー（認証切れ）の場合
-    if (error.response && error.response.status === 401) {
+    // 401エラー（認証切れ）の場合 - リフレッシュトークンでリトライ
+    if (error.response && error.response.status === 401 && !originalRequest.url?.includes('/auth/')) {
       debugLog('401エラー検出 - トークンリフレッシュ試行');
       
       try {
         // リフレッシュトークンを使って新しいトークンを取得
         await refreshToken();
         
-        // Cookie認証なので、認証状態の更新は不要
-        // setAuthState(true);
-        
         // 元のリクエストを再試行
         originalRequest._isRetry = true;
         
-        return axios(originalRequest);
+        return api(originalRequest);
       } catch {
-        // Cookie認証なので、認証状態のクリアは不要
-        // clearAuthState();
-        
         // リフレッシュトークンでの更新に失敗した場合は認証エラー処理
         return handleAuthError(error);
       }

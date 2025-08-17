@@ -2,7 +2,7 @@
  * * 認証APIエクスポート
  */
 
-import axios from 'axios';
+import { createApiClient } from '@/lib/api/client';
 import { API_BASE_URL } from '@/constants/api';
 import { 
   LoginRequest, 
@@ -32,11 +32,8 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
     });
 
     // APIクライアントを作成（認証前なのでgetAuthClientは使わない）
-    const client = axios.create({
+    const client = createApiClient({
       baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
       withCredentials: true, // CORS リクエストでクッキーを送信
     });
 
@@ -111,11 +108,8 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
     }, 'トークンリフレッシュ処理を開始');
 
     // APIクライアントを作成
-    const client = axios.create({
+    const client = createApiClient({
       baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
       withCredentials: true, // CORS リクエストでクッキーを送信
     });
 
@@ -185,11 +179,8 @@ export const logout = async (): Promise<LogoutResponse> => {
     }
     
     // APIクライアントを作成
-    const client = axios.create({
+    const client = createApiClient({
       baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
       withCredentials: true,
     });
     
@@ -245,11 +236,8 @@ export const getCurrentUser = async () => {
     }, '現在のユーザー情報取得を開始');
 
     // APIクライアントを作成
-    const client = axios.create({
+    const client = createApiClient({
       baseURL: API_BASE_URL,
-      headers: {
-        'Content-Type': 'application/json',
-      },
       withCredentials: true,
     });
     

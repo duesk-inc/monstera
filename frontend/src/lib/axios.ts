@@ -1,11 +1,11 @@
 /**
  * Cognito認証対応のAxiosクライアント
- * 既存のAPIクライアントとの互換性を保ちつつ、Cognito認証に対応
+ * APIクライアントファクトリを使用した統一的な実装
  */
-import { getAuthClient } from '@/lib/api/index';
+import { apiClient } from '@/lib/api/client';
 
-// Cognito認証対応のAPIクライアントをエクスポート
-export const apiClient = getAuthClient();
+// APIクライアントファクトリから取得したデフォルトクライアントをエクスポート
+export { apiClient };
 
 // デフォルトエクスポートも提供（既存コードとの互換性のため）
 export default apiClient;

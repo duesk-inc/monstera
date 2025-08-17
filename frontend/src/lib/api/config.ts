@@ -2,9 +2,12 @@
  * API設定とユーティリティ関数
  */
 
-import axios from 'axios';
+import { 
+  apiClient as factoryApiClient, 
+  createApiClient as factoryCreateApiClient 
+} from '@/lib/api/client';
 
-// APIベースURL
+// APIベースURL（後方互換性のため維持）
 // 新しい分離された環境変数を使用（後方互換性も維持）
 const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8080';
 const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
@@ -12,7 +15,7 @@ const LEGACY_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export const API_BASE_URL = LEGACY_URL || `${API_HOST}/api/${API_VERSION}`;
 
-// API設定
+// API設定（後方互換性のため維持）
 export const API_CONFIG = {
   baseURL: API_BASE_URL,
   timeout: 30000,
@@ -38,49 +41,14 @@ export const getAuthHeaders = () => {
 };
 
 /**
- * APIクライアントの作成
+ * APIクライアントの作成（ファクトリを使用）
  */
 export const createApiClient = () => {
-  const client = axios.create(API_CONFIG);
-
-  // リクエストインターセプター
-  client.interceptors.request.use(
-    (config) => {
-      // 認証ヘッダーを追加
-      const authHeaders = getAuthHeaders();
-      config.headers = {
-        ...config.headers,
-        ...authHeaders,
-      };
-      return config;
-    },
-    (error) => {
-      return Promise.reject(error);
-    }
-  );
-
-  // レスポンスインターセプター
-  client.interceptors.response.use(
-    (response) => {
-      return response;
-    },
-    (error) => {
-      // 401エラーの場合、ログインページへリダイレクト
-      if (error.response?.status === 401) {
-        // Next.jsのルーターを使用する場合
-        if (typeof window !== 'undefined') {
-          window.location.href = '/login';
-        }
-      }
-      return Promise.reject(error);
-    }
-  );
-
-  return client;
+  return factoryCreateApiClient(API_CONFIG);
 };
 
-// デフォルトのAPIクライアント
-export const apiClient = createApiClient();
+// デフォルトのAPIクライアント（ファクトリから取得）
+export const apiClient = factoryApiClient;
 
 /**
  * APIエンドポイントのヘルパー関数
