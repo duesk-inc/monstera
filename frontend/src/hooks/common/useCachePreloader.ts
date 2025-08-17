@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { cacheUtils } from '@/lib/query-client';
 import { QUERY_KEYS, CACHE_STRATEGIES } from '@/constants/cache';
 import { useAuth } from '@/hooks/useAuth';
-import apiClient from '@/lib/axios';
+import apiClient from '@/lib/api';
 
 /**
  * 重要なデータを事前にキャッシュするフック

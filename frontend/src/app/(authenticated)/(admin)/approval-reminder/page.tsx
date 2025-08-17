@@ -39,7 +39,7 @@ import {
   NotificationsActive as NotificationsActiveIcon,
 } from '@mui/icons-material';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiClient } from '@/lib/axios';
+import { apiClient } from '@/lib/api';
 import { useToast } from '@/components/common/Toast';
 import { formatDate } from '@/utils/dateUtils';
 import { formatCurrency } from '@/utils/formatUtils';

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>週報提出ボタンデバッグ</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 4px;
+        }
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #efe;
+            color: #060;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .info {
+            background: #eef;
+            color: #006;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .log-container {
+            background: #f1f1f1;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            background: white;
+            border-radius: 2px;
+        }
+        .log-error {
+            background: #fee;
+            color: #c00;
+        }
+        .log-warning {
+            background: #ffe;
+            color: #a60;
+        }
+        .log-success {
+            background: #efe;
+            color: #060;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>週報提出ボタンデバッグツール</h1>
+        
+        <div class="error">
+            <strong>問題:</strong> 提出ボタンをクリックしても処理が実行されない<br>
+            <strong>症状:</strong> [Violation] 'click' handler took 252ms
+        </div>
+
+        <div class="test-section">
+            <h2>1. APIクライアント診断</h2>
+            <button onclick="testApiClient()">APIクライアント確認</button>
+            <button onclick="testInterceptors()">インターセプター確認</button>
+            <div id="api-client-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>2. 週報API動作テスト</h2>
+            <button onclick="testWeeklyReportCreate()">週報作成API</button>
+            <button onclick="testWeeklyReportUpdate()">週報更新API</button>
+            <button onclick="testDirectApiCall()">直接API呼び出し</button>
+            <div id="api-test-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>3. 提出処理シミュレーション</h2>
+            <button onclick="simulateSubmitFlow()">提出フロー全体実行</button>
+            <button onclick="testValidation()">バリデーション確認</button>
+            <div id="submit-flow-result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>ログ出力</h2>
+            <div id="log" class="log-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // グローバル関数として定義
+        window.logMessage = function(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString('ja-JP', { hour12: false, fractionalSecondDigits: 3 });
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        };
+
+        window.showResult = function(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.className = type;
+            element.textContent = message;
+        };
+
+        // 1. APIクライアント診断
+        window.testApiClient = async function() {
+            logMessage('APIクライアント診断開始...');
+            
+            try {
+                // モジュールを動的にインポート
+                const apiModule = await import('/src/lib/api/index.js');
+                const clientModule = await import('/src/lib/api/client.js');
+                
+                const client1 = apiModule.getAuthClient();
+                const client2 = apiModule.getAuthClient();
+                
+                if (client1 === client2) {
+                    logMessage('✅ APIクライアントは正しくキャッシュされています', 'success');
+                } else {
+                    logMessage('❌ APIクライアントが毎回新規作成されています', 'error');
+                }
+                
+                // インターセプターの数を確認
+                const reqInterceptors = client1.interceptors.request.handlers?.length || 0;
+                const resInterceptors = client1.interceptors.response.handlers?.length || 0;
+                
+                logMessage(`リクエストインターセプター: ${reqInterceptors}個`);
+                logMessage(`レスポンスインターセプター: ${resInterceptors}個`);
+                
+                if (resInterceptors > 5) {
+                    logMessage('⚠️ インターセプターが多すぎます（重複の可能性）', 'warning');
+                }
+                
+                showResult('api-client-result', 
+                    `クライアント: ${client1 === client2 ? 'キャッシュ済み' : '新規作成'} | インターセプター: Req=${reqInterceptors}, Res=${resInterceptors}`,
+                    client1 === client2 ? 'success' : 'error'
+                );
+            } catch (error) {
+                logMessage(`エラー: ${error.message}`, 'error');
+                showResult('api-client-result', `エラー: ${error.message}`, 'error');
+            }
+        };
+
+        // 2. インターセプター確認
+        window.testInterceptors = async function() {
+            logMessage('インターセプター動作確認開始...');
+            
+            try {
+                // 401エラーをシミュレート
+                const response = await fetch('/api/v1/test-401', {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+                
+                logMessage(`テストレスポンス: ${response.status}`);
+                
+                // コンソールにインターセプター情報を出力
+                console.group('インターセプター詳細');
+                console.log('現在のURL:', window.location.href);
+                console.log('リダイレクト処理が有効か確認中...');
+                console.groupEnd();
+                
+                showResult('api-client-result', 
+                    'インターセプターの詳細はコンソールで確認してください',
+                    'info'
+                );
+            } catch (error) {
+                logMessage(`エラー: ${error.message}`, 'error');
+            }
+        };
+
+        // 3. 週報作成APIテスト
+        window.testWeeklyReportCreate = async function() {
+            logMessage('週報作成APIテスト開始...');
+            const startTime = performance.now();
+            
+            try {
+                const testData = {
+                    startDate: '2025-01-13',
+                    endDate: '2025-01-17',
+                    status: 2, // SUBMITTED
+                    dailyRecords: [],
+                    weeklyRemarks: 'テスト提出'
+                };
+                
+                const response = await fetch('/api/v1/weekly-reports', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const duration = performance.now() - startTime;
+                logMessage(`APIレスポンス: ${response.status} (${duration.toFixed(2)}ms)`);
+                
+                if (response.status === 401) {
+                    logMessage('⚠️ 401エラー: 認証が必要です', 'warning');
+                    logMessage('インターセプターによるリダイレクトが発生している可能性があります', 'warning');
+                } else if (response.ok) {
+                    logMessage('✅ API呼び出し成功', 'success');
+                } else {
+                    const errorText = await response.text();
+                    logMessage(`❌ APIエラー: ${errorText}`, 'error');
+                }
+                
+                showResult('api-test-result', 
+                    `Status: ${response.status} | Duration: ${duration.toFixed(2)}ms`,
+                    response.ok ? 'success' : 'error'
+                );
+            } catch (error) {
+                const duration = performance.now() - startTime;
+                logMessage(`❌ ネットワークエラー: ${error.message} (${duration.toFixed(2)}ms)`, 'error');
+                showResult('api-test-result', `エラー: ${error.message}`, 'error');
+            }
+        };
+
+        // 4. 提出フローシミュレーション
+        window.simulateSubmitFlow = async function() {
+            logMessage('提出フロー全体シミュレーション開始...');
+            const startTime = performance.now();
+            
+            const steps = [
+                '1. validateForm() 呼び出し',
+                '2. checkSameWorkTimes() 呼び出し',
+                '3. submitWeeklyReport() 呼び出し',
+                '4. convertUIModelToAPIRequest() 呼び出し',
+                '5. saveAndSubmitWeeklyReport() 呼び出し',
+                '6. getAuthClient() 呼び出し',
+                '7. client.post() 呼び出し',
+                '8. インターセプター処理'
+            ];
+            
+            for (const step of steps) {
+                const stepStart = performance.now();
+                logMessage(step);
+                
+                // 各ステップで少し待機（実際の処理をシミュレート）
+                await new Promise(resolve => setTimeout(resolve, 30));
+                
+                const stepDuration = performance.now() - stepStart;
+                if (stepDuration > 50) {
+                    logMessage(`⚠️ ${step} が ${stepDuration.toFixed(2)}ms かかりました`, 'warning');
+                }
+            }
+            
+            const totalDuration = performance.now() - startTime;
+            logMessage(`合計処理時間: ${totalDuration.toFixed(2)}ms`);
+            
+            if (totalDuration > 250) {
+                logMessage('❌ 処理時間が252msを超えています！', 'error');
+                logMessage('問題の可能性: 401エラーによるリダイレクト処理', 'warning');
+            }
+            
+            showResult('submit-flow-result', 
+                `Total: ${totalDuration.toFixed(2)}ms ${totalDuration > 250 ? '(問題あり)' : '(正常)'}`,
+                totalDuration > 250 ? 'error' : 'success'
+            );
+        };
+
+        // 5. 直接API呼び出しテスト
+        window.testDirectApiCall = async function() {
+            logMessage('axios経由でAPIを直接呼び出し...');
+            
+            try {
+                // 動的インポート
+                const { default: axios } = await import('/node_modules/axios/dist/esm/axios.js');
+                
+                const client = axios.create({
+                    baseURL: 'http://localhost:8080/api/v1',
+                    withCredentials: true
+                });
+                
+                const startTime = performance.now();
+                
+                try {
+                    const response = await client.post('/weekly-reports', {
+                        startDate: '2025-01-13',
+                        endDate: '2025-01-17',
+                        status: 2,
+                        dailyRecords: []
+                    });
+                    
+                    const duration = performance.now() - startTime;
+                    logMessage(`✅ 直接呼び出し成功: ${response.status} (${duration.toFixed(2)}ms)`, 'success');
+                } catch (error) {
+                    const duration = performance.now() - startTime;
+                    if (error.response?.status === 401) {
+                        logMessage(`⚠️ 401エラー (${duration.toFixed(2)}ms) - インターセプターなしで検出`, 'warning');
+                    } else {
+                        logMessage(`❌ エラー: ${error.message} (${duration.toFixed(2)}ms)`, 'error');
+                    }
+                }
+            } catch (error) {
+                logMessage(`モジュールインポートエラー: ${error.message}`, 'error');
+            }
+        };
+
+        // 6. バリデーション確認
+        window.testValidation = function() {
+            logMessage('バリデーション処理確認...');
+            
+            // バリデーション処理をシミュレート
+            const startTime = performance.now();
+            
+            // 重い処理をシミュレート
+            let sum = 0;
+            for (let i = 0; i < 1000000; i++) {
+                sum += i;
+            }
+            
+            const duration = performance.now() - startTime;
+            logMessage(`バリデーション処理時間: ${duration.toFixed(2)}ms`);
+            
+            if (duration > 100) {
+                logMessage('⚠️ バリデーション処理が重い可能性があります', 'warning');
+            }
+            
+            showResult('submit-flow-result', 
+                `Validation: ${duration.toFixed(2)}ms`,
+                duration > 100 ? 'warning' : 'success'
+            );
+        };
+
+        // ページロード時の初期化
+        window.addEventListener('load', () => {
+            logMessage('デバッグツール準備完了');
+            logMessage('問題: 提出ボタンクリック時に252msの遅延が発生');
+            logMessage('推測される原因: 401エラーによるリダイレクト処理、または二重インターセプター');
+        });
+    </script>
+</body>
+</html>

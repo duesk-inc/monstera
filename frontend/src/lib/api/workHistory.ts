@@ -1,4 +1,4 @@
-import apiClient from '@/lib/axios'
+import apiClient from '@/lib/api'
 import type { 
   WorkHistory, 
   WorkHistoryCreateRequest, 

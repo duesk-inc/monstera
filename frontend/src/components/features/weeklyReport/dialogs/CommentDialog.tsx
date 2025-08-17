@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { AdminWeeklyReport } from '@/types/admin/weeklyReport';
 import { formatDate } from '@/utils/dateUtils';
-import apiClient from '@/lib/axios';
+import apiClient from '@/lib/api';
 
 interface CommentDialogProps {
   open: boolean;

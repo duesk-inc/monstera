@@ -1,0 +1,165 @@
+{
+  "timestamp": "2025-08-17T09:48:05.867Z",
+  "mode": "execute",
+  "stats": {
+    "filesScanned": 529,
+    "filesModified": 17,
+    "replacements": 17,
+    "errors": [],
+    "modifiedFiles": [
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/api/notification.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/api/unsubmittedReport.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/app/(authenticated)/(admin)/approval-reminder/page.tsx",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (named)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/components/admin/leave/LeaveRequestList.tsx",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/components/admin/leave/LeaveStatistics.tsx",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/components/features/admin/ExpenseApproverSettings.tsx",
+        "replacements": [
+          {
+            "rule": "@/lib/api/config → @/lib/api",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/components/features/weeklyReport/dialogs/CommentDialog.tsx",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/hooks/admin/useExportJob.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (named)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/hooks/admin/useMonthlySummary.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (named)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/hooks/admin/useUnsubmittedReports.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/hooks/common/useCachePreloader.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/hooks/common/useNotifications.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/lib/api/auth/index.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/api/client → @/lib/api",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/lib/api/config.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/api/client → @/lib/api",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/lib/api/sales/index.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (named)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/lib/api/workHistory.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/axios → @/lib/api (default)",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "path": "/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/src/lib/axios.ts",
+        "replacements": [
+          {
+            "rule": "@/lib/api/client → @/lib/api",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  }
+}

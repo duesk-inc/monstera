@@ -41,7 +41,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useToast } from '@/components/common/Toast';
-import apiClient from '@/lib/axios';
+import apiClient from '@/lib/api';
 import { LEAVE_REQUEST_STATUS } from '@/constants/leave';
 
 interface LeaveRequest {

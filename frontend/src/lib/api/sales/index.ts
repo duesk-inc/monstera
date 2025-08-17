@@ -1,6 +1,6 @@
 // 営業関連のAPIクライアント
 
-import { apiClient } from '@/lib/axios';
+import { apiClient } from '@/lib/api';
 import { SALES_ENDPOINTS } from '@/constants/sales';
 import type {
   Proposal,

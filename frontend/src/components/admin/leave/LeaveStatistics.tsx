@@ -42,7 +42,7 @@ import {
 } from 'recharts';
 import { format, startOfYear, endOfYear } from 'date-fns';
 import { ja } from 'date-fns/locale';
-import apiClient from '@/lib/axios';
+import apiClient from '@/lib/api';
 
 interface LeaveStatistics {
   totalRequests: number;

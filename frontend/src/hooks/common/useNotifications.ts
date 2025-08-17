@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import apiClient from '@/lib/axios';
+import apiClient from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { QUERY_KEYS } from '@/constants/cache';
 

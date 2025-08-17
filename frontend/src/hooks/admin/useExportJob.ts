@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiClient } from '@/lib/axios';
+import { apiClient } from '@/lib/api';
 import type { 
   ExportJob, 
   CreateExportJobRequest, 

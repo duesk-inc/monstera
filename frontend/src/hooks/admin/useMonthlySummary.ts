@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/axios';
+import { apiClient } from '@/lib/api';
 import type { MonthlySummaryDTO } from '@/types/admin/weeklyReport';
 import { useErrorHandler } from '@/hooks/common/useErrorHandler';
 import { CACHE_STRATEGIES, QUERY_KEYS } from '@/constants/cache';

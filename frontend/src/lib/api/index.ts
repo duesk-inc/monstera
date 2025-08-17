@@ -1,25 +1,32 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosInstance, AxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosInstance, AxiosRequestConfig } from 'axios';
 // Cookie認証に移行したため、以下のimportは不要になりました
 // import { setAuthState, clearAuthState, getAccessToken, clearAllAuthData } from '@/utils/auth';
 import { refreshToken } from '@/lib/api/auth';
 import { API_TIMEOUTS, TIME_THRESHOLDS, UI_DELAYS } from '@/constants/delays';
-import { AUTH_STORAGE_KEYS } from '@/constants/storage';
-import { apiClient as factoryClient, createApiClient } from '@/lib/api/client';
+import { 
+  apiClient as factoryClient,
+  createApiClient,
+  getDefaultApiClient,
+  getAuthenticatedApiClient,
+  getAdminApiClient,
+  getVersionedApiClient,
+  getEnvironmentApiClient,
+  clearApiClientCache,
+  apiClientFactory,
+  type ApiClientConfig
+} from '@/lib/api/client';
+import { getApiEnvironment } from '@/lib/api/config/env';
 
 // API基本設定（後方互換性のため維持）
-// 新しい分離された環境変数を使用（後方互換性も維持）
-const API_HOST = process.env.NEXT_PUBLIC_API_HOST || 'http://localhost:8080';
-const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
-const LEGACY_URL = process.env.NEXT_PUBLIC_API_URL;
-
-export const API_BASE_URL = LEGACY_URL || `${API_HOST}/api/${API_VERSION}`;
+const envConfig = getApiEnvironment();
+export const API_BASE_URL = envConfig.baseUrl;
 
 // 認証エラーが発生したページのパスを保存するキー
-const AUTH_ERROR_PAGE_KEY = AUTH_STORAGE_KEYS.AUTH_ERROR_PAGE;
+const AUTH_ERROR_PAGE_KEY = 'auth_error_from_page';
 // リダイレクト処理中フラグ（メモリ内状態）
 let isRedirectInProgress = false;
 // 最後の認証エラー表示時刻を保存するキー
-const LAST_AUTH_ERROR_TIME_KEY = AUTH_STORAGE_KEYS.LAST_AUTH_ERROR_TIME;
+const LAST_AUTH_ERROR_TIME_KEY = 'last_auth_error_time';
 // デバッグログを有効にするフラグ
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
@@ -201,4 +208,59 @@ export const apiRequest = async <T>(
 };
 
 // Export apiClient as an alias for api (for backward compatibility)
-export const apiClient = api; 
+export const apiClient = api;
+
+// ====================================
+// 統一APIエクスポート（Phase 3更新）
+// ====================================
+
+/**
+ * メインのAPIクライアント
+ * すべてのAPIコールでこれを使用することを推奨
+ */
+export default apiClient;
+
+// APIクライアントファクトリ関数（Phase 3で統合）
+export { 
+  createApiClient,
+  getDefaultApiClient,
+  getAuthenticatedApiClient,
+  getAdminApiClient,
+  getVersionedApiClient,
+  getEnvironmentApiClient,
+  clearApiClientCache,
+  apiClientFactory,
+  type ApiClientConfig
+} from '@/lib/api/client';
+
+// 新しい統合ファクトリ（Phase 3追加）
+export {
+  UnifiedApiFactory,
+  unifiedApiFactory,
+  createUnifiedClient,
+  clearApiCache,
+  type UnifiedApiConfig
+} from '@/lib/api/factory';
+
+// 環境変数関連
+export { getApiEnvironment, validateApiEnvironment } from '@/lib/api/config/env';
+export type { ApiEnvironmentConfig } from '@/lib/api/config/env';
+
+// エラーハンドリング
+export { handleApiError, isAbortError, AbortError } from '@/lib/api/error';
+
+// API設定（config.tsから）
+export { API_CONFIG, endpoints } from '@/lib/api/config';
+
+// リトライ設定
+export { isRetryableError, calculateRetryDelay, queryRetryConfig } from '@/lib/api/retry-config';
+
+/**
+ * 推奨される使い方:
+ * 
+ * import apiClient from '@/lib/api';
+ * 
+ * または
+ * 
+ * import { apiClient, handleApiError } from '@/lib/api';
+ */ 

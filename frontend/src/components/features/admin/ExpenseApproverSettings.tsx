@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { useSnackbar } from 'notistack';
 import { User } from '@/types/auth';
-import { getAuthHeaders } from '@/lib/api/config';
+// Cookie認証を使用するためgetAuthHeadersは不要
 
 interface ExpenseApproverSetting {
   id: string;
@@ -65,7 +65,7 @@ export default function ExpenseApproverSettings() {
   const fetchSettings = async () => {
     try {
       const response = await fetch('/admin/expense-approvers', {
-        headers: getAuthHeaders(),
+        credentials: 'include', // Cookie認証を使用
       });
       if (!response.ok) throw new Error('Failed to fetch settings');
       const data = await response.json();
@@ -82,7 +82,7 @@ export default function ExpenseApproverSettings() {
   const fetchUsers = async () => {
     try {
       const response = await fetch('/admin/users', {
-        headers: getAuthHeaders(),
+        credentials: 'include', // Cookie認証を使用
       });
       if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
@@ -136,8 +136,8 @@ export default function ExpenseApproverSettings() {
 
       const response = await fetch(url, {
         method,
+        credentials: 'include', // Cookie認証を使用
         headers: {
-          ...getAuthHeaders(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
@@ -167,7 +167,7 @@ export default function ExpenseApproverSettings() {
     try {
       const response = await fetch(`/admin/expense-approvers/${id}`, {
         method: 'DELETE',
-        headers: getAuthHeaders(),
+        credentials: 'include', // Cookie認証を使用
       });
 
       if (!response.ok) throw new Error('Failed to delete setting');
@@ -185,8 +185,8 @@ export default function ExpenseApproverSettings() {
     try {
       const response = await fetch(`/admin/expense-approvers/${id}/priority`, {
         method: 'PATCH',
+        credentials: 'include', // Cookie認証を使用
         headers: {
-          ...getAuthHeaders(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ priority: newPriority }),

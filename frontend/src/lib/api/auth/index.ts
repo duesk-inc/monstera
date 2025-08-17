@@ -2,6 +2,7 @@
  * * 認証APIエクスポート
  */
 
+import axios from 'axios';
 import { createApiClient } from '@/lib/api/client';
 import { API_BASE_URL } from '@/constants/api';
 import { 
