@@ -1,5 +1,6 @@
+// Migrated to new API client system
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 import type { MonthlySummaryDTO } from '@/types/admin/weeklyReport';
 import { useErrorHandler } from '@/hooks/common/useErrorHandler';
 import { CACHE_STRATEGIES, QUERY_KEYS } from '@/constants/cache';
@@ -39,8 +40,9 @@ export const useMonthlySummary = ({ year, month, departmentId }: UseMonthlySumma
           params.append('department_id', departmentId);
         }
 
+        const apiClient = createPresetApiClient('admin');
         const response = await apiClient.get<MonthlySummaryResponse>(
-          `/admin/weekly-reports/monthly-summary?${params.toString()}`
+          `/weekly-reports/monthly-summary?${params.toString()}`
         );
 
         return response.data;

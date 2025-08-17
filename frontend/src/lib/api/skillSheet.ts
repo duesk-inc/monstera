@@ -1,5 +1,5 @@
-import { getAuthClient } from '@/lib/api';
-import { handleApiError, AbortError } from '@/lib/api/error';
+// Migrated to new API client system
+import { createPresetApiClient, handleApiError } from '@/lib/api';
 import { SkillSheet, SkillSheetFormData } from '@/types/skillSheet';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import { SKILL_SHEET_API } from '@/constants/api';
@@ -12,10 +12,10 @@ import { DebugLogger, DEBUG_CATEGORIES, DEBUG_OPERATIONS } from '@/lib/debug/log
 export const fetchSkillSheet = async (signal?: AbortSignal): Promise<SkillSheet> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.READ, description: 'スキルシート取得' },
-    { method: 'GET', url: '/api/v1/skill-sheet' }
+    { method: 'GET', url: '/skill-sheet' }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     // より長いタイムアウトを設定
     const options = { 
@@ -71,10 +71,10 @@ export const fetchSkillSheet = async (signal?: AbortSignal): Promise<SkillSheet>
 export const updateSkillSheet = async (data: SkillSheetFormData): Promise<void> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.UPDATE, description: 'スキルシート更新' },
-    { method: 'PUT', url: '/api/v1/skill-sheet', requestData: data }
+    { method: 'PUT', url: '/skill-sheet', requestData: data }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     // 日付データを文字列に変換
     const convertedData = {
@@ -133,10 +133,10 @@ export const updateSkillSheet = async (data: SkillSheetFormData): Promise<void> 
 export const tempSaveSkillSheet = async (data: SkillSheetFormData): Promise<void> => {
   DebugLogger.apiStart(
     { category: DEBUG_CATEGORIES.API, operation: DEBUG_OPERATIONS.CREATE, description: 'スキルシート一時保存' },
-    { method: 'POST', url: '/api/v1/skill-sheet/temp-save', requestData: data }
+    { method: 'POST', url: '/skill-sheet/temp-save', requestData: data }
   );
   
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   try {
     // 日付データを文字列に変換
     const convertedData = {

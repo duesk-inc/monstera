@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { createPresetApiClient } from '@/lib/api';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import { DebugLogger } from '../debug/logger';
 
@@ -102,7 +102,8 @@ export const adminExpenseApi = {
       DebugLogger.log('ADMIN_EXPENSE_API', 'Getting pending approvals', { filters });
 
       const params = convertCamelToSnake(filters);
-      const response = await apiClient.get('/admin/engineers/expenses/pending', { 
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/engineers/expenses/pending', { 
         params,
         timeout: 30000,
       });
@@ -128,7 +129,8 @@ export const adminExpenseApi = {
     try {
       DebugLogger.log('ADMIN_EXPENSE_API', 'Getting expense detail', { expenseId });
 
-      const response = await apiClient.get(`/admin/engineers/expenses/${expenseId}`);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get(`/engineers/expenses/${expenseId}`);
       const result = convertSnakeToCamel<AdminExpenseDetail>(response.data.data);
 
       DebugLogger.log('ADMIN_EXPENSE_API', 'Expense detail retrieved', {
@@ -154,7 +156,8 @@ export const adminExpenseApi = {
       });
 
       const payload = convertCamelToSnake(request);
-      const response = await apiClient.put(`/admin/engineers/expenses/${expenseId}/approve`, payload);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.put(`/engineers/expenses/${expenseId}/approve`, payload);
       const result = convertSnakeToCamel<AdminExpenseDetail>(response.data.data);
 
       DebugLogger.log('ADMIN_EXPENSE_API', 'Expense approved successfully', {
@@ -180,7 +183,8 @@ export const adminExpenseApi = {
       });
 
       const payload = convertCamelToSnake(request);
-      const response = await apiClient.put(`/admin/engineers/expenses/${expenseId}/reject`, payload);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.put(`/engineers/expenses/${expenseId}/reject`, payload);
       const result = convertSnakeToCamel<AdminExpenseDetail>(response.data.data);
 
       DebugLogger.log('ADMIN_EXPENSE_API', 'Expense rejected successfully', {
@@ -219,7 +223,8 @@ export const adminExpenseApi = {
       DebugLogger.log('ADMIN_EXPENSE_API', 'Getting approval statistics', { filters });
 
       const params = convertCamelToSnake(filters);
-      const response = await apiClient.get('/admin/engineers/expenses/statistics', { 
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/engineers/expenses/statistics', { 
         params,
       });
 
@@ -255,7 +260,8 @@ export const adminExpenseApi = {
       DebugLogger.log('ADMIN_EXPENSE_API', 'Getting expense history', { filters });
 
       const params = convertCamelToSnake(filters);
-      const response = await apiClient.get('/admin/engineers/expenses/history', { 
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/engineers/expenses/history', { 
         params,
       });
 
@@ -291,7 +297,8 @@ export const adminExpenseApi = {
         comment,
       });
 
-      const response = await apiClient.post('/admin/engineers/expenses/bulk-approve', payload);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.post('/engineers/expenses/bulk-approve', payload);
       const result = convertSnakeToCamel(response.data.data);
 
       DebugLogger.log('ADMIN_EXPENSE_API', 'Bulk approval completed', {
@@ -324,7 +331,8 @@ export const adminExpenseApi = {
         comment,
       });
 
-      const response = await apiClient.post('/admin/engineers/expenses/bulk-reject', payload);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.post('/engineers/expenses/bulk-reject', payload);
       const result = convertSnakeToCamel(response.data.data);
 
       DebugLogger.log('ADMIN_EXPENSE_API', 'Bulk rejection completed', {
@@ -353,7 +361,8 @@ export const adminExpenseApi = {
       DebugLogger.log('ADMIN_EXPENSE_API', 'Exporting expenses to CSV', { filters });
 
       const params = convertCamelToSnake(filters);
-      const response = await apiClient.get('/admin/engineers/expenses/export/csv', {
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/engineers/expenses/export/csv', {
         params,
         responseType: 'blob',
         timeout: 60000, // CSVエクスポートは時間がかかる可能性があるため長めに設定

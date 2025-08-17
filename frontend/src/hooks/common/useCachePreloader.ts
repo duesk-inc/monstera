@@ -1,9 +1,10 @@
+// Migrated to new API client system
 import { useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { cacheUtils } from '@/lib/query-client';
 import { QUERY_KEYS, CACHE_STRATEGIES } from '@/constants/cache';
 import { useAuth } from '@/hooks/useAuth';
-import apiClient from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 
 /**
  * 重要なデータを事前にキャッシュするフック
@@ -21,7 +22,8 @@ export const useCachePreloader = () => {
       await cacheUtils.prefetchQuery(
         [...QUERY_KEYS.DEPARTMENTS],
         async () => {
-          const response = await apiClient.get('/departments');
+          const client = createPresetApiClient('admin');
+          const response = await client.get('/departments');
           return response.data;
         },
         CACHE_STRATEGIES.MASTER_DATA
@@ -31,7 +33,8 @@ export const useCachePreloader = () => {
       await cacheUtils.prefetchQuery(
         [...QUERY_KEYS.ROLES],
         async () => {
-          const response = await apiClient.get('/roles');
+          const client = createPresetApiClient('admin');
+          const response = await client.get('/roles');
           return response.data;
         },
         CACHE_STRATEGIES.MASTER_DATA
@@ -42,7 +45,8 @@ export const useCachePreloader = () => {
       await cacheUtils.prefetchQuery(
         [...QUERY_KEYS.HOLIDAYS, currentYear],
         async () => {
-          const response = await apiClient.get(`/api/v1/holidays?year=${currentYear}`);
+          const client = createPresetApiClient('admin');
+          const response = await client.get(`/holidays?year=${currentYear}`);
           return response.data;
         },
         CACHE_STRATEGIES.STATIC_DATA
@@ -63,7 +67,8 @@ export const useCachePreloader = () => {
       await cacheUtils.prefetchQuery(
         [...QUERY_KEYS.USER_PROFILE, user.id],
         async () => {
-          const response = await apiClient.get(`/api/v1/users/${user.id}/profile`);
+          const client = createPresetApiClient('admin');
+          const response = await client.get(`/users/${user.id}/profile`);
           return response.data;
         },
         CACHE_STRATEGIES.USER_PROFILE
@@ -74,7 +79,8 @@ export const useCachePreloader = () => {
         await cacheUtils.prefetchQuery(
           [...QUERY_KEYS.ALERT_SETTINGS],
           async () => {
-            const response = await apiClient.get('/admin/alert-settings');
+            const client = createPresetApiClient('admin');
+            const response = await client.get('/admin/alert-settings');
             return response.data;
           },
           CACHE_STRATEGIES.ALERT_SETTINGS
@@ -114,8 +120,9 @@ export const useCachePreloader = () => {
           await cacheUtils.prefetchQuery(
             [...QUERY_KEYS.MONTHLY_SUMMARY, currentYear, currentMonth],
             async () => {
-              const response = await apiClient.get(
-                `/api/v1/admin/weekly-reports/monthly-summary?year=${currentYear}&month=${currentMonth}`
+              const client = createPresetApiClient('admin');
+              const response = await client.get(
+                `/admin/weekly-reports/monthly-summary?year=${currentYear}&month=${currentMonth}`
               );
               return response.data;
             },
@@ -184,8 +191,9 @@ export const useCachePreloader = () => {
           await cacheUtils.prefetchQuery(
             [...QUERY_KEYS.MONTHLY_SUMMARY, nextMonth.getFullYear(), nextMonth.getMonth() + 1],
             async () => {
-              const response = await apiClient.get(
-                `/api/v1/admin/weekly-reports/monthly-summary?year=${nextMonth.getFullYear()}&month=${nextMonth.getMonth() + 1}`
+              const client = createPresetApiClient('admin');
+              const response = await client.get(
+                `/admin/weekly-reports/monthly-summary?year=${nextMonth.getFullYear()}&month=${nextMonth.getMonth() + 1}`
               );
               return response.data;
             },

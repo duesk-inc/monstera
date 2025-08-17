@@ -1,4 +1,4 @@
-import { apiClient } from './index';
+import { createPresetApiClient } from '@/lib/api';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import { DebugLogger } from '../debug/logger';
 
@@ -64,6 +64,7 @@ export const expenseLimitApi = {
         expenseDate: params.expenseDate,
       });
 
+      const apiClient = createPresetApiClient('auth');
       const response = await apiClient.get('/expenses/check-limits', {
         params: queryParams,
         timeout: 10000,
@@ -102,6 +103,7 @@ export const expenseLimitApi = {
         ...(params.expenseDate && { expenseDate: params.expenseDate }),
       });
 
+      const apiClient = createPresetApiClient('auth');
       const response = await apiClient.get('/expenses/check-limits', {
         params: queryParams,
         timeout: 5000, // リアルタイムチェックは短めのタイムアウト
@@ -129,7 +131,8 @@ export const expenseLimitApi = {
     try {
       DebugLogger.log('EXPENSE_LIMIT_API', 'Getting expense limits', {});
 
-      const response = await apiClient.get('/admin/expense-limits');
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.get('/expense-limits');
       const limits = convertSnakeToCamel<ExpenseLimit[]>(response.data.data);
 
       DebugLogger.log('EXPENSE_LIMIT_API', 'Expense limits retrieved successfully', {
@@ -157,7 +160,8 @@ export const expenseLimitApi = {
       });
 
       const requestData = convertCamelToSnake(request);
-      const response = await apiClient.put('/admin/expense-limits', requestData);
+      const apiClient = createPresetApiClient('admin');
+      const response = await apiClient.put('/expense-limits', requestData);
       const updatedLimit = convertSnakeToCamel<ExpenseLimit>(response.data.data);
 
       DebugLogger.log('EXPENSE_LIMIT_API', 'Expense limit updated successfully', {

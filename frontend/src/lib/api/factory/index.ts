@@ -3,11 +3,24 @@
  * キャッシュ管理とインターセプター重複防止機構を持つ
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import { getApiEnvironment } from '@/lib/api/config/env';
 import { ApiClientCache } from './cache';
 import { InterceptorManager } from './interceptors';
 import { DebugLogger } from '@/lib/debug/logger';
+import { getUnifiedApiConfig } from '@/lib/api/config/unified';
+
+/**
+ * プリセットタイプの定義
+ */
+export type ApiClientPresetType = 
+  | 'default'      // デフォルト設定
+  | 'auth'         // 認証API用
+  | 'admin'        // 管理者API用
+  | 'public'       // 公開API用（認証不要）
+  | 'upload'       // ファイルアップロード用
+  | 'batch'        // バッチ処理用（長いタイムアウト）
+  | 'realtime';    // リアルタイム通信用（短いタイムアウト）
 
 /**
  * 統合API設定インターフェース
@@ -20,6 +33,9 @@ export interface UnifiedApiConfig {
   timeout?: number;
   withCredentials?: boolean;
   headers?: Record<string, string>;
+  
+  // プリセット設定
+  preset?: ApiClientPresetType;
   
   // インターセプター設定
   enableAuth?: boolean;
@@ -43,21 +59,24 @@ export interface UnifiedApiConfig {
 }
 
 /**
- * デフォルト設定
+ * デフォルト設定（統一設定から取得）
  */
-const DEFAULT_CONFIG: UnifiedApiConfig = {
-  timeout: 30000,
-  withCredentials: true,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  enableAuth: true,
-  enableRetry: true,
-  enableLogging: process.env.NODE_ENV === 'development',
-  enableErrorHandling: true,
-  maxRetries: 3,
-  retryDelay: 1000,
-  useCache: true,
+const getDefaultConfig = (): UnifiedApiConfig => {
+  const unifiedConfig = getUnifiedApiConfig();
+  return {
+    timeout: unifiedConfig.timeout || 30000,
+    withCredentials: unifiedConfig.withCredentials,
+    headers: unifiedConfig.headers || {
+      'Content-Type': 'application/json',
+    },
+    enableAuth: true,
+    enableRetry: true,
+    enableLogging: process.env.NODE_ENV === 'development',
+    enableErrorHandling: true,
+    maxRetries: 3,
+    retryDelay: 1000,
+    useCache: true,
+  };
 };
 
 /**
@@ -96,7 +115,9 @@ export class UnifiedApiFactory {
    * @returns Axiosインスタンス
    */
   createClient(config: UnifiedApiConfig = {}): AxiosInstance {
-    const mergedConfig = { ...DEFAULT_CONFIG, ...config };
+    // プリセット設定を適用
+    const presetConfig = config.preset ? this.getPresetConfig(config.preset) : {};
+    const mergedConfig = { ...getDefaultConfig(), ...presetConfig, ...config };
     
     // キャッシュキーの生成
     if (mergedConfig.useCache && mergedConfig.cacheKey) {
@@ -161,12 +182,9 @@ export class UnifiedApiFactory {
    * @returns Axiosインスタンス
    */
   createAuthenticatedClient(token?: string): AxiosInstance {
-    const cacheKey = token ? `_auth_${token}` : '_auth_default';
-    return this.createClient({
-      cacheKey,
-      useCache: true,
-      enableAuth: true,
+    return this.createPresetClient('auth', {
       authToken: token,
+      cacheKey: token ? `_auth_${token}` : '_preset_auth',
     });
   }
   
@@ -175,16 +193,7 @@ export class UnifiedApiFactory {
    * @returns Axiosインスタンス
    */
   createAdminClient(): AxiosInstance {
-    return this.createClient({
-      cacheKey: '_admin',
-      useCache: true,
-      enableAuth: true,
-      enableLogging: true,
-      headers: {
-        ...DEFAULT_CONFIG.headers,
-        'X-Admin-Request': 'true',
-      },
-    });
+    return this.createPresetClient('admin');
   }
   
   /**
@@ -377,6 +386,108 @@ export class UnifiedApiFactory {
   }
   
   /**
+   * プリセット設定を取得
+   * @param preset プリセットタイプ
+   * @returns プリセット設定
+   */
+  private getPresetConfig(preset: ApiClientPresetType): Partial<UnifiedApiConfig> {
+    switch (preset) {
+      case 'auth':
+        return {
+          cacheKey: '_preset_auth',
+          useCache: true,
+          enableAuth: true,
+          enableErrorHandling: true,
+          withCredentials: true,
+        };
+      
+      case 'admin':
+        return {
+          cacheKey: '_preset_admin',
+          useCache: true,
+          enableAuth: true,
+          enableLogging: true,
+          enableErrorHandling: true,
+          withCredentials: true,
+          headers: {
+            'X-Admin-Request': 'true',
+          },
+        };
+      
+      case 'public':
+        return {
+          cacheKey: '_preset_public',
+          useCache: true,
+          enableRetry: true,
+          enableErrorHandling: true,
+          withCredentials: false,
+          timeout: 10000,
+        };
+      
+      case 'upload':
+        return {
+          cacheKey: '_preset_upload',
+          useCache: false, // アップロードはキャッシュしない
+          enableAuth: true,
+          enableErrorHandling: true,
+          withCredentials: true,
+          timeout: 120000, // 2分
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        };
+      
+      case 'batch':
+        return {
+          cacheKey: '_preset_batch',
+          useCache: false,
+          enableAuth: true,
+          enableRetry: true,
+          enableErrorHandling: true,
+          withCredentials: true,
+          timeout: 300000, // 5分
+          maxRetries: 5,
+          retryDelay: 2000,
+        };
+      
+      case 'realtime':
+        return {
+          cacheKey: '_preset_realtime',
+          useCache: true,
+          enableAuth: true,
+          enableErrorHandling: true,
+          withCredentials: true,
+          timeout: 5000, // 5秒
+          enableRetry: false, // リアルタイムではリトライなし
+        };
+      
+      case 'default':
+      default:
+        return {
+          cacheKey: '_preset_default',
+          useCache: true,
+          enableAuth: true,
+          enableRetry: true,
+          enableErrorHandling: true,
+          withCredentials: true,
+        };
+    }
+  }
+  
+  /**
+   * プリセットベースでクライアントを作成
+   * @param preset プリセットタイプ
+   * @param additionalConfig 追加設定
+   * @returns Axiosインスタンス
+   */
+  createPresetClient(preset: ApiClientPresetType, additionalConfig?: Partial<UnifiedApiConfig>): AxiosInstance {
+    return this.createClient({
+      preset,
+      ...additionalConfig,
+    });
+  }
+  
+  /**
    * デバッグ情報を取得
    * @returns デバッグ情報
    */
@@ -407,6 +518,18 @@ export const getEnvironmentApiClient = (env: 'development' | 'staging' | 'produc
   unifiedApiFactory.createEnvironmentClient(env);
 export const clearApiCache = () => 
   unifiedApiFactory.clearCache();
+
+// プリセットベースのクライアント作成関数
+export const createPresetApiClient = (preset: ApiClientPresetType, config?: Partial<UnifiedApiConfig>) =>
+  unifiedApiFactory.createPresetClient(preset, config);
+export const getPublicApiClient = () =>
+  unifiedApiFactory.createPresetClient('public');
+export const getUploadApiClient = () =>
+  unifiedApiFactory.createPresetClient('upload');
+export const getBatchApiClient = () =>
+  unifiedApiFactory.createPresetClient('batch');
+export const getRealtimeApiClient = () =>
+  unifiedApiFactory.createPresetClient('realtime');
 
 // デフォルトエクスポート
 export default unifiedApiFactory;

@@ -1,0 +1,12 @@
+File,Category,Status,PresetImport,PresetCalls,MigrationComment,NoModuleClient,NoOldImport,NoApiV1Prefix
+src/hooks/admin/useExportJob.ts,Admin Hooks,MIGRATED,true,true,true,true,true,true
+src/hooks/admin/useMonthlySummary.ts,Admin Hooks,MIGRATED,true,true,true,true,true,true
+src/hooks/admin/useUnsubmittedReports.ts,Admin Hooks,MIGRATED,true,true,true,true,true,true
+src/components/admin/leave/LeaveRequestList.tsx,Admin Components,MIGRATED,true,true,false,true,true,true
+src/components/admin/leave/LeaveStatistics.tsx,Admin Components,MIGRATED,true,true,false,true,true,true
+src/components/features/notification/NotificationBadge.tsx,Feature Components,MIGRATED,true,true,true,true,true,true
+src/components/features/notification/NotificationPanel.tsx,Feature Components,MIGRATED,true,true,true,true,true,true
+src/components/features/notification/UnsubmittedAlert.tsx,Feature Components,MIGRATED,true,true,true,true,true,true
+src/components/features/weeklyReport/dialogs/CommentDialog.tsx,Feature Components,MIGRATED,true,true,true,true,true,true
+src/hooks/common/useCachePreloader.ts,Common Hooks,MIGRATED,true,true,true,true,true,true
+src/hooks/common/useNotifications.ts,Common Hooks,MIGRATED,true,true,true,true,true,true

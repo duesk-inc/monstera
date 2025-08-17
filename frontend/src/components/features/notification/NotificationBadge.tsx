@@ -1,10 +1,11 @@
 'use client';
 
+// Migrated to new API client system
 import React from 'react';
 import { IconButton, Badge, Tooltip } from '@mui/material';
 import { Notifications as NotificationsIcon } from '@mui/icons-material';
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 
 interface NotificationBadgeProps {
   onClick: () => void;
@@ -19,7 +20,8 @@ export const NotificationBadge: React.FC<NotificationBadgeProps> = ({
   const { data: unreadCount = 0 } = useQuery({
     queryKey: ['notifications', 'unread-count'],
     queryFn: async () => {
-      const response = await apiClient.get('/notifications/unread-count');
+      const client = createPresetApiClient('auth');
+      const response = await client.get('/notifications/unread-count');
       return response.data.count || 0;
     },
     refetchInterval: 30000, // 30秒ごとに更新

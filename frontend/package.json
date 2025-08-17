@@ -45,6 +45,8 @@
     "dotenv": "^17.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
+    "glob": "^11.0.3",
+    "jscodeshift": "^17.3.0",
     "typescript": "^5"
   }
 }

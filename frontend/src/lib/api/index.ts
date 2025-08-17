@@ -1,4 +1,4 @@
-import { AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosInstance, AxiosRequestConfig } from 'axios';
+import { AxiosError, AxiosResponse, InternalAxiosRequestConfig, AxiosRequestConfig } from 'axios';
 // Cookie認証に移行したため、以下のimportは不要になりました
 // import { setAuthState, clearAuthState, getAccessToken, clearAllAuthData } from '@/utils/auth';
 import { refreshToken } from '@/lib/api/auth';
@@ -15,6 +15,7 @@ import {
   apiClientFactory,
   type ApiClientConfig
 } from '@/lib/api/client';
+import { createPresetApiClient } from '@/lib/api/factory';
 import { getApiEnvironment } from '@/lib/api/config/env';
 
 // API基本設定（後方互換性のため維持）
@@ -39,7 +40,7 @@ const debugLog = (...args: unknown[]) => {
   }
 };
 
-// APIクライアントの設定（ファクトリから取得）
+// APIクライアントの設定（非推奨: createPresetApiClientを使用してください）
 export const api = factoryClient;
 
 interface ApiClientOptions extends AxiosRequestConfig {
@@ -48,13 +49,6 @@ interface ApiClientOptions extends AxiosRequestConfig {
 }
 
 const DEFAULT_TIMEOUT = API_TIMEOUTS.DEFAULT;
-
-// 認証済みAPIクライアントを取得（ファクトリから取得済みのインスタンスを返す）
-export const getAuthClient = (): AxiosInstance => {
-  // ファクトリから取得済みのキャッシュされたインスタンスを返す
-  // これにより、毎回新しいインスタンスを作成する問題を解決
-  return api;
-};
 
 /**
  * 認証エラー時の共通処理
@@ -187,7 +181,7 @@ export const apiRequest = async <T>(
   url: string,
   options: ApiClientOptions = {}
 ): Promise<T> => {
-  const client = getAuthClient();
+  const client = createPresetApiClient('auth');
   const { signal, timeout = DEFAULT_TIMEOUT, ...rest } = options;
 
   try {
@@ -246,14 +240,71 @@ export {
 export { getApiEnvironment, validateApiEnvironment } from '@/lib/api/config/env';
 export type { ApiEnvironmentConfig } from '@/lib/api/config/env';
 
-// エラーハンドリング
-export { handleApiError, isAbortError, AbortError } from '@/lib/api/error';
+// エラーハンドリング（レガシー）
+export { isAbortError, AbortError } from '@/lib/api/error';
+
+// 統一エラーハンドリング
+export { 
+  handleApiError, 
+  handleApiErrorSilently, 
+  handleRetryableApiError,
+  globalApiErrorHandler,
+  type ErrorHandlingOptions 
+} from '@/lib/api/error/handler';
+
+export {
+  ApiErrorCode,
+  type StandardErrorResponse,
+  type ValidationErrorResponse,
+  type ExtendedErrorInfo,
+  type ErrorDetails,
+  type ValidationErrorDetail,
+  ErrorSeverity,
+  createErrorResponse,
+  createValidationErrorResponse,
+  getErrorMessage,
+  getErrorCodeFromStatus,
+  getErrorSeverity,
+  isStandardErrorResponse,
+  isValidationErrorResponse,
+} from '@/lib/api/types/error';
 
 // API設定（config.tsから）
 export { API_CONFIG, endpoints } from '@/lib/api/config';
 
 // リトライ設定
 export { isRetryableError, calculateRetryDelay, queryRetryConfig } from '@/lib/api/retry-config';
+
+// 統一型定義
+export type {
+  ApiResponse,
+  ApiErrorResponse,
+  PaginatedResponse,
+  PaginationMeta,
+  ExtendedApiConfig,
+  TypedApiClient,
+  ApiMethod,
+  ApiEndpoint,
+  ApiEndpoints,
+  TypedApiRequest,
+  ApiHookResult,
+  BatchApiRequest,
+  BatchApiResponse,
+  ApiCacheEntry,
+  SafeApiResponse,
+  PresetConfigMap,
+} from '@/lib/api/types/unified';
+
+export {
+  isApiErrorResponse,
+  isPaginatedResponse,
+  handleApiResponse,
+  getTypedPresetConfig,
+} from '@/lib/api/types/unified';
+
+// プリセットタイプ
+export type { ApiClientPresetType } from '@/lib/api/factory';
+export { createPresetApiClient, getPublicApiClient, getUploadApiClient, getBatchApiClient, getRealtimeApiClient } from '@/lib/api/factory';
 
 /**
  * 推奨される使い方:
@@ -263,4 +314,9 @@ export { isRetryableError, calculateRetryDelay, queryRetryConfig } from '@/lib/a
  * または
  * 
  * import { apiClient, handleApiError } from '@/lib/api';
+ * 
+ * プリセットベース:
+ * 
+ * import { createPresetApiClient } from '@/lib/api';
+ * const client = createPresetApiClient('auth');
  */ 

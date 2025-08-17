@@ -1,3 +1,4 @@
+// Migrated to new API client system
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -11,7 +12,7 @@ import {
 } from '@mui/material';
 import { AdminWeeklyReport } from '@/types/admin/weeklyReport';
 import { formatDate } from '@/utils/dateUtils';
-import apiClient from '@/lib/api';
+import { createPresetApiClient } from '@/lib/api';
 
 interface CommentDialogProps {
   open: boolean;
@@ -38,13 +39,14 @@ export const CommentDialog: React.FC<CommentDialogProps> = ({
   }, [report]);
 
   const handleSubmit = async () => {
+    const client = createPresetApiClient('auth');
     if (!report) return;
 
     setSubmitting(true);
     setError(null);
 
     try {
-      await apiClient.post(
+      await client.post(
         `/admin/engineers/weekly-reports/${report.id}/comment`,
         { comment }
       );
