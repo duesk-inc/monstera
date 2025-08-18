@@ -533,36 +533,11 @@ export class DebugLogger {
   }
 
   /**
-   * エラーログを出力（オーバーロード対応）
+   * エラーログを出力
    */
-  static error(configOrCategory: DebugLogConfig | string, message: string, error?: unknown) {
+  static error(config: DebugLogConfig, message: string, error?: unknown) {
     if (!this.shouldLog()) return;
 
-    // 後方互換性: 旧形式（category, message, error）をサポート
-    if (typeof configOrCategory === 'string') {
-      const category = configOrCategory;
-      console.error(`[エラー][${category}] ${message}`);
-      if (error !== undefined) {
-        console.error('エラー詳細:', error);
-        
-        // Axiosエラーの場合は詳細情報も出力
-        if (typeof error === 'object' && error !== null && 'isAxiosError' in error) {
-          const axiosError = error as any;
-          if (axiosError.response) {
-            console.error('レスポンスステータス:', axiosError.response.status);
-            console.error('レスポンスデータ:', axiosError.response.data);
-          }
-          if (axiosError.config) {
-            console.error('リクエストURL:', axiosError.config.url);
-            console.error('リクエストメソッド:', axiosError.config.method);
-          }
-        }
-      }
-      return;
-    }
-
-    // 新形式（config, message, error）
-    const config = configOrCategory;
     console.error(`[エラー][${config.category}] ${config.operation}: ${message}`);
     if (error !== undefined) {
       console.error('エラー詳細:', error);
@@ -582,13 +557,6 @@ export class DebugLogger {
     }
   }
 
-  /**
-   * エラーログを出力（レガシーインターフェース - 後方互換性のため）
-   * @deprecated Use error(config, message, error) instead
-   */
-  static errorLegacy(category: string, message: string, error?: unknown) {
-    this.error({ category, operation: 'Error' }, message, error);
-  }
 
   /**
    * 警告ログを出力

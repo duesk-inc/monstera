@@ -74,8 +74,7 @@ export const CertificationInput: React.FC<CertificationInputProps> = ({
       } catch (error) {
         console.error('資格一覧取得エラー:', error); // デバッグ用
         DebugLogger.error(
-          DEBUG_CATEGORIES.COMPONENT,
-          DEBUG_OPERATIONS.READ,
+          { category: DEBUG_CATEGORIES.COMPONENT, operation: DEBUG_OPERATIONS.READ },
           'よく使う資格一覧取得エラー',
           error
         );

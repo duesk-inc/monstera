@@ -68,7 +68,7 @@ export const expenseSummaryApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('EXPENSE_SUMMARY_API', 'Failed to get summary', error);
+      DebugLogger.error({ category: 'EXPENSE_SUMMARY_API', operation: 'GetSummary' }, 'Failed to get summary', error);
       throw error;
     }
   },
@@ -88,7 +88,7 @@ export const expenseSummaryApi = {
 
       return await this.getSummary({ year });
     } catch (error) {
-      DebugLogger.error('EXPENSE_SUMMARY_API', 'Failed to get yearly summary', error);
+      DebugLogger.error({ category: 'EXPENSE_SUMMARY_API', operation: 'GetYearlySummary' }, 'Failed to get yearly summary', error);
       throw error;
     }
   },
@@ -109,7 +109,7 @@ export const expenseSummaryApi = {
 
       return await this.getSummary({ year, month });
     } catch (error) {
-      DebugLogger.error('EXPENSE_SUMMARY_API', 'Failed to get monthly summary', error);
+      DebugLogger.error({ category: 'EXPENSE_SUMMARY_API', operation: 'GetMonthlySummary' }, 'Failed to get monthly summary', error);
       throw error;
     }
   },
@@ -131,7 +131,7 @@ export const expenseSummaryApi = {
         month: now.getMonth() + 1,
       });
     } catch (error) {
-      DebugLogger.error('EXPENSE_SUMMARY_API', 'Failed to get current summary', error);
+      DebugLogger.error({ category: 'EXPENSE_SUMMARY_API', operation: 'GetCurrentSummary' }, 'Failed to get current summary', error);
       throw error;
     }
   },

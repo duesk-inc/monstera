@@ -89,7 +89,7 @@ export const expenseLimitApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('EXPENSE_LIMIT_API', 'Failed to check limits', error);
+      DebugLogger.error({ category: 'EXPENSE_LIMIT_API', operation: 'CheckLimits' }, 'Failed to check limits', error);
       throw error;
     }
   },
@@ -134,7 +134,7 @@ export const expenseLimitApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('EXPENSE_LIMIT_API', 'Real-time check failed', error);
+      DebugLogger.error({ category: 'EXPENSE_LIMIT_API', operation: 'RealtimeCheck' }, 'Real-time check failed', error);
       throw error;
     }
   },
@@ -164,7 +164,7 @@ export const expenseLimitApi = {
 
       return limits;
     } catch (error) {
-      DebugLogger.error('EXPENSE_LIMIT_API', 'Failed to get expense limits', error);
+      DebugLogger.error({ category: 'EXPENSE_LIMIT_API', operation: 'GetLimits' }, 'Failed to get expense limits', error);
       throw error;
     }
   },
@@ -203,7 +203,7 @@ export const expenseLimitApi = {
 
       return updatedLimit;
     } catch (error) {
-      DebugLogger.error('EXPENSE_LIMIT_API', 'Failed to update expense limit', error);
+      DebugLogger.error({ category: 'EXPENSE_LIMIT_API', operation: 'UpdateLimit' }, 'Failed to update expense limit', error);
       throw error;
     }
   },

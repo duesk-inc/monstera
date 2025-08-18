@@ -72,8 +72,7 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
         );
       } catch (error) {
         DebugLogger.error(
-          DEBUG_CATEGORIES.COMPONENT,
-          DEBUG_OPERATIONS.READ,
+          { category: DEBUG_CATEGORIES.COMPONENT, operation: DEBUG_OPERATIONS.READ },
           '技術カテゴリー一覧取得エラー',
           error
         );

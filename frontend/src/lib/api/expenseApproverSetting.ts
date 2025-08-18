@@ -104,7 +104,7 @@ export const expenseApproverSettingApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('EXPENSE_APPROVER_SETTING_API', 'Failed to get approver settings', error);
+      DebugLogger.error({ category: 'EXPENSE_APPROVER_SETTING_API', operation: 'GetSettings' }, 'Failed to get approver settings', error);
       throw error;
     }
   },
@@ -139,7 +139,7 @@ export const expenseApproverSettingApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('EXPENSE_APPROVER_SETTING_API', 'Failed to create approver setting', error);
+      DebugLogger.error({ category: 'EXPENSE_APPROVER_SETTING_API', operation: 'CreateSetting' }, 'Failed to create approver setting', error);
       throw error;
     }
   },
@@ -177,7 +177,7 @@ export const expenseApproverSettingApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('EXPENSE_APPROVER_SETTING_API', 'Failed to update approver setting', error);
+      DebugLogger.error({ category: 'EXPENSE_APPROVER_SETTING_API', operation: 'UpdateSetting' }, 'Failed to update approver setting', error);
       throw error;
     }
   },
@@ -204,7 +204,7 @@ export const expenseApproverSettingApi = {
         }
       );
     } catch (error) {
-      DebugLogger.error('EXPENSE_APPROVER_SETTING_API', 'Failed to delete approver setting', error);
+      DebugLogger.error({ category: 'EXPENSE_APPROVER_SETTING_API', operation: 'DeleteSetting' }, 'Failed to delete approver setting', error);
       throw error;
     }
   },
@@ -242,7 +242,7 @@ export const expenseApproverSettingApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('EXPENSE_APPROVER_SETTING_API', 'Failed to get approver setting histories', error);
+      DebugLogger.error({ category: 'EXPENSE_APPROVER_SETTING_API', operation: 'GetHistories' }, 'Failed to get approver setting histories', error);
       throw error;
     }
   },

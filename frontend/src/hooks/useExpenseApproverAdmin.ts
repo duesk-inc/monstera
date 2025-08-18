@@ -99,7 +99,7 @@ export function useExpenseApproverAdmin() {
       queryClient.invalidateQueries({ queryKey: EXPENSE_APPROVER_SETTING_QUERY_KEYS.all });
     },
     onError: (error) => {
-      DebugLogger.error('EXPENSE_APPROVER_ADMIN', 'Failed to create setting', error);
+      DebugLogger.error({ category: 'EXPENSE_APPROVER_ADMIN', operation: 'CreateSetting' }, 'Failed to create setting', error);
       handleSubmissionError(error, '承認者設定作成');
     },
   });
@@ -120,7 +120,7 @@ export function useExpenseApproverAdmin() {
       queryClient.invalidateQueries({ queryKey: EXPENSE_APPROVER_SETTING_QUERY_KEYS.all });
     },
     onError: (error) => {
-      DebugLogger.error('EXPENSE_APPROVER_ADMIN', 'Failed to update setting', error);
+      DebugLogger.error({ category: 'EXPENSE_APPROVER_ADMIN', operation: 'UpdateSetting' }, 'Failed to update setting', error);
       handleSubmissionError(error, '承認者設定更新');
     },
   });
@@ -141,7 +141,7 @@ export function useExpenseApproverAdmin() {
       queryClient.invalidateQueries({ queryKey: EXPENSE_APPROVER_SETTING_QUERY_KEYS.all });
     },
     onError: (error) => {
-      DebugLogger.error('EXPENSE_APPROVER_ADMIN', 'Failed to delete setting', error);
+      DebugLogger.error({ category: 'EXPENSE_APPROVER_ADMIN', operation: 'DeleteSetting' }, 'Failed to delete setting', error);
       handleSubmissionError(error, '承認者設定削除');
     },
   });

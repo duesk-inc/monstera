@@ -125,7 +125,7 @@ export const adminExpenseApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to get pending approvals', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'GetPendingApprovals' }, 'Failed to get pending approvals', error);
       throw error;
     }
   },
@@ -156,7 +156,7 @@ export const adminExpenseApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to get expense detail', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'GetExpenseDetail' }, 'Failed to get expense detail', error);
       throw error;
     }
   },
@@ -191,7 +191,7 @@ export const adminExpenseApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to approve expense', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'ApproveExpense' }, 'Failed to approve expense', error);
       throw error;
     }
   },
@@ -226,7 +226,7 @@ export const adminExpenseApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to reject expense', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'RejectExpense' }, 'Failed to reject expense', error);
       throw error;
     }
   },
@@ -277,7 +277,7 @@ export const adminExpenseApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to get approval statistics', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'GetStatistics' }, 'Failed to get approval statistics', error);
       throw error;
     }
   },
@@ -322,7 +322,7 @@ export const adminExpenseApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to get expense history', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'GetHistory' }, 'Failed to get expense history', error);
       throw error;
     }
   },
@@ -364,7 +364,7 @@ export const adminExpenseApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to bulk approve expenses', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'BulkApprove' }, 'Failed to bulk approve expenses', error);
       throw error;
     }
   },
@@ -406,7 +406,7 @@ export const adminExpenseApi = {
 
       return result;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to bulk reject expenses', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'BulkReject' }, 'Failed to bulk reject expenses', error);
       throw error;
     }
   },
@@ -446,7 +446,7 @@ export const adminExpenseApi = {
 
       return response.data;
     } catch (error) {
-      DebugLogger.error('ADMIN_EXPENSE_API', 'Failed to export CSV', error);
+      DebugLogger.error({ category: 'ADMIN_EXPENSE_API', operation: 'ExportCSV' }, 'Failed to export CSV', error);
       throw error;
     }
   },

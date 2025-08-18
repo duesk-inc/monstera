@@ -61,7 +61,7 @@ describe('DebugLogger Prevention Measures', () => {
     it('should use error method correctly', () => {
       expect(() => {
         DebugLogger.error(
-          'TEST',
+          { category: 'TEST', operation: 'TestOperation' },
           'Error occurred',
           new Error('Test error')
         );

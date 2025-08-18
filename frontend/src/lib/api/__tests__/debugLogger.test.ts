@@ -82,7 +82,7 @@ describe('DebugLogger', () => {
 
     it('should not throw error when calling error method', () => {
       expect(() => {
-        DebugLogger.error('TEST', 'Test error', new Error('Test'));
+        DebugLogger.error({ category: 'TEST', operation: 'TestError' }, 'Test error', new Error('Test'));
       }).not.toThrow();
     });
 
