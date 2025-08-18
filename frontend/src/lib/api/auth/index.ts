@@ -33,9 +33,7 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
     });
 
     // APIクライアントを作成（認証前なのでgetAuthClientは使わない）
-    const client = createPresetApiClient('auth', {
-      baseURL: API_BASE_URL,
-    });
+    const client = createPresetApiClient('auth');
 
     // ログインリクエスト
     const response = await client.post<LoginResponse>('/auth/login', credentials);
@@ -108,9 +106,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
     }, 'トークンリフレッシュ処理を開始');
 
     // APIクライアントを作成
-    const client = createPresetApiClient('auth', {
-      baseURL: API_BASE_URL,
-    });
+    const client = createPresetApiClient('auth');
 
     // リフレッシュトークンリクエスト（セキュアなクッキーはバックエンドで自動的に使用される）
     const response = await client.post<RefreshTokenResponse>('/auth/refresh');
@@ -178,9 +174,7 @@ export const logout = async (): Promise<LogoutResponse> => {
     }
     
     // APIクライアントを作成
-    const client = createPresetApiClient('auth', {
-      baseURL: API_BASE_URL,
-    });
+    const client = createPresetApiClient('auth');
     
     // ログアウトリクエスト
     const response = await client.post<LogoutResponse>('/auth/logout');
@@ -234,9 +228,7 @@ export const getCurrentUser = async () => {
     }, '現在のユーザー情報取得を開始');
 
     // APIクライアントを作成
-    const client = createPresetApiClient('auth', {
-      baseURL: API_BASE_URL,
-    });
+    const client = createPresetApiClient('auth');
     
     // 現在のユーザー情報を取得
     const response = await client.get('/auth/me');
