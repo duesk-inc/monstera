@@ -24,9 +24,13 @@ module.exports = {
       ignoreDefaultValues: true,
     }],
 
-    // カスタムルール: ハードコードされたピクセル値
+    // カスタムルール: ハードコードされたピクセル値とDebugLogger.log()の禁止
     'no-restricted-syntax': [
       'warn',
+      {
+        selector: 'CallExpression[callee.property.name="log"][callee.object.name="DebugLogger"]',
+        message: 'DebugLogger.log()は存在しません。info(), debug(), error()を使用してください。',
+      },
       {
         selector: 'Literal[value=/^\\d+px$/]',
         message: 'ハードコードされたピクセル値は使用しないでください。dimensions定数を使用してください。',

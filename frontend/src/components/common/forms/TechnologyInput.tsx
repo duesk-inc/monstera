@@ -65,9 +65,8 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
         setLoading(true);
         const data = await fetchTechnologyCategories();
         setTechnologyCategories(data);
-        DebugLogger.log(
-          DEBUG_CATEGORIES.COMPONENT,
-          DEBUG_OPERATIONS.READ,
+        DebugLogger.info(
+          { category: 'UI', operation: 'LoadTechnologyCategories' },
           '技術カテゴリー一覧取得完了',
           { count: data.length, data }
         );

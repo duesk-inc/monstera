@@ -79,7 +79,11 @@ export const expenseApproverSettingApi = {
    */
   async getApproverSettings(approvalType?: 'manager' | 'executive'): Promise<ExpenseApproverSettingsResponse> {
     try {
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Getting approver settings', { approvalType });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetApproverSettings' },
+        'Getting approver settings',
+        { approvalType }
+      );
 
       const params = approvalType ? { approval_type: approvalType } : {};
       const apiClient = createPresetApiClient('admin');
@@ -90,9 +94,13 @@ export const expenseApproverSettingApi = {
 
       const result = convertSnakeToCamel<ExpenseApproverSettingsResponse>(response.data);
       
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Approver settings retrieved', {
-        count: result.settings.length,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetApproverSettings' },
+        'Approver settings retrieved',
+        {
+          count: result.settings.length,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -106,20 +114,28 @@ export const expenseApproverSettingApi = {
    */
   async createApproverSetting(request: CreateExpenseApproverSettingRequest): Promise<ExpenseApproverSetting> {
     try {
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Creating approver setting', { 
-        approvalType: request.approvalType,
-        approverId: request.approverId,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'CreateApproverSetting' },
+        'Creating approver setting',
+        { 
+          approvalType: request.approvalType,
+          approverId: request.approverId,
+        }
+      );
 
       const payload = convertCamelToSnake(request);
       const apiClient = createPresetApiClient('admin');
       const response = await apiClient.post('/expense-approvers', payload);
       const result = convertSnakeToCamel<ExpenseApproverSetting>(response.data);
 
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Approver setting created successfully', {
-        id: result.id,
-        approvalType: result.approvalType,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'CreateApproverSetting' },
+        'Approver setting created successfully',
+        {
+          id: result.id,
+          approvalType: result.approvalType,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -136,20 +152,28 @@ export const expenseApproverSettingApi = {
     request: UpdateExpenseApproverSettingRequest
   ): Promise<ExpenseApproverSetting> {
     try {
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Updating approver setting', { 
-        settingId,
-        approvalType: request.approvalType,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'UpdateApproverSetting' },
+        'Updating approver setting',
+        { 
+          settingId,
+          approvalType: request.approvalType,
+        }
+      );
 
       const payload = convertCamelToSnake(request);
       const apiClient = createPresetApiClient('admin');
       const response = await apiClient.put(`/expense-approvers/${settingId}`, payload);
       const result = convertSnakeToCamel<ExpenseApproverSetting>(response.data);
 
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Approver setting updated successfully', {
-        id: result.id,
-        approvalType: result.approvalType,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'UpdateApproverSetting' },
+        'Approver setting updated successfully',
+        {
+          id: result.id,
+          approvalType: result.approvalType,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -163,14 +187,22 @@ export const expenseApproverSettingApi = {
    */
   async deleteApproverSetting(settingId: string): Promise<void> {
     try {
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Deleting approver setting', { settingId });
+      DebugLogger.info(
+        { category: 'API', operation: 'DeleteApproverSetting' },
+        'Deleting approver setting',
+        { settingId }
+      );
 
       const apiClient = createPresetApiClient('admin');
       await apiClient.delete(`/expense-approvers/${settingId}`);
 
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Approver setting deleted successfully', {
-        settingId,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'DeleteApproverSetting' },
+        'Approver setting deleted successfully',
+        {
+          settingId,
+        }
+      );
     } catch (error) {
       DebugLogger.error('EXPENSE_APPROVER_SETTING_API', 'Failed to delete approver setting', error);
       throw error;
@@ -184,7 +216,11 @@ export const expenseApproverSettingApi = {
     filters: GetExpenseApproverSettingHistoriesFilters = {}
   ): Promise<ExpenseApproverSettingHistoriesResponse> {
     try {
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Getting approver setting histories', { filters });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetApproverSettingHistories' },
+        'Getting approver setting histories',
+        { filters }
+      );
 
       const params = convertCamelToSnake(filters);
       const apiClient = createPresetApiClient('admin');
@@ -195,10 +231,14 @@ export const expenseApproverSettingApi = {
 
       const result = convertSnakeToCamel<ExpenseApproverSettingHistoriesResponse>(response.data);
       
-      DebugLogger.log('EXPENSE_APPROVER_SETTING_API', 'Approver setting histories retrieved', {
-        count: result.histories.length,
-        total: result.total,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetApproverSettingHistories' },
+        'Approver setting histories retrieved',
+        {
+          count: result.histories.length,
+          total: result.total,
+        }
+      );
 
       return result;
     } catch (error) {

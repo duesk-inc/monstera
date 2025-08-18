@@ -99,7 +99,11 @@ export const adminExpenseApi = {
    */
   async getPendingApprovals(filters: AdminExpenseApprovalFilters = {}): Promise<AdminExpenseApprovalsResponse> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Getting pending approvals', { filters });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetPendingApprovals' },
+        'Getting pending approvals',
+        { filters }
+      );
 
       const params = convertCamelToSnake(filters);
       const apiClient = createPresetApiClient('admin');
@@ -110,10 +114,14 @@ export const adminExpenseApi = {
 
       const result = convertSnakeToCamel<AdminExpenseApprovalsResponse>(response.data.data);
       
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Pending approvals retrieved', {
-        count: result.items.length,
-        total: result.total,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetPendingApprovals' },
+        'Pending approvals retrieved',
+        {
+          count: result.items.length,
+          total: result.total,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -127,16 +135,24 @@ export const adminExpenseApi = {
    */
   async getExpenseDetail(expenseId: string): Promise<AdminExpenseDetail> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Getting expense detail', { expenseId });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetExpenseDetail' },
+        'Getting expense detail',
+        { expenseId }
+      );
 
       const apiClient = createPresetApiClient('admin');
       const response = await apiClient.get(`/engineers/expenses/${expenseId}`);
       const result = convertSnakeToCamel<AdminExpenseDetail>(response.data.data);
 
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Expense detail retrieved', {
-        expenseId,
-        status: result.status,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetExpenseDetail' },
+        'Expense detail retrieved',
+        {
+          expenseId,
+          status: result.status,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -150,20 +166,28 @@ export const adminExpenseApi = {
    */
   async approveExpense(expenseId: string, request: ApproveExpenseRequest): Promise<AdminExpenseDetail> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Approving expense', { 
-        expenseId,
-        hasComment: !!request.comment,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'ApproveExpense' },
+        'Approving expense',
+        { 
+          expenseId,
+          hasComment: !!request.comment,
+        }
+      );
 
       const payload = convertCamelToSnake(request);
       const apiClient = createPresetApiClient('admin');
       const response = await apiClient.put(`/engineers/expenses/${expenseId}/approve`, payload);
       const result = convertSnakeToCamel<AdminExpenseDetail>(response.data.data);
 
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Expense approved successfully', {
-        expenseId,
-        newStatus: result.status,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'ApproveExpense' },
+        'Expense approved successfully',
+        {
+          expenseId,
+          newStatus: result.status,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -177,20 +201,28 @@ export const adminExpenseApi = {
    */
   async rejectExpense(expenseId: string, request: RejectExpenseRequest): Promise<AdminExpenseDetail> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Rejecting expense', { 
-        expenseId,
-        commentLength: request.comment.length,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'RejectExpense' },
+        'Rejecting expense',
+        { 
+          expenseId,
+          commentLength: request.comment.length,
+        }
+      );
 
       const payload = convertCamelToSnake(request);
       const apiClient = createPresetApiClient('admin');
       const response = await apiClient.put(`/engineers/expenses/${expenseId}/reject`, payload);
       const result = convertSnakeToCamel<AdminExpenseDetail>(response.data.data);
 
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Expense rejected successfully', {
-        expenseId,
-        newStatus: result.status,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'RejectExpense' },
+        'Expense rejected successfully',
+        {
+          expenseId,
+          newStatus: result.status,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -220,7 +252,11 @@ export const adminExpenseApi = {
     }>;
   }> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Getting approval statistics', { filters });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetApprovalStatistics' },
+        'Getting approval statistics',
+        { filters }
+      );
 
       const params = convertCamelToSnake(filters);
       const apiClient = createPresetApiClient('admin');
@@ -230,10 +266,14 @@ export const adminExpenseApi = {
 
       const result = convertSnakeToCamel(response.data.data);
 
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Approval statistics retrieved', {
-        totalPending: result.totalPending,
-        totalApproved: result.totalApproved,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetApprovalStatistics' },
+        'Approval statistics retrieved',
+        {
+          totalPending: result.totalPending,
+          totalApproved: result.totalApproved,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -257,7 +297,11 @@ export const adminExpenseApi = {
     maxAmount?: number;
   } = {}): Promise<AdminExpenseApprovalsResponse> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Getting expense history', { filters });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetExpenseHistory' },
+        'Getting expense history',
+        { filters }
+      );
 
       const params = convertCamelToSnake(filters);
       const apiClient = createPresetApiClient('admin');
@@ -267,10 +311,14 @@ export const adminExpenseApi = {
 
       const result = convertSnakeToCamel<AdminExpenseApprovalsResponse>(response.data.data);
 
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Expense history retrieved', {
-        count: result.items.length,
-        total: result.total,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetExpenseHistory' },
+        'Expense history retrieved',
+        {
+          count: result.items.length,
+          total: result.total,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -287,10 +335,14 @@ export const adminExpenseApi = {
     failed: Array<{ expenseId: string; error: string }>;
   }> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Bulk approving expenses', { 
-        count: expenseIds.length,
-        hasComment: !!comment,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'BulkApprove' },
+        'Bulk approving expenses',
+        { 
+          count: expenseIds.length,
+          hasComment: !!comment,
+        }
+      );
 
       const payload = convertCamelToSnake({
         expenseIds,
@@ -301,10 +353,14 @@ export const adminExpenseApi = {
       const response = await apiClient.post('/engineers/expenses/bulk-approve', payload);
       const result = convertSnakeToCamel(response.data.data);
 
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Bulk approval completed', {
-        succeeded: result.succeeded.length,
-        failed: result.failed.length,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'BulkApprove' },
+        'Bulk approval completed',
+        {
+          succeeded: result.succeeded.length,
+          failed: result.failed.length,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -321,10 +377,14 @@ export const adminExpenseApi = {
     failed: Array<{ expenseId: string; error: string }>;
   }> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Bulk rejecting expenses', { 
-        count: expenseIds.length,
-        commentLength: comment.length,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'BulkReject' },
+        'Bulk rejecting expenses',
+        { 
+          count: expenseIds.length,
+          commentLength: comment.length,
+        }
+      );
 
       const payload = convertCamelToSnake({
         expenseIds,
@@ -335,10 +395,14 @@ export const adminExpenseApi = {
       const response = await apiClient.post('/engineers/expenses/bulk-reject', payload);
       const result = convertSnakeToCamel(response.data.data);
 
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Bulk rejection completed', {
-        succeeded: result.succeeded.length,
-        failed: result.failed.length,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'BulkReject' },
+        'Bulk rejection completed',
+        {
+          succeeded: result.succeeded.length,
+          failed: result.failed.length,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -358,7 +422,11 @@ export const adminExpenseApi = {
     userId?: string;
   } = {}): Promise<Blob> {
     try {
-      DebugLogger.log('ADMIN_EXPENSE_API', 'Exporting expenses to CSV', { filters });
+      DebugLogger.info(
+        { category: 'API', operation: 'ExportToCsv' },
+        'Exporting expenses to CSV',
+        { filters }
+      );
 
       const params = convertCamelToSnake(filters);
       const apiClient = createPresetApiClient('admin');
@@ -368,9 +436,13 @@ export const adminExpenseApi = {
         timeout: 60000, // CSVエクスポートは時間がかかる可能性があるため長めに設定
       });
 
-      DebugLogger.log('ADMIN_EXPENSE_API', 'CSV export completed', {
-        size: response.data.size,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'ExportToCsv' },
+        'CSV export completed',
+        {
+          size: response.data.size,
+        }
+      );
 
       return response.data;
     } catch (error) {

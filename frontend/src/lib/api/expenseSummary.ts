@@ -36,10 +36,14 @@ export const expenseSummaryApi = {
    */
   async getSummary(params: ExpenseSummaryParams = {}): Promise<ExpenseSummaryResponse> {
     try {
-      DebugLogger.log('EXPENSE_SUMMARY_API', 'Getting expense summary', {
-        year: params.year,
-        month: params.month,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetExpenseSummary' },
+        'Getting expense summary',
+        {
+          year: params.year,
+          month: params.month,
+        }
+      );
 
       const queryParams = convertCamelToSnake(params);
       
@@ -51,12 +55,16 @@ export const expenseSummaryApi = {
 
       const result = convertSnakeToCamel<ExpenseSummaryResponse>(response.data.data);
 
-      DebugLogger.log('EXPENSE_SUMMARY_API', 'Summary retrieved successfully', {
-        monthlyTotal: result.monthly.totalAmount,
-        yearlyTotal: result.yearly.totalAmount,
-        monthlyUsageRate: result.monthly.usageRate,
-        yearlyUsageRate: result.yearly.usageRate,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetExpenseSummary' },
+        'Summary retrieved successfully',
+        {
+          monthlyTotal: result.monthly.totalAmount,
+          yearlyTotal: result.yearly.totalAmount,
+          monthlyUsageRate: result.monthly.usageRate,
+          yearlyUsageRate: result.yearly.usageRate,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -72,7 +80,11 @@ export const expenseSummaryApi = {
    */
   async getYearlySummary(year: number): Promise<ExpenseSummaryResponse> {
     try {
-      DebugLogger.log('EXPENSE_SUMMARY_API', 'Getting yearly summary', { year });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetYearlySummary' },
+        'Getting yearly summary',
+        { year }
+      );
 
       return await this.getSummary({ year });
     } catch (error) {
@@ -89,7 +101,11 @@ export const expenseSummaryApi = {
    */
   async getMonthlySummary(year: number, month: number): Promise<ExpenseSummaryResponse> {
     try {
-      DebugLogger.log('EXPENSE_SUMMARY_API', 'Getting monthly summary', { year, month });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetMonthlySummary' },
+        'Getting monthly summary',
+        { year, month }
+      );
 
       return await this.getSummary({ year, month });
     } catch (error) {
@@ -104,7 +120,10 @@ export const expenseSummaryApi = {
    */
   async getCurrentSummary(): Promise<ExpenseSummaryResponse> {
     try {
-      DebugLogger.log('EXPENSE_SUMMARY_API', 'Getting current summary');
+      DebugLogger.info(
+        { category: 'API', operation: 'GetCurrentSummary' },
+        'Getting current summary'
+      );
 
       const now = new Date();
       return await this.getSummary({

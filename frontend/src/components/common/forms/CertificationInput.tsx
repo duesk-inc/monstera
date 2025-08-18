@@ -66,9 +66,8 @@ export const CertificationInput: React.FC<CertificationInputProps> = ({
         const data = await fetchCommonCertifications();
         console.log('よく使う資格一覧:', data); // デバッグ用
         setCommonCertifications(data);
-        DebugLogger.log(
-          DEBUG_CATEGORIES.COMPONENT,
-          DEBUG_OPERATIONS.READ,
+        DebugLogger.info(
+          { category: 'UI', operation: 'LoadCommonCertifications' },
           'よく使う資格一覧取得完了',
           { count: data.length, data }
         );

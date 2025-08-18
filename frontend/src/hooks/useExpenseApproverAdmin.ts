@@ -88,7 +88,11 @@ export function useExpenseApproverAdmin() {
     mutationFn: (request: CreateExpenseApproverSettingRequest) => 
       expenseApproverSettingApi.createApproverSetting(request),
     onSuccess: (data) => {
-      DebugLogger.log('EXPENSE_APPROVER_ADMIN', 'Setting created successfully', { id: data.id });
+      DebugLogger.info(
+        { category: 'UI', operation: 'CreateApproverSetting' },
+        'Setting created successfully',
+        { id: data.id }
+      );
       showSuccess('承認者設定を作成しました');
       
       // キャッシュを更新
@@ -105,7 +109,11 @@ export function useExpenseApproverAdmin() {
     mutationFn: ({ id, request }: { id: string; request: UpdateExpenseApproverSettingRequest }) => 
       expenseApproverSettingApi.updateApproverSetting(id, request),
     onSuccess: (data) => {
-      DebugLogger.log('EXPENSE_APPROVER_ADMIN', 'Setting updated successfully', { id: data.id });
+      DebugLogger.info(
+        { category: 'UI', operation: 'UpdateApproverSetting' },
+        'Setting updated successfully',
+        { id: data.id }
+      );
       showSuccess('承認者設定を更新しました');
       
       // キャッシュを更新
@@ -122,7 +130,11 @@ export function useExpenseApproverAdmin() {
     mutationFn: (settingId: string) => 
       expenseApproverSettingApi.deleteApproverSetting(settingId),
     onSuccess: (_, settingId) => {
-      DebugLogger.log('EXPENSE_APPROVER_ADMIN', 'Setting deleted successfully', { settingId });
+      DebugLogger.info(
+        { category: 'UI', operation: 'DeleteApproverSetting' },
+        'Setting deleted successfully',
+        { settingId }
+      );
       showSuccess('承認者設定を削除しました');
       
       // キャッシュを更新

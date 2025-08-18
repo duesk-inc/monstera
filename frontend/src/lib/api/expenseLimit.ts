@@ -54,10 +54,14 @@ export const expenseLimitApi = {
    */
   async checkLimits(params: CheckLimitsParams): Promise<LimitCheckResult> {
     try {
-      DebugLogger.log('EXPENSE_LIMIT_API', 'Checking expense limits', {
-        amount: params.amount,
-        expenseDate: params.expenseDate,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'CheckExpenseLimits' },
+        'Checking expense limits',
+        {
+          amount: params.amount,
+          expenseDate: params.expenseDate,
+        }
+      );
 
       const queryParams = convertCamelToSnake({
         amount: params.amount.toString(),
@@ -72,12 +76,16 @@ export const expenseLimitApi = {
 
       const result = convertSnakeToCamel<LimitCheckResult>(response.data.data);
 
-      DebugLogger.log('EXPENSE_LIMIT_API', 'Limits checked successfully', {
-        withinMonthlyLimit: result.withinMonthlyLimit,
-        withinYearlyLimit: result.withinYearlyLimit,
-        remainingMonthlyAmount: result.remainingMonthlyAmount,
-        remainingYearlyAmount: result.remainingYearlyAmount,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'CheckExpenseLimits' },
+        'Limits checked successfully',
+        {
+          withinMonthlyLimit: result.withinMonthlyLimit,
+          withinYearlyLimit: result.withinYearlyLimit,
+          remainingMonthlyAmount: result.remainingMonthlyAmount,
+          remainingYearlyAmount: result.remainingYearlyAmount,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -93,9 +101,13 @@ export const expenseLimitApi = {
    */
   async checkLimitsRealtime(params: CheckLimitsParams): Promise<LimitCheckResult> {
     try {
-      DebugLogger.log('EXPENSE_LIMIT_API', 'Real-time limit check', {
-        amount: params.amount,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'CheckLimitsRealtime' },
+        'Real-time limit check',
+        {
+          amount: params.amount,
+        }
+      );
 
       // リアルタイムチェックでは日付パラメータを省略可能
       const queryParams = convertCamelToSnake({
@@ -111,10 +123,14 @@ export const expenseLimitApi = {
 
       const result = convertSnakeToCamel<LimitCheckResult>(response.data.data);
 
-      DebugLogger.log('EXPENSE_LIMIT_API', 'Real-time check completed', {
-        withinLimits: result.withinMonthlyLimit && result.withinYearlyLimit,
-        isNearLimit: result.isNearMonthlyLimit || result.isNearYearlyLimit,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'CheckLimitsRealtime' },
+        'Real-time check completed',
+        {
+          withinLimits: result.withinMonthlyLimit && result.withinYearlyLimit,
+          isNearLimit: result.isNearMonthlyLimit || result.isNearYearlyLimit,
+        }
+      );
 
       return result;
     } catch (error) {
@@ -129,15 +145,22 @@ export const expenseLimitApi = {
    */
   async getExpenseLimits(): Promise<ExpenseLimit[]> {
     try {
-      DebugLogger.log('EXPENSE_LIMIT_API', 'Getting expense limits', {});
+      DebugLogger.info(
+        { category: 'API', operation: 'GetExpenseLimits' },
+        'Getting expense limits'
+      );
 
       const apiClient = createPresetApiClient('admin');
       const response = await apiClient.get('/expense-limits');
       const limits = convertSnakeToCamel<ExpenseLimit[]>(response.data.data);
 
-      DebugLogger.log('EXPENSE_LIMIT_API', 'Expense limits retrieved successfully', {
-        count: limits.length,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'GetExpenseLimits' },
+        'Expense limits retrieved successfully',
+        {
+          count: limits.length,
+        }
+      );
 
       return limits;
     } catch (error) {
@@ -153,22 +176,30 @@ export const expenseLimitApi = {
    */
   async updateExpenseLimit(request: UpdateExpenseLimitRequest): Promise<ExpenseLimit> {
     try {
-      DebugLogger.log('EXPENSE_LIMIT_API', 'Updating expense limit', {
-        limitType: request.limitType,
-        amount: request.amount,
-        effectiveFrom: request.effectiveFrom,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'UpdateExpenseLimit' },
+        'Updating expense limit',
+        {
+          limitType: request.limitType,
+          amount: request.amount,
+          effectiveFrom: request.effectiveFrom,
+        }
+      );
 
       const requestData = convertCamelToSnake(request);
       const apiClient = createPresetApiClient('admin');
       const response = await apiClient.put('/expense-limits', requestData);
       const updatedLimit = convertSnakeToCamel<ExpenseLimit>(response.data.data);
 
-      DebugLogger.log('EXPENSE_LIMIT_API', 'Expense limit updated successfully', {
-        id: updatedLimit.id,
-        limitType: updatedLimit.limitType,
-        amount: updatedLimit.amount,
-      });
+      DebugLogger.info(
+        { category: 'API', operation: 'UpdateExpenseLimit' },
+        'Expense limit updated successfully',
+        {
+          id: updatedLimit.id,
+          limitType: updatedLimit.limitType,
+          amount: updatedLimit.amount,
+        }
+      );
 
       return updatedLimit;
     } catch (error) {

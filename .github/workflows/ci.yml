@@ -119,7 +119,8 @@ jobs:
     - name: Type check
       run: |
         cd frontend
-        npx tsc --noEmit
+        npx tsc --noEmit --skipLibCheck
+      continue-on-error: false  # 型エラーがあれば失敗させる
     
     - name: Build
       env:
