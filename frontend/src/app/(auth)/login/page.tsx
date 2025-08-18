@@ -12,7 +12,7 @@ import {
   Link as MuiLink,
   IconButton,
 } from '@mui/material';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import ActionButton from '@/components/common/ActionButton';
 import { 
   PageContainer, 
@@ -29,6 +29,7 @@ import { login } from '@/lib/api/auth';
 import type { LoginRequest, ErrorResponse } from '@/types/auth';
 import { UI_DELAYS } from '@/constants/delays';
 import { useEnhancedErrorHandler } from '../../../hooks/common/useEnhancedErrorHandler';
+import { LoginSearchParams } from './LoginSearchParams';
 
 // ローディング用コンポーネント
 function LoginPageLoading() {
@@ -44,10 +45,7 @@ function LoginPageLoading() {
 // LoginPageContentコンポーネントを分離
 function LoginPageContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { getToastMessage, getFieldErrors, getRecommendedAction } = useEnhancedErrorHandler();
-  
-  
   
   // 状態管理
   const [email, setEmail] = useState('');
@@ -57,22 +55,6 @@ function LoginPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string> | null>(null);
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
-
-  // URLパラメータから認証エラーやリダイレクト先を取得
-  useEffect(() => {
-    const errorParam = searchParams.get('error');
-    const redirectParam = searchParams.get('redirect');
-    
-    if (errorParam === 'unauthorized') {
-      setError('認証が必要です。ログインしてください。');
-    } else if (errorParam === 'session_expired') {
-      setError('セッションが期限切れです。再度ログインしてください。');
-    }
-    
-    if (redirectParam) {
-      setRedirectPath(decodeURIComponent(redirectParam));
-    }
-  }, [searchParams]);
 
   // ログイン処理
   const handleLogin = async (e: React.FormEvent) => {
@@ -152,6 +134,14 @@ function LoginPageContent() {
 
   return (
     <PageContainer maxWidth="sm">
+      {/* SearchParamsのみSuspenseでラップ */}
+      <Suspense fallback={null}>
+        <LoginSearchParams 
+          onError={setError}
+          onRedirect={setRedirectPath}
+        />
+      </Suspense>
+      
       <PageHeader
         title="ログイン"
         subtitle="アカウントにログインしてください"
@@ -257,9 +247,5 @@ function LoginPageContent() {
 }
 
 export default function LoginPage() {
-  return (
-    <Suspense fallback={<LoginPageLoading />}>
-      <LoginPageContent />
-    </Suspense>
-  );
+  return <LoginPageContent />;
 } 
