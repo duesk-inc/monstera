@@ -1,5 +1,6 @@
 // Migrated to new API client system
 import { createPresetApiClient, handleApiError } from '@/lib/api';
+import { AbortError } from '@/lib/api/error';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
 import { WEEKLY_REPORT_API, API_VERSION } from '@/constants/api';
 import { DEFAULT_WORK_TIME } from '@/constants/defaultWorkTime';
@@ -380,7 +381,7 @@ export const calculateWorkHours = async (
 ): Promise<number> => {
   try {
     const client = createPresetApiClient('auth');
-    const response = await client.post(`${API_VERSION.V1}/calculate-work-hours`, {
+    const response = await client.post('/calculate-work-hours', {
       startTime,
       endTime,
       breakTime
@@ -491,19 +492,26 @@ export const getWeeklyReportByDateRange = async (startDate: string, endDate: str
       end_date: endDate
     });
     
-    const response = await client.get(`${WEEKLY_REPORT_API.LIST}/by-date-range?${params.toString()}`, { signal });
+    const response = await client.get(`${WEEKLY_REPORT_API.LIST}?${params.toString()}`, { signal });
     
-    // convertSnakeToCamelを使用してレスポンスを変換
-    const convertedData = convertSnakeToCamel<ApiResponseBase>(response.data);
+    // レスポンスはリスト形式 {reports: [], total, page, limit}
+    const data = response.data;
     
-    // レスポンスデータの処理
-    if (convertedData) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { weeklyMood, ...rest } = convertedData;
-      return rest;
+    // reports配列から週報を取得
+    if (data && data.reports && data.reports.length > 0) {
+      // 最初の週報を取得（日付範囲に一致する週報は通常1つ）
+      const convertedReport = convertSnakeToCamel<ApiWeeklyReport>(data.reports[0]);
+      
+      // weeklyMoodプロパティを除外して返す
+      if (convertedReport) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { weeklyMood, ...rest } = convertedReport;
+        return rest;
+      }
     }
     
-    return convertedData;
+    // 週報が見つからない場合はnullを返す（新規作成モード）
+    return null;
   } catch (error) {
     // 404エラーの場合は新規週報として扱うためnullを返す
     if (axios.isAxiosError(error) && error.response?.status === HTTP_STATUS.NOT_FOUND) {

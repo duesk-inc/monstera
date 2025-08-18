@@ -38,7 +38,7 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
     });
 
     // ログインリクエスト
-    const response = await client.post<LoginResponse>('/api/v1/auth/login', credentials);
+    const response = await client.post<LoginResponse>('/auth/login', credentials);
     
     DebugLogger.info({
       category: '認証',
@@ -113,7 +113,7 @@ export const refreshToken = async (): Promise<RefreshTokenResponse> => {
     });
 
     // リフレッシュトークンリクエスト（セキュアなクッキーはバックエンドで自動的に使用される）
-    const response = await client.post<RefreshTokenResponse>('/api/v1/auth/refresh');
+    const response = await client.post<RefreshTokenResponse>('/auth/refresh');
     
     DebugLogger.info({
       category: '認証',
@@ -183,7 +183,7 @@ export const logout = async (): Promise<LogoutResponse> => {
     });
     
     // ログアウトリクエスト
-    const response = await client.post<LogoutResponse>('/api/v1/auth/logout');
+    const response = await client.post<LogoutResponse>('/auth/logout');
     
     DebugLogger.info({
       category: '認証',
@@ -239,7 +239,7 @@ export const getCurrentUser = async () => {
     });
     
     // 現在のユーザー情報を取得
-    const response = await client.get('/api/v1/auth/me');
+    const response = await client.get('/auth/me');
     
     DebugLogger.info({
       category: '認証',
