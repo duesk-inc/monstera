@@ -809,27 +809,20 @@ export class LogBuilder {
     } as DebugLogConfig;
     
     // レベルに応じて適切なメソッドを呼び出す
-    switch (finalLevel) {
-      case LogLevel.TRACE:
-        DebugLogger.trace(finalConfig, finalMessage, this.data);
-        break;
-      case LogLevel.DEBUG:
-        DebugLogger.debug(finalConfig, finalMessage, this.data);
-        break;
-      case LogLevel.INFO:
-        DebugLogger.info(finalConfig, finalMessage, this.data);
-        break;
-      case LogLevel.WARN:
-        DebugLogger.warn(finalConfig, finalMessage, this.data);
-        break;
-      case LogLevel.ERROR:
-        DebugLogger.error(finalConfig, finalMessage, this.data);
-        break;
-      case LogLevel.FATAL:
-        DebugLogger.fatal(finalConfig, finalMessage, this.data);
-        break;
-      default:
-        DebugLogger.info(finalConfig, finalMessage, this.data);
+    if (finalLevel === LogLevel.TRACE) {
+      DebugLogger.trace(finalConfig, finalMessage, this.data);
+    } else if (finalLevel === LogLevel.DEBUG) {
+      DebugLogger.debug(finalConfig, finalMessage, this.data);
+    } else if (finalLevel === LogLevel.INFO) {
+      DebugLogger.info(finalConfig, finalMessage, this.data);
+    } else if (finalLevel === LogLevel.WARN) {
+      DebugLogger.warn(finalConfig, finalMessage, this.data);
+    } else if (finalLevel === LogLevel.ERROR) {
+      DebugLogger.error(finalConfig, finalMessage, this.data);
+    } else if (finalLevel === LogLevel.FATAL) {
+      DebugLogger.fatal(finalConfig, finalMessage, this.data);
+    } else {
+      DebugLogger.info(finalConfig, finalMessage, this.data);
     }
   }
 }
