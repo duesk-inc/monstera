@@ -1,8 +1,12 @@
 // 経費関連のAPI処理ライブラリ
 
+import { createPresetApiClient } from '@/lib/api';
+import { handleApiError } from '@/lib/api/error';
+import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import { EXPENSE_API_ENDPOINTS } from '@/constants/expense';
 import type { ExpenseCategory, ExpenseListResponse, ExpenseListBackendResponse } from '@/types/expense';
 import { mapBackendExpenseListToExpenseList } from '@/utils/expenseMappers';
+import { DebugLogger, DEBUG_CATEGORIES, DEBUG_OPERATIONS } from '@/lib/debug/logger';
 
 // 経費データの型定義
 export interface Expense {
@@ -156,55 +160,32 @@ export interface ApiError {
   details?: any;
 }
 
-// 基本的なAPI設定
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080';
-
-// APIリクエストのヘルパー関数
-async function apiRequest<T>(
-  endpoint: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const url = `${API_BASE_URL}${endpoint}`;
-  
-  const defaultOptions: RequestInit = {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    credentials: 'include', // Cookie認証を使用
-    ...options,
-  };
-
-  try {
-    const response = await fetch(url, defaultOptions);
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP Error: ${response.status}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('API Request Error:', error);
-    throw error;
-  }
-}
-
 // 経費一覧を取得
 export async function getExpenses(params: ExpenseSearchParams = {}): Promise<ExpenseListResponse> {
-  const searchParams = new URLSearchParams();
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, value.toString());
-    }
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenses' },
+      'Getting expenses list',
+      { params }
+    );
 
-  const endpoint = `${EXPENSE_API_ENDPOINTS.EXPENSES}?${searchParams.toString()}`;
-  const backendResponse = await apiRequest<{ data: ExpenseListBackendResponse }>(endpoint);
-  
-  // バックエンドレスポンスをフロントエンドの形式に変換
-  return mapBackendExpenseListToExpenseList(backendResponse.data);
+    const client = createPresetApiClient('auth');
+    const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params });
+    
+    // バックエンドレスポンスをフロントエンドの形式に変換
+    const result = mapBackendExpenseListToExpenseList(response.data.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenses' },
+      'Expenses retrieved successfully',
+      { count: result.expenses.length }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GetExpenses' }, 'Failed to get expenses', error);
+    throw handleApiError(error, '経費一覧取得');
+  }
 }
 
 // 経費一覧を取得（型定義をtypes/expenseから使用するバージョン）
@@ -212,117 +193,307 @@ export async function getExpenseList(
   params: ExpenseSearchParams = {},
   signal?: AbortSignal
 ): Promise<ExpenseListResponse> {
-  const searchParams = new URLSearchParams();
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, value.toString());
-    }
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenseList' },
+      'Getting expense list',
+      { params }
+    );
 
-  const endpoint = `${EXPENSE_API_ENDPOINTS.EXPENSES}?${searchParams.toString()}`;
-  const backendResponse = await apiRequest<{ data: ExpenseListBackendResponse }>(endpoint, { signal });
-  
-  // バックエンドレスポンスをフロントエンドの形式に変換
-  return mapBackendExpenseListToExpenseList(backendResponse.data);
+    const client = createPresetApiClient('auth');
+    const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params, signal });
+    
+    // バックエンドレスポンスをフロントエンドの形式に変換
+    const result = mapBackendExpenseListToExpenseList(response.data.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenseList' },
+      'Expense list retrieved successfully',
+      { count: result.expenses.length }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GetExpenseList' }, 'Failed to get expense list', error);
+    throw handleApiError(error, '経費一覧取得');
+  }
 }
 
 // 経費詳細を取得
 export async function getExpense(id: string): Promise<Expense> {
-  return apiRequest<Expense>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`);
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpense' },
+      'Getting expense detail',
+      { id }
+    );
+
+    const client = createPresetApiClient('auth');
+    const response = await client.get(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`);
+    
+    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpense' },
+      'Expense detail retrieved successfully',
+      { id: result.id }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GetExpense' }, 'Failed to get expense detail', error);
+    throw handleApiError(error, '経費詳細取得');
+  }
 }
 
 // 経費を作成
 export async function createExpense(data: ExpenseCreateData): Promise<Expense> {
-  const response = await apiRequest<{ data: Expense }>(EXPENSE_API_ENDPOINTS.EXPENSES, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
-  return response.data;
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'CreateExpense' },
+      'Creating expense',
+      { category: data.category, amount: data.amount }
+    );
+
+    const client = createPresetApiClient('auth');
+    const requestData = convertCamelToSnake(data);
+    const response = await client.post(EXPENSE_API_ENDPOINTS.EXPENSES, requestData);
+    
+    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'CreateExpense' },
+      'Expense created successfully',
+      { id: result.id }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'CreateExpense' }, 'Failed to create expense', error);
+    throw handleApiError(error, '経費作成');
+  }
 }
 
 // 経費を更新
 export async function updateExpense(data: ExpenseUpdateData): Promise<Expense> {
-  const { id, ...updateData } = data;
-  const response = await apiRequest<{ data: Expense }>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(updateData),
-  });
-  return response.data;
+  try {
+    const { id, ...updateData } = data;
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'UpdateExpense' },
+      'Updating expense',
+      { id }
+    );
+
+    const client = createPresetApiClient('auth');
+    const requestData = convertCamelToSnake(updateData);
+    const response = await client.put(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`, requestData);
+    
+    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'UpdateExpense' },
+      'Expense updated successfully',
+      { id: result.id }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'UpdateExpense' }, 'Failed to update expense', error);
+    throw handleApiError(error, '経費更新');
+  }
 }
 
 // 経費を削除
 export async function deleteExpense(id: string): Promise<void> {
-  return apiRequest<void>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`, {
-    method: 'DELETE',
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'DeleteExpense' },
+      'Deleting expense',
+      { id }
+    );
+
+    const client = createPresetApiClient('auth');
+    await client.delete(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'DeleteExpense' },
+      'Expense deleted successfully',
+      { id }
+    );
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'DeleteExpense' }, 'Failed to delete expense', error);
+    throw handleApiError(error, '経費削除');
+  }
 }
 
 // 経費を申請
 export async function submitExpense(id: string): Promise<Expense> {
-  return apiRequest<Expense>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/submit`, {
-    method: 'POST',
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'SubmitExpense' },
+      'Submitting expense',
+      { id }
+    );
+
+    const client = createPresetApiClient('auth');
+    const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/submit`);
+    
+    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'SubmitExpense' },
+      'Expense submitted successfully',
+      { id: result.id }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'SubmitExpense' }, 'Failed to submit expense', error);
+    throw handleApiError(error, '経費申請');
+  }
 }
 
 // 経費を承認
 export async function approveExpense(id: string): Promise<Expense> {
-  return apiRequest<Expense>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/approve`, {
-    method: 'POST',
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'ApproveExpense' },
+      'Approving expense',
+      { id }
+    );
+
+    const client = createPresetApiClient('auth');
+    const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/approve`);
+    
+    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'ApproveExpense' },
+      'Expense approved successfully',
+      { id: result.id }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'ApproveExpense' }, 'Failed to approve expense', error);
+    throw handleApiError(error, '経費承認');
+  }
 }
 
 // 経費を却下
 export async function rejectExpense(id: string, reason: string): Promise<Expense> {
-  return apiRequest<Expense>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/reject`, {
-    method: 'POST',
-    body: JSON.stringify({ reason }),
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'RejectExpense' },
+      'Rejecting expense',
+      { id, reason }
+    );
+
+    const client = createPresetApiClient('auth');
+    const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/reject`, { reason });
+    
+    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'RejectExpense' },
+      'Expense rejected successfully',
+      { id: result.id }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'RejectExpense' }, 'Failed to reject expense', error);
+    throw handleApiError(error, '経費却下');
+  }
 }
 
 // 経費の統計を取得
 export async function getExpenseStats(params: Partial<ExpenseSearchParams> = {}): Promise<ExpenseStats> {
-  const searchParams = new URLSearchParams();
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, value.toString());
-    }
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenseStats' },
+      'Getting expense statistics',
+      { params }
+    );
 
-  const endpoint = `${EXPENSE_API_ENDPOINTS.EXPENSES}/stats?${searchParams.toString()}`;
-  return apiRequest<ExpenseStats>(endpoint);
+    const client = createPresetApiClient('auth');
+    const response = await client.get(`${EXPENSE_API_ENDPOINTS.EXPENSES}/stats`, { params });
+    
+    const result = convertSnakeToCamel<ExpenseStats>(response.data.data || response.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenseStats' },
+      'Expense statistics retrieved successfully',
+      { totalAmount: result.totalAmount }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GetExpenseStats' }, 'Failed to get expense statistics', error);
+    throw handleApiError(error, '経費統計取得');
+  }
 }
 
 // 領収書をアップロード
 export async function uploadReceipts(data: ReceiptUploadData): Promise<ReceiptUploadResponse> {
-  const formData = new FormData();
-  formData.append('expenseId', data.expenseId);
-  
-  data.files.forEach((file, index) => {
-    formData.append(`files[${index}]`, file);
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'UploadReceipts' },
+      'Uploading receipts',
+      { expenseId: data.expenseId, fileCount: data.files.length }
+    );
 
-  const response = await fetch(`${API_BASE_URL}${EXPENSE_API_ENDPOINTS.RECEIPTS}`, {
-    method: 'POST',
-    body: formData,
-    credentials: 'include', // Cookie認証を使用
-  });
+    const formData = new FormData();
+    formData.append('expenseId', data.expenseId);
+    
+    data.files.forEach((file, index) => {
+      formData.append(`files[${index}]`, file);
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `HTTP Error: ${response.status}`);
+    const client = createPresetApiClient('upload'); // uploadプリセット使用（タイムアウト120秒）
+    const response = await client.post(EXPENSE_API_ENDPOINTS.RECEIPTS, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    
+    const result = convertSnakeToCamel<ReceiptUploadResponse>(response.data);
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'UploadReceipts' },
+      'Receipts uploaded successfully',
+      { receiptUrls: result.receiptUrls }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'UploadReceipts' }, 'Failed to upload receipts', error);
+    throw handleApiError(error, '領収書アップロード');
   }
-
-  return await response.json();
 }
 
 // 領収書を削除
 export async function deleteReceipt(expenseId: string, receiptUrl: string): Promise<void> {
-  return apiRequest<void>(`${EXPENSE_API_ENDPOINTS.RECEIPTS}/${expenseId}`, {
-    method: 'DELETE',
-    body: JSON.stringify({ receiptUrl }),
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'DeleteReceipt' },
+      'Deleting receipt',
+      { expenseId, receiptUrl }
+    );
+
+    const client = createPresetApiClient('auth');
+    await client.delete(`${EXPENSE_API_ENDPOINTS.RECEIPTS}/${expenseId}`, {
+      data: { receiptUrl }
+    });
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'DeleteReceipt' },
+      'Receipt deleted successfully',
+      { expenseId }
+    );
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'DeleteReceipt' }, 'Failed to delete receipt', error);
+    throw handleApiError(error, '領収書削除');
+  }
 }
 
 // 経費カテゴリAPIレスポンスの型定義
@@ -359,108 +530,136 @@ interface CompleteUploadApiResponse {
 
 // 経費カテゴリ一覧を取得
 export async function getExpenseCategories(signal?: AbortSignal): Promise<ExpenseCategory[]> {
-  const response = await apiRequest<ExpenseCategoryApiResponse>(
-    EXPENSE_API_ENDPOINTS.CATEGORIES, 
-    { signal }
-  );
-  
-  // APIレスポンスをフロントエンドの型にマッピング
-  return response.data.map(category => ({
-    id: category.id,
-    code: category.code,
-    name: category.name,
-    requiresDetails: category.requires_details,
-    displayOrder: category.display_order,
-    isActive: category.is_active,
-    createdAt: category.created_at,
-    updatedAt: category.updated_at,
-  }));
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenseCategories' },
+      'Getting expense categories'
+    );
+
+    const client = createPresetApiClient('auth');
+    const response = await client.get(EXPENSE_API_ENDPOINTS.CATEGORIES, { signal });
+    
+    const convertedData = convertSnakeToCamel<ExpenseCategoryApiResponse>(response.data);
+    
+    // APIレスポンスをフロントエンドの型にマッピング
+    const result = convertedData.data.map(category => ({
+      id: category.id,
+      code: category.code,
+      name: category.name,
+      requiresDetails: category.requiresDetails,
+      displayOrder: category.displayOrder,
+      isActive: category.isActive,
+      createdAt: category.createdAt,
+      updatedAt: category.updatedAt,
+    }));
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenseCategories' },
+      'Expense categories retrieved successfully',
+      { count: result.length }
+    );
+    
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GetExpenseCategories' }, 'Failed to get expense categories', error);
+    throw handleApiError(error, '経費カテゴリ取得');
+  }
 }
 
 // 経費レポートを生成
 export async function generateExpenseReport(params: ExpenseSearchParams & { format: 'pdf' | 'excel' | 'csv' }): Promise<Blob> {
-  const searchParams = new URLSearchParams();
-  
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      searchParams.append(key, value.toString());
-    }
-  });
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'GenerateExpenseReport' },
+      'Generating expense report',
+      { format: params.format }
+    );
 
-  const endpoint = `${EXPENSE_API_ENDPOINTS.REPORTS}?${searchParams.toString()}`;
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    credentials: 'include', // Cookie認証を使用
-  });
-
-  if (!response.ok) {
-    throw new Error(`HTTP Error: ${response.status}`);
+    const client = createPresetApiClient('auth');
+    const response = await client.get(EXPENSE_API_ENDPOINTS.REPORTS, {
+      params,
+      responseType: 'blob'
+    });
+    
+    DebugLogger.info(
+      { category: 'API', operation: 'GenerateExpenseReport' },
+      'Expense report generated successfully',
+      { format: params.format }
+    );
+    
+    return response.data;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GenerateExpenseReport' }, 'Failed to generate expense report', error);
+    throw handleApiError(error, 'レポート生成');
   }
-
-  return await response.blob();
 }
 
 // 経費テンプレートを取得
 export async function getExpenseTemplates(): Promise<Expense[]> {
-  return apiRequest<Expense[]>(EXPENSE_API_ENDPOINTS.TEMPLATES);
+  try {
+    const client = createPresetApiClient('auth');
+    const response = await client.get(EXPENSE_API_ENDPOINTS.TEMPLATES);
+    return convertSnakeToCamel<Expense[]>(response.data.data || response.data);
+  } catch (error) {
+    throw handleApiError(error, 'テンプレート取得');
+  }
 }
 
 // 経費テンプレートを作成
 export async function createExpenseTemplate(data: ExpenseCreateData & { name: string }): Promise<Expense> {
-  return apiRequest<Expense>(EXPENSE_API_ENDPOINTS.TEMPLATES, {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
+  try {
+    const client = createPresetApiClient('auth');
+    const requestData = convertCamelToSnake(data);
+    const response = await client.post(EXPENSE_API_ENDPOINTS.TEMPLATES, requestData);
+    return convertSnakeToCamel<Expense>(response.data.data || response.data);
+  } catch (error) {
+    throw handleApiError(error, 'テンプレート作成');
+  }
 }
 
 // 経費テンプレートを削除
 export async function deleteExpenseTemplate(id: string): Promise<void> {
-  return apiRequest<void>(`${EXPENSE_API_ENDPOINTS.TEMPLATES}/${id}`, {
-    method: 'DELETE',
-  });
+  try {
+    const client = createPresetApiClient('auth');
+    await client.delete(`${EXPENSE_API_ENDPOINTS.TEMPLATES}/${id}`);
+  } catch (error) {
+    throw handleApiError(error, 'テンプレート削除');
+  }
 }
 
 // Pre-signed URLを生成
 export async function generateUploadURL(data: UploadFileRequest): Promise<UploadFileResponse> {
-  const response = await apiRequest<GenerateUploadURLApiResponse>(
-    `${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-url`, 
-    {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }
-  );
-  
-  // snake_caseからcamelCaseへの変換
-  return {
-    uploadUrl: response.data.upload_url,
-    s3Key: response.data.s3_key,
-    expiresAt: response.data.expires_at,
-  };
+  try {
+    const client = createPresetApiClient('upload'); // uploadプリセット使用
+    const requestData = convertCamelToSnake(data);
+    const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-url`, requestData);
+    return convertSnakeToCamel<UploadFileResponse>(response.data.data || response.data);
+  } catch (error) {
+    throw handleApiError(error, 'アップロードURL生成');
+  }
 }
 
 // アップロード完了を通知
 export async function completeUpload(data: CompleteUploadRequest): Promise<CompleteUploadResponse> {
-  const response = await apiRequest<CompleteUploadApiResponse>(
-    `${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-complete`, 
-    {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }
-  );
-  
-  // snake_caseからcamelCaseへの変換
-  return {
-    receiptUrl: response.data.receipt_url,
-    s3Key: response.data.s3_key,
-    uploadedAt: response.data.uploaded_at,
-  };
+  try {
+    const client = createPresetApiClient('auth');
+    const requestData = convertCamelToSnake(data);
+    const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-complete`, requestData);
+    return convertSnakeToCamel<CompleteUploadResponse>(response.data.data || response.data);
+  } catch (error) {
+    throw handleApiError(error, 'アップロード完了');
+  }
 }
 
 // アップロード済みファイルを削除
 export async function deleteUploadedFile(data: DeleteUploadRequest): Promise<void> {
-  return apiRequest<void>(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload`, {
-    method: 'DELETE',
-    body: JSON.stringify(data),
-  });
+  try {
+    const client = createPresetApiClient('auth');
+    const requestData = convertCamelToSnake(data);
+    await client.delete(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload`, { data: requestData });
+  } catch (error) {
+    throw handleApiError(error, 'アップロードファイル削除');
+  }
 }
 
 // ファイルを直接S3/MinIOにアップロード
