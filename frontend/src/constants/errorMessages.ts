@@ -95,6 +95,8 @@ export const EXPENSE_ERROR_MESSAGES = {
   RECEIPT_REQUIRED: "領収書が必要です。",
   DUPLICATE_EXPENSE: "同じ経費が既に申請されています。",
   EXPENSE_NOT_FOUND: "経費申請が見つかりません。",
+  EXPENSE_MONTHLY_LIMIT_EXCEEDED: "月次経費上限を超過しています。",
+  EXPENSE_YEARLY_LIMIT_EXCEEDED: "年次経費上限を超過しています。",
 } as const;
 
 // 休暇関連のエラーメッセージ
@@ -189,26 +191,41 @@ export const ERROR_CATEGORY_CONFIG = {
     level: "warning",
     showToast: true,
     autoClose: 5000,
+    showRetryButton: false,
+    showContactSupport: false,
+    tone: "warning",
   },
   VALIDATION: {
     level: "error",
     showToast: false,
     autoClose: 0,
+    showRetryButton: false,
+    showContactSupport: false,
+    tone: "error",
   },
   NETWORK: {
     level: "error",
     showToast: true,
     autoClose: 8000,
+    showRetryButton: true,
+    showContactSupport: false,
+    tone: "error",
   },
   SERVER: {
     level: "error",
     showToast: true,
     autoClose: 10000,
+    showRetryButton: true,
+    showContactSupport: true,
+    tone: "error",
   },
   PERMISSION: {
     level: "warning",
     showToast: true,
     autoClose: 6000,
+    showRetryButton: false,
+    showContactSupport: true,
+    tone: "warning",
   },
 } as const;
 
@@ -284,10 +301,11 @@ export const SUCCESS_MESSAGES = {
 // エラーカテゴリ判定関数
 export const getErrorCategory = (errorCode: string): keyof typeof ERROR_CATEGORY_CONFIG => {
   if (errorCode.startsWith("AUTH")) return "AUTH";
-  if (errorCode.startsWith("VAL")) return "VALIDATION";
-  if (errorCode.startsWith("NET")) return "NETWORK";
-  if (errorCode.startsWith("SYS")) return "SERVER";
-  if (errorCode.startsWith("PERM")) return "PERMISSION";
+  if (errorCode.startsWith("VAL") || errorCode.startsWith("VALIDATION")) return "VALIDATION";
+  if (errorCode.startsWith("NET") || errorCode.startsWith("NETWORK")) return "NETWORK";
+  if (errorCode.startsWith("SYS") || errorCode.startsWith("SERVER")) return "SERVER";
+  if (errorCode.startsWith("PERM") || errorCode.startsWith("PERMISSION")) return "PERMISSION";
+  if (errorCode.startsWith("EXPENSE")) return "VALIDATION"; // 経費関連エラーはVALIDATIONとして扱う
   return "SERVER"; // デフォルト
 };
 

@@ -84,6 +84,26 @@ export const handleApiError = (
       
       // エラーコードマッピングが有効で、構造化されたエラーレスポンスがある場合
       if (enableCodeMapping && apiError) {
+        // 経費上限エラーの特別処理
+        if (apiError.code === 'EXPENSE_MONTHLY_LIMIT_EXCEEDED' || apiError.code === 'EXPENSE_YEARLY_LIMIT_EXCEEDED') {
+          // バックエンドのメッセージから残り金額を抽出
+          const remainingMatch = (apiError.error || apiError.message || '').match(/残り[：:]\s*(\d+)円/);
+          const remaining = remainingMatch ? remainingMatch[1] : null;
+          
+          let errorMessage = '';
+          if (apiError.code === 'EXPENSE_MONTHLY_LIMIT_EXCEEDED') {
+            errorMessage = remaining 
+              ? `月次経費上限を超過しています。残り枠: ${remaining}円`
+              : '月次経費上限を超過しています。';
+          } else {
+            errorMessage = remaining
+              ? `年次経費上限を超過しています。残り枠: ${remaining}円`
+              : '年次経費上限を超過しています。';
+          }
+          
+          return new Error(errorMessage);
+        }
+        
         const enhanced = enhanceError(apiError, `${resourceName}の処理に失敗しました`);
         
         // 拡張されたエラー情報を持つErrorオブジェクトを作成

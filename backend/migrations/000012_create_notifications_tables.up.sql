@@ -1,29 +1,42 @@
 CREATE TABLE IF NOT EXISTS notifications (
   id VARCHAR(36) PRIMARY KEY,
+  recipient_id VARCHAR(255) NULL,
   title VARCHAR(100) NOT NULL,
   message TEXT NOT NULL,
   notification_type VARCHAR(20) NOT NULL CHECK (notification_type IN ('leave', 'expense', 'weekly', 'project', 'system')),
   priority VARCHAR(10) DEFAULT 'medium' CHECK (priority IN ('low', 'medium', 'high')),
+  status VARCHAR(20) NOT NULL DEFAULT 'unread' CHECK (status IN ('unread', 'read', 'hidden')),
+  metadata JSON,
+  read_at TIMESTAMP(3),
   created_at TIMESTAMP(3) NOT NULL DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
   expires_at TIMESTAMP(3),
   reference_id VARCHAR(36),
   reference_type VARCHAR(50),
   updated_at TIMESTAMP(3) DEFAULT (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Tokyo'),
-  deleted_at TIMESTAMP(3) NULL
+  deleted_at TIMESTAMP(3) NULL,
+  CONSTRAINT fk_notifications_recipient FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 -- PostgreSQL用のコメント設定
 COMMENT ON TABLE notifications IS '通知マスタテーブル';
+COMMENT ON COLUMN notifications.recipient_id IS '受信者ID（Cognito Sub）';
 COMMENT ON COLUMN notifications.title IS '通知タイトル';
 COMMENT ON COLUMN notifications.message IS '通知メッセージ';
 COMMENT ON COLUMN notifications.notification_type IS '通知タイプ';
 COMMENT ON COLUMN notifications.priority IS '優先度';
+COMMENT ON COLUMN notifications.status IS '通知ステータス（unread/read/hidden）';
+COMMENT ON COLUMN notifications.metadata IS 'メタデータ（JSON形式）';
+COMMENT ON COLUMN notifications.read_at IS '既読日時';
 COMMENT ON COLUMN notifications.created_at IS '作成日時';
 COMMENT ON COLUMN notifications.expires_at IS '有効期限';
 COMMENT ON COLUMN notifications.reference_id IS '関連リソースID';
 COMMENT ON COLUMN notifications.reference_type IS '関連リソースタイプ';
 COMMENT ON COLUMN notifications.updated_at IS '更新日時';
 COMMENT ON COLUMN notifications.deleted_at IS '削除日時';
+
+-- インデックスの作成
+CREATE INDEX idx_notifications_recipient ON notifications(recipient_id);
+CREATE INDEX idx_notifications_status ON notifications(status);
 CREATE TABLE IF NOT EXISTS user_notifications (
   id VARCHAR(36) PRIMARY KEY,
   user_id VARCHAR(255) NOT NULL,

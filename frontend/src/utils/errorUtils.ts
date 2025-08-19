@@ -133,26 +133,25 @@ export const getErrorActionRecommendation = (errorCode?: string) => {
         message: 'ログインが必要です。',
       };
     
-    case 'VAL':
+    case 'VALIDATION':
       return {
         primaryAction: 'fix-input',
         message: '入力内容を確認してください。',
       };
     
-    case 'RES':
+    case 'NETWORK':
       return {
         primaryAction: 'retry',
         message: '再度お試しください。',
       };
     
-    case 'BIZ':
+    case 'PERMISSION':
       return {
         primaryAction: 'contact-support',
         message: 'サポートにお問い合わせください。',
       };
     
-    case 'SYS':
-    case 'DAT':
+    case 'SERVER':
       return {
         primaryAction: 'retry-later',
         message: 'しばらく時間をおいて再度お試しください。',

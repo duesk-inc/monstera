@@ -40,9 +40,9 @@ const (
 const (
 	NotificationPriorityLow    NotificationPriority = "low"
 	NotificationPriorityMedium NotificationPriority = "medium" // 既存互換性
-	NotificationPriorityNormal NotificationPriority = "normal" // 新規
+	NotificationPriorityNormal NotificationPriority = "medium" // normalはmediumにマッピング（DB制約のため）
 	NotificationPriorityHigh   NotificationPriority = "high"
-	NotificationPriorityUrgent NotificationPriority = "urgent" // 新規
+	NotificationPriorityUrgent NotificationPriority = "high"   // urgentはhighにマッピング（DB制約のため）
 )
 
 // NotificationStatus 通知の状態
@@ -216,11 +216,9 @@ func (n *Notification) Hide() {
 // GetPriorityLevel 優先度の数値レベルを取得（高いほど重要）
 func (n *Notification) GetPriorityLevel() int {
 	switch n.Priority {
-	case NotificationPriorityUrgent:
-		return 5
 	case NotificationPriorityHigh:
 		return 4
-	case NotificationPriorityMedium, NotificationPriorityNormal:
+	case NotificationPriorityMedium:
 		return 3
 	case NotificationPriorityLow:
 		return 2
@@ -232,11 +230,9 @@ func (n *Notification) GetPriorityLevel() int {
 // GetDisplayColor 通知の表示色を取得（フロントエンド用）
 func (n *Notification) GetDisplayColor() string {
 	switch n.Priority {
-	case NotificationPriorityUrgent:
-		return "#d32f2f" // 赤
 	case NotificationPriorityHigh:
 		return "#f57c00" // オレンジ
-	case NotificationPriorityMedium, NotificationPriorityNormal:
+	case NotificationPriorityMedium:
 		return "#1976d2" // 青
 	case NotificationPriorityLow:
 		return "#388e3c" // 緑
@@ -395,16 +391,12 @@ func ParseNotificationType(s string) (NotificationType, error) {
 // ParseNotificationPriority 文字列からNotificationPriorityを変換
 func ParseNotificationPriority(s string) (NotificationPriority, error) {
 	switch s {
-	case string(NotificationPriorityLow):
+	case "low":
 		return NotificationPriorityLow, nil
-	case string(NotificationPriorityMedium):
+	case "medium", "normal":
 		return NotificationPriorityMedium, nil
-	case string(NotificationPriorityNormal):
-		return NotificationPriorityNormal, nil
-	case string(NotificationPriorityHigh):
+	case "high", "urgent":
 		return NotificationPriorityHigh, nil
-	case string(NotificationPriorityUrgent):
-		return NotificationPriorityUrgent, nil
 	default:
 		return "", fmt.Errorf("invalid notification priority: %s", s)
 	}

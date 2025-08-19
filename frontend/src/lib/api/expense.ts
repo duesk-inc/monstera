@@ -263,7 +263,7 @@ export async function createExpense(data: ExpenseCreateData): Promise<Expense> {
     return result;
   } catch (error) {
     DebugLogger.error({ category: 'EXPENSE_API', operation: 'CreateExpense' }, 'Failed to create expense', error);
-    throw handleApiError(error, '経費作成');
+    throw handleApiError(error, '経費申請', { enableCodeMapping: true });
   }
 }
 
@@ -293,7 +293,7 @@ export async function updateExpense(data: ExpenseUpdateData): Promise<Expense> {
     return result;
   } catch (error) {
     DebugLogger.error({ category: 'EXPENSE_API', operation: 'UpdateExpense' }, 'Failed to update expense', error);
-    throw handleApiError(error, '経費更新');
+    throw handleApiError(error, '経費更新', { enableCodeMapping: true });
   }
 }
 
