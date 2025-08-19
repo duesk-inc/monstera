@@ -410,6 +410,12 @@ func (h *ExpenseHandler) SubmitExpense(c *gin.Context) {
 			case dto.ErrCodeNoApproversConfigured:
 				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrExpenseApproverNotConfigured, expenseErr.Message)
 				return
+			case dto.ErrCodeMonthlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrMonthlyLimitExceeded, expenseErr.Message)
+				return
+			case dto.ErrCodeYearlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrYearlyLimitExceeded, expenseErr.Message)
+				return
 			default:
 				HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, expenseErr.Message, h.logger, err)
 				return
