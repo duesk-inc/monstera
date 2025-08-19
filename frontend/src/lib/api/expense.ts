@@ -71,14 +71,7 @@ export interface ExpenseSearchParams {
   sortOrder?: 'asc' | 'desc';
 }
 
-// 経費一覧のレスポンス型
-export interface ExpenseListResponse {
-  expenses: Expense[];
-  totalCount: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+// ExpenseListResponseはtypes/expenseから使用
 
 // 経費統計の型定義
 export interface ExpenseStats {
@@ -178,7 +171,7 @@ export async function getExpenses(params: ExpenseSearchParams = {}): Promise<Exp
     DebugLogger.info(
       { category: 'API', operation: 'GetExpenses' },
       'Expenses retrieved successfully',
-      { count: result.expenses.length }
+      { count: result.items.length }
     );
     
     return result;
@@ -209,7 +202,7 @@ export async function getExpenseList(
     DebugLogger.info(
       { category: 'API', operation: 'GetExpenseList' },
       'Expense list retrieved successfully',
-      { count: result.expenses.length }
+      { count: result.items.length }
     );
     
     return result;
