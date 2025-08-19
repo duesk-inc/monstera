@@ -373,6 +373,44 @@ export const deleteWeeklyReport = async (id: string): Promise<void> => {
   }
 };
 
+// IDから週報詳細を取得（フルデータ含む）
+export const getWeeklyReportById = async (id: string, signal?: AbortSignal): Promise<ApiWeeklyReport> => {
+  try {
+    const client = createPresetApiClient('auth');
+    const endpoint = WEEKLY_REPORT_API.DETAIL.replace(':id', id);
+    
+    const response = await client.get(endpoint, { signal });
+    
+    // convertSnakeToCamelを使用してレスポンスを変換
+    const convertedData = convertSnakeToCamel<ApiWeeklyReport>(response.data);
+    
+    // レスポンスデータの処理
+    if (convertedData) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { weeklyMood, ...rest } = convertedData;
+      return rest;
+    }
+    
+    return convertedData;
+  } catch (error) {
+    const handledError = handleApiError(error, '週報詳細');
+    
+    // AbortErrorの場合は再スロー
+    if (handledError instanceof AbortError) {
+      throw handledError;
+    }
+    
+    DebugLogger.apiError({
+      category: '週報',
+      operation: '詳細取得'
+    }, {
+      error,
+      weeklyReportId: id
+    });
+    throw handledError;
+  }
+};
+
 // 稼働時間の計算API
 export const calculateWorkHours = async (
   startTime: string,
@@ -499,8 +537,17 @@ export const getWeeklyReportByDateRange = async (startDate: string, endDate: str
     
     // reports配列から週報を取得
     if (data && data.reports && data.reports.length > 0) {
-      // 最初の週報を取得（日付範囲に一致する週報は通常1つ）
-      const convertedReport = convertSnakeToCamel<ApiWeeklyReport>(data.reports[0]);
+      // 最初の週報のIDを取得（日付範囲に一致する週報は通常1つ）
+      const firstReport = data.reports[0];
+      const reportId = firstReport.id;
+      
+      // IDがある場合は詳細APIを呼んでフルデータを取得
+      if (reportId) {
+        return await getWeeklyReportById(reportId, signal);
+      }
+      
+      // IDがない場合は簡略データを変換して返す（フォールバック）
+      const convertedReport = convertSnakeToCamel<ApiWeeklyReport>(firstReport);
       
       // weeklyMoodプロパティを除外して返す
       if (convertedReport) {

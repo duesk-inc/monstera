@@ -88,26 +88,30 @@ export const convertAPIResponseToUIModel = (apiReport: LocalAPIWeeklyReport): We
     });
   }
   
-  const apiData = apiReport as Record<string, any>;
-  const totalWorkHours = apiData.total_work_hours !== undefined 
-    ? apiData.total_work_hours 
-    : apiData.totalWorkHours || 0;
+  // APIレスポンスは既にconvertSnakeToCamelで処理済みなのでキャメルケースでアクセス
+  const apiData = apiReport as any;
+  const totalWorkHours = apiData.totalWorkHours ?? apiData.total_work_hours ?? 0;
+  const clientTotalWorkHours = apiData.clientTotalWorkHours ?? apiData.client_total_work_hours ?? 0;
   
-  const clientTotalWorkHours = apiData.client_total_work_hours !== undefined 
-    ? apiData.client_total_work_hours 
-    : apiData.clientTotalWorkHours || 0;
+  // デバッグ用にAPIレスポンスの日付データを確認
+  const startDateStr = apiData.startDate || apiReport.start_date;
+  const endDateStr = apiData.endDate || apiReport.end_date;
+  
+  if (!startDateStr || !endDateStr) {
+    console.warn('週報の日付データが取得できません:', { startDateStr, endDateStr, apiReport });
+  }
   
   const weeklyReport: WeeklyReport = {
     id: apiReport.id || undefined,
-    startDate: parseISO(apiData.startDate || apiReport.start_date || ''),
-    endDate: parseISO(apiData.endDate || apiReport.end_date || ''),
+    startDate: startDateStr ? parseISO(startDateStr) : new Date(),
+    endDate: endDateStr ? parseISO(endDateStr) : new Date(),
     dailyRecords: dailyRecords,
     weeklyRemarks: apiData.weeklyRemarks || apiReport.weekly_remarks || '',
     status: apiReport.status ?? WEEKLY_REPORT_STATUS.NOT_SUBMITTED,
     submittedAt: apiData.submittedAt || apiReport.submitted_at || '',
     totalWorkHours: totalWorkHours,
     clientTotalWorkHours: clientTotalWorkHours,
-    workplaceChangeRequested: apiReport.workplace_change_requested || false,
+    workplaceChangeRequested: apiData.workplaceChangeRequested ?? apiReport.workplace_change_requested ?? false,
   };
   
   return weeklyReport;
