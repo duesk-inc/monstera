@@ -16,6 +16,13 @@
 - **規模**: 初期10-50名 → 中長期500名
 - **技術スタック**: Next.js 15.3.2 + Go 1.23/1.24 + PostgreSQL 15 + AWS Cognito + Redis 7
 
+## フロントエンド開発ルール（重要）
+
+フロントエンドディレクトリ（`frontend/`）に対する開発を行う際は、**必ず**以下のルールに従うこと：
+
+1. **仕様書の確認義務**
+   - `/Users/daichirouesaka/Documents/90_duesk/monstera/frontend/CLAUDE.md`ファイルを必ず読み込み、記載された仕様に厳密に従う
+
 ## Claude Codeコマンドシステム
 
 ### 動作原則
