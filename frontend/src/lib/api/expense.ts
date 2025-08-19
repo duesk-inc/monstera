@@ -623,7 +623,7 @@ export async function deleteExpenseTemplate(id: string): Promise<void> {
 // Pre-signed URLを生成
 export async function generateUploadURL(data: UploadFileRequest): Promise<UploadFileResponse> {
   try {
-    const client = createPresetApiClient('upload'); // uploadプリセット使用
+    const client = createPresetApiClient('auth'); // JSONリクエストなのでauthプリセット使用
     const requestData = convertCamelToSnake(data);
     const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/upload-url`, requestData);
     return convertSnakeToCamel<UploadFileResponse>(response.data.data || response.data);
