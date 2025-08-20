@@ -305,6 +305,95 @@ describe('ヘルパー関数', () => {
       expect(result.error.message).toBe('Access denied');
     });
 
+    it('401エラーを正しく処理する', () => {
+      const axiosError: AxiosError = {
+        isAxiosError: true,
+        response: {
+          status: 401,
+          statusText: 'Unauthorized',
+          data: { message: 'Unauthorized' },
+          headers: {},
+          config: {} as any,
+        },
+        config: {} as any,
+        message: 'Request failed with status code 401',
+        name: 'AxiosError',
+        toJSON: () => ({}),
+      };
+
+      const result = convertToStandardError(axiosError);
+      
+      expect(result.status).toBe(401);
+      expect(result.error.code).toBe(ApiErrorCode.UNAUTHORIZED);
+      expect(result.error.message).toContain('Unauthorized');
+    });
+
+    it('403エラーを正しく処理する', () => {
+      const axiosError: AxiosError = {
+        isAxiosError: true,
+        response: {
+          status: 403,
+          statusText: 'Forbidden',
+          data: { message: 'Access denied' },
+          headers: {},
+          config: {} as any,
+        },
+        config: {} as any,
+        message: 'Request failed with status code 403',
+        name: 'AxiosError',
+        toJSON: () => ({}),
+      };
+
+      const result = convertToStandardError(axiosError);
+      
+      expect(result.status).toBe(403);
+      expect(result.error.code).toBe(ApiErrorCode.FORBIDDEN);
+    });
+
+    it('404エラーを正しく処理する', () => {
+      const axiosError: AxiosError = {
+        isAxiosError: true,
+        response: {
+          status: 404,
+          statusText: 'Not Found',
+          data: { message: 'Resource not found' },
+          headers: {},
+          config: {} as any,
+        },
+        config: {} as any,
+        message: 'Request failed with status code 404',
+        name: 'AxiosError',
+        toJSON: () => ({}),
+      };
+
+      const result = convertToStandardError(axiosError);
+      
+      expect(result.status).toBe(404);
+      expect(result.error.code).toBe(ApiErrorCode.NOT_FOUND);
+    });
+
+    it('500エラーを正しく処理する', () => {
+      const axiosError: AxiosError = {
+        isAxiosError: true,
+        response: {
+          status: 500,
+          statusText: 'Internal Server Error',
+          data: { message: 'Server error' },
+          headers: {},
+          config: {} as any,
+        },
+        config: {} as any,
+        message: 'Request failed with status code 500',
+        name: 'AxiosError',
+        toJSON: () => ({}),
+      };
+
+      const result = convertToStandardError(axiosError);
+      
+      expect(result.status).toBe(500);
+      expect(result.error.code).toBe(ApiErrorCode.INTERNAL_SERVER_ERROR);
+    });
+
     it('標準エラーレスポンスをそのまま返す', () => {
       const standardError: StandardErrorResponse = {
         error: {

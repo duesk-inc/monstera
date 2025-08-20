@@ -162,13 +162,17 @@ export class GlobalApiErrorHandler {
       );
     }
     
-    // その他のエラー
+    // その他のエラー（元のステータスコードを保持）
+    const statusCode = error.response?.status || 0;
+    const errorCode = statusCode > 0 ? getErrorCodeFromStatus(statusCode) : ApiErrorCode.UNKNOWN_ERROR;
+    
     return createErrorResponse(
-      ApiErrorCode.UNKNOWN_ERROR,
+      errorCode,
       error.message || '予期しないエラーが発生しました。',
-      500,
+      statusCode || 500,  // ステータスコードがない場合のみ500を使用
       {
         originalError: error,
+        url: error.config?.url,
       }
     );
   }
