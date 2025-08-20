@@ -53,11 +53,12 @@ think_about_whether_you_are_done()
    - `make lint` でリントチェック
    - `make format` でフォーマット
 9. 修正内容を適切にコミット
-10. 修正詳細を `docs/fix/bug-fix_{TIMESTAMP}.md` に記録
-11. 同様のバグを防ぐパターンをSerenaメモリに保存
-12. Draft PRの作成または更新
-13. `afplay /System/Library/Sounds/Sosumi.aiff` で完了通知
-14. 修正ファイル、PR番号をコンソール出力
+10. `.cursor/rules/COMMIT_AND_PR_GUIDELINES.md`に従ったコミット・プッシュ
+11. 修正詳細を `docs/fix/bug-fix_{TIMESTAMP}.md` に記録
+12. 同様のバグを防ぐパターンをSerenaメモリに保存
+13. Draft PRの作成または更新
+14. `afplay /System/Library/Sounds/Sosumi.aiff` で完了通知
+15. 修正ファイル、PR番号をコンソール出力
 
 ## 修正チェックリスト
 - [ ] 根本原因が解決されているか

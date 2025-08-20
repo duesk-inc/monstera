@@ -55,11 +55,12 @@ find_referencing_symbols("新しい実装")  # 正しく参照されているか
    - `make lint` でコード品質確認
    - カバレッジの維持/向上
 10. Phase完了をコミット
-11. 実装詳細を `docs/implement/refactor-implement_{TIMESTAMP}.md` に記録
-12. 改善されたパターンをSerenaメモリに保存
-13. Draft PRの更新
-14. `afplay /System/Library/Sounds/Sosumi.aiff` で完了通知
-15. 完了Phase、次のPhase情報をコンソール出力
+11. `.cursor/rules/COMMIT_AND_PR_GUIDELINES.md`に従ったコミット・プッシュ
+12. 実装詳細を `docs/implement/refactor-implement_{TIMESTAMP}.md` に記録
+13. 改善されたパターンをSerenaメモリに保存
+14. Draft PRの更新
+15. `afplay /System/Library/Sounds/Sosumi.aiff` で完了通知
+16. 完了Phase、次のPhase情報をコンソール出力
 
 ## Phase実装チェックリスト
 - [ ] 計画通りの変更か

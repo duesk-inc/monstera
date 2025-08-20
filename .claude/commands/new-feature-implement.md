@@ -56,11 +56,12 @@ think_about_collected_information()
    - `think_about_task_adherence()` で規約遵守確認
 9. **単体テストの実装**
 10. 段階的なコミット（機能単位）
-11. 実装詳細を `docs/implement/new-feature-implement_{TIMESTAMP}.md` に記録
-12. 新しい実装パターンをSerenaメモリに保存
-13. Draft PRの作成または更新
-14. `afplay /System/Library/Sounds/Sosumi.aiff` で完了通知
-15. 実装ファイル、PR番号をコンソール出力
+11. `.cursor/rules/COMMIT_AND_PR_GUIDELINES.md`に従ったコミット・プッシュ
+12. 実装詳細を `docs/implement/new-feature-implement_{TIMESTAMP}.md` に記録
+13. 新しい実装パターンをSerenaメモリに保存
+14. Draft PRの作成または更新
+15. `afplay /System/Library/Sounds/Sosumi.aiff` で完了通知
+16. 実装ファイル、PR番号をコンソール出力
 
 ## 実装チェックリスト
 - [ ] 既存の命名規則に従っているか

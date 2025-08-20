@@ -395,7 +395,7 @@ func (s *reminderBatchService) sendEscalation(ctx context.Context, target Remind
 		NotificationType: model.NotificationTypeWeeklyReportOverdue,
 		Title:            "週報提出の最終通知",
 		Message:          s.getEscalationMessage(target),
-		Priority:         model.NotificationPriorityUrgent,
+		Priority:         model.NotificationPriorityHigh,
 		Status:           model.NotificationStatusUnread,
 		Metadata: &model.NotificationMetadata{
 			WeeklyReportID: &target.ReportID,
