@@ -50,6 +50,8 @@ export function mapBackendExpenseToExpenseData(backendExpense: ExpenseBackendRes
 export function mapBackendExpenseListToExpenseList(
   backendResponse: ExpenseListBackendResponse | undefined | null
 ): ExpenseListResponse {
+  console.log('[mapBackendExpenseListToExpenseList] Input:', backendResponse);
+  
   // 防御的プログラミング：nullチェックとデフォルト値
   if (!backendResponse) {
     console.warn('mapBackendExpenseListToExpenseList: Received null/undefined response');
@@ -75,15 +77,27 @@ export function mapBackendExpenseListToExpenseList(
   }
 
   try {
-    return {
-      items: backendResponse.items.map(mapBackendExpenseToExpenseData),
+    console.log('[mapBackendExpenseListToExpenseList] Mapping items, count:', backendResponse.items.length);
+    const mappedItems = backendResponse.items.map((item, index) => {
+      console.log(`[mapBackendExpenseListToExpenseList] Mapping item ${index}:`, item);
+      const mapped = mapBackendExpenseToExpenseData(item);
+      console.log(`[mapBackendExpenseListToExpenseList] Mapped item ${index}:`, mapped);
+      return mapped;
+    });
+    
+    const result = {
+      items: mappedItems,
       total: backendResponse.total || 0,
       page: backendResponse.page || 1,
       limit: backendResponse.limit || 20,
       totalPages: backendResponse.total_pages || 0,
     };
+    
+    console.log('[mapBackendExpenseListToExpenseList] Final result:', result);
+    return result;
   } catch (error) {
     console.error('Error mapping expense list:', error);
+    console.error('Error stack:', (error as Error).stack);
     return {
       items: [],
       total: 0,

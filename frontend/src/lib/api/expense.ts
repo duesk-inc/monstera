@@ -7,6 +7,7 @@ import { EXPENSE_API_ENDPOINTS } from '@/constants/expense';
 import type { ExpenseCategory, ExpenseListResponse, ExpenseListBackendResponse } from '@/types/expense';
 import { mapBackendExpenseListToExpenseList } from '@/utils/expenseMappers';
 import { DebugLogger, DEBUG_CATEGORIES, DEBUG_OPERATIONS } from '@/lib/debug/logger';
+import { extractDataFromResponse } from '@/utils/apiResponseUtils';
 
 // 経費データの型定義
 export interface Expense {
@@ -165,19 +166,11 @@ export async function getExpenses(params: ExpenseSearchParams = {}): Promise<Exp
     const client = createPresetApiClient('auth');
     const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params });
     
-    // デバッグログ追加
-    DebugLogger.info(
-      { category: 'API', operation: 'GetExpenses' },
-      'Raw response received',
-      { 
-        hasData: !!response.data,
-        hasDataData: !!response.data?.data,
-        dataStructure: response.data ? Object.keys(response.data) : []
-      }
+    // 共通ユーティリティを使用してデータを抽出
+    const responseData = extractDataFromResponse<ExpenseListBackendResponse>(
+      response,
+      'GetExpenses'
     );
-    
-    // レスポンス構造の確認と修正
-    const responseData = response.data?.data || response.data;
     
     // nullチェック追加
     if (!responseData) {
@@ -224,19 +217,16 @@ export async function getExpenseList(
     const client = createPresetApiClient('auth');
     const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params, signal });
     
-    // デバッグログ追加
-    DebugLogger.info(
-      { category: 'API', operation: 'GetExpenseList' },
-      'Raw response received',
-      { 
-        hasData: !!response.data,
-        hasDataData: !!response.data?.data,
-        dataStructure: response.data ? Object.keys(response.data) : []
-      }
+    // 共通ユーティリティを使用してデータを抽出
+    const responseData = extractDataFromResponse<ExpenseListBackendResponse>(
+      response, 
+      'GetExpenseList'
     );
     
-    // レスポンス構造の確認と修正
-    const responseData = response.data?.data || response.data;
+    // より詳細なデバッグログ（デバッグ中のみ）
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[GetExpenseList] Extracted data:', responseData);
+    }
     
     // nullチェック追加
     if (!responseData) {
@@ -280,7 +270,12 @@ export async function getExpense(id: string): Promise<Expense> {
     const client = createPresetApiClient('auth');
     const response = await client.get(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`);
     
-    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    const responseData = extractDataFromResponse(response, 'GetExpense');
+    if (!responseData) {
+      throw new Error('Empty response data');
+    }
+    
+    const result = convertSnakeToCamel<Expense>(responseData);
     
     DebugLogger.info(
       { category: 'API', operation: 'GetExpense' },
@@ -308,7 +303,12 @@ export async function createExpense(data: ExpenseCreateData): Promise<Expense> {
     const requestData = convertCamelToSnake(data);
     const response = await client.post(EXPENSE_API_ENDPOINTS.EXPENSES, requestData);
     
-    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    const responseData = extractDataFromResponse(response, 'CreateExpense');
+    if (!responseData) {
+      throw new Error('Empty response data');
+    }
+    
+    const result = convertSnakeToCamel<Expense>(responseData);
     
     DebugLogger.info(
       { category: 'API', operation: 'CreateExpense' },
@@ -588,7 +588,13 @@ export async function getExpenseCategories(signal?: AbortSignal): Promise<Expens
     const client = createPresetApiClient('auth');
     const response = await client.get(EXPENSE_API_ENDPOINTS.CATEGORIES, { signal });
     
-    const convertedData = convertSnakeToCamel<ExpenseCategoryApiResponse>(response.data);
+    // 共通ユーティリティでデータ抽出（このAPIはresponse.dataに直接データがある）
+    const responseData = extractDataFromResponse(response, 'GetExpenseCategories');
+    if (!responseData) {
+      return [];
+    }
+    
+    const convertedData = convertSnakeToCamel<ExpenseCategoryApiResponse>(responseData);
     
     // APIレスポンスをフロントエンドの型にマッピング
     const result = convertedData.data.map(category => ({
