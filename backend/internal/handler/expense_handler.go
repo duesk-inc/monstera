@@ -1077,6 +1077,10 @@ func (h *ExpenseHandler) CreateExpenseWithReceipts(c *gin.Context) {
 				RespondError(c, http.StatusBadRequest, expenseErr.Message)
 			case dto.ErrCodeLimitExceeded:
 				RespondError(c, http.StatusBadRequest, expenseErr.Message)
+			case dto.ErrCodeMonthlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrMonthlyLimitExceeded, expenseErr.Message)
+			case dto.ErrCodeYearlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrYearlyLimitExceeded, expenseErr.Message)
 			default:
 				RespondError(c, http.StatusInternalServerError, "経費申請の作成に失敗しました")
 			}
@@ -1134,6 +1138,10 @@ func (h *ExpenseHandler) UpdateExpenseWithReceipts(c *gin.Context) {
 				RespondError(c, http.StatusForbidden, expenseErr.Message)
 			case dto.ErrCodeInvalidStatus, dto.ErrCodeVersionMismatch:
 				RespondError(c, http.StatusBadRequest, expenseErr.Message)
+			case dto.ErrCodeMonthlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrMonthlyLimitExceeded, expenseErr.Message)
+			case dto.ErrCodeYearlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrYearlyLimitExceeded, expenseErr.Message)
 			default:
 				RespondError(c, http.StatusInternalServerError, "経費申請の更新に失敗しました")
 			}
@@ -1179,6 +1187,10 @@ func (h *ExpenseHandler) GetExpenseReceipts(c *gin.Context) {
 				RespondError(c, http.StatusNotFound, expenseErr.Message)
 			case dto.ErrCodeForbidden:
 				RespondError(c, http.StatusForbidden, expenseErr.Message)
+			case dto.ErrCodeMonthlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrMonthlyLimitExceeded, expenseErr.Message)
+			case dto.ErrCodeYearlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrYearlyLimitExceeded, expenseErr.Message)
 			default:
 				RespondError(c, http.StatusInternalServerError, "領収書の取得に失敗しました")
 			}
@@ -1232,6 +1244,10 @@ func (h *ExpenseHandler) DeleteExpenseReceipt(c *gin.Context) {
 				RespondError(c, http.StatusForbidden, expenseErr.Message)
 			case dto.ErrCodeInvalidStatus, dto.ErrCodeInvalidOperation:
 				RespondError(c, http.StatusBadRequest, expenseErr.Message)
+			case dto.ErrCodeMonthlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrMonthlyLimitExceeded, expenseErr.Message)
+			case dto.ErrCodeYearlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrYearlyLimitExceeded, expenseErr.Message)
 			default:
 				RespondError(c, http.StatusInternalServerError, "領収書の削除に失敗しました")
 			}
@@ -1289,6 +1305,10 @@ func (h *ExpenseHandler) UpdateReceiptOrder(c *gin.Context) {
 				RespondError(c, http.StatusForbidden, expenseErr.Message)
 			case dto.ErrCodeInvalidStatus:
 				RespondError(c, http.StatusBadRequest, expenseErr.Message)
+			case dto.ErrCodeMonthlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrMonthlyLimitExceeded, expenseErr.Message)
+			case dto.ErrCodeYearlyLimitExceeded:
+				RespondStandardErrorWithCode(c, http.StatusBadRequest, constants.ErrYearlyLimitExceeded, expenseErr.Message)
 			default:
 				RespondError(c, http.StatusInternalServerError, "表示順序の更新に失敗しました")
 			}
