@@ -47,12 +47,49 @@ export function mapBackendExpenseToExpenseData(backendExpense: ExpenseBackendRes
 /**
  * バックエンドの経費一覧レスポンスをフロントエンドの形式に変換
  */
-export function mapBackendExpenseListToExpenseList(backendResponse: ExpenseListBackendResponse): ExpenseListResponse {
-  return {
-    items: backendResponse.items.map(mapBackendExpenseToExpenseData),
-    total: backendResponse.total,
-    page: backendResponse.page,
-    limit: backendResponse.limit,
-    totalPages: backendResponse.total_pages,
-  };
+export function mapBackendExpenseListToExpenseList(
+  backendResponse: ExpenseListBackendResponse | undefined | null
+): ExpenseListResponse {
+  // 防御的プログラミング：nullチェックとデフォルト値
+  if (!backendResponse) {
+    console.warn('mapBackendExpenseListToExpenseList: Received null/undefined response');
+    return {
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+      totalPages: 0,
+    };
+  }
+
+  // itemsプロパティの存在確認
+  if (!backendResponse.items || !Array.isArray(backendResponse.items)) {
+    console.warn('mapBackendExpenseListToExpenseList: Invalid items property', backendResponse);
+    return {
+      items: [],
+      total: backendResponse.total || 0,
+      page: backendResponse.page || 1,
+      limit: backendResponse.limit || 20,
+      totalPages: backendResponse.total_pages || 0,
+    };
+  }
+
+  try {
+    return {
+      items: backendResponse.items.map(mapBackendExpenseToExpenseData),
+      total: backendResponse.total || 0,
+      page: backendResponse.page || 1,
+      limit: backendResponse.limit || 20,
+      totalPages: backendResponse.total_pages || 0,
+    };
+  } catch (error) {
+    console.error('Error mapping expense list:', error);
+    return {
+      items: [],
+      total: 0,
+      page: 1,
+      limit: 20,
+      totalPages: 0,
+    };
+  }
 }

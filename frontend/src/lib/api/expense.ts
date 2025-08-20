@@ -165,8 +165,36 @@ export async function getExpenses(params: ExpenseSearchParams = {}): Promise<Exp
     const client = createPresetApiClient('auth');
     const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params });
     
-    // バックエンドレスポンスをフロントエンドの形式に変換
-    const result = mapBackendExpenseListToExpenseList(response.data.data);
+    // デバッグログ追加
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenses' },
+      'Raw response received',
+      { 
+        hasData: !!response.data,
+        hasDataData: !!response.data?.data,
+        dataStructure: response.data ? Object.keys(response.data) : []
+      }
+    );
+    
+    // レスポンス構造の確認と修正
+    const responseData = response.data?.data || response.data;
+    
+    // nullチェック追加
+    if (!responseData) {
+      DebugLogger.warn(
+        { category: 'API', operation: 'GetExpenses' },
+        'Empty response data, returning default'
+      );
+      return {
+        items: [],
+        total: 0,
+        page: 1,
+        limit: params.limit || 20,
+        totalPages: 0
+      };
+    }
+    
+    const result = mapBackendExpenseListToExpenseList(responseData);
     
     DebugLogger.info(
       { category: 'API', operation: 'GetExpenses' },
@@ -196,8 +224,36 @@ export async function getExpenseList(
     const client = createPresetApiClient('auth');
     const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params, signal });
     
-    // バックエンドレスポンスをフロントエンドの形式に変換
-    const result = mapBackendExpenseListToExpenseList(response.data.data);
+    // デバッグログ追加
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenseList' },
+      'Raw response received',
+      { 
+        hasData: !!response.data,
+        hasDataData: !!response.data?.data,
+        dataStructure: response.data ? Object.keys(response.data) : []
+      }
+    );
+    
+    // レスポンス構造の確認と修正
+    const responseData = response.data?.data || response.data;
+    
+    // nullチェック追加
+    if (!responseData) {
+      DebugLogger.warn(
+        { category: 'API', operation: 'GetExpenseList' },
+        'Empty response data, returning default'
+      );
+      return {
+        items: [],
+        total: 0,
+        page: 1,
+        limit: params.limit || 20,
+        totalPages: 0
+      };
+    }
+    
+    const result = mapBackendExpenseListToExpenseList(responseData);
     
     DebugLogger.info(
       { category: 'API', operation: 'GetExpenseList' },
