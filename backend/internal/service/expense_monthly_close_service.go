@@ -172,7 +172,7 @@ func (s *expenseMonthlyCloseService) ProcessMonthlyClose(ctx context.Context, ye
 		NotificationType: model.NotificationTypeSystem,
 		Title:            fmt.Sprintf("%d年%d月の月次締め処理が完了しました", year, month),
 		Message:          fmt.Sprintf("承認済み: %d件, 合計金額: ¥%.0f", closeStatus.TotalExpenseCount, closeStatus.TotalExpenseAmount),
-		Priority:         model.NotificationPriorityNormal,
+		Priority:         model.NotificationPriorityHigh,
 		Status:           model.NotificationStatusUnread,
 		CreatedAt:        time.Now(),
 	}

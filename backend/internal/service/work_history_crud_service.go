@@ -240,22 +240,15 @@ func (s *workHistoryCRUDService) Update(ctx context.Context, id string, req *dto
 		}
 	}
 	if req.Industry != nil {
-		// Industry値のバリデーション
-		industry := *req.Industry
+		// Industry値のバリデーション（*stringから数値に変換）
 		industryInt := int32(0)
-		if val, ok := industry.(int32); ok {
-			industryInt = val
-		} else if val, ok := industry.(float64); ok {
-			industryInt = int32(val)
-		} else if val, ok := industry.(string); ok {
-			// 文字列の場合は変換を試みる
-			fmt.Sscanf(val, "%d", &industryInt)
-		}
+		// 文字列から数値への変換を試みる
+		fmt.Sscanf(*req.Industry, "%d", &industryInt)
 		
 		if industryInt < 1 || industryInt > 7 {
 			industryInt = 7 // その他
 			s.logger.Warn("Invalid industry value, setting to その他",
-				zap.Any("original_value", industry),
+				zap.String("original_value", *req.Industry),
 				zap.Int32("new_value", industryInt))
 		}
 		existing.Industry = industryInt

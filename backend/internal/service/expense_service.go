@@ -3718,7 +3718,7 @@ func (s *expenseService) sendExpenseReminder(ctx context.Context, expense *model
 		Title:            "経費申請の期限が近づいています",
 		Message:          fmt.Sprintf("経費申請「%s」の期限まであと%d日です。早めの処理をお願いします。", expense.Title, daysUntilDeadline),
 		NotificationType: model.NotificationTypeExpense,
-		Priority:         model.NotificationPriorityNormal,
+		Priority:         model.NotificationPriorityHigh,
 		Status:           model.NotificationStatusUnread,
 		ReferenceID:      &expense.ID,
 		ReferenceType:    stringPtr("expense_deadline_reminder"),

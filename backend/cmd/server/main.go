@@ -189,6 +189,7 @@ func main() {
 	// スキルシートサービスを追加
 	skillSheetService := service.NewSkillSheetService(profileRepo, userRepo, techCategoryRepo, workHistoryTechRepo, db, logger)
 	// 職務経歴関連サービスを追加
+	workHistoryCRUDService := service.NewWorkHistoryCRUDService(db, workHistoryRepo, techCategoryRepo, logger)
 	workHistoryEnhancedService := service.NewWorkHistoryEnhancedService(db, workHistoryEnhancedRepo, workHistoryTechRepo, technologyMasterRepo, logger)
 	technologySuggestionService := service.NewTechnologySuggestionService(db, technologyMasterEnhancedRepo, workHistoryRepo, logger)
 	reportService := service.NewWeeklyReportService(db, reportRepo, workHoursRepo, dailyRecordRepo, logger)
@@ -424,7 +425,7 @@ func main() {
 		logger.Error("Failed to initialize approval reminder handler", zap.Error(err))
 	}
 	// 職務経歴ハンドラーを追加
-	workHistoryHandler := handler.NewWorkHistoryHandler(workHistoryEnhancedService, technologySuggestionService, logger)
+	workHistoryHandler := handler.NewWorkHistoryHandler(workHistoryCRUDService, workHistoryEnhancedService, technologySuggestionService, logger)
 	// 未提出者管理ハンドラー（ダミー）
 	unsubmittedReportHandler := &handler.UnsubmittedReportHandler{}
 
