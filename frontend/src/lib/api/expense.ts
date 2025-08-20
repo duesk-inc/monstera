@@ -588,24 +588,60 @@ export async function getExpenseCategories(signal?: AbortSignal): Promise<Expens
     const client = createPresetApiClient('auth');
     const response = await client.get(EXPENSE_API_ENDPOINTS.CATEGORIES, { signal });
     
-    // 共通ユーティリティでデータ抽出（このAPIはresponse.dataに直接データがある）
+    // 共通ユーティリティでデータ抽出
     const responseData = extractDataFromResponse(response, 'GetExpenseCategories');
     if (!responseData) {
       return [];
     }
     
-    const convertedData = convertSnakeToCamel<ExpenseCategoryApiResponse>(responseData);
+    let categories: Array<{
+      id: string;
+      code: string;
+      name: string;
+      requires_details?: boolean;
+      requiresDetails?: boolean;
+      is_active?: boolean;
+      isActive?: boolean;
+      display_order?: number;
+      displayOrder?: number;
+      created_at?: string;
+      createdAt?: string;
+      updated_at?: string;
+      updatedAt?: string;
+    }>;
+    
+    // responseDataが配列の場合（extractDataFromResponseが配列を返した場合）
+    if (Array.isArray(responseData)) {
+      categories = responseData;
+    } 
+    // responseDataがオブジェクトでdataプロパティを持つ場合（後方互換性）
+    else if (responseData && typeof responseData === 'object' && 'data' in responseData) {
+      const convertedData = convertSnakeToCamel<ExpenseCategoryApiResponse>(responseData);
+      categories = convertedData.data;
+    }
+    // 予期しない構造の場合
+    else {
+      DebugLogger.warn(
+        { category: 'API', operation: 'GetExpenseCategories' },
+        'Unexpected response structure',
+        { responseData }
+      );
+      return [];
+    }
+    
+    // snake_caseからcamelCaseに変換してマッピング
+    const convertedCategories = convertSnakeToCamel<typeof categories>(categories);
     
     // APIレスポンスをフロントエンドの型にマッピング
-    const result = convertedData.data.map(category => ({
+    const result = convertedCategories.map(category => ({
       id: category.id,
       code: category.code,
       name: category.name,
-      requiresDetails: category.requiresDetails,
-      displayOrder: category.displayOrder,
-      isActive: category.isActive,
-      createdAt: category.createdAt,
-      updatedAt: category.updatedAt,
+      requiresDetails: category.requiresDetails || category.requires_details,
+      displayOrder: category.displayOrder || category.display_order,
+      isActive: category.isActive || category.is_active,
+      createdAt: category.createdAt || category.created_at,
+      updatedAt: category.updatedAt || category.updated_at,
     }));
     
     DebugLogger.info(
