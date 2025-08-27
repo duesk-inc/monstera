@@ -87,7 +87,7 @@ export const markNotificationsAsRead = async (notificationIds: string[], signal?
     const requestData: MarkAsReadRequest = {
       notification_ids: notificationIds
     };
-    await client.put(NOTIFICATION_API.MARK_AS_READ, requestData, options);
+    await client.put(NOTIFICATION_API.MARK_READ_ALL, requestData, options);
     logDev('通知既読化 - 完了');
   } catch (error: unknown) {
     const handledError = handleApiError(error, '通知既読化');

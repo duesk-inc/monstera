@@ -9,8 +9,13 @@ export const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION || 'v1';
 // API Endpoints
 export const NOTIFICATION_API = {
   BASE: `/notifications`,
-  USER_NOTIFICATIONS: `/notifications/user`,
-  MARK_READ: `/notifications/mark-read`,
+  LIST: `/notifications`,
+  UNREAD: `/notifications/unread`,
+  UNREAD_COUNT: `/notifications/unread-count`,
+  DETAIL: `/notifications/:id`,
+  MARK_READ_SINGLE: `/notifications/:id/read`,
+  MARK_READ_ALL: `/notifications/read-all`,
+  HIDE: `/notifications/:id/hide`,
   SETTINGS: `/notifications/settings`,
 } as const;
 

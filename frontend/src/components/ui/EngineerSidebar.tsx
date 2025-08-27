@@ -79,10 +79,6 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
       path: "/skill-sheet",
     },
     {
-      title: "通知設定",
-      path: "/notifications/settings",
-    },
-    {
       title: "プロフィール",
       path: "/profile",
     },

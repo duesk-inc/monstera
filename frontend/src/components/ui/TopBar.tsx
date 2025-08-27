@@ -4,9 +4,7 @@ import React from 'react';
 import { AppBar, Toolbar, IconButton, Typography, Box } from '@mui/material';
 import {
   Menu as MenuIcon,
-  Help as HelpIcon,
 } from '@mui/icons-material';
-import { useAuth } from '@/hooks/useAuth';
 import { NotificationBell } from '@/components/common/NotificationBell';
 
 interface TopBarProps {
@@ -22,7 +20,6 @@ export const TopBar: React.FC<TopBarProps> = ({
   isAdmin = false,
   isLoading = false
 }) => {
-  const { user } = useAuth();
 
   return (
     <AppBar
@@ -59,19 +56,6 @@ export const TopBar: React.FC<TopBarProps> = ({
           {/* 管理者の場合のみ通知ベルを表示 */}
           {isAdmin && (
             <NotificationBell />
-          )}
-          
-          {/* ユーザーがログインしている場合のみヘルプアイコン表示 */}
-          {user && !isLoading && (
-            <IconButton 
-              sx={{ 
-                display: { xs: 'none', sm: 'inline-flex' }, 
-                color: 'text.secondary',
-                mx: 1
-              }}
-            >
-              <HelpIcon fontSize="small" />
-            </IconButton>
           )}
         </Box>
       </Toolbar>
