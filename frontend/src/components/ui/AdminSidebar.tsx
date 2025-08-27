@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Image from "next/image";
 import {
   Box,
@@ -12,22 +12,11 @@ import {
   Typography,
   Collapse,
   Badge,
-  Avatar,
   IconButton,
-  Menu,
-  MenuItem,
-  Divider,
 } from "@mui/material";
 import {
   ExpandLess,
   ExpandMore,
-  AdminPanelSettings as AdminIcon,
-  Person as PersonIcon,
-  Email as EmailIcon,
-  Business as BusinessIcon,
-  Logout as LogoutIcon,
-  ExpandLess as ExpandLessIcon,
-  ExpandMore as ExpandMoreIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
   Dashboard as DashboardIcon,
@@ -61,6 +50,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "@/constants/layout";
 import { User } from '@/types/auth';
+import { UserMenuSection } from '@/components/common/sidebar/UserMenuSection';
 
 interface AdminSidebarProps {
   mobile?: boolean;
@@ -91,7 +81,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   const [expandedItems, setExpandedItems] = React.useState<string[]>([
     "engineers",
   ]);
-  const [userMenuExpanded, setUserMenuExpanded] = useState(false);
 
   const menuItems: MenuItem[] = [
     {
@@ -460,119 +449,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
       </Box>
 
       {/* ユーザーメニュー */}
-      {user && (
-        <Box
-          sx={{
-            borderTop: "1px solid",
-            borderColor: "divider",
-          }}
-        >
-          <ListItem disablePadding>
-            <ListItemButton
-              onClick={collapsed ? undefined : () => setUserMenuExpanded(!userMenuExpanded)}
-              sx={{
-                minHeight: 64,
-                px: collapsed ? 1 : 2.5,
-                justifyContent: collapsed ? "center" : "space-between",
-                bgcolor: "background.paper",
-                "&:hover": {
-                  bgcolor: "action.hover",
-                },
-              }}
-            >
-              {collapsed ? (
-                <Avatar
-                  sx={{
-                    width: 32,
-                    height: 32,
-                    bgcolor: "error.main",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  {user.first_name?.[0]?.toUpperCase() || user.last_name?.[0]?.toUpperCase() || 'U'}
-                </Avatar>
-              ) : (
-                <>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Avatar
-                      sx={{
-                        width: 32,
-                        height: 32,
-                        bgcolor: "error.main",
-                        fontSize: "0.875rem",
-                      }}
-                    >
-                      {user.first_name?.[0]?.toUpperCase() || user.last_name?.[0]?.toUpperCase() || 'U'}
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" fontWeight="500">
-                        {user.last_name && user.first_name
-                          ? `${user.last_name} ${user.first_name}`
-                          : user.email}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {(() => {
-                          const roleMap: Record<number, string> = {
-                            1: 'スーパー管理者',
-                            2: '管理者',
-                            3: 'マネージャー',
-                            4: 'エンジニア'
-                          };
-                          return roleMap[user.role] || 'ユーザー';
-                        })()}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  {userMenuExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                </>
-              )}
-            </ListItemButton>
-          </ListItem>
-          {!collapsed && (
-          <Collapse in={userMenuExpanded} timeout="auto" unmountOnExit>
-            <List component="div" disablePadding>
-              <ListItem disablePadding>
-                <ListItemButton
-                  sx={{
-                    pl: 4,
-                    py: 1,
-                    "&:hover": {
-                      bgcolor: "action.hover",
-                    },
-                  }}
-                  disabled
-                >
-                  <EmailIcon fontSize="small" sx={{ mr: 2, color: "text.secondary" }} />
-                  <Typography variant="body2" color="text.secondary" sx={{ wordBreak: "break-all" }}>
-                    {user.email}
-                  </Typography>
-                </ListItemButton>
-              </ListItem>
-              {onLogout && (
-                <ListItem disablePadding>
-                  <ListItemButton
-                    onClick={onLogout}
-                    sx={{
-                      pl: 4,
-                      py: 1,
-                      color: "error.main",
-                      "&:hover": {
-                        bgcolor: "error.50",
-                      },
-                    }}
-                  >
-                    <LogoutIcon fontSize="small" sx={{ mr: 2 }} />
-                    <Typography variant="body2" fontWeight={500}>
-                      ログアウト
-                    </Typography>
-                  </ListItemButton>
-                </ListItem>
-              )}
-            </List>
-          </Collapse>
-          )}
-        </Box>
-      )}
+      <UserMenuSection 
+        user={user}
+        onLogout={onLogout}
+        collapsed={collapsed}
+        avatarBgColor="error.main"
+      />
 
       {/* フッター */}
       {!collapsed && (
