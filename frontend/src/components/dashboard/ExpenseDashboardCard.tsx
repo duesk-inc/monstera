@@ -19,7 +19,6 @@ import {
   AccountBalanceWallet as WalletIcon,
   TrendingUp as TrendingUpIcon,
   Warning as WarningIcon,
-  Assessment as AssessmentIcon,
   Add as AddIcon,
   CalendarToday as CalendarIcon,
   Speed as SpeedIcon,
@@ -156,13 +155,6 @@ export default function ExpenseDashboardCard() {
               経費申請状況
             </Typography>
           </Stack>
-          <Button
-            size="small"
-            startIcon={<AssessmentIcon />}
-            onClick={() => router.push('/expenses/summary')}
-          >
-            詳細を見る
-          </Button>
         </Stack>
       </Box>
 
