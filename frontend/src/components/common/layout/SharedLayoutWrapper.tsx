@@ -93,7 +93,8 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
         <Box sx={{ 
           p: contentPadding, 
           bgcolor: contentBgColor, 
-          minHeight: 'calc(100vh - 70px)' 
+          minHeight: { xs: 'calc(100vh - 64px)', md: '100vh' }, // PC表示時は100vh
+          mt: { xs: 0, md: 0 } // 上部マージンを削除
         }}>
           {children}
         </Box>

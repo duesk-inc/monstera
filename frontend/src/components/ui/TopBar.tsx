@@ -28,9 +28,10 @@ export const TopBar: React.FC<TopBarProps> = ({
       sx={{
         bgcolor: 'transparent',
         zIndex: (theme) => theme.zIndex.drawer - 1,
+        display: { md: 'none' }, // PC表示時は非表示
       }}
     >
-      <Toolbar sx={{ minHeight: { xs: 64, sm: 70 } }}>
+      <Toolbar sx={{ minHeight: { xs: 64, sm: 64 } }}>
         <IconButton
           color="inherit"
           edge="start"
