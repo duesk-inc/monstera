@@ -18,30 +18,49 @@ const STATUS_NAME_MAP: Record<string, string> = {
  * バックエンドの経費レスポンスをフロントエンドの形式に変換
  */
 export function mapBackendExpenseToExpenseData(backendExpense: ExpenseBackendResponse): ExpenseData {
-  return {
-    id: backendExpense.id,
-    userId: backendExpense.user_id,
-    category: backendExpense.category, // カテゴリコードをそのまま使用
-    amount: backendExpense.amount,
-    currency: 'JPY', // デフォルト値
-    date: backendExpense.expense_date,
-    description: backendExpense.description,
-    paymentMethod: 'card', // デフォルト値
-    taxRate: 10, // デフォルト値
-    taxAmount: Math.floor(backendExpense.amount * 0.1), // 10%税率で計算
-    totalAmount: backendExpense.amount,
-    status: STATUS_NAME_MAP[backendExpense.status] || backendExpense.status,
-    receiptUrls: backendExpense.receipt_url ? [backendExpense.receipt_url] : [],
-    isBusinessTrip: false, // デフォルト値
-    submittedAt: undefined, // TODO: バックエンドから取得できるようになったら修正
-    approvedAt: backendExpense.approved_at,
-    rejectedAt: undefined, // TODO: バックエンドから取得できるようになったら修正
-    paidAt: backendExpense.paid_at,
-    approver: backendExpense.approver?.name,
-    rejectionReason: undefined, // TODO: バックエンドから取得できるようになったら修正
-    createdAt: backendExpense.created_at,
-    updatedAt: backendExpense.updated_at,
-  };
+  try {
+    // バリデーション
+    if (!backendExpense || typeof backendExpense !== 'object') {
+      console.error('Invalid backendExpense:', backendExpense);
+      throw new Error('Invalid backend expense data');
+    }
+
+    // 必須フィールドのチェック
+    if (!backendExpense.id || !backendExpense.user_id) {
+      console.error('Missing required fields:', { id: backendExpense.id, user_id: backendExpense.user_id });
+      throw new Error('Missing required fields in expense data');
+    }
+
+    return {
+      id: backendExpense.id,
+      userId: backendExpense.user_id,
+      title: backendExpense.title, // titleフィールドを追加
+      category: backendExpense.category || '', // カテゴリコードをそのまま使用
+      amount: backendExpense.amount || 0,
+      currency: 'JPY', // デフォルト値
+      date: backendExpense.expense_date || new Date().toISOString(),
+      description: backendExpense.description || '',
+      paymentMethod: 'card', // デフォルト値
+      taxRate: 10, // デフォルト値
+      taxAmount: Math.floor((backendExpense.amount || 0) * 0.1), // 10%税率で計算
+      totalAmount: backendExpense.amount || 0,
+      status: STATUS_NAME_MAP[backendExpense.status] || backendExpense.status || 'draft',
+      receiptUrls: backendExpense.receipt_url ? [backendExpense.receipt_url] : [],
+      isBusinessTrip: false, // デフォルト値
+      submittedAt: undefined, // TODO: バックエンドから取得できるようになったら修正
+      approvedAt: backendExpense.approved_at,
+      rejectedAt: undefined, // TODO: バックエンドから取得できるようになったら修正
+      paidAt: backendExpense.paid_at,
+      approver: backendExpense.approver ? backendExpense.approver.name : undefined,
+      rejectionReason: undefined, // TODO: バックエンドから取得できるようになったら修正
+      createdAt: backendExpense.created_at || new Date().toISOString(),
+      updatedAt: backendExpense.updated_at || new Date().toISOString(),
+    };
+  } catch (error) {
+    console.error('Error in mapBackendExpenseToExpenseData:', error);
+    console.error('Input data:', backendExpense);
+    throw error;
+  }
 }
 
 /**

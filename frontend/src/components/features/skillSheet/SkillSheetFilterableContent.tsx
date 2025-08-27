@@ -194,23 +194,6 @@ export const SkillSheetFilterableContent: React.FC<SkillSheetFilterableContentPr
           />
         </Box>
       )} */}
-
-      {/* 個別保存モードの説明 */}
-      <Box sx={{ 
-        mt: 4, 
-        p: 2, 
-        bgcolor: 'success.light',
-        borderRadius: 1,
-        border: '1px solid',
-        borderColor: 'success.main',
-      }}>
-        <Typography variant="body2" color="success.dark" fontWeight={600}>
-          個別保存モード
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          各職務経歴の保存ボタンを使用して個別に保存してください。
-        </Typography>
-      </Box>
     </Box>
   );
 };

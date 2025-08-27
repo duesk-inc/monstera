@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   const DEBUG_MODE = process.env.NODE_ENV === 'development';
-  const { currentUserRole, user } = useAuth();
+  const { currentUserRole, user, logout } = useAuth();
   
   // Phase 4: 単一ロールシステムでのロール判定
   const isEngineer = currentUserRole === 4;  // Engineer = 4
@@ -38,15 +38,15 @@ export default function RootLayout({
   );
 
   const sidebar = isEngineer ? (
-    <EngineerSidebar />
+    <EngineerSidebar user={user} onLogout={logout} />
   ) : (
-    <AdminSidebar />
+    <AdminSidebar user={user} onLogout={logout} />
   );
 
   const mobileSidebar = isEngineer ? (
-    <EngineerSidebar mobile onClose={() => {}} />
+    <EngineerSidebar mobile onClose={() => {}} user={user} onLogout={logout} />
   ) : (
-    <AdminSidebar mobile onClose={() => {}} />
+    <AdminSidebar mobile onClose={() => {}} user={user} onLogout={logout} />
   );
 
   return (

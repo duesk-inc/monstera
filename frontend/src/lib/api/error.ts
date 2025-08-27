@@ -33,15 +33,33 @@ export const isAbortError = (error: unknown): boolean => {
   
   // Axios の CanceledError
   if (error && typeof error === 'object') {
-    const errorObj = error as { name?: string; code?: string; message?: string };
-    if (errorObj.name === 'CanceledError' || errorObj.code === 'ERR_CANCELED') {
+    const errorObj = error as any;
+    
+    // 名前でチェック
+    if (errorObj.name === 'CanceledError' || errorObj.name === 'AbortError') {
       return true;
     }
     
-    // その他のキャンセル関連エラー
-    if (errorObj.message === 'canceled' || errorObj.message === 'cancelled') {
+    // コードでチェック
+    if (errorObj.code === 'ERR_CANCELED' || errorObj.code === 'ECONNABORTED') {
       return true;
     }
+    
+    // メッセージでチェック
+    const message = errorObj.message?.toLowerCase();
+    if (message === 'canceled' || message === 'cancelled' || message?.includes('abort')) {
+      return true;
+    }
+    
+    // Axiosのキャンセルトークンチェック
+    if (errorObj.__CANCEL__) {
+      return true;
+    }
+  }
+  
+  // 文字列として'canceled'が渡された場合
+  if (error === 'canceled' || error === 'cancelled') {
+    return true;
   }
   
   return false;

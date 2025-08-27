@@ -11,10 +11,7 @@ import {
   Work as WorkIcon,
   Add as AddIcon,
   Delete as DeleteIcon,
-  SaveAlt as SaveAltIcon,
-  Autorenew as AutorenewIcon,
   Restore as RestoreIcon,
-  Clear as ClearIcon,
   Save as SaveIcon,
 } from '@mui/icons-material';
 import { UseFormReturn, Controller, useWatch } from 'react-hook-form';
@@ -222,7 +219,6 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeStep, setActiveStep] = useState(0);
   const [showDraftRestoreDialog, setShowDraftRestoreDialog] = useState(false);
-  const [showClearDraftDialog, setShowClearDraftDialog] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [isSavingIndividually, setIsSavingIndividually] = useState(false);
 
@@ -243,12 +239,8 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
   const {
     hasDraft,
     draftSavedAt,
-    isAutoSaving,
-    saveDraft,
     loadDraft,
     clearDraft,
-    autoSaveEnabled,
-    toggleAutoSave,
   } = useWorkHistoryDraft(
     formMethods,
     workHistoryIndex,
@@ -453,12 +445,6 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
     setShowDraftRestoreDialog(false);
   }, [clearDraft]);
 
-  // 下書きをクリア
-  const handleClearDraft = useCallback(() => {
-    clearDraft();
-    setShowClearDraftDialog(false);
-  }, [clearDraft]);
-
   // ダイアログが開いた時の処理
   useEffect(() => {
     if (open) {
@@ -557,83 +543,11 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
           <Typography variant="h6" component="div">
             {isNew ? '職務経歴を追加' : '職務経歴を編集'}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* 自動保存インジケーター */}
-            <Fade in={isAutoSaving}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AutorenewIcon 
-                  sx={{ 
-                    fontSize: 16, 
-                    color: 'primary.main',
-                    animation: 'spin 1s linear infinite',
-                    '@keyframes spin': {
-                      '0%': { transform: 'rotate(0deg)' },
-                      '100%': { transform: 'rotate(360deg)' }
-                    }
-                  }} 
-                />
-                <Typography variant="caption" color="text.secondary">
-                  保存中...
-                </Typography>
-              </Box>
-            </Fade>
-            
-            {/* 下書き保存ボタン */}
-            <Tooltip title="下書きを保存">
-              <IconButton 
-                onClick={saveDraft} 
-                size="small" 
-                color="primary"
-                disabled={isAutoSaving}
-              >
-                <SaveAltIcon />
-              </IconButton>
-            </Tooltip>
-            
-            {/* 下書きクリアボタン */}
-            {hasDraft && (
-              <Tooltip title="下書きをクリア">
-                <IconButton 
-                  onClick={() => setShowClearDraftDialog(true)} 
-                  size="small" 
-                  color="error"
-                >
-                  <ClearIcon />
-                </IconButton>
-              </Tooltip>
-            )}
-            
-            <IconButton onClick={onClose} size="small">
-              <CloseIcon />
-            </IconButton>
-          </Box>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
         </Box>
 
-        {/* 下書き情報と自動保存設定 */}
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between',
-          mt: 1,
-        }}>
-          {draftSavedAt && (
-            <Typography variant="caption" color="text.secondary">
-              下書き保存: {format(draftSavedAt, 'HH:mm:ss', { locale: ja })}
-            </Typography>
-          )}
-          
-          <FormControlLabel
-            control={
-              <Switch
-                checked={autoSaveEnabled}
-                onChange={toggleAutoSave}
-                size="small"
-              />
-            }
-            label="自動保存"
-            sx={{ ml: 'auto', '& .MuiFormControlLabel-label': { fontSize: '0.875rem' } }}
-          />
-        </Box>
       </DialogTitle>
 
       <DialogContent sx={{ p: 0 }}>
@@ -868,7 +782,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
             buttonType="secondary"
             onClick={handleBack}
             sx={{ mr: 'auto' }}
-            disabled={isAutoSaving || isSavingIndividually || isMutating}
+            disabled={isSavingIndividually || isMutating}
           >
             戻る
           </ActionButton>
@@ -886,7 +800,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
           <ActionButton
             buttonType="primary"
             onClick={handleNext}
-            disabled={isAutoSaving || isSavingIndividually || isMutating}
+            disabled={isSavingIndividually || isMutating}
           >
             次へ
           </ActionButton>
@@ -894,7 +808,7 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
           <ActionButton
             buttonType="primary"
             onClick={() => setShowSaveConfirm(true)}
-            disabled={isAutoSaving || isSavingIndividually || isMutating}
+            disabled={isSavingIndividually || isMutating}
           >
             {!isSavingIndividually ? '保存する' : '保存中...'}
           </ActionButton>
@@ -927,17 +841,6 @@ export const WorkHistoryEditDialog: React.FC<WorkHistoryEditDialogProps> = ({
         onCancel={handleDiscardDraft}
       />
 
-      {/* 下書きクリアダイアログ */}
-      <ConfirmDialog
-        open={showClearDraftDialog}
-        title="下書きのクリア"
-        message="保存されている下書きをクリアしてもよろしいですか？この操作は取り消せません。"
-        confirmText="クリア"
-        cancelText="キャンセル"
-        confirmColor="error"
-        onConfirm={handleClearDraft}
-        onCancel={() => setShowClearDraftDialog(false)}
-      />
 
       {/* 保存確認ダイアログ */}
       <ConfirmDialog

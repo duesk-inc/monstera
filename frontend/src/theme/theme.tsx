@@ -27,9 +27,9 @@ export const APP_CONSTANTS = {
 
 // カラーパレット設定
 const PRIMARY_COLOR = {
-  light: '#2e7d32', // ライトグリーン
-  main: '#111111', // モンステラの緑色
-  dark: '#1b5e20', // ダークグリーン
+  light: '#E6E6EB', 
+  main: '#49326E', 
+  dark: '#2D2147', 
 };
 
 // テーマを作成

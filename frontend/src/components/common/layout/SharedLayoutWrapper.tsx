@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Box, useMediaQuery, useTheme } from '@mui/material';
 import { TopBar } from '@/components/ui/TopBar';
 import { SharedMobileDrawer } from './SharedMobileDrawer';
-import { SharedUserMenu } from './SharedUserMenu';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthInitializer } from '@/hooks/common/useAuthInitializer';
 import { SIDEBAR_WIDTH } from '@/constants/layout';
@@ -35,7 +34,6 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<null | HTMLElement>(null);
   
   const { user, logout, initializeAuth, isLoading } = useAuth();
   
@@ -50,17 +48,8 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
     setMobileDrawerOpen(!mobileDrawerOpen);
   };
 
-  const handleUserMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setUserMenuAnchorEl(event.currentTarget);
-  };
-
-  const handleUserMenuClose = () => {
-    setUserMenuAnchorEl(null);
-  };
-
   const handleLogout = () => {
     logout();
-    handleUserMenuClose();
   };
 
   return (
@@ -95,22 +84,9 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
         {/* トップバー */}
         <TopBar
           onMenuClick={handleDrawerToggle}
-          onUserMenuClick={handleUserMenuOpen}
           isMobile={isMobile}
           isAdmin={isAdmin}
           isLoading={isLoading}
-        />
-        
-        {/* ユーザーメニュー */}
-        <SharedUserMenu
-          anchorEl={userMenuAnchorEl}
-          open={Boolean(userMenuAnchorEl)}
-          onClose={handleUserMenuClose}
-          user={user}
-          isLoading={isLoading}
-          onLogout={handleLogout}
-          isAdmin={isAdmin}
-          additionalMenuItems={userMenuItems}
         />
 
         {/* ページコンテンツ */}

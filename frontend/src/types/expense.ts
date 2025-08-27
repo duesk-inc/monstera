@@ -36,6 +36,7 @@ export interface ExpenseBackendResponse {
 export interface ExpenseData {
   id: string;
   userId: string;
+  title?: string;  // titleフィールドを追加
   category: string;
   amount: number;
   currency: string;

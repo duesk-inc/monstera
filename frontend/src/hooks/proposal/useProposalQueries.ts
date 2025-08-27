@@ -15,7 +15,6 @@ import {
 } from '@tanstack/react-query';
 import { useProposalErrorHandler } from './useProposalErrorHandler';
 import * as proposalApi from '../../api/proposal';
-import { CACHE_STRATEGIES } from '../../constants/cache';
 import type {
   ProposalItemDTO,
   ProposalDetailResponse,
@@ -58,12 +57,13 @@ export const PROPOSAL_QUERY_KEYS = {
 // 基本設定
 // ==========================================
 
-const DEFAULT_STALE_TIME = CACHE_STRATEGIES.PROPOSALS_LIST.staleTime;
-const DEFAULT_GC_TIME = CACHE_STRATEGIES.PROPOSALS_LIST.gcTime;
-const DETAIL_STALE_TIME = CACHE_STRATEGIES.PROPOSAL_DETAIL.staleTime;
-const DETAIL_GC_TIME = CACHE_STRATEGIES.PROPOSAL_DETAIL.gcTime;
-const STATS_STALE_TIME = CACHE_STRATEGIES.PROPOSAL_STATS.staleTime;
-const STATS_GC_TIME = CACHE_STRATEGIES.PROPOSAL_STATS.gcTime;
+// キャッシュ時間の定義（ミリ秒）
+const DEFAULT_STALE_TIME = 5 * 60 * 1000; // 5分
+const DEFAULT_GC_TIME = 10 * 60 * 1000; // 10分
+const DETAIL_STALE_TIME = 30 * 60 * 1000; // 30分
+const DETAIL_GC_TIME = 60 * 60 * 1000; // 1時間
+const STATS_STALE_TIME = 10 * 60 * 1000; // 10分
+const STATS_GC_TIME = 30 * 60 * 1000; // 30分
 const DEFAULT_PAGE_SIZE = 20;
 
 // ==========================================

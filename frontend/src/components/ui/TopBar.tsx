@@ -7,12 +7,10 @@ import {
   Help as HelpIcon,
 } from '@mui/icons-material';
 import { useAuth } from '@/hooks/useAuth';
-import { UserAvatar } from '@/components/common/layout';
 import { NotificationBell } from '@/components/common/NotificationBell';
 
 interface TopBarProps {
   onMenuClick: () => void;
-  onUserMenuClick: (event: React.MouseEvent<HTMLElement>) => void;
   isMobile: boolean;
   isAdmin?: boolean;
   isLoading?: boolean;
@@ -20,7 +18,6 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({ 
   onMenuClick, 
-  onUserMenuClick, 
   isMobile,
   isAdmin = false,
   isLoading = false
@@ -64,7 +61,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <NotificationBell />
           )}
           
-          {/* ユーザーがログインしている場合のみ表示 */}
+          {/* ユーザーがログインしている場合のみヘルプアイコン表示 */}
           {user && !isLoading && (
             <IconButton 
               sx={{ 
@@ -76,33 +73,6 @@ export const TopBar: React.FC<TopBarProps> = ({
               <HelpIcon fontSize="small" />
             </IconButton>
           )}
-          
-          <IconButton
-            onClick={onUserMenuClick}
-            aria-controls="user-menu"
-            aria-haspopup="true"
-            data-testid="user-menu-button"
-            sx={{ 
-              p: 0.5,
-              ml: 1, 
-              border: '1px solid rgba(0, 0, 0, 0.08)',
-              borderColor: 'rgba(0, 0, 0, 0.08)',
-              bgcolor: 'background.paper',
-              '&:hover': {
-                bgcolor: 'rgba(46, 125, 50, 0.04)',
-              }
-            }}
-          >
-            <UserAvatar 
-              user={user}
-              size="small"
-              isLoading={isLoading}
-              sx={{ 
-                cursor: 'pointer',
-                bgcolor: user ? 'primary.main' : 'grey.400',
-              }}
-            />
-          </IconButton>
         </Box>
       </Toolbar>
     </AppBar>

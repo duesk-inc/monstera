@@ -151,7 +151,10 @@ export class GlobalApiErrorHandler {
     }
     
     // キャンセルされた場合
-    if (error.code === 'ERR_CANCELED') {
+    if (error.code === 'ERR_CANCELED' || 
+        error.message === 'canceled' || 
+        error.message === 'cancelled' ||
+        (error as any).name === 'CanceledError') {
       return createErrorResponse(
         ApiErrorCode.CANCELLED,
         'リクエストがキャンセルされました。',
@@ -207,6 +210,12 @@ export class GlobalApiErrorHandler {
     error: StandardErrorResponse,
     options: ErrorHandlingOptions
   ): void {
+    // キャンセルエラーの場合は処理をスキップ
+    if (error.error.code === ApiErrorCode.CANCELLED) {
+      // キャンセルはユーザーの意図的な操作なので、エラーとして扱わない
+      return;
+    }
+    
     // エラーログの記録
     if (options.logError) {
       this.logError(error);

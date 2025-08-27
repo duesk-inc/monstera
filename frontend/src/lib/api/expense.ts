@@ -217,6 +217,11 @@ export async function getExpenseList(
     const client = createPresetApiClient('auth');
     const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params, signal });
     
+    // 詳細なデバッグログ
+    console.log('[GetExpenseList] Raw API response:', response);
+    console.log('[GetExpenseList] Response status:', response?.status);
+    console.log('[GetExpenseList] Response data:', response?.data);
+    
     // 共通ユーティリティを使用してデータを抽出
     const responseData = extractDataFromResponse<ExpenseListBackendResponse>(
       response, 
@@ -226,6 +231,11 @@ export async function getExpenseList(
     // より詳細なデバッグログ（デバッグ中のみ）
     if (process.env.NODE_ENV === 'development') {
       console.log('[GetExpenseList] Extracted data:', responseData);
+      console.log('[GetExpenseList] Extracted data type:', typeof responseData);
+      if (responseData && typeof responseData === 'object') {
+        console.log('[GetExpenseList] Extracted data keys:', Object.keys(responseData));
+        console.log('[GetExpenseList] Items:', (responseData as any).items);
+      }
     }
     
     // nullチェック追加
@@ -243,7 +253,9 @@ export async function getExpenseList(
       };
     }
     
+    console.log('[GetExpenseList] Before mapping, responseData:', responseData);
     const result = mapBackendExpenseListToExpenseList(responseData);
+    console.log('[GetExpenseList] After mapping, result:', result);
     
     DebugLogger.info(
       { category: 'API', operation: 'GetExpenseList' },
@@ -610,14 +622,32 @@ export async function getExpenseCategories(signal?: AbortSignal): Promise<Expens
       updatedAt?: string;
     }>;
     
+    // デバッグログでresponseDataの構造を確認
+    DebugLogger.info(
+      { category: 'API', operation: 'GetExpenseCategories' },
+      'Response data structure',
+      { 
+        isArray: Array.isArray(responseData),
+        hasDataProperty: responseData && typeof responseData === 'object' && 'data' in responseData,
+        dataType: typeof responseData,
+        responseData
+      }
+    );
+
     // responseDataが配列の場合（extractDataFromResponseが配列を返した場合）
     if (Array.isArray(responseData)) {
       categories = responseData;
     } 
     // responseDataがオブジェクトでdataプロパティを持つ場合（後方互換性）
     else if (responseData && typeof responseData === 'object' && 'data' in responseData) {
-      const convertedData = convertSnakeToCamel<ExpenseCategoryApiResponse>(responseData);
-      categories = convertedData.data;
+      // dataプロパティが配列の場合は直接使用
+      if (Array.isArray((responseData as any).data)) {
+        categories = (responseData as any).data;
+      } else {
+        // オブジェクト全体を変換してからdataを取り出す
+        const convertedData = convertSnakeToCamel<ExpenseCategoryApiResponse>(responseData);
+        categories = convertedData.data;
+      }
     }
     // 予期しない構造の場合
     else {
@@ -629,8 +659,37 @@ export async function getExpenseCategories(signal?: AbortSignal): Promise<Expens
       return [];
     }
     
+    // categoriesが未定義またはnullの場合は空配列を返す
+    if (!categories) {
+      DebugLogger.warn(
+        { category: 'API', operation: 'GetExpenseCategories' },
+        'Categories is null or undefined after extraction'
+      );
+      return [];
+    }
+
+    // 配列でない場合も空配列を返す
+    if (!Array.isArray(categories)) {
+      DebugLogger.warn(
+        { category: 'API', operation: 'GetExpenseCategories' },
+        'Categories is not an array',
+        { categoriesType: typeof categories, categories }
+      );
+      return [];
+    }
+
     // snake_caseからcamelCaseに変換してマッピング
     const convertedCategories = convertSnakeToCamel<typeof categories>(categories);
+    
+    // 変換後のチェック
+    if (!Array.isArray(convertedCategories)) {
+      DebugLogger.error(
+        { category: 'API', operation: 'GetExpenseCategories' },
+        'Converted categories is not an array',
+        { convertedCategoriesType: typeof convertedCategories, convertedCategories }
+      );
+      return [];
+    }
     
     // APIレスポンスをフロントエンドの型にマッピング
     const result = convertedCategories.map(category => ({
@@ -652,7 +711,25 @@ export async function getExpenseCategories(signal?: AbortSignal): Promise<Expens
     
     return result;
   } catch (error) {
-    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GetExpenseCategories' }, 'Failed to get expense categories', error);
+    // エラーの詳細をログに出力
+    if (error instanceof Error) {
+      DebugLogger.error(
+        { category: 'EXPENSE_API', operation: 'GetExpenseCategories' }, 
+        `Failed to get expense categories: ${error.message}`, 
+        { 
+          error,
+          errorName: error.name,
+          errorStack: error.stack,
+          errorMessage: error.message
+        }
+      );
+    } else {
+      DebugLogger.error(
+        { category: 'EXPENSE_API', operation: 'GetExpenseCategories' }, 
+        'Failed to get expense categories (non-Error object)', 
+        error
+      );
+    }
     throw handleApiError(error, '経費カテゴリ取得');
   }
 }

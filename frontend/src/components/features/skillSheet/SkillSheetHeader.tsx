@@ -56,17 +56,6 @@ export const SkillSheetHeader: React.FC<SkillSheetHeaderProps> = ({
           backgroundColor: 'background.paper',
         }}
       />
-      
-      {/* 個別保存モードの表示 */}
-      <Chip
-        label="個別保存モード"
-        size="small"
-        color="success"
-        variant="filled"
-        sx={{
-          fontWeight: 600,
-        }}
-      />
     </Box>
   );
 
