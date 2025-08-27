@@ -1,12 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, useMediaQuery, useTheme } from '@mui/material';
+import { Box, useMediaQuery, useTheme, IconButton } from '@mui/material';
+import {
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+} from '@mui/icons-material';
 import { TopBar } from '@/components/ui/TopBar';
 import { SharedMobileDrawer } from './SharedMobileDrawer';
 import { useAuth } from '@/hooks/useAuth';
 import { useAuthInitializer } from '@/hooks/common/useAuthInitializer';
-import { SIDEBAR_WIDTH } from '@/constants/layout';
+import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from '@/constants/layout';
 
 interface SharedLayoutWrapperProps {
   children: React.ReactNode;
@@ -34,6 +38,7 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
   const { user, logout, initializeAuth, isLoading } = useAuth();
   
@@ -50,6 +55,10 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
 
   const handleLogout = () => {
     logout();
+  };
+
+  const handleToggleCollapse = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   return (
@@ -71,7 +80,10 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
       </SharedMobileDrawer>
 
       {/* デスクトップ用サイドバー */}
-      {!isMobile && sidebar}
+      {!isMobile && React.cloneElement(sidebar as React.ReactElement, {
+        collapsed: sidebarCollapsed,
+        onToggleCollapse: handleToggleCollapse,
+      })}
 
       {/* メインコンテンツ */}
       <Box

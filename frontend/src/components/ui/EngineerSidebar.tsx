@@ -27,10 +27,18 @@ import {
   Logout as LogoutIcon,
   ExpandLess as ExpandLessIcon,
   ExpandMore as ExpandMoreIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  Dashboard as DashboardIcon,
+  Assignment as AssignmentIcon,
+  AttachMoney as ExpenseIcon,
+  EventAvailable as LeaveIcon,
+  Description as SkillSheetIcon,
+  AccountCircle as ProfileIcon,
 } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { SIDEBAR_WIDTH } from "@/constants/layout";
+import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_COLLAPSED } from "@/constants/layout";
 import { User } from '@/types/auth';
 
 interface EngineerSidebarProps {
@@ -38,11 +46,14 @@ interface EngineerSidebarProps {
   onClose?: () => void;
   user?: User | null;
   onLogout?: () => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 interface MenuItem {
   title: string;
   path?: string;
+  icon?: React.ReactNode;
   badge?: number;
   children?: MenuItem[];
 }
@@ -52,6 +63,8 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
   onClose,
   user,
   onLogout,
+  collapsed = false,
+  onToggleCollapse,
 }) => {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
@@ -61,26 +74,32 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
     {
       title: "ダッシュボード",
       path: "/dashboard",
+      icon: <DashboardIcon />,
     },
     {
       title: "週報",
       path: "/weekly-report",
+      icon: <AssignmentIcon />,
     },
     {
       title: "経費申請",
       path: "/expenses",
+      icon: <ExpenseIcon />,
     },
     {
       title: "休暇申請",
       path: "/leave",
+      icon: <LeaveIcon />,
     },
     {
       title: "スキルシート",
       path: "/skill-sheet",
+      icon: <SkillSheetIcon />,
     },
     {
       title: "プロフィール",
       path: "/profile",
+      icon: <ProfileIcon />,
     },
   ];
 
@@ -130,6 +149,31 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
             },
           }}
         >
+          {item.icon && collapsed && (
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center',
+              width: '100%',
+              color: isActive ? 'primary.main' : 'text.secondary'
+            }}>
+              {React.cloneElement(item.icon as React.ReactElement, {
+                sx: { fontSize: 24 }
+              })}
+            </Box>
+          )}
+          {item.icon && !collapsed && (
+            <Box sx={{ 
+              mr: 2, 
+              display: 'flex', 
+              alignItems: 'center',
+              color: isActive ? 'primary.main' : 'text.secondary'
+            }}>
+              {React.cloneElement(item.icon as React.ReactElement, {
+                sx: { fontSize: 20 }
+              })}
+            </Box>
+          )}
+          {!collapsed && (
           <ListItemText
             primary={
               item.badge ? (
@@ -150,7 +194,8 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
               },
             }}
           />
-          {hasChildren &&
+          )}
+          {hasChildren && !collapsed &&
             (isExpanded ? <ExpandLess /> : <ExpandMore />)}
         </ListItemButton>
       </ListItem>
@@ -185,27 +230,59 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
           p: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: "space-between",
+          justifyContent: collapsed ? "center" : "space-between",
           borderBottom: "1px solid",
           borderColor: "divider",
           minHeight: 70,
+          position: 'relative',
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Box>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: "bold",
-                color: "text.primary",
-                lineHeight: 1.2,
-								marginLeft: 3,
-              }}
-            >
-              MONSTERA
-            </Typography>
+        {!collapsed ? (
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Box>
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: "bold",
+                  color: "text.primary",
+                  lineHeight: 1.2,
+                  marginLeft: 3,
+                }}
+              >
+                MONSTERA
+              </Typography>
+            </Box>
           </Box>
-        </Box>
+        ) : (
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: "bold",
+              color: "text.primary",
+            }}
+          >
+            M
+          </Typography>
+        )}
+        {!mobile && (
+          <IconButton
+            onClick={onToggleCollapse}
+            sx={{
+              position: 'absolute',
+              right: collapsed ? 'calc(50% - 12px)' : 8,
+              width: 24,
+              height: 24,
+              border: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
+              '&:hover': {
+                bgcolor: 'action.hover',
+              },
+            }}
+          >
+            {collapsed ? <ChevronRightIcon sx={{ fontSize: 16 }} /> : <ChevronLeftIcon sx={{ fontSize: 16 }} />}
+          </IconButton>
+        )}
       </Box>
 
       {/* メニューアイテム */}
@@ -223,18 +300,18 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
         >
           <ListItem disablePadding>
             <ListItemButton
-              onClick={() => setUserMenuExpanded(!userMenuExpanded)}
+              onClick={collapsed ? undefined : () => setUserMenuExpanded(!userMenuExpanded)}
               sx={{
                 minHeight: 64,
-                px: 2.5,
-                justifyContent: "space-between",
+                px: collapsed ? 1 : 2.5,
+                justifyContent: collapsed ? "center" : "space-between",
                 bgcolor: "background.paper",
                 "&:hover": {
                   bgcolor: "action.hover",
                 },
               }}
             >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              {collapsed ? (
                 <Avatar
                   sx={{
                     width: 32,
@@ -245,28 +322,44 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
                 >
                   {user.first_name?.[0]?.toUpperCase() || user.last_name?.[0]?.toUpperCase() || 'U'}
                 </Avatar>
-                <Box>
-                  <Typography variant="body2" fontWeight="500">
-                    {user.last_name && user.first_name
-                      ? `${user.last_name} ${user.first_name}`
-                      : user.email}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {(() => {
-                      const roleMap: Record<number, string> = {
-                        1: 'スーパー管理者',
-                        2: '管理者',
-                        3: 'マネージャー',
-                        4: 'エンジニア'
-                      };
-                      return roleMap[user.role] || 'ユーザー';
-                    })()}
-                  </Typography>
-                </Box>
-              </Box>
-              {userMenuExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              ) : (
+                <>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Avatar
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        bgcolor: "primary.main",
+                        fontSize: "0.875rem",
+                      }}
+                    >
+                      {user.first_name?.[0]?.toUpperCase() || user.last_name?.[0]?.toUpperCase() || 'U'}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" fontWeight="500">
+                        {user.last_name && user.first_name
+                          ? `${user.last_name} ${user.first_name}`
+                          : user.email}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {(() => {
+                          const roleMap: Record<number, string> = {
+                            1: 'スーパー管理者',
+                            2: '管理者',
+                            3: 'マネージャー',
+                            4: 'エンジニア'
+                          };
+                          return roleMap[user.role] || 'ユーザー';
+                        })()}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  {userMenuExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                </>
+              )}
             </ListItemButton>
           </ListItem>
+          {!collapsed && (
           <Collapse in={userMenuExpanded} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
               <ListItem disablePadding>
@@ -308,22 +401,25 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
               )}
             </List>
           </Collapse>
+          )}
         </Box>
       )}
 
       {/* フッター */}
-      <Box
-        sx={{
-          p: 2,
-          borderTop: "1px solid",
-          borderColor: "divider",
-          textAlign: "center",
-        }}
-      >
-        <Typography variant="caption" color="text.secondary">
-          © 2025 Monstera
-        </Typography>
-      </Box>
+      {!collapsed && (
+        <Box
+          sx={{
+            p: 2,
+            borderTop: "1px solid",
+            borderColor: "divider",
+            textAlign: "center",
+          }}
+        >
+          <Typography variant="caption" color="text.secondary">
+            © 2025 Monstera
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 
@@ -335,14 +431,16 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
     <Drawer
       variant="permanent"
       sx={{
-        width: SIDEBAR_WIDTH,
+        width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
         flexShrink: 0,
+        transition: 'width 0.3s ease',
         "& .MuiDrawer-paper": {
-          width: SIDEBAR_WIDTH,
+          width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
           boxSizing: "border-box",
           overflowX: "hidden",
           borderRight: "1px solid",
           borderColor: "divider",
+          transition: 'width 0.3s ease',
         },
       }}
     >
