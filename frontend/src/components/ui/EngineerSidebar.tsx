@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Image from "next/image";
 import {
   Box,
   Drawer,
@@ -222,6 +223,7 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
         display: "flex",
         flexDirection: "column",
         bgcolor: "background.paper",
+        position: 'relative',
       }}
     >
       {/* ヘッダー */}
@@ -230,7 +232,7 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
           p: 2,
           display: "flex",
           alignItems: "center",
-          justifyContent: collapsed ? "center" : "space-between",
+          justifyContent: collapsed ? "center" : "flex-start",
           borderBottom: "1px solid",
           borderColor: "divider",
           minHeight: 70,
@@ -238,50 +240,73 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
         }}
       >
         {!collapsed ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Box>
-              <Typography
-                variant="h4"
-                sx={{
-                  fontWeight: "bold",
-                  color: "text.primary",
-                  lineHeight: 1.2,
-                  marginLeft: 3,
-                }}
-              >
-                MONSTERA
-              </Typography>
-            </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: 1 }}>
+            <Image
+              src="/assets/monstera-logo.png"
+              alt="Monstera Logo"
+              width={32}
+              height={32}
+              style={{ objectFit: 'contain' }}
+            />
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: "bold",
+                color: "text.primary",
+                lineHeight: 1.2,
+              }}
+            >
+              MONSTERA
+            </Typography>
           </Box>
         ) : (
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: "bold",
-              color: "text.primary",
-            }}
-          >
-            M
-          </Typography>
+          <Image
+            src="/assets/monstera-logo.png"
+            alt="Monstera Logo"
+            width={32}
+            height={32}
+            style={{ objectFit: 'contain' }}
+          />
         )}
+        
+        {/* 開閉ボタン（ヘッダー部分の横に配置） */}
         {!mobile && (
-          <IconButton
-            onClick={onToggleCollapse}
+          <Box
             sx={{
               position: 'absolute',
-              right: collapsed ? 'calc(50% - 12px)' : 8,
-              width: 24,
-              height: 24,
-              border: '1px solid',
-              borderColor: 'divider',
-              bgcolor: 'background.paper',
-              '&:hover': {
-                bgcolor: 'action.hover',
-              },
+              right: -20,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 1,
             }}
           >
-            {collapsed ? <ChevronRightIcon sx={{ fontSize: 16 }} /> : <ChevronLeftIcon sx={{ fontSize: 16 }} />}
-          </IconButton>
+            <IconButton
+              onClick={onToggleCollapse}
+              sx={{
+                width: 20,
+                height: 48,
+                borderRadius: '0 4px 4px 0',
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderLeft: 'none',
+                p: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '2px 0 4px rgba(0,0,0,0.1)',
+                '&:hover': {
+                  bgcolor: 'action.hover',
+                },
+              }}
+            >
+              {collapsed ? (
+                <ChevronRightIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              ) : (
+                <ChevronLeftIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              )}
+            </IconButton>
+          </Box>
         )}
       </Box>
 
@@ -437,7 +462,7 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = ({
         "& .MuiDrawer-paper": {
           width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
           boxSizing: "border-box",
-          overflowX: "hidden",
+          overflow: "visible",
           borderRight: "1px solid",
           borderColor: "divider",
           transition: 'width 0.3s ease',
