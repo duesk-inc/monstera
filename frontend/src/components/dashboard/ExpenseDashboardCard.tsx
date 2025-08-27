@@ -7,7 +7,6 @@ import {
   Grid,
   LinearProgress,
   Alert,
-  Button,
   Skeleton,
   Stack,
   Chip,
@@ -17,11 +16,7 @@ import {
 } from '@mui/material';
 import {
   AccountBalanceWallet as WalletIcon,
-  TrendingUp as TrendingUpIcon,
   Warning as WarningIcon,
-  Add as AddIcon,
-  CalendarToday as CalendarIcon,
-  Speed as SpeedIcon,
 } from '@mui/icons-material';
 import { useRouter } from 'next/navigation';
 import { useCurrentExpenseSummary, useExpenseSummaryUtils } from '@/hooks/useExpenseSummary';
@@ -44,47 +39,8 @@ export default function ExpenseDashboardCard() {
     getUsageColor,
     isOverLimit,
     isNearLimit,
-    getBalanceStatus,
   } = useExpenseSummaryUtils();
 
-  // 残額分析のヘルパー関数
-  const getRemainingAnalysis = () => {
-    if (!summary) return null;
-
-    const now = new Date();
-    const currentMonth = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
-    
-    // 今月の残日数を計算
-    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-    const currentDay = now.getDate();
-    const remainingDaysInMonth = daysInMonth - currentDay;
-    
-    // 今年の残日数を計算
-    const endOfYear = new Date(currentYear, 11, 31);
-    const remainingDaysInYear = Math.ceil((endOfYear.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // 月次推奨使用ペース
-    const monthlyRecommendedDaily = remainingDaysInMonth > 0 
-      ? summary.monthly.remaining / remainingDaysInMonth 
-      : 0;
-    
-    // 年次推奨使用ペース
-    const yearlyRecommendedDaily = remainingDaysInYear > 0 
-      ? summary.yearly.remaining / remainingDaysInYear 
-      : 0;
-    
-    return {
-      remainingDaysInMonth,
-      remainingDaysInYear,
-      monthlyRecommendedDaily,
-      yearlyRecommendedDaily,
-      monthlyBalanceStatus: getBalanceStatus(summary.monthly.remaining, summary.monthly.limit),
-      yearlyBalanceStatus: getBalanceStatus(summary.yearly.remaining, summary.yearly.limit),
-    };
-  };
-
-  const remainingAnalysis = getRemainingAnalysis();
 
   if (error) {
     return (
@@ -177,124 +133,6 @@ export default function ExpenseDashboardCard() {
             ? '月次上限に近づいています'
             : '年次上限に近づいています'}
         </Alert>
-      )}
-
-      {/* 残額ハイライト */}
-      {summary && remainingAnalysis && (
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            残額状況
-          </Typography>
-          <Grid container spacing={2}>
-            {/* 月次残額 */}
-            <Grid item xs={12} sm={6}>
-              <Card 
-                variant="outlined" 
-                sx={{ 
-                  borderColor: `${remainingAnalysis.monthlyBalanceStatus.color}.main`,
-                  bgcolor: `${remainingAnalysis.monthlyBalanceStatus.color}.light`,
-                  '&:hover': { bgcolor: `${remainingAnalysis.monthlyBalanceStatus.color}.100` }
-                }}
-              >
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                    <WalletIcon color={remainingAnalysis.monthlyBalanceStatus.color as any} />
-                    <Typography variant="subtitle2" color="text.secondary">
-                      今月の残額
-                    </Typography>
-                  </Stack>
-                  
-                  <Typography 
-                    variant="h4" 
-                    fontWeight="bold" 
-                    color={`${remainingAnalysis.monthlyBalanceStatus.color}.main`}
-                    sx={{ mb: 1 }}
-                  >
-                    {formatCurrency(summary.monthly.remaining)}
-                  </Typography>
-                  
-                  <Chip 
-                    label={remainingAnalysis.monthlyBalanceStatus.status}
-                    color={remainingAnalysis.monthlyBalanceStatus.color as any}
-                    size="small"
-                    sx={{ mb: 2 }}
-                  />
-                  
-                  {remainingAnalysis.remainingDaysInMonth > 0 && (
-                    <Box>
-                      <Stack direction="row" justifyContent="center" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
-                        <CalendarIcon fontSize="small" color="action" />
-                        <Typography variant="caption" color="text.secondary">
-                          あと{remainingAnalysis.remainingDaysInMonth}日
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="center" alignItems="center" spacing={0.5}>
-                        <SpeedIcon fontSize="small" color="action" />
-                        <Typography variant="caption" color="text.secondary">
-                          推奨日額: {formatCurrency(remainingAnalysis.monthlyRecommendedDaily)}
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* 年次残額 */}
-            <Grid item xs={12} sm={6}>
-              <Card 
-                variant="outlined" 
-                sx={{ 
-                  borderColor: `${remainingAnalysis.yearlyBalanceStatus.color}.main`,
-                  bgcolor: `${remainingAnalysis.yearlyBalanceStatus.color}.light`,
-                  '&:hover': { bgcolor: `${remainingAnalysis.yearlyBalanceStatus.color}.100` }
-                }}
-              >
-                <CardContent sx={{ textAlign: 'center', py: 2 }}>
-                  <Stack direction="row" justifyContent="center" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-                    <TrendingUpIcon color={remainingAnalysis.yearlyBalanceStatus.color as any} />
-                    <Typography variant="subtitle2" color="text.secondary">
-                      今年の残額
-                    </Typography>
-                  </Stack>
-                  
-                  <Typography 
-                    variant="h4" 
-                    fontWeight="bold" 
-                    color={`${remainingAnalysis.yearlyBalanceStatus.color}.main`}
-                    sx={{ mb: 1 }}
-                  >
-                    {formatCurrency(summary.yearly.remaining)}
-                  </Typography>
-                  
-                  <Chip 
-                    label={remainingAnalysis.yearlyBalanceStatus.status}
-                    color={remainingAnalysis.yearlyBalanceStatus.color as any}
-                    size="small"
-                    sx={{ mb: 2 }}
-                  />
-                  
-                  {remainingAnalysis.remainingDaysInYear > 0 && (
-                    <Box>
-                      <Stack direction="row" justifyContent="center" alignItems="center" spacing={0.5} sx={{ mb: 1 }}>
-                        <CalendarIcon fontSize="small" color="action" />
-                        <Typography variant="caption" color="text.secondary">
-                          あと{remainingAnalysis.remainingDaysInYear}日
-                        </Typography>
-                      </Stack>
-                      <Stack direction="row" justifyContent="center" alignItems="center" spacing={0.5}>
-                        <SpeedIcon fontSize="small" color="action" />
-                        <Typography variant="caption" color="text.secondary">
-                          推奨日額: {formatCurrency(remainingAnalysis.yearlyRecommendedDaily)}
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Box>
       )}
 
       {/* 集計カード */}
@@ -450,29 +288,6 @@ export default function ExpenseDashboardCard() {
         </Grid>
       </Grid>
 
-      {/* アクションボタン */}
-      <Box sx={{ mt: 3, display: 'flex', gap: 1, justifyContent: 'center' }}>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => router.push('/expenses/new')}
-          disabled={isMonthlyOver || isYearlyOver}
-        >
-          新規申請
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={() => router.push('/expenses')}
-        >
-          申請履歴
-        </Button>
-      </Box>
-
-      {(isMonthlyOver || isYearlyOver) && (
-        <Typography variant="caption" color="error" sx={{ display: 'block', textAlign: 'center', mt: 1 }}>
-          上限超過のため新規申請はできません
-        </Typography>
-      )}
     </ContentCard>
   );
 }
