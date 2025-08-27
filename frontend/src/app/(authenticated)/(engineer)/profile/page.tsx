@@ -1,16 +1,17 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { Box, Typography } from '@mui/material';
 import { useProfile } from '@/hooks/profile/useProfile';
 import { useProfileForm } from '@/hooks/profile/useProfileForm';
 import { ProfileHeader } from '@/components/features/profile/ProfileHeader';
-import { ProfileStatusCards } from '@/components/features/profile/ProfileStatusCards';
 import { BasicInfoCard } from '@/components/features/profile/BasicInfoCard';
 import { ProfileTabbedContent } from '@/components/features/profile/ProfileTabbedContent';
 import { FormContainer, useToast, PageContainer } from '@/components/common';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ja } from 'date-fns/locale';
+import { format } from 'date-fns';
 import { useEnhancedErrorHandler } from '@/hooks/common/useEnhancedErrorHandler';
 
 export default function ProfilePage() {
@@ -49,7 +50,7 @@ export default function ProfilePage() {
     <PageContainer>
       <FormContainer
         loading={isLoading}
-        error={error ? handleError(error) : null}
+        error={error ? handleError(error)?.message || 'エラーが発生しました' : null}
         data-testid="profile-form-container"
       >
         <ProfileHeader 
@@ -64,11 +65,16 @@ export default function ProfilePage() {
         
         {!isLoading && !error && (
           <>
-            {/* ステータスカード表示 */}
-            <ProfileStatusCards 
-              profile={profile}
-              formData={formMethods.formMethods.getValues()}
-            />
+            {/* 最終更新日表示 */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" color="text.secondary">
+                  最終更新: {profile?.updatedAt 
+                    ? format(new Date(profile.updatedAt), 'yyyy年MM月dd日 HH:mm', { locale: ja })
+                    : '未更新'}
+                </Typography>
+              </Box>
+            </Box>
             
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
               <form onSubmit={formMethods.handleSubmit} id="profile-form">
