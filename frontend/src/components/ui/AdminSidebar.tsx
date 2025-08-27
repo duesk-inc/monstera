@@ -238,7 +238,7 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
             justifyContent: "initial",
             px: 2.5,
             pl: level > 0 ? 4 : 2.5,
-            borderRadius: 2,
+            borderRadius: 0,
             mx: 1,
             my: 0.5,
             bgcolor: isActive ? "error.50" : "transparent",
