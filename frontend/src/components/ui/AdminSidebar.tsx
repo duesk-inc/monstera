@@ -394,7 +394,13 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
                 justifyContent: 'center',
                 boxShadow: '2px 0 4px rgba(0,0,0,0.1)',
                 '&:hover': {
-                  bgcolor: 'action.hover',
+                  bgcolor: 'background.paper', // 背景色は変化させない
+                },
+                '& svg': {
+                  transition: 'transform 0.2s ease', // スムーズなアニメーション
+                },
+                '&:hover svg': {
+                  transform: 'scale(1.2)', // ホバー時にアイコンを1.2倍に拡大
                 },
               }}
             >
