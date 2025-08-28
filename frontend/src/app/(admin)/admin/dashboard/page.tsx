@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Card, CardContent, Typography, IconButton, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, Button, Divider, Skeleton, Alert } from '@mui/material';
+import { Box, Card, CardContent, Typography, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, Button, Divider, Skeleton, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
   Assignment as AssignmentIcon,
@@ -10,7 +10,6 @@ import {
   Warning as WarningIcon,
   ArrowForward as ArrowForwardIcon,
   People as PeopleIcon,
-  Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { PageContainer } from '@/components/common/layout';
 import { StatusCard } from '@/components/common/cards';
@@ -111,11 +110,6 @@ export default function AdminDashboard() {
     <PageContainer 
       title="管理者ダッシュボード"
       maxWidth="xl"
-      action={
-        <IconButton onClick={refresh} color="primary">
-          <RefreshIcon />
-        </IconButton>
-      }
     >
       {/* 未提出者アラート */}
       <UnsubmittedAlert />
@@ -135,19 +129,11 @@ export default function AdminDashboard() {
       )} */}
       
       {/* 期間選択 */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <Box sx={{ mb: 3 }}>
         <PeriodSelector 
           selectedPeriod={selectedPeriod} 
           onPeriodChange={setSelectedPeriod}
         />
-        <Button 
-          variant="outlined" 
-          size="small" 
-          onClick={() => { refresh(); refreshStats(); }}
-          startIcon={<RefreshIcon />}
-        >
-          更新
-        </Button>
       </Box>
 
       {/* 週報統計カード */}
