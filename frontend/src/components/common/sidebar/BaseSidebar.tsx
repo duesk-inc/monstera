@@ -96,14 +96,39 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
     );
   };
 
+  const [popoverTimeout, setPopoverTimeout] = React.useState<NodeJS.Timeout | null>(null);
+
   const handleMouseEnter = (event: React.MouseEvent<HTMLElement>, itemTitle: string) => {
     if (!mobile && !collapsed) {
+      // Clear any existing timeout
+      if (popoverTimeout) {
+        clearTimeout(popoverTimeout);
+        setPopoverTimeout(null);
+      }
       setHoveredItem(itemTitle);
       setAnchorEl(event.currentTarget);
     }
   };
 
   const handleMouseLeave = () => {
+    // Add a delay before closing to allow mouse to move to submenu
+    const timeout = setTimeout(() => {
+      setHoveredItem(null);
+      setAnchorEl(null);
+    }, 100);
+    setPopoverTimeout(timeout);
+  };
+
+  const handlePopoverMouseEnter = () => {
+    // Cancel the close timeout when mouse enters the popover
+    if (popoverTimeout) {
+      clearTimeout(popoverTimeout);
+      setPopoverTimeout(null);
+    }
+  };
+
+  const handlePopoverMouseLeave = () => {
+    // Close the popover when mouse leaves
     setHoveredItem(null);
     setAnchorEl(null);
   };
@@ -225,6 +250,12 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
             }}
             onClose={handleMouseLeave}
             disableRestoreFocus
+            disableScrollLock
+            hideBackdrop
+            disablePortal={false}
+            keepMounted={false}
+            disableEnforceFocus
+            disableAutoFocus
             sx={{
               pointerEvents: 'none',
               '& .MuiPopover-paper': {
@@ -240,10 +271,8 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
             }}
           >
             <Paper
-              onMouseEnter={() => {
-                setHoveredItem(item.title);
-              }}
-              onMouseLeave={handleMouseLeave}
+              onMouseEnter={handlePopoverMouseEnter}
+              onMouseLeave={handlePopoverMouseLeave}
               sx={{ py: 0.5 }}
             >
               <List component="div" disablePadding>
