@@ -24,8 +24,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { ja } from 'date-fns/locale';
 import { CreateEngineerInput, UpdateEngineerInput, EngineerDetail } from '@/types/engineer';
-import { ENGINEER_STATUS, ENGINEER_STATUS_LABELS } from '@/constants/engineer';
-import FormSelect from '@/components/common/forms/FormSelect';
 
 interface EngineerFormProps {
   mode: 'create' | 'edit';
@@ -56,18 +54,13 @@ export const EngineerForm: React.FC<EngineerFormProps> = ({
       email: initialData.user.email,
       firstName: initialData.user.firstName,
       lastName: initialData.user.lastName,
-      firstNameKana: initialData.user.firstNameKana,
-      lastNameKana: initialData.user.lastNameKana,
+      firstNameKana: initialData.user.firstNameKana || '',
+      lastNameKana: initialData.user.lastNameKana || '',
       sei: initialData.user.sei,
       mei: initialData.user.mei,
-      seiKana: initialData.user.seiKana,
-      meiKana: initialData.user.meiKana,
       phoneNumber: initialData.user.phoneNumber || '',
-      department: initialData.user.department || '',
-      position: initialData.user.position || '',
       hireDate: initialData.user.hireDate || '',
       education: initialData.user.education || '',
-      engineerStatus: initialData.user.engineerStatus,
     } : {
       email: '',
       password: '', // 新規登録時のみ
@@ -77,14 +70,9 @@ export const EngineerForm: React.FC<EngineerFormProps> = ({
       lastNameKana: '',
       sei: '',
       mei: '',
-      seiKana: '',
-      meiKana: '',
       phoneNumber: '',
-      department: '',
-      position: '',
       hireDate: '',
       education: '',
-      engineerStatus: ENGINEER_STATUS.ACTIVE,
     },
   });
 
@@ -96,13 +84,15 @@ export const EngineerForm: React.FC<EngineerFormProps> = ({
       (data as CreateEngineerInput).password = email;
     }
     
+    // 新規登録時の固定値を設定
+    if (mode === 'create') {
+      data.engineerStatus = 'standby'; // 待機中
+      data.department = 'システムソリューション事業部';
+      data.position = 'メンバー';
+    }
+    
     await onSubmit(data);
   };
-
-  const engineerStatusOptions = Object.entries(ENGINEER_STATUS_LABELS).map(([value, label]) => ({
-    value,
-    label,
-  }));
 
   return (
     <Box component="form" onSubmit={handleSubmit(onSubmitForm)} noValidate>
@@ -249,6 +239,7 @@ export const EngineerForm: React.FC<EngineerFormProps> = ({
           />
         </Grid>
 
+
         {/* 名前（日本語） */}
         <Grid size={12}>
           <Typography variant="subtitle1" gutterBottom sx={{ mt: 2 }}>
@@ -256,26 +247,7 @@ export const EngineerForm: React.FC<EngineerFormProps> = ({
           </Typography>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Controller
-            name="mei"
-            control={control}
-            rules={{ required: '名は必須です' }}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="名"
-                fullWidth
-                required
-                error={!!errors.mei}
-                helperText={errors.mei?.message}
-                placeholder="太郎"
-              />
-            )}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Controller
             name="sei"
             control={control}
@@ -294,35 +266,25 @@ export const EngineerForm: React.FC<EngineerFormProps> = ({
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 3 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Controller
-            name="meiKana"
+            name="mei"
             control={control}
+            rules={{ required: '名は必須です' }}
             render={({ field }) => (
               <TextField
                 {...field}
-                label="名（かな）"
+                label="名"
                 fullWidth
-                placeholder="たろう"
+                required
+                error={!!errors.mei}
+                helperText={errors.mei?.message}
+                placeholder="太郎"
               />
             )}
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 3 }}>
-          <Controller
-            name="seiKana"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="姓（かな）"
-                fullWidth
-                placeholder="やまだ"
-              />
-            )}
-          />
-        </Grid>
 
         {/* 連絡先情報 */}
         <Grid size={12}>
@@ -355,63 +317,6 @@ export const EngineerForm: React.FC<EngineerFormProps> = ({
           />
         </Grid>
 
-        {/* 組織情報 */}
-        <Grid size={12}>
-          <Typography variant="subtitle1" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 3 }}>
-            <BusinessIcon />
-            組織情報
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
-            name="department"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="部署"
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <BusinessIcon />
-                    </InputAdornment>
-                  ),
-                }}
-                placeholder="開発部"
-              />
-            )}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
-            name="position"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="役職"
-                fullWidth
-                placeholder="シニアエンジニア"
-              />
-            )}
-          />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 4 }}>
-          <FormSelect
-            name="engineerStatus"
-            control={control}
-            label="ステータス"
-            options={engineerStatusOptions}
-            required
-            rules={{ required: 'ステータスは必須です' }}
-            error={errors.engineerStatus}
-          />
-        </Grid>
 
         {/* その他情報 */}
         <Grid size={12}>

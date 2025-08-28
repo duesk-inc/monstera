@@ -284,6 +284,39 @@ export interface EngineerFormData {
   managerId: string;
 }
 
+// エンジニア作成入力
+export interface CreateEngineerInput {
+  email: string;
+  password?: string;
+  firstName: string;
+  lastName: string;
+  firstNameKana: string;
+  lastNameKana: string;
+  sei: string;
+  mei: string;
+  phoneNumber?: string;
+  hireDate?: string;
+  education?: string;
+  // 以下はフォームで自動設定
+  engineerStatus?: string;
+  department?: string;
+  position?: string;
+}
+
+// エンジニア更新入力
+export interface UpdateEngineerInput {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  firstNameKana?: string;
+  lastNameKana?: string;
+  sei?: string;
+  mei?: string;
+  phoneNumber?: string;
+  hireDate?: string;
+  education?: string;
+}
+
 // フィルター状態
 export interface EngineerFilters {
   keyword: string;

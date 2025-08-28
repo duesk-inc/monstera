@@ -55,7 +55,7 @@ export const useCreateEngineer = () => {
   const queryClient = useQueryClient();
   const { showSuccess, showError } = useToast();
 
-  return useMutation({
+  const { mutateAsync: createEngineer, isPending: isCreating } = useMutation({
     mutationFn: async (data: CreateEngineerRequest) => {
       const response = await adminEngineerApi.createEngineer(data);
       return response;
@@ -63,13 +63,15 @@ export const useCreateEngineer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.adminEngineers() });
       queryClient.invalidateQueries({ queryKey: queryKeys.adminEngineerStatistics });
-      showSuccess('エンジニアを登録しました');
     },
     onError: (error: any) => {
       const message = error?.message || 'エンジニアの登録に失敗しました';
       showError(message);
+      throw error;
     },
   });
+
+  return { createEngineer, isCreating };
 };
 
 // エンジニア更新ミューテーション
