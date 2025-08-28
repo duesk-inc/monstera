@@ -349,7 +349,7 @@ func Load(envFile ...string) (*Config, error) {
 		Cors: CorsConfig{
 			AllowOrigins:     []string{getEnv("CORS_ALLOW_ORIGINS", "http://localhost:3000")},
 			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "X-Admin-Request"},
 			ExposeHeaders:    []string{"Content-Length"},
 			AllowCredentials: true,
 			MaxAge:           time.Duration(corsMaxAge) * time.Second,
