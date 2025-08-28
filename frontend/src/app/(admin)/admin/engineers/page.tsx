@@ -25,7 +25,6 @@ import {
   Person as PersonIcon,
   Email as EmailIcon,
   SwapHoriz as StatusChangeIcon,
-  Refresh as RefreshIcon,
   GetApp as ExportIcon,
   Publish as ImportIcon,
 } from '@mui/icons-material';
@@ -262,11 +261,6 @@ export default function EngineerManagement() {
   return (
     <PageContainer 
       title="エンジニア管理"
-      action={
-        <IconButton onClick={refresh} disabled={loading}>
-          <RefreshIcon />
-        </IconButton>
-      }
     >
       <Card>
         <CardContent>
