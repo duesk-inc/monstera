@@ -21,7 +21,6 @@ import { deepMergeWithDefaults } from '@/utils/deepMerge';
 import { FONT_SIZE } from '@/constants/typography';
 import { useDashboardStats } from '@/hooks/admin/useWeeklyReportSummary';
 import StatsSummaryCard from '@/components/admin/dashboard/StatsSummaryCard';
-import WeeklyReportChart from '@/components/admin/dashboard/WeeklyReportChart';
 import PeriodSelector from '@/components/admin/dashboard/PeriodSelector';
 // import LowMoodAlert from '@/components/admin/dashboard/LowMoodAlert'; // Mood機能削除により無効化
 
@@ -231,67 +230,48 @@ export default function AdminDashboard() {
         </Grid>
       </Grid>
 
-      {/* アラートと週報統計チャート */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {/* 週報統計チャート */}
-        {stats?.current && (
-          <Grid size={{ xs: 12, lg: 8 }}>
-            <WeeklyReportChart
-              submissionStats={stats.current?.submissionStats || {
-                submittedCount: 0,
-                draftCount: 0,
-                overdueCount: 0,
-                submissionRate: 0,
-                onTimeRate: 0
-              }}
-              departmentStats={stats.current?.departmentStats || []}
-            />
-          </Grid>
-        )}
-
-        {/* アラート */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card sx={{ height: '100%' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6">
-                  要対応アラート
-                </Typography>
-                <Button 
-                  size="small" 
-                  endIcon={<ArrowForwardIcon />}
-                  onClick={() => router.push('/admin/engineers/follow-up')}
-                >
-                  すべて見る
-                </Button>
-              </Box>
-              <List disablePadding>
-                {(safeData.alerts || []).map((alert, index) => (
-                  <React.Fragment key={alert.id}>
-                    <ListItem sx={{ px: 0 }}>
-                      <ListItemText
-                        primary={alert.title}
-                        secondary={alert.message}
+      {/* アラート */}
+      {safeData.alerts && safeData.alerts.length > 0 && (
+        <Card sx={{ mb: 4 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">
+                要対応アラート
+              </Typography>
+              <Button 
+                size="small" 
+                endIcon={<ArrowForwardIcon />}
+                onClick={() => router.push('/admin/engineers/follow-up')}
+              >
+                すべて見る
+              </Button>
+            </Box>
+            <List disablePadding>
+              {safeData.alerts.map((alert, index) => (
+                <React.Fragment key={alert.id}>
+                  <ListItem sx={{ px: 0 }}>
+                    <ListItemText
+                      primary={alert.title}
+                      secondary={alert.message}
+                    />
+                    <ListItemSecondaryAction>
+                      <Chip 
+                        label={
+                          alert.severity === 'critical' ? '高' : 
+                          alert.severity === 'warning' ? '中' : '低'
+                        }
+                        size="small"
+                        color={getSeverityColor(alert.severity) as any}
                       />
-                      <ListItemSecondaryAction>
-                        <Chip 
-                          label={
-                            alert.severity === 'critical' ? '高' : 
-                            alert.severity === 'warning' ? '中' : '低'
-                          }
-                          size="small"
-                          color={getSeverityColor(alert.severity) as any}
-                        />
-                      </ListItemSecondaryAction>
-                    </ListItem>
-                    {index < (safeData.alerts?.length || 0) - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  {index < safeData.alerts.length - 1 && <Divider />}
+                </React.Fragment>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
+      )}
     </PageContainer>
   );
 }
