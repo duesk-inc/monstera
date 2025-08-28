@@ -152,7 +152,7 @@ func (r *engineerRepository) FindEngineers(ctx context.Context, filters Engineer
 	}
 
 	// Preload
-	query = query.Preload("DepartmentRelation")
+	// DepartmentRelationのPreloadは削除（User構造体にリレーション定義なし）
 
 	// データ取得
 	if err := query.Find(&users).Error; err != nil {
@@ -180,8 +180,6 @@ func (r *engineerRepository) FindEngineerByID(ctx context.Context, id string) (*
 
 	err := r.db.WithContext(ctx).
 		Where("id = ?", id).
-		Preload("UserRoles").
-		Preload("DepartmentRelation").
 		First(&user).Error
 
 	if err != nil {

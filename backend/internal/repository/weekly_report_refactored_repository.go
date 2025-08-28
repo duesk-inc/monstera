@@ -109,7 +109,7 @@ func (r *weeklyReportRefactoredRepository) FindByID(ctx context.Context, id stri
 	var report model.WeeklyReport
 	err := r.WithContext(ctx).
 		Preload("User").
-		Preload("User.Department").
+		
 		Preload("DailyRecords").
 		First(&report, "id = ?", id).Error
 
@@ -188,7 +188,7 @@ func (r *weeklyReportRefactoredRepository) FindUnsubmittedWithPreload(ctx contex
 
 	query := r.WithContext(ctx).Model(&model.WeeklyReport{}).
 		Preload("User").
-		Preload("User.Department").
+		
 		Preload("User.Manager").
 		Where("status = ?", model.WeeklyReportStatusDraft).
 		Where("submission_deadline < ?", time.Now())

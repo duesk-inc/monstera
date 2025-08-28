@@ -609,7 +609,7 @@ func (r *ExpenseRepositoryImpl) GetByUserIDForExport(ctx context.Context, userID
 	var expenses []*model.Expense
 	query := r.db.WithContext(ctx).
 		Preload("User").
-		Preload("User.DepartmentRelation").
+		
 		Preload("Approver").
 		Where("user_id = ?", userID)
 
@@ -634,7 +634,7 @@ func (r *ExpenseRepositoryImpl) GetAllForExport(ctx context.Context, filter *dto
 	var expenses []*model.Expense
 	query := r.db.WithContext(ctx).
 		Preload("User").
-		Preload("User.DepartmentRelation").
+		
 		Preload("Approver")
 
 	// フィルター条件を適用
