@@ -42,6 +42,19 @@ interface AdminSidebarProps {
 }
 
 const AdminSidebar: React.FC<AdminSidebarProps> = (props) => {
+  // デバッグ: propsの確認
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('AdminSidebar Props:', {
+        hasUser: !!props.user,
+        userEmail: props.user?.email,
+        userRole: props.user?.role,
+        collapsed: props.collapsed,
+        mobile: props.mobile,
+        fullUserObject: props.user
+      });
+    }
+  }, [props]);
   const menuItems: MenuItem[] = [
     {
       title: "ダッシュボード",
@@ -198,7 +211,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = (props) => {
       activeColor="error"
       avatarBgColor="error.main"
       footerText="© 2025 Monstera Admin"
-      initialExpandedItems={["エンジニア管理"]}
     />
   );
 };

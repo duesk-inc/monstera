@@ -13,12 +13,15 @@ import {
   Collapse,
   Badge,
   IconButton,
+  Popover,
+  Paper,
 } from "@mui/material";
 import {
   ExpandLess,
   ExpandMore,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  ChevronRight,
 } from "@mui/icons-material";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -30,15 +33,15 @@ export interface MenuItem {
   title: string;
   path?: string;
   icon?: React.ReactNode;
-  badge?: number;
   children?: MenuItem[];
+  badge?: number;
 }
 
 export interface BaseSidebarProps {
   mobile?: boolean;
   onClose?: () => void;
-  user?: User | null;
-  onLogout?: () => void;
+  user: User | null;
+  onLogout: () => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
   menuItems: MenuItem[];
@@ -67,23 +70,52 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
 }) => {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = React.useState<string[]>(initialExpandedItems);
+  const [hoveredItem, setHoveredItem] = React.useState<string | null>(null);
+  const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
+
+  // デバッグ: userオブジェクトとmobileプロパティの確認
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('BaseSidebar Debug:', {
+        mobile,
+        collapsed,
+        user,
+        avatarBgColor,
+        activeColor,
+        hasUser: !!user,
+        userRole: user?.role,
+      });
+    }
+  }, [mobile, collapsed, user, avatarBgColor, activeColor]);
 
   const handleToggleExpand = (title: string) => {
     setExpandedItems((prev) =>
       prev.includes(title)
         ? prev.filter((item) => item !== title)
-        : [...prev, title],
+        : [...prev, title]
     );
   };
 
-  const renderMenuItem = (item: MenuItem, level: number = 0) => {
+  const handleMouseEnter = (event: React.MouseEvent<HTMLElement>, itemTitle: string) => {
+    if (!mobile && !collapsed) {
+      setHoveredItem(itemTitle);
+      setAnchorEl(event.currentTarget);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredItem(null);
+    setAnchorEl(null);
+  };
+
+  const renderMenuItem = (item: MenuItem, level: number = 0): React.ReactNode => {
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.includes(item.title);
-    const isActive = item.path === pathname;
-
+    const isActive = item.path ? pathname === item.path : false;
     const activeBgColor = activeColor === 'primary' ? 'primary.50' : 'error.50';
     const activeTextColor = activeColor === 'primary' ? 'primary.main' : 'error.main';
     const activeHoverColor = activeColor === 'primary' ? 'primary.100' : 'error.100';
+    const isHovered = hoveredItem === item.title;
 
     const listItem = (
       <ListItem
@@ -96,12 +128,16 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
         <ListItemButton
           component={item.path && !hasChildren ? Link : "div"}
           {...(item.path && !hasChildren ? { href: item.path } : {})}
+          onMouseEnter={hasChildren ? (e) => handleMouseEnter(e, item.title) : undefined}
+          onMouseLeave={hasChildren ? handleMouseLeave : undefined}
           onClick={
-            hasChildren
+            hasChildren && mobile
               ? () => handleToggleExpand(item.title)
-              : mobile
-                ? onClose
-                : undefined
+              : hasChildren && !mobile
+                ? (e: React.MouseEvent) => e.preventDefault()  // デスクトップで子メニューがある場合はクリックを無効化
+                : !hasChildren && mobile
+                  ? onClose
+                  : undefined
           }
           sx={{
             minHeight: 48,
@@ -164,8 +200,9 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
             }}
           />
           )}
-          {hasChildren && !collapsed &&
-            (isExpanded ? <ExpandLess /> : <ExpandMore />)}
+          {hasChildren && !collapsed && (
+            <ChevronRight sx={{ ml: 'auto', fontSize: 18, color: 'text.secondary' }} />
+          )}
         </ListItemButton>
       </ListItem>
     );
@@ -173,7 +210,78 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
     return (
       <React.Fragment key={item.title}>
         {listItem}
-        {hasChildren && (
+        {/* デスクトップ用ホバーポップアップメニュー */}
+        {hasChildren && isHovered && !mobile && !collapsed && (
+          <Popover
+            open={Boolean(anchorEl) && hoveredItem === item.title}
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'left',
+            }}
+            onClose={handleMouseLeave}
+            disableRestoreFocus
+            sx={{
+              pointerEvents: 'none',
+              '& .MuiPopover-paper': {
+                pointerEvents: 'auto',
+                ml: 0.5,
+                minWidth: 200,
+                boxShadow: '0px 8px 24px rgba(0, 0, 0, 0.12)',
+                borderRadius: 1,
+                border: '1px solid',
+                borderColor: 'divider',
+                mt: -1,
+              },
+            }}
+          >
+            <Paper
+              onMouseEnter={() => {
+                setHoveredItem(item.title);
+              }}
+              onMouseLeave={handleMouseLeave}
+              sx={{ py: 0.5 }}
+            >
+              <List component="div" disablePadding>
+                {item.children!.map((child) => (
+                  <ListItem key={child.title} disablePadding>
+                    <ListItemButton
+                      component={child.path ? Link : "div"}
+                      {...(child.path ? { href: child.path } : {})}
+                      sx={{
+                        px: 2.5,
+                        py: 1,
+                        minHeight: 40,
+                        '&:hover': {
+                          bgcolor: 'action.hover',
+                        },
+                        color: pathname === child.path ? activeTextColor : 'text.primary',
+                        bgcolor: pathname === child.path ? activeBgColor : 'transparent',
+                        fontWeight: pathname === child.path ? 600 : 400,
+                      }}
+                    >
+                      <ListItemText
+                        primary={child.title}
+                        primaryTypographyProps={{
+                          fontSize: '0.875rem',
+                        }}
+                      />
+                      {child.badge && (
+                        <Badge badgeContent={child.badge} color={activeColor} sx={{ ml: 2 }} />
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          </Popover>
+        )}
+        {/* モバイル用アコーディオンメニュー */}
+        {hasChildren && mobile && (
           <Collapse in={isExpanded} timeout="auto" unmountOnExit>
             <List component="div" disablePadding>
               {item.children!.map((child) => renderMenuItem(child, level + 1))}
@@ -184,129 +292,80 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
     );
   };
 
-  const drawerContent = (
-    <Box
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        bgcolor: "background.paper",
-        position: 'relative',
-      }}
-    >
-      {/* ヘッダー */}
-      <Box
-        sx={{
-          p: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: collapsed ? "center" : "flex-start",
-          borderBottom: "1px solid",
-          borderColor: "divider",
-          minHeight: 70,
-          position: 'relative',
-        }}
-      >
-        {!collapsed ? (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, ml: 1 }}>
-            <Image
-              src="/assets/monstera-logo.png"
-              alt="Monstera Logo"
-              width={32}
-              height={32}
-              style={{ objectFit: 'contain' }}
-            />
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: "bold",
-                color: "text.primary",
-                lineHeight: 1.2,
-              }}
-            >
-              MONSTERA
-            </Typography>
-          </Box>
-        ) : (
+  const sidebarContent = (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+      {/* 開閉ボタン - サイドバーの外に配置 */}
+      {onToggleCollapse && !mobile && (
+        <IconButton
+          onClick={onToggleCollapse}
+          sx={{
+            position: 'absolute',
+            top: 60,
+            right: collapsed ? -24 : -24,
+            bgcolor: 'background.paper',
+            border: 'none',
+            borderRadius: '0 8px 8px 0',
+            width: 24,
+            height: 40,
+            padding: 0,
+            boxShadow: '2px 0 4px rgba(0, 0, 0, 0.1)',
+            '&:hover': {
+              bgcolor: 'grey.100',
+              '& svg': {
+                transform: 'scale(1.1)',
+              },
+            },
+            transition: 'all 0.2s',
+            zIndex: 1300,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {collapsed ? (
+            <ChevronRightIcon sx={{ fontSize: 16, transition: 'transform 0.2s', color: 'text.secondary' }} />
+          ) : (
+            <ChevronLeftIcon sx={{ fontSize: 16, transition: 'transform 0.2s', color: 'text.secondary' }} />
+          )}
+        </IconButton>
+      )}
+      
+      {/* ヘッダー部分 */}
+      <Box sx={{ p: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Image
             src="/assets/monstera-logo.png"
             alt="Monstera Logo"
-            width={32}
-            height={32}
-            style={{ objectFit: 'contain' }}
-          />
-        )}
-        
-        {/* 開閉ボタン（ヘッダー部分の横に配置） */}
-        {!mobile && (
-          <Box
-            sx={{
-              position: 'absolute',
-              right: -20,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 1,
+            width={36}
+            height={36}
+            style={{
+              objectFit: 'contain',
             }}
-          >
-            <IconButton
-              onClick={onToggleCollapse}
-              sx={{
-                width: 20,
-                height: 48,
-                borderRadius: '0 4px 4px 0',
-                bgcolor: 'background.paper',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderLeft: 'none',
-                p: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '2px 0 4px rgba(0,0,0,0.1)',
-                '&:hover': {
-                  bgcolor: 'background.paper',
-                },
-                '& svg': {
-                  transition: 'transform 0.2s ease',
-                },
-                '&:hover svg': {
-                  transform: 'scale(1.2)',
-                },
-              }}
-            >
-              {collapsed ? (
-                <ChevronRightIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-              ) : (
-                <ChevronLeftIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
-              )}
-            </IconButton>
-          </Box>
-        )}
+          />
+          {!collapsed && (
+            <Typography variant="h6" fontWeight={700}>
+              MONSTERA
+            </Typography>
+          )}
+        </Box>
       </Box>
 
       {/* メニューアイテム */}
-      <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "hidden" }}>
-        <List>{menuItems.map((item) => renderMenuItem(item))}</List>
-      </Box>
+      <List sx={{ flexGrow: 1, py: 0, overflow: 'auto' }}>
+        {menuItems.map((item) => renderMenuItem(item))}
+      </List>
 
-      {/* ユーザーメニュー */}
-      <UserMenuSection 
+      {/* UserMenuSection - 下部に移動 */}
+      <UserMenuSection
         user={user}
-        onLogout={onLogout}
-        collapsed={collapsed}
         avatarBgColor={avatarBgColor}
+        collapsed={collapsed}
+        onLogout={onLogout}
       />
 
       {/* フッター */}
       {!collapsed && (
-        <Box
-          sx={{
-            p: 2,
-            borderTop: "1px solid",
-            borderColor: "divider",
-            textAlign: "center",
-          }}
-        >
+        <Box sx={{ p: 2, textAlign: "center" }}>
           <Typography variant="caption" color="text.secondary">
             {footerText}
           </Typography>
@@ -316,27 +375,55 @@ export const BaseSidebar: React.FC<BaseSidebarProps> = ({
   );
 
   if (mobile) {
-    return drawerContent;
+    return (
+      <Drawer
+        anchor="left"
+        open={true}
+        onClose={onClose}
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: SIDEBAR_WIDTH,
+            boxSizing: "border-box",
+          },
+        }}
+      >
+        {sidebarContent}
+      </Drawer>
+    );
   }
 
   return (
-    <Drawer
-      variant="permanent"
+    <Box
       sx={{
         width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
         flexShrink: 0,
-        transition: 'width 0.3s ease',
+        transition: "width 0.3s ease",
         "& .MuiDrawer-paper": {
           width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
           boxSizing: "border-box",
-          overflow: "visible",
-          borderRight: "1px solid",
-          borderColor: "divider",
-          transition: 'width 0.3s ease',
+          transition: "width 0.3s ease",
+          overflow: "hidden",
+          position: "relative",
         },
       }}
     >
-      {drawerContent}
-    </Drawer>
+      <Drawer
+        variant="permanent"
+        sx={{
+          "& .MuiDrawer-paper": {
+            width: collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
+            boxSizing: "border-box",
+            transition: "width 0.3s ease",
+            height: '100vh',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            overflow: 'visible',  // ボタンをはみ出させるため
+          },
+        }}
+      >
+        {sidebarContent}
+      </Drawer>
+    </Box>
   );
 };

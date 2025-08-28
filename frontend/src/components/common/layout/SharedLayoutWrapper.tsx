@@ -70,19 +70,22 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
         bgcolor: isAdmin ? 'grey.50' : 'background.default' 
       }}
     >
-      {/* モバイル用ドロワー */}
-      <SharedMobileDrawer
-        open={mobileDrawerOpen}
-        onClose={handleDrawerToggle}
-        width={SIDEBAR_WIDTH}
-      >
-        {mobileSidebar}
-      </SharedMobileDrawer>
+      {/* モバイル用ドロワー - モバイル時のみレンダリング */}
+      {isMobile && (
+        <SharedMobileDrawer
+          open={mobileDrawerOpen}
+          onClose={handleDrawerToggle}
+          width={SIDEBAR_WIDTH}
+        >
+          {mobileSidebar}
+        </SharedMobileDrawer>
+      )}
 
       {/* デスクトップ用サイドバー */}
       {!isMobile && React.cloneElement(sidebar as React.ReactElement, {
         collapsed: sidebarCollapsed,
         onToggleCollapse: handleToggleCollapse,
+        mobile: false,  // デスクトップモードを明示的に指定
       })}
 
       {/* メインコンテンツ */}

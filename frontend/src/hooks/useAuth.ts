@@ -58,16 +58,6 @@ export const useAuth = () => {
     return isManagerUtil(currentUserRole);
   }, [currentUserRole]);
 
-  // Phase 3: 単一ロール用のユーザー情報（User型を直接使用）
-  const singleRoleUser: User | null = useMemo(() => {
-    if (!authContext.user) return null;
-    
-    // Phase 3: User型はroleが数値に統一された
-    return {
-      ...authContext.user,
-      role: currentUserRole || 4, // デフォルトはEngineer
-    };
-  }, [authContext.user, currentUserRole]);
 
   return {
     ...authContext,
@@ -75,7 +65,6 @@ export const useAuth = () => {
     initializeAuth,
     // 単一ロールシステム用の拡張
     currentUserRole,
-    singleRoleUser,
     hasPermission,
     isAdmin,
     isManager,

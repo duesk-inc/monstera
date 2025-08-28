@@ -22,6 +22,19 @@ interface EngineerSidebarProps {
 }
 
 const EngineerSidebar: React.FC<EngineerSidebarProps> = (props) => {
+  // デバッグ: propsの確認
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('EngineerSidebar Props:', {
+        hasUser: !!props.user,
+        userEmail: props.user?.email,
+        userRole: props.user?.role,
+        collapsed: props.collapsed,
+        mobile: props.mobile,
+        fullUserObject: props.user
+      });
+    }
+  }, [props]);
   const menuItems: MenuItem[] = [
     {
       title: "ダッシュボード",

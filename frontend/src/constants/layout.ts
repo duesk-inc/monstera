@@ -3,8 +3,8 @@
  */
 
 // Sidebar dimensions
-export const SIDEBAR_WIDTH = 280; // px
-export const SIDEBAR_WIDTH_COLLAPSED = 68; // px (not used after removing toggle feature)
+export const SIDEBAR_WIDTH = 246; // px
+export const SIDEBAR_WIDTH_COLLAPSED = 68; // px
 
 // Layout breakpoints - for consistency with MUI breakpoints
 export const BREAKPOINTS = {

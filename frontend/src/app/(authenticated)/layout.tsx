@@ -37,16 +37,19 @@ export default function RootLayout({
     </MenuItem>
   );
 
+  // ユーザー情報をそのまま使用（1ユーザー1ロール原則）
+  const userForSidebar = user;
+  
   const sidebar = isEngineer ? (
-    <EngineerSidebar user={user} onLogout={logout} />
+    <EngineerSidebar user={userForSidebar} onLogout={logout} />
   ) : (
-    <AdminSidebar user={user} onLogout={logout} />
+    <AdminSidebar user={userForSidebar} onLogout={logout} />
   );
 
   const mobileSidebar = isEngineer ? (
-    <EngineerSidebar mobile onClose={() => {}} user={user} onLogout={logout} />
+    <EngineerSidebar mobile onClose={() => {}} user={userForSidebar} onLogout={logout} />
   ) : (
-    <AdminSidebar mobile onClose={() => {}} user={user} onLogout={logout} />
+    <AdminSidebar mobile onClose={() => {}} user={userForSidebar} onLogout={logout} />
   );
 
   return (

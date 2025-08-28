@@ -15,9 +15,6 @@ export interface User {
   last_name: string | null;
   role: number;              // 数値型のロール (1-4)
   phone_number?: string | null;
-  // 後方互換性のため一時的に保持（Phase 4で削除予定）
-  roles?: string[];          // @deprecated
-  default_role?: number;     // @deprecated
 }
 
 // APIレスポンスのユーザー情報
@@ -31,9 +28,6 @@ export interface ApiUser {
   active?: boolean;
   created_at?: string;
   updated_at?: string;
-  // 後方互換性のため一時的に保持（Phase 4で削除予定）
-  roles?: number[];          // @deprecated
-  default_role?: number;     // @deprecated
 }
 
 // ログイン成功時のレスポンス
@@ -69,18 +63,4 @@ export interface LogoutResponse {
   message: string;
 }
 
-// ========================================
-// 以下の型はPhase 3で統合済みのため、Phase 4で削除予定
-// ========================================
-
-// @deprecated - Use User instead
-export type SingleRoleUser = User;
-
-// @deprecated - Use ApiUser instead
-export type SingleRoleApiUser = ApiUser;
-
-// @deprecated - Use LoginResponse instead
-export type SingleRoleLoginResponse = LoginResponse;
-
-// @deprecated - Use RefreshTokenResponse instead
-export type SingleRoleRefreshTokenResponse = RefreshTokenResponse; 
+ 

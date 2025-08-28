@@ -37,7 +37,25 @@ export const UserMenuSection: React.FC<UserMenuSectionProps> = ({
 }) => {
   const [userMenuExpanded, setUserMenuExpanded] = useState(false);
 
-  if (!user) return null;
+  // デバッグ: userオブジェクトの確認
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('UserMenuSection Debug:', {
+        user,
+        hasUser: !!user,
+        userRole: user?.role,
+        userEmail: user?.email,
+        firstName: user?.first_name,
+        lastName: user?.last_name,
+        avatarBgColor
+      });
+    }
+  }, [user, avatarBgColor]);
+
+  if (!user) {
+    console.warn('UserMenuSection: user is null, not rendering');
+    return null;
+  }
 
   // ロールマッピング
   const getRoleLabel = (role: number): string => {
