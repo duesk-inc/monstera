@@ -4,14 +4,11 @@ export interface PendingApprovals {
   weekly_reports: number;
   attendance_requests: number;
   leave_requests: number;
-  expense_reports: number;
 }
 
 export interface DashboardStatistics {
   active_engineers: number;
   utilization_rate: number;
-  monthly_revenue: number;
-  active_projects: number;
 }
 
 export interface DashboardAlert {

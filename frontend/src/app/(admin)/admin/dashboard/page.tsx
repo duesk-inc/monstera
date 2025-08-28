@@ -1,19 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Box, Card, CardContent, Typography, IconButton, LinearProgress, Paper, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, Button, Divider, Skeleton, Alert } from '@mui/material';
+import { Box, Card, CardContent, Typography, IconButton, List, ListItem, ListItemText, ListItemSecondaryAction, Chip, Button, Divider, Skeleton, Alert } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
   Assignment as AssignmentIcon,
   AccessTime as AccessTimeIcon,
   Receipt as ReceiptIcon,
   Warning as WarningIcon,
   ArrowForward as ArrowForwardIcon,
   People as PeopleIcon,
-  AttachMoney as MoneyIcon,
-  Assessment as AssessmentIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { PageContainer } from '@/components/common/layout';
@@ -39,8 +35,7 @@ export default function AdminDashboard() {
     pending_approvals: {
       weekly_reports: 0,
       attendance_requests: 0,
-      leave_requests: 0,
-      expense_reports: 0
+      leave_requests: 0
     },
     follow_up_needed: {
       engineers: 0,
@@ -62,11 +57,8 @@ export default function AdminDashboard() {
     alerts: [],
     statistics: {
       active_engineers: 0,
-      utilization_rate: 0,
-      monthly_revenue: 0,
-      active_projects: 0
-    },
-    recent_activities: []
+      utilization_rate: 0
+    }
   };
 
   // データが存在しない、または不完全な場合にデフォルト値を使用
@@ -210,7 +202,7 @@ export default function AdminDashboard() {
 
       {/* 統計カード */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <StatusCard
             title="承認待ち週報"
             value={safeData.pending_approvals.weekly_reports}
@@ -219,7 +211,7 @@ export default function AdminDashboard() {
             onClick={() => router.push('/admin/engineers/weekly-reports?status=pending')}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <StatusCard
             title="承認待ち勤怠"
             value={safeData.pending_approvals.attendance_requests}
@@ -228,19 +220,10 @@ export default function AdminDashboard() {
             onClick={() => router.push('/admin/engineers/attendance')}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <StatusCard
-            title="承認待ち経費"
-            value={safeData.pending_approvals.expense_requests}
-            icon={<ReceiptIcon />}
-            color="error"
-            onClick={() => router.push('/admin/engineers/expenses')}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <StatusCard
             title="要フォロー"
-            value={safeData.alerts.filter(a => a.type === 'follow_up').length}
+            value={safeData.alerts?.filter(a => a.type === 'follow_up').length || 0}
             icon={<WarningIcon />}
             color="warning"
             onClick={() => router.push('/admin/engineers/follow-up')}
@@ -248,11 +231,11 @@ export default function AdminDashboard() {
         </Grid>
       </Grid>
 
-      {/* チャートとメイン統計 */}
+      {/* アラートと週報統計チャート */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* 週報統計チャート */}
         {stats?.current && (
-          <Grid size={{ xs: 12, lg: 6 }}>
+          <Grid size={{ xs: 12, lg: 8 }}>
             <WeeklyReportChart
               submissionStats={stats.current?.submissionStats || {
                 submittedCount: 0,
@@ -265,91 +248,6 @@ export default function AdminDashboard() {
             />
           </Grid>
         )}
-        
-        {/* メイン統計 */}
-        <Grid size={{ xs: 12, lg: stats?.current ? 6 : 8 }}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                主要指標
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid size={{ xs: 6, md: 3 }}>
-                  <Box sx={{ textAlign: 'center', py: 2 }}>
-                    <PeopleIcon sx={{ fontSize: FONT_SIZE.XXXXL, color: 'primary.main', mb: 1 }} />
-                    <Typography variant="h4" fontWeight="bold">
-                      {safeData.statistics.active_engineers}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      稼働中エンジニア
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 6, md: 3 }}>
-                  <Box sx={{ textAlign: 'center', py: 2 }}>
-                    <AssessmentIcon sx={{ fontSize: FONT_SIZE.XXXXL, color: 'success.main', mb: 1 }} />
-                    <Typography variant="h4" fontWeight="bold">
-                      {safeData.statistics.utilization_rate.toFixed(1)}%
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      平均稼働率
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 6, md: 3 }}>
-                  <Box sx={{ textAlign: 'center', py: 2 }}>
-                    <MoneyIcon sx={{ fontSize: FONT_SIZE.XXXXL, color: 'warning.main', mb: 1 }} />
-                    <Typography variant="h4" fontWeight="bold">
-                      {(safeData.statistics.monthly_revenue / 1000000).toFixed(1)}M
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      月間売上
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 6, md: 3 }}>
-                  <Box sx={{ textAlign: 'center', py: 2 }}>
-                    <AssignmentIcon sx={{ fontSize: FONT_SIZE.XXXXL, color: 'info.main', mb: 1 }} />
-                    <Typography variant="h4" fontWeight="bold">
-                      {safeData.statistics.active_projects}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      進行中案件
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-              
-              <Divider sx={{ my: 3 }} />
-              
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                  稼働率推移
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <Box sx={{ width: '100%', mr: 1 }}>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={safeData.statistics.utilization_rate} 
-                      sx={{ height: 8, borderRadius: 4 }}
-                    />
-                  </Box>
-                  <Box sx={{ minWidth: 35 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      {safeData.statistics.utilization_rate.toFixed(1)}%
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <TrendingUpIcon color="success" fontSize="small" />
-                  <Typography variant="caption" color="success.main">
-                    先月比 +5.2%
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
 
         {/* アラート */}
         <Grid size={{ xs: 12, md: 4 }}>
@@ -368,7 +266,7 @@ export default function AdminDashboard() {
                 </Button>
               </Box>
               <List disablePadding>
-                {safeData.alerts.map((alert, index) => (
+                {(safeData.alerts || []).map((alert, index) => (
                   <React.Fragment key={alert.id}>
                     <ListItem sx={{ px: 0 }}>
                       <ListItemText
@@ -386,7 +284,7 @@ export default function AdminDashboard() {
                         />
                       </ListItemSecondaryAction>
                     </ListItem>
-                    {index < safeData.alerts.length - 1 && <Divider />}
+                    {index < (safeData.alerts?.length || 0) - 1 && <Divider />}
                   </React.Fragment>
                 ))}
               </List>
@@ -394,46 +292,6 @@ export default function AdminDashboard() {
           </Card>
         </Grid>
       </Grid>
-
-      {/* 最近のアクティビティ */}
-      <Card>
-        <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography variant="h6">
-              最近のアクティビティ
-            </Typography>
-            <Button 
-              size="small" 
-              endIcon={<ArrowForwardIcon />}
-              onClick={() => router.push('/admin/activities')}
-            >
-              すべて見る
-            </Button>
-          </Box>
-          <List disablePadding>
-            {safeData.recent_activities.map((activity, index) => (
-              <React.Fragment key={activity.id}>
-                <ListItem sx={{ px: 0 }}>
-                  <ListItemText
-                    primary={
-                      <Box component="span">
-                        <Typography component="span" fontWeight="medium">
-                          {activity.user_name}
-                        </Typography>
-                        <Typography component="span" color="text.secondary">
-                          {' '}さんが{activity.action}
-                        </Typography>
-                      </Box>
-                    }
-                    secondary={activity.time}
-                  />
-                </ListItem>
-                {index < safeData.recent_activities.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
-          </List>
-        </CardContent>
-      </Card>
     </PageContainer>
   );
 }
