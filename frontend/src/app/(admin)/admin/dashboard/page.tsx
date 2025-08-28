@@ -165,11 +165,11 @@ export default function AdminDashboard() {
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatsSummaryCard
               title="提出率"
-              value={stats.current.submissionStats.submissionRate}
+              value={stats.current?.submissionStats?.submissionRate || 0}
               unit="%"
               icon={<AssignmentIcon />}
               color="success"
-              trend={stats.hasComparison ? {
+              trend={stats.hasComparison && stats.current?.submissionStats?.submissionRate !== undefined ? {
                 trend: stats.current.submissionStats.submissionRate >= (stats.previous?.submissionStats?.submissionRate || 0) ? 'up' : 'down',
                 change: stats.current.submissionStats.submissionRate - (stats.previous?.submissionStats?.submissionRate || 0),
                 changeRate: ((stats.current.submissionStats.submissionRate - (stats.previous?.submissionStats?.submissionRate || 0)) / (stats.previous?.submissionStats?.submissionRate || 1)) * 100
@@ -180,11 +180,11 @@ export default function AdminDashboard() {
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatsSummaryCard
               title="平均稼働時間"
-              value={stats.current.workHourStats.averageWorkHours}
+              value={stats.current?.workHourStats?.averageWorkHours || 0}
               unit="時間"
               icon={<AccessTimeIcon />}
               color="info"
-              trend={stats.hasComparison ? {
+              trend={stats.hasComparison && stats.current?.workHourStats?.averageWorkHours !== undefined ? {
                 trend: stats.current.workHourStats.averageWorkHours >= (stats.previous?.workHourStats?.averageWorkHours || 0) ? 'up' : 'down',
                 change: stats.current.workHourStats.averageWorkHours - (stats.previous?.workHourStats?.averageWorkHours || 0),
                 changeRate: ((stats.current.workHourStats.averageWorkHours - (stats.previous?.workHourStats?.averageWorkHours || 0)) / (stats.previous?.workHourStats?.averageWorkHours || 1)) * 100
@@ -193,26 +193,12 @@ export default function AdminDashboard() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <StatsSummaryCard
-              title="平均ムード"
-              value={stats.current.moodStats.averageMood}
-              unit="/5.0"
-              icon={<AssessmentIcon />}
-              color={stats.current.moodStats.averageMood >= 3.5 ? 'success' : stats.current.moodStats.averageMood >= 2.5 ? 'warning' : 'error'}
-              trend={stats.hasComparison ? {
-                trend: stats.current.moodStats.averageMood >= (stats.previous?.moodStats?.averageMood || 0) ? 'up' : 'down',
-                change: stats.current.moodStats.averageMood - (stats.previous?.moodStats?.averageMood || 0),
-                changeRate: ((stats.current.moodStats.averageMood - (stats.previous?.moodStats?.averageMood || 0)) / (stats.previous?.moodStats?.averageMood || 1)) * 100
-              } : undefined}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <StatsSummaryCard
               title="対象エンジニア"
-              value={stats.current.totalUsers}
+              value={stats.current?.totalUsers || 0}
               unit="名"
               icon={<PeopleIcon />}
               color="primary"
-              trend={stats.hasComparison ? {
+              trend={stats.hasComparison && stats.current?.totalUsers !== undefined ? {
                 trend: stats.current.totalUsers >= (stats.previous?.totalUsers || 0) ? 'up' : 'down',
                 change: stats.current.totalUsers - (stats.previous?.totalUsers || 0),
                 changeRate: ((stats.current.totalUsers - (stats.previous?.totalUsers || 0)) / (stats.previous?.totalUsers || 1)) * 100
@@ -268,9 +254,14 @@ export default function AdminDashboard() {
         {stats?.current && (
           <Grid size={{ xs: 12, lg: 6 }}>
             <WeeklyReportChart
-              submissionStats={stats.current.submissionStats}
-              moodStats={stats.current.moodStats}
-              departmentStats={stats.current.departmentStats || []}
+              submissionStats={stats.current?.submissionStats || {
+                submittedCount: 0,
+                draftCount: 0,
+                overdueCount: 0,
+                submissionRate: 0,
+                onTimeRate: 0
+              }}
+              departmentStats={stats.current?.departmentStats || []}
             />
           </Grid>
         )}
