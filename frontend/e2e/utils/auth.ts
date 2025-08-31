@@ -1,35 +1,16 @@
 import { expect, Page } from '@playwright/test'
-import fs from 'fs'
-import path from 'path'
 
 type Creds = { email: string; password: string }
 
 export function hasCreds(): boolean {
-  if (process.env.E2E_EMAIL && process.env.E2E_PASSWORD) return true
-  const loginJsonPath = path.resolve(__dirname, '../../..', 'login.json')
-  if (fs.existsSync(loginJsonPath)) {
-    try {
-      const raw = fs.readFileSync(loginJsonPath, 'utf-8')
-      const json = JSON.parse(raw)
-      return !!(json?.email && json?.password)
-    } catch { /* ignore */ }
-  }
-  return false
+  return Boolean(process.env.E2E_EMAIL && process.env.E2E_PASSWORD)
 }
 
 function loadCreds(): Creds {
-  // 優先: 環境変数 → ルートの login.json
   const email = process.env.E2E_EMAIL
   const password = process.env.E2E_PASSWORD
   if (email && password) return { email, password }
-
-  const loginJsonPath = path.resolve(__dirname, '../../..', 'login.json')
-  if (fs.existsSync(loginJsonPath)) {
-    const raw = fs.readFileSync(loginJsonPath, 'utf-8')
-    const json = JSON.parse(raw)
-    if (json?.email && json?.password) return { email: json.email, password: json.password }
-  }
-  throw new Error('E2E credentials not found. Set E2E_EMAIL/E2E_PASSWORD or provide root login.json')
+  throw new Error('E2E credentials not found. Set E2E_EMAIL/E2E_PASSWORD')
 }
 
 export async function uiLogin(page: Page) {

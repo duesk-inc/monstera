@@ -7,9 +7,7 @@
 - ローカルスタックを起動: `docker compose up -d`
 - フロントの依存: `cd frontend && npm i`
 - Playwrightブラウザ: `npm run test:e2e:install`
-- 認証情報: いずれかを用意
-  - ルート`login.json`に`{"email": "...", "password": "..."}`
-  - 環境変数 `E2E_EMAIL`, `E2E_PASSWORD`
+- 認証情報: 環境変数 `E2E_EMAIL`, `E2E_PASSWORD` を設定（login.json は廃止）
 
 ## 実行
 ```bash
@@ -26,5 +24,4 @@ npm run test:e2e:headed   # headed + PWDEBUG
 - 共通ユーティリティ: `frontend/e2e/utils/`
 
 ## 補足
-- Cypressの既存ファイルは `frontend/cypress/` に残存しますが、今後の更新は行いません。
-
+- Cypressの既存ファイルは `frontend/cypress-legacy/` に退避済みで、今後の更新は行いません。
