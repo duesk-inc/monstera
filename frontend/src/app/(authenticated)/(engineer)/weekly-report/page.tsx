@@ -331,7 +331,7 @@ export default function WeeklyReport() {
   };
 
   return (
-    <PageContainer>
+    <PageContainer data-testid="weekly-report-page">
       <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ja}>
         <PageHeader 
           title="週報"
@@ -342,6 +342,7 @@ export default function WeeklyReport() {
                 icon={<SaveIcon />}
                 onClick={handleOpenSaveDialog}
                 disabled={loading || isSubmitted(report.status)}
+                data-testid="weekly-save-button"
               >
                 下書き保存
               </ActionButton>
@@ -350,6 +351,7 @@ export default function WeeklyReport() {
                 icon={<SendIcon />}
                 onClick={handleOpenSubmitDialog}
                 disabled={loading || isSubmitted(report.status)}
+                data-testid="weekly-submit-button"
               >
                 提出する
               </ActionButton>
@@ -459,6 +461,7 @@ export default function WeeklyReport() {
                 onClick={handleOpenSaveDialog}
                 disabled={loading || isSubmitted(report.status)}
                 fullWidth
+                data-testid="weekly-save-button-mobile"
               >
                 下書き保存
               </ActionButton>
@@ -468,6 +471,7 @@ export default function WeeklyReport() {
                 onClick={handleOpenSubmitDialog}
                 disabled={loading || isSubmitted(report.status)}
                 fullWidth
+                data-testid="weekly-submit-button-mobile"
               >
                 提出する
               </ActionButton>
