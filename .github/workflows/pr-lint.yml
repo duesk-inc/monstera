@@ -1,0 +1,47 @@
+name: pr-lint
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR body against guidelines
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request?.body || ''
+            const errors = []
+
+            // 必須チェック項目（テンプレートの文言と同一）
+            const requiredChecklist = [
+              'docs/pr-guidelines.md を読み、内容に準拠しています',
+              '変更範囲は最小で、不要な差分を含みません',
+              '命名・責務・エラーハンドリング・ログ方針が一貫しています',
+              'テストを追加/更新し、ローカルで通過しています（必要箇所）',
+              'CIが通過しています（再実行含む)'
+            ]
+
+            // ガイドラインへの言及
+            if (!/docs\/pr-guidelines\.md/i.test(body) && !/pr-?guidelines/i.test(body)) {
+              errors.push('PR本文に docs/pr-guidelines.md への言及がありません')
+            }
+
+            // すべての必須チェックが [x] であることを確認
+            for (const item of requiredChecklist) {
+              const checked = new RegExp(`- \\[(x|X)\\] .*${item}`)
+              const unchecked = new RegExp(`- \\[ \\] .*${item}`)
+              if (!checked.test(body)) {
+                errors.push(`チェックが未完了: ${item}`)
+              }
+              if (unchecked.test(body)) {
+                errors.push(`チェックが未チェック: ${item}`)
+              }
+            }
+
+            if (errors.length) {
+              core.setFailed('PRチェックに失敗:\n' + errors.map(e => '- ' + e).join('\n'))
+            }
+
