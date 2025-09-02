@@ -180,8 +180,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = (props) => {
         },
       ],
     },
-    // TODO: 将来的な実装のためアーカイブ (2025-02-01)
-    // 実装時は以下のコメントを解除してください
+    // 初期スコープ外（分析・レポート機能）
+    // 必要になった段階でメニュー有効化とAPI実装を行う
     // {
     //   title: "分析・レポート",
     //   path: "/admin/analytics",

@@ -1,10 +1,7 @@
 // weeklyReportMappersのテスト
 
 import { parseISO, format } from 'date-fns';
-import { 
-  convertAPIResponseToUIModel,
-  convertUIModelToAPIRequest 
-} from '@/app/(authenticated)/(engineer)/weekly-report/mappers/weeklyReportMappers';
+import { convertAPIResponseToUIModel, convertUIModelToAPIRequest } from '@/lib/mappers/weeklyReport';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
 import { WEEKLY_REPORT_MOOD } from '@/constants/weeklyMood';
 import { createMockDailyRecord } from '../utils/mockDataGenerators';

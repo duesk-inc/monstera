@@ -120,9 +120,9 @@ export const useExpenses = ({
       params.status = filters.status[0]; // 単一ステータスのみサポートの場合
     }
 
-    // カテゴリフィルター
+    // カテゴリフィルター（サーバはコードの`category`で受ける想定）
     if (filters.categories.length > 0) {
-      params.categoryId = filters.categories[0]; // 単一カテゴリのみサポートの場合
+      params.category = filters.categories[0]; // 単一カテゴリのみサポートの場合（コードを想定）
     }
 
     // 日付範囲フィルター（従来の方式）
@@ -131,6 +131,14 @@ export const useExpenses = ({
     }
     if (filters.dateRange.end) {
       params.endDate = filters.dateRange.end;
+    }
+
+    // 金額範囲フィルター
+    if (filters.amountRange.min !== undefined) {
+      params.amountMin = filters.amountRange.min;
+    }
+    if (filters.amountRange.max !== undefined) {
+      params.amountMax = filters.amountRange.max;
     }
 
     // 年度フィルター（新機能）

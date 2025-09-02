@@ -67,12 +67,4 @@ export const adminInvoiceApi = {
   deleteInvoice: async (id: string): Promise<void> => {
     return adminDelete<void>(`/business/invoices/${id}`);
   },
-
-  /**
-   * 請求書PDFをエクスポート
-   */
-  exportInvoicePDF: async (id: string): Promise<void> => {
-    const filename = `invoice_${id}.pdf`;
-    return adminDownload(`/business/invoices/${id}/pdf`, filename);
-  },
 };

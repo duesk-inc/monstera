@@ -51,28 +51,7 @@ const transformFormDataToRequest = (formData: ExpenseFormData): CreateExpenseReq
   };
 };
 
-// APIレスポンスをフロントエンド形式に変換
-const transformResponseToExpenseData = (response: any): ExpenseData => {
-  return {
-    id: response.id,
-    userId: response.user_id || response.userId,
-    categoryId: response.category_id || response.categoryId,
-    categoryName: response.category_name || response.categoryName || '',
-    amount: response.amount,
-    description: response.description,
-    expenseDate: response.expense_date || response.expenseDate,
-    receiptUrl: response.receipt_url || response.receiptUrl,
-    receiptS3Key: response.receipt_s3_key || response.receiptS3Key,
-    status: response.status || 'draft',
-    createdAt: response.created_at || response.createdAt,
-    updatedAt: response.updated_at || response.updatedAt,
-    submittedAt: response.submitted_at || response.submittedAt,
-    approvedAt: response.approved_at || response.approvedAt,
-    rejectedAt: response.rejected_at || response.rejectedAt,
-    approverName: response.approver_name || response.approverName,
-    rejectionReason: response.rejection_reason || response.rejectionReason,
-  };
-};
+// API側でExpenseDataにマッピング済み
 
 /**
  * 経費申請のサブミット処理を行うカスタムフック
@@ -100,7 +79,7 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
         apiRequestData.receipt_url = requestData.receiptUrl;
       }
       const response = await expenseApi.createExpense(apiRequestData);
-      return transformResponseToExpenseData(response);
+      return response;
     },
     onSuccess: (data) => {
       setError(null);
@@ -142,7 +121,7 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
         apiRequestData.receipt_url = requestData.receiptUrl;
       }
       const response = await expenseApi.updateExpense(apiRequestData);
-      return transformResponseToExpenseData(response);
+      return response;
     },
     onSuccess: (data) => {
       setError(null);
@@ -170,7 +149,7 @@ export const useExpenseSubmit = (options: UseExpenseSubmitOptions = {}): UseExpe
   const submitMutation = useMutation({
     mutationFn: async (id: string) => {
       const response = await expenseApi.submitExpense(id);
-      return transformResponseToExpenseData(response);
+      return response;
     },
     onSuccess: (data) => {
       setError(null);

@@ -189,7 +189,7 @@ export const useWeeklyReportExport = () => {
   const { handleError } = useErrorHandler();
   const { showToast } = useToast();
 
-  const exportReport = async (year: number, month: number, format: 'csv' | 'excel', userIds?: string[]) => {
+  const exportReport = async (year: number, month: number, format: 'csv', userIds?: string[]) => {
     try {
       setExporting(true);
       await adminWeeklyReportApi.exportMonthlyReport({
@@ -198,7 +198,7 @@ export const useWeeklyReportExport = () => {
         format,
         user_ids: userIds,
       });
-      showToast(`月次レポートを${format.toUpperCase()}形式でダウンロードしました`, 'success');
+      showToast('月次レポートをCSV形式でダウンロードしました', 'success');
     } catch (err) {
       const error = err as Error;
       handleError(error);

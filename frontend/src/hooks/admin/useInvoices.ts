@@ -154,17 +154,6 @@ export const useInvoiceDetail = (id: string) => {
     }
   };
 
-  const exportPDF = async () => {
-    try {
-      await adminInvoiceApi.exportInvoicePDF(id);
-      showToast('PDFをダウンロードしました', 'success');
-    } catch (err) {
-      const error = err as Error;
-      handleError(error);
-      throw error;
-    }
-  };
-
   return {
     invoice,
     loading,
@@ -172,7 +161,6 @@ export const useInvoiceDetail = (id: string) => {
     refresh: fetchInvoice,
     updateInvoice,
     updateStatus,
-    exportPDF,
   };
 };
 

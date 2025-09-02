@@ -4,158 +4,26 @@ import { createPresetApiClient } from '@/lib/api';
 import { handleApiError } from '@/lib/api/error';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import { EXPENSE_API_ENDPOINTS } from '@/constants/expense';
-import type { ExpenseCategory, ExpenseListResponse, ExpenseListBackendResponse } from '@/types/expense';
-import { mapBackendExpenseListToExpenseList } from '@/utils/expenseMappers';
-import { DebugLogger, DEBUG_CATEGORIES, DEBUG_OPERATIONS } from '@/lib/debug/logger';
+import type {
+  ExpenseCategory,
+  ExpenseListResponse,
+  ExpenseListBackendResponse,
+  ExpenseData,
+  UploadFileRequest,
+  UploadFileResponse,
+  CompleteUploadRequest,
+  CompleteUploadResponse,
+  DeleteUploadRequest,
+  ExpenseListParams,
+} from '@/types/expense';
+import { mapBackendExpenseListToExpenseList, mapBackendExpenseToExpenseData } from '@/utils/expenseMappers';
+import { DebugLogger } from '@/lib/debug/logger';
 import { extractDataFromResponse } from '@/utils/apiResponseUtils';
-
-// 経費データの型定義
-export interface Expense {
-  id: string;
-  userId: string;
-  category: string;
-  amount: number;
-  currency: string;
-  date: string;
-  description: string;
-  paymentMethod: string;
-  taxRate: number;
-  taxAmount: number;
-  totalAmount: number;
-  status: string;
-  receiptUrls: string[];
-  projectId?: string;
-  clientId?: string;
-  isBusinessTrip: boolean;
-  submittedAt?: string;
-  approvedAt?: string;
-  rejectedAt?: string;
-  paidAt?: string;
-  approver?: string;
-  rejectionReason?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// 経費作成・更新用のデータ型
-export interface ExpenseCreateData {
-  category: string;
-  amount: number;
-  currency: string;
-  date: string;
-  description: string;
-  paymentMethod: string;
-  taxRate: number;
-  projectId?: string;
-  clientId?: string;
-  isBusinessTrip?: boolean;
-}
-
-// 経費更新用のデータ型
-export interface ExpenseUpdateData extends Partial<ExpenseCreateData> {
-  id: string;
-}
-
-// 経費の検索・フィルタリング用のパラメータ
-export interface ExpenseSearchParams {
-  page?: number;
-  limit?: number;
-  category?: string;
-  status?: string;
-  userId?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  amountMin?: number;
-  amountMax?: number;
-  search?: string;
-  sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
-}
 
 // ExpenseListResponseはtypes/expenseから使用
 
-// 経費統計の型定義
-export interface ExpenseStats {
-  totalAmount: number;
-  totalCount: number;
-  averageAmount: number;
-  categoryBreakdown: {
-    category: string;
-    amount: number;
-    count: number;
-  }[];
-  monthlyTrend: {
-    month: string;
-    amount: number;
-    count: number;
-  }[];
-  statusBreakdown: {
-    status: string;
-    count: number;
-  }[];
-}
-
-// 領収書アップロード用のデータ型
-export interface ReceiptUploadData {
-  expenseId: string;
-  files: File[];
-}
-
-// 領収書アップロードのレスポンス型
-export interface ReceiptUploadResponse {
-  receiptUrls: string[];
-  message: string;
-}
-
-// ファイルアップロード関連の型定義
-export interface UploadFileRequest {
-  file_name: string;
-  file_size: number;
-  content_type: string;
-}
-
-export interface UploadFileResponse {
-  uploadUrl: string;
-  s3Key: string;
-  expiresAt: string;
-}
-
-export interface UploadProgress {
-  file: File;
-  progress: number;
-  status: 'pending' | 'uploading' | 'completed' | 'error';
-  error?: string;
-  uploadUrl?: string;
-  s3Key?: string;
-}
-
-export interface CompleteUploadRequest {
-  s3_key: string;
-  file_name: string;
-  file_size: number;
-  content_type: string;
-}
-
-export interface CompleteUploadResponse {
-  receiptUrl: string;
-  s3Key: string;
-  uploadedAt: string;
-}
-
-export interface DeleteUploadRequest {
-  s3_key: string;
-}
-
-// API エラーの型定義
-export interface ApiError {
-  message: string;
-  code?: string;
-  field?: string;
-  details?: any;
-}
-
 // 経費一覧を取得
-export async function getExpenses(params: ExpenseSearchParams = {}): Promise<ExpenseListResponse> {
+export async function getExpenses(params: ExpenseListParams = {}): Promise<ExpenseListResponse> {
   try {
     DebugLogger.info(
       { category: 'API', operation: 'GetExpenses' },
@@ -164,7 +32,18 @@ export async function getExpenses(params: ExpenseSearchParams = {}): Promise<Exp
     );
 
     const client = createPresetApiClient('auth');
-    const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params });
+    const snakeParamsRaw = convertCamelToSnake(params) as Record<string, any>;
+    // 特殊キー名の補正: amountMin/amountMax はサーバ側が min_amount/max_amount
+    const snakeParams: Record<string, any> = { ...snakeParamsRaw };
+    if (snakeParams.amount_min !== undefined) {
+      snakeParams.min_amount = snakeParams.amount_min;
+      delete snakeParams.amount_min;
+    }
+    if (snakeParams.amount_max !== undefined) {
+      snakeParams.max_amount = snakeParams.amount_max;
+      delete snakeParams.amount_max;
+    }
+    const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params: snakeParams });
     
     // 共通ユーティリティを使用してデータを抽出
     const responseData = extractDataFromResponse<ExpenseListBackendResponse>(
@@ -204,7 +83,7 @@ export async function getExpenses(params: ExpenseSearchParams = {}): Promise<Exp
 
 // 経費一覧を取得（型定義をtypes/expenseから使用するバージョン）
 export async function getExpenseList(
-  params: ExpenseSearchParams = {},
+  params: ExpenseListParams = {},
   signal?: AbortSignal
 ): Promise<ExpenseListResponse> {
   try {
@@ -215,28 +94,23 @@ export async function getExpenseList(
     );
 
     const client = createPresetApiClient('auth');
-    const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params, signal });
-    
-    // 詳細なデバッグログ
-    console.log('[GetExpenseList] Raw API response:', response);
-    console.log('[GetExpenseList] Response status:', response?.status);
-    console.log('[GetExpenseList] Response data:', response?.data);
+    const snakeParamsRaw = convertCamelToSnake(params) as Record<string, any>;
+    const snakeParams: Record<string, any> = { ...snakeParamsRaw };
+    if (snakeParams.amount_min !== undefined) {
+      snakeParams.min_amount = snakeParams.amount_min;
+      delete snakeParams.amount_min;
+    }
+    if (snakeParams.amount_max !== undefined) {
+      snakeParams.max_amount = snakeParams.amount_max;
+      delete snakeParams.amount_max;
+    }
+    const response = await client.get(EXPENSE_API_ENDPOINTS.EXPENSES, { params: snakeParams, signal });
     
     // 共通ユーティリティを使用してデータを抽出
     const responseData = extractDataFromResponse<ExpenseListBackendResponse>(
       response, 
       'GetExpenseList'
     );
-    
-    // より詳細なデバッグログ（デバッグ中のみ）
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[GetExpenseList] Extracted data:', responseData);
-      console.log('[GetExpenseList] Extracted data type:', typeof responseData);
-      if (responseData && typeof responseData === 'object') {
-        console.log('[GetExpenseList] Extracted data keys:', Object.keys(responseData));
-        console.log('[GetExpenseList] Items:', (responseData as any).items);
-      }
-    }
     
     // nullチェック追加
     if (!responseData) {
@@ -253,9 +127,7 @@ export async function getExpenseList(
       };
     }
     
-    console.log('[GetExpenseList] Before mapping, responseData:', responseData);
     const result = mapBackendExpenseListToExpenseList(responseData);
-    console.log('[GetExpenseList] After mapping, result:', result);
     
     DebugLogger.info(
       { category: 'API', operation: 'GetExpenseList' },
@@ -271,7 +143,7 @@ export async function getExpenseList(
 }
 
 // 経費詳細を取得
-export async function getExpense(id: string): Promise<Expense> {
+export async function getExpense(id: string, signal?: AbortSignal): Promise<ExpenseData> {
   try {
     DebugLogger.info(
       { category: 'API', operation: 'GetExpense' },
@@ -280,14 +152,14 @@ export async function getExpense(id: string): Promise<Expense> {
     );
 
     const client = createPresetApiClient('auth');
-    const response = await client.get(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`);
+    const response = await client.get(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`, { signal });
     
     const responseData = extractDataFromResponse(response, 'GetExpense');
     if (!responseData) {
       throw new Error('Empty response data');
     }
     
-    const result = convertSnakeToCamel<Expense>(responseData);
+    const result = mapBackendExpenseToExpenseData(responseData as any);
     
     DebugLogger.info(
       { category: 'API', operation: 'GetExpense' },
@@ -303,7 +175,7 @@ export async function getExpense(id: string): Promise<Expense> {
 }
 
 // 経費を作成
-export async function createExpense(data: ExpenseCreateData): Promise<Expense> {
+export async function createExpense(data: Record<string, any>): Promise<ExpenseData> {
   try {
     DebugLogger.info(
       { category: 'API', operation: 'CreateExpense' },
@@ -319,8 +191,7 @@ export async function createExpense(data: ExpenseCreateData): Promise<Expense> {
     if (!responseData) {
       throw new Error('Empty response data');
     }
-    
-    const result = convertSnakeToCamel<Expense>(responseData);
+    const result = mapBackendExpenseToExpenseData(responseData as any);
     
     DebugLogger.info(
       { category: 'API', operation: 'CreateExpense' },
@@ -336,7 +207,7 @@ export async function createExpense(data: ExpenseCreateData): Promise<Expense> {
 }
 
 // 経費を更新
-export async function updateExpense(data: ExpenseUpdateData): Promise<Expense> {
+export async function updateExpense(data: Record<string, any>): Promise<ExpenseData> {
   try {
     const { id, ...updateData } = data;
     
@@ -349,8 +220,8 @@ export async function updateExpense(data: ExpenseUpdateData): Promise<Expense> {
     const client = createPresetApiClient('auth');
     const requestData = convertCamelToSnake(updateData);
     const response = await client.put(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}`, requestData);
-    
-    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    const responseData = extractDataFromResponse(response, 'UpdateExpense');
+    const result = mapBackendExpenseToExpenseData((responseData || response.data.data || response.data) as any);
     
     DebugLogger.info(
       { category: 'API', operation: 'UpdateExpense' },
@@ -389,7 +260,7 @@ export async function deleteExpense(id: string): Promise<void> {
 }
 
 // 経費を申請
-export async function submitExpense(id: string): Promise<Expense> {
+export async function submitExpense(id: string): Promise<ExpenseData> {
   try {
     DebugLogger.info(
       { category: 'API', operation: 'SubmitExpense' },
@@ -399,8 +270,8 @@ export async function submitExpense(id: string): Promise<Expense> {
 
     const client = createPresetApiClient('auth');
     const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/submit`);
-    
-    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
+    const responseData = extractDataFromResponse(response, 'SubmitExpense');
+    const result = mapBackendExpenseToExpenseData((responseData || response.data.data || response.data) as any);
     
     DebugLogger.info(
       { category: 'API', operation: 'SubmitExpense' },
@@ -415,147 +286,7 @@ export async function submitExpense(id: string): Promise<Expense> {
   }
 }
 
-// 経費を承認
-export async function approveExpense(id: string): Promise<Expense> {
-  try {
-    DebugLogger.info(
-      { category: 'API', operation: 'ApproveExpense' },
-      'Approving expense',
-      { id }
-    );
-
-    const client = createPresetApiClient('auth');
-    const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/approve`);
-    
-    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
-    
-    DebugLogger.info(
-      { category: 'API', operation: 'ApproveExpense' },
-      'Expense approved successfully',
-      { id: result.id }
-    );
-    
-    return result;
-  } catch (error) {
-    DebugLogger.error({ category: 'EXPENSE_API', operation: 'ApproveExpense' }, 'Failed to approve expense', error);
-    throw handleApiError(error, '経費承認');
-  }
-}
-
-// 経費を却下
-export async function rejectExpense(id: string, reason: string): Promise<Expense> {
-  try {
-    DebugLogger.info(
-      { category: 'API', operation: 'RejectExpense' },
-      'Rejecting expense',
-      { id, reason }
-    );
-
-    const client = createPresetApiClient('auth');
-    const response = await client.post(`${EXPENSE_API_ENDPOINTS.EXPENSES}/${id}/reject`, { reason });
-    
-    const result = convertSnakeToCamel<Expense>(response.data.data || response.data);
-    
-    DebugLogger.info(
-      { category: 'API', operation: 'RejectExpense' },
-      'Expense rejected successfully',
-      { id: result.id }
-    );
-    
-    return result;
-  } catch (error) {
-    DebugLogger.error({ category: 'EXPENSE_API', operation: 'RejectExpense' }, 'Failed to reject expense', error);
-    throw handleApiError(error, '経費却下');
-  }
-}
-
-// 経費の統計を取得
-export async function getExpenseStats(params: Partial<ExpenseSearchParams> = {}): Promise<ExpenseStats> {
-  try {
-    DebugLogger.info(
-      { category: 'API', operation: 'GetExpenseStats' },
-      'Getting expense statistics',
-      { params }
-    );
-
-    const client = createPresetApiClient('auth');
-    const response = await client.get(`${EXPENSE_API_ENDPOINTS.EXPENSES}/stats`, { params });
-    
-    const result = convertSnakeToCamel<ExpenseStats>(response.data.data || response.data);
-    
-    DebugLogger.info(
-      { category: 'API', operation: 'GetExpenseStats' },
-      'Expense statistics retrieved successfully',
-      { totalAmount: result.totalAmount }
-    );
-    
-    return result;
-  } catch (error) {
-    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GetExpenseStats' }, 'Failed to get expense statistics', error);
-    throw handleApiError(error, '経費統計取得');
-  }
-}
-
-// 領収書をアップロード
-export async function uploadReceipts(data: ReceiptUploadData): Promise<ReceiptUploadResponse> {
-  try {
-    DebugLogger.info(
-      { category: 'API', operation: 'UploadReceipts' },
-      'Uploading receipts',
-      { expenseId: data.expenseId, fileCount: data.files.length }
-    );
-
-    const formData = new FormData();
-    formData.append('expenseId', data.expenseId);
-    
-    data.files.forEach((file, index) => {
-      formData.append(`files[${index}]`, file);
-    });
-
-    const client = createPresetApiClient('upload'); // uploadプリセット使用（タイムアウト120秒）
-    const response = await client.post(EXPENSE_API_ENDPOINTS.RECEIPTS, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
-    
-    const result = convertSnakeToCamel<ReceiptUploadResponse>(response.data);
-    
-    DebugLogger.info(
-      { category: 'API', operation: 'UploadReceipts' },
-      'Receipts uploaded successfully',
-      { receiptUrls: result.receiptUrls }
-    );
-    
-    return result;
-  } catch (error) {
-    DebugLogger.error({ category: 'EXPENSE_API', operation: 'UploadReceipts' }, 'Failed to upload receipts', error);
-    throw handleApiError(error, '領収書アップロード');
-  }
-}
-
-// 領収書を削除
-export async function deleteReceipt(expenseId: string, receiptUrl: string): Promise<void> {
-  try {
-    DebugLogger.info(
-      { category: 'API', operation: 'DeleteReceipt' },
-      'Deleting receipt',
-      { expenseId, receiptUrl }
-    );
-
-    const client = createPresetApiClient('auth');
-    await client.delete(`${EXPENSE_API_ENDPOINTS.RECEIPTS}/${expenseId}`, {
-      data: { receiptUrl }
-    });
-    
-    DebugLogger.info(
-      { category: 'API', operation: 'DeleteReceipt' },
-      'Receipt deleted successfully',
-      { expenseId }
-    );
-  } catch (error) {
-    DebugLogger.error({ category: 'EXPENSE_API', operation: 'DeleteReceipt' }, 'Failed to delete receipt', error);
-    throw handleApiError(error, '領収書削除');
-  }
-}
+// 承認/却下は管理者APIに集約（frontend/src/lib/api/adminExpense.ts を使用）
 
 // 経費カテゴリAPIレスポンスの型定義
 interface ExpenseCategoryApiResponse {
@@ -735,7 +466,8 @@ export async function getExpenseCategories(signal?: AbortSignal): Promise<Expens
 }
 
 // 経費レポートを生成
-export async function generateExpenseReport(params: ExpenseSearchParams & { format: 'pdf' | 'excel' | 'csv' }): Promise<Blob> {
+// 初期スコープ: CSV のみ対応（PDF/Excelは除外）
+export async function generateExpenseReport(params: ExpenseListParams & { format: 'csv' }): Promise<Blob> {
   try {
     DebugLogger.info(
       { category: 'API', operation: 'GenerateExpenseReport' },
@@ -762,24 +494,67 @@ export async function generateExpenseReport(params: ExpenseSearchParams & { form
   }
 }
 
+// 年次/会計年度サマリーを取得（スタブ：月別内訳は空配列）
+export async function getYearlySummary(
+  year: number,
+  isFiscalYear: boolean = false,
+  signal?: AbortSignal
+): Promise<import('@/types/expense').YearlySummary> {
+  try {
+    DebugLogger.info(
+      { category: 'API', operation: 'GetYearlySummary' },
+      'Getting yearly/fiscal summary',
+      { year, isFiscalYear }
+    );
+
+    const client = createPresetApiClient('auth');
+    const params = isFiscalYear ? { fiscalYear: year } : { year };
+    const snakeParams = convertCamelToSnake(params);
+    const response = await client.get(`${EXPENSE_API_ENDPOINTS.EXPENSES}/summary`, { params: snakeParams, signal });
+
+    // 期待レスポンス: { data: { yearly: { total_amount, ... } } }
+    const data = extractDataFromResponse<any>(response, 'GetYearlySummary');
+    const yearly = (data && (data.yearly || data.Yearly)) || {};
+    const result = {
+      year,
+      isFiscalYear,
+      totalAmount: yearly.total_amount ?? yearly.totalAmount ?? 0,
+      totalCount: data?.yearly_total_count ?? data?.total_count ?? 0,
+      monthlyBreakdown: [] as any[], // サーバ側未提供のため空で整合
+    } as import('@/types/expense').YearlySummary;
+
+    DebugLogger.info(
+      { category: 'API', operation: 'GetYearlySummary' },
+      'Yearly summary retrieved',
+      { totalAmount: result.totalAmount }
+    );
+
+    return result;
+  } catch (error) {
+    DebugLogger.error({ category: 'EXPENSE_API', operation: 'GetYearlySummary' }, 'Failed to get yearly summary', error);
+    throw handleApiError(error, '年次集計取得');
+  }
+}
+
 // 経費テンプレートを取得
-export async function getExpenseTemplates(): Promise<Expense[]> {
+export async function getExpenseTemplates(): Promise<ExpenseData[]> {
   try {
     const client = createPresetApiClient('auth');
     const response = await client.get(EXPENSE_API_ENDPOINTS.TEMPLATES);
-    return convertSnakeToCamel<Expense[]>(response.data.data || response.data);
+    const raw = convertSnakeToCamel<any[]>(response.data.data || response.data) || [];
+    return Array.isArray(raw) ? raw.map((item) => mapBackendExpenseToExpenseData(item)) : [];
   } catch (error) {
     throw handleApiError(error, 'テンプレート取得');
   }
 }
 
 // 経費テンプレートを作成
-export async function createExpenseTemplate(data: ExpenseCreateData & { name: string }): Promise<Expense> {
+export async function createExpenseTemplate(data: Record<string, any> & { name: string }): Promise<ExpenseData> {
   try {
     const client = createPresetApiClient('auth');
     const requestData = convertCamelToSnake(data);
     const response = await client.post(EXPENSE_API_ENDPOINTS.TEMPLATES, requestData);
-    return convertSnakeToCamel<Expense>(response.data.data || response.data);
+    return mapBackendExpenseToExpenseData(convertSnakeToCamel(response.data.data || response.data));
   } catch (error) {
     throw handleApiError(error, 'テンプレート作成');
   }

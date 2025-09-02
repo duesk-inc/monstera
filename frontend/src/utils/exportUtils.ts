@@ -1,4 +1,4 @@
-import { AdminWeeklyReport } from '@/types/admin/weeklyReport';
+import { WEEKLY_REPORT_STATUS_LABELS } from '@/constants/weeklyReport';
 import { formatDate } from '@/utils/dateUtils';
 
 // 未提出者管理用の型定義
@@ -62,7 +62,20 @@ export const exportToCSV = (data: any[], filename: string) => {
 /**
  * 週報データをCSV用に整形
  */
-export const formatWeeklyReportsForExport = (reports: AdminWeeklyReport[]) => {
+export interface WeeklyReportExportData {
+  user_name: string;
+  user_email: string;
+  start_date: string | Date;
+  end_date: string | Date;
+  status: string | number;
+  mood?: number;
+  total_work_hours?: number;
+  project_summary?: string;
+  manager_comment?: string;
+  submitted_at?: string | Date;
+}
+
+export const formatWeeklyReportsForExport = (reports: WeeklyReportExportData[]) => {
   return reports.map(report => ({
     'エンジニア名': report.user_name,
     'メールアドレス': report.user_email,
@@ -70,30 +83,29 @@ export const formatWeeklyReportsForExport = (reports: AdminWeeklyReport[]) => {
     '週終了日': formatDate(report.end_date),
     'ステータス': getStatusLabel(report.status),
     '気分': getMoodLabel(report.mood),
-    '総勤務時間': `${report.total_work_hours}時間`,
+    '総勤務時間': report.total_work_hours !== undefined ? `${report.total_work_hours}時間` : '',
     '案件情報': report.project_summary || '',
     'コメント返信': report.manager_comment ? '済' : '未',
     '管理者コメント': report.manager_comment || '',
-    '提出日時': report.submitted_at ? formatDate(report.submitted_at, 'YYYY/MM/DD HH:mm') : '',
+    '提出日時': report.submitted_at ? formatDate(report.submitted_at, 'yyyy/MM/dd HH:mm') : '',
   }));
 };
 
 /**
  * ステータスのラベルを取得
  */
-const getStatusLabel = (status: number): string => {
-  const statusMap: Record<number, string> = {
-    0: '未提出',
-    1: '下書き',
-    2: '提出済み',
-  };
-  return statusMap[status] || '不明';
+const getStatusLabel = (status: number | string): string => {
+  if (typeof status === 'number') {
+    const statusMap: Record<number, string> = { 0: '未提出', 1: '下書き', 2: '提出済み' };
+    return statusMap[status] || '不明';
+  }
+  return WEEKLY_REPORT_STATUS_LABELS[status as keyof typeof WEEKLY_REPORT_STATUS_LABELS] || String(status);
 };
 
 /**
  * 気分のラベルを取得
  */
-const getMoodLabel = (mood: number): string => {
+const getMoodLabel = (mood?: number): string => {
   const moodMap: Record<number, string> = {
     1: 'サイテー',
     2: 'イマイチ',
@@ -101,7 +113,7 @@ const getMoodLabel = (mood: number): string => {
     4: 'イイ感じ',
     5: 'サイコー',
   };
-  return moodMap[mood] || '-';
+  return mood ? (moodMap[mood] || '-') : '-';
 };
 
 /**
@@ -172,7 +184,7 @@ export const formatUnsubmittedReportsForExport = (reports: UnsubmittedReport[]) 
     '経過日数': `${report.days_overdue}日`,
     'マネージャー': report.manager_name,
     'リマインド送信回数': report.reminder_count,
-    '最終リマインド送信日': report.reminder_sent_at ? formatDate(report.reminder_sent_at, 'YYYY/MM/DD HH:mm') : '未送信',
+    '最終リマインド送信日': report.reminder_sent_at ? formatDate(report.reminder_sent_at, 'yyyy/MM/dd HH:mm') : '未送信',
     'ステータス': report.days_overdue >= 14 ? '要エスカレーション' : report.days_overdue >= 7 ? '要注意' : '経過観察',
   }));
 };

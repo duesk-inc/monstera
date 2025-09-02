@@ -181,6 +181,52 @@ func (s *leaveService) CreateLeaveRequest(ctx context.Context, req dto.LeaveRequ
 		return dto.LeaveRequestResponse{}, fmt.Errorf(message.MsgLeaveBalanceExceededFormat, balance.RemainingDays)
 	}
 
+	// 時間単位休暇の時刻形式・相関チェック（HH:mm, start < end）
+	if req.IsHourlyBased {
+		for i, d := range req.RequestDetails {
+			if strings.TrimSpace(d.StartTime) == "" {
+				logger.LogWarn(s.logger, "開始時刻が未設定",
+					zap.Int("detail_index", i),
+				)
+				return dto.LeaveRequestResponse{}, errors.New(message.MsgInvalidStartTimeFormat)
+			}
+			if strings.TrimSpace(d.EndTime) == "" {
+				logger.LogWarn(s.logger, "終了時刻が未設定",
+					zap.Int("detail_index", i),
+				)
+				return dto.LeaveRequestResponse{}, errors.New(message.MsgInvalidEndTimeFormat)
+			}
+
+			startT, err := time.Parse("15:04", d.StartTime)
+			if err != nil {
+				logger.LogWarn(s.logger, "開始時刻の形式が無効",
+					zap.Int("detail_index", i),
+					zap.String("start_time", d.StartTime),
+					zap.Error(err),
+				)
+				return dto.LeaveRequestResponse{}, errors.New(message.MsgInvalidStartTimeFormat)
+			}
+			endT, err := time.Parse("15:04", d.EndTime)
+			if err != nil {
+				logger.LogWarn(s.logger, "終了時刻の形式が無効",
+					zap.Int("detail_index", i),
+					zap.String("end_time", d.EndTime),
+					zap.Error(err),
+				)
+				return dto.LeaveRequestResponse{}, errors.New(message.MsgInvalidEndTimeFormat)
+			}
+
+			if !endT.After(startT) {
+				logger.LogWarn(s.logger, "終了時刻が開始時刻以前",
+					zap.Int("detail_index", i),
+					zap.String("start_time", d.StartTime),
+					zap.String("end_time", d.EndTime),
+				)
+				return dto.LeaveRequestResponse{}, errors.New(message.MsgEndTimeBeforeStartTime)
+			}
+		}
+	}
+
 	// 申請詳細の日付重複チェック
 	leaveDateMap := make(map[string]bool)
 	for _, d := range req.RequestDetails {

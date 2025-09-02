@@ -825,27 +825,7 @@ export const bulkInvoiceAction = async (
   return response.data.data;
 };
 
-/**
- * 請求書PDFを出力
- */
-export const exportInvoicePDF = async (
-  id: UUID
-): Promise<void> => {
-  const response = await apiClient.get(
-    `/api/v1/accounting/invoices/${id}/pdf`,
-    { responseType: "blob" }
-  );
-  
-  const blob = new Blob([response.data], { type: "application/pdf" });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `invoice-${id}.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
-};
+// PDF出力（v0除外）
 
 /**
  * 請求書をfreeeに送信

@@ -120,6 +120,10 @@ const (
 	MsgLeaveReasonTooLong     = "休暇理由が長すぎます"
 	MsgInvalidApprovalComment = "承認コメントが無効です"
 
+	// 時刻バリデーション（時間単位休暇）
+	MsgInvalidStartTimeFormat = "開始時刻の形式が無効です（HH:mm）"
+	MsgInvalidEndTimeFormat   = "終了時刻の形式が無効です（HH:mm）"
+
 	// 業務関連エラー
 	MsgBusinessDayRequired    = "営業日を指定してください"
 	MsgMinimumLeaveHours      = "最低取得時間を満たしていません"

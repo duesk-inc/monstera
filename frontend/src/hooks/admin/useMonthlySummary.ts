@@ -104,7 +104,7 @@ export const useMonthlySummaryComparison = ({ year, month, departmentId }: UseMo
 export const useMonthlySummaryExport = () => {
   const { handleSubmissionError } = useErrorHandler();
 
-  const exportMonthlySummary = async (year: number, month: number, format: 'csv' | 'excel' = 'excel') => {
+  const exportMonthlySummary = async (year: number, month: number, format: 'csv' = 'csv') => {
     try {
       const params = new URLSearchParams({
         year: year.toString(),
@@ -125,7 +125,7 @@ export const useMonthlySummaryExport = () => {
       link.href = url;
       
       // ファイル名を生成
-      const filename = `monthly_summary_${year}_${month.toString().padStart(2, '0')}.${format === 'csv' ? 'csv' : 'xlsx'}`;
+      const filename = `monthly_summary_${year}_${month.toString().padStart(2, '0')}.csv`;
       link.setAttribute('download', filename);
       
       document.body.appendChild(link);

@@ -28,7 +28,10 @@ type AdminWeeklyReportHandler interface {
 	GetWeeklyReportSummary(c *gin.Context)   // 週報サマリー統計取得
 	GetMonthlySummary(c *gin.Context)        // 月次サマリー取得
 	CreateExportJob(c *gin.Context)          // エクスポートジョブ作成
-	GetExportJobStatus(c *gin.Context)       // エクスポートジョブステータス取得
+    GetExportJobStatus(c *gin.Context)       // エクスポートジョブステータス取得
+    ApproveWeeklyReport(c *gin.Context)      // 週報承認
+    RejectWeeklyReport(c *gin.Context)       // 週報却下
+    ReturnWeeklyReport(c *gin.Context)       // 週報差し戻し
 }
 
 // adminWeeklyReportHandler 管理者用週報ハンドラーの実装
@@ -166,6 +169,82 @@ func (h *adminWeeklyReportHandler) CommentWeeklyReport(c *gin.Context) {
 	}
 
 	RespondSuccess(c, http.StatusOK, "コメントを投稿しました", nil)
+}
+
+// ApproveWeeklyReport 週報を承認
+func (h *adminWeeklyReportHandler) ApproveWeeklyReport(c *gin.Context) {
+    ctx := c.Request.Context()
+
+    // パスID
+    reportID, err := ParseUUID(c, "id", h.Logger)
+    if err != nil { return }
+
+    // 認証ユーザー
+    approverID, ok := h.util.GetAuthenticatedUserID(c)
+    if !ok { return }
+
+    // 任意コメント
+    var req struct{ Comment *string `json:"comment"` }
+    _ = c.ShouldBindJSON(&req) // 任意なのでバリデーションしない
+
+    if err := h.adminWeeklyReportService.ApproveWeeklyReport(ctx, reportID, approverID, req.Comment); err != nil {
+        if err.Error() == "週報が見つかりません" {
+            RespondNotFound(c, "週報"); return
+        }
+        HandleError(c, http.StatusUnprocessableEntity, "承認できません", h.Logger, err)
+        return
+    }
+    RespondSuccess(c, http.StatusOK, "承認しました", nil)
+}
+
+// RejectWeeklyReport 週報を却下
+func (h *adminWeeklyReportHandler) RejectWeeklyReport(c *gin.Context) {
+    ctx := c.Request.Context()
+
+    reportID, err := ParseUUID(c, "id", h.Logger)
+    if err != nil { return }
+
+    approverID, ok := h.util.GetAuthenticatedUserID(c)
+    if !ok { return }
+
+    var req struct{ Comment string `json:"comment" binding:"required,min=1,max=1000"` }
+    if err := c.ShouldBindJSON(&req); err != nil {
+        RespondValidationError(c, map[string]string{"comment": "コメントは1〜1000文字で必須です"});
+        return
+    }
+
+    if err := h.adminWeeklyReportService.RejectWeeklyReport(ctx, reportID, approverID, req.Comment); err != nil {
+        if err.Error() == "週報が見つかりません" {
+            RespondNotFound(c, "週報"); return
+        }
+        HandleError(c, http.StatusUnprocessableEntity, "却下できません", h.Logger, err)
+        return
+    }
+    RespondSuccess(c, http.StatusOK, "却下しました", nil)
+}
+
+// ReturnWeeklyReport 週報を差し戻し
+func (h *adminWeeklyReportHandler) ReturnWeeklyReport(c *gin.Context) {
+    ctx := c.Request.Context()
+
+    reportID, err := ParseUUID(c, "id", h.Logger)
+    if err != nil { return }
+
+    approverID, ok := h.util.GetAuthenticatedUserID(c)
+    if !ok { return }
+
+    var req struct{ Comment string `json:"comment" binding:"required,min=1,max=1000"` }
+    if err := c.ShouldBindJSON(&req); err != nil {
+        RespondValidationError(c, map[string]string{"comment": "コメントは1〜1000文字で必須です"});
+        return
+    }
+
+    if err := h.adminWeeklyReportService.ReturnWeeklyReport(ctx, reportID, approverID, req.Comment); err != nil {
+        if err.Error() == "週報が見つかりません" { RespondNotFound(c, "週報"); return }
+        HandleError(c, http.StatusUnprocessableEntity, "差し戻しできません", h.Logger, err)
+        return
+    }
+    RespondSuccess(c, http.StatusOK, "差し戻しました", nil)
 }
 
 // GetMonthlyAttendance 月次勤怠一覧
@@ -382,11 +461,11 @@ func (h *adminWeeklyReportHandler) CreateExportJob(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	// リクエストボディを取得
-	var req struct {
-		JobType    string      `json:"job_type" binding:"required"`
-		Format     string      `json:"format" binding:"required,oneof=csv excel pdf"`
-		Parameters interface{} `json:"parameters" binding:"required"`
-	}
+    var req struct {
+        JobType    string      `json:"job_type" binding:"required"`
+        Format     string      `json:"format" binding:"required,oneof=csv"`
+        Parameters interface{} `json:"parameters" binding:"required"`
+    }
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		HandleError(c, http.StatusBadRequest, "リクエストが不正です", h.Logger, err)
@@ -416,17 +495,13 @@ func (h *adminWeeklyReportHandler) CreateExportJob(c *gin.Context) {
 
 	// フォーマットを検証
 	var format model.ExportJobFormat
-	switch req.Format {
-	case "csv":
-		format = model.ExportJobFormatCSV
-	case "excel":
-		format = model.ExportJobFormatExcel
-	case "pdf":
-		format = model.ExportJobFormatPDF
-	default:
-		HandleError(c, http.StatusBadRequest, "不正なフォーマットです", h.Logger, nil)
-		return
-	}
+    switch req.Format {
+    case "csv":
+        format = model.ExportJobFormatCSV
+    default:
+        HandleError(c, http.StatusBadRequest, "不正なフォーマットです", h.Logger, nil)
+        return
+    }
 
 	// エクスポートジョブを作成
 	// ParametersをJSONにマーシャル

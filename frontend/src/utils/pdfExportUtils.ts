@@ -1,5 +1,21 @@
-import { AdminWeeklyReport } from '@/types/admin/weeklyReport';
 import { formatDate } from '@/utils/dateUtils';
+import { WEEKLY_REPORT_STATUS_LABELS } from '@/constants/weeklyReport';
+
+// PDF出力用の最小データ型
+export interface WeeklyReportPDFData {
+  user_name: string;
+  start_date: string | Date;
+  end_date: string | Date;
+  status: number | string;
+  mood?: number;
+  total_work_hours?: number;
+  overtime_hours?: number;
+  project_summary?: string;
+  weekly_achievement?: string;
+  issues?: string;
+  next_week_plan?: string;
+  manager_comment?: string;
+}
 
 /**
  * HTMLコンテンツをPDFとしてエクスポート
@@ -32,7 +48,7 @@ export const exportToPDF = async (content: string, filename: string) => {
 /**
  * 週報詳細をHTML形式で生成
  */
-export const generateWeeklyReportHTML = (report: AdminWeeklyReport): string => {
+export const generateWeeklyReportHTML = (report: WeeklyReportPDFData): string => {
   const moodLabels: Record<number, string> = {
     1: 'サイテー 😞',
     2: 'イマイチ 😕',
@@ -41,11 +57,13 @@ export const generateWeeklyReportHTML = (report: AdminWeeklyReport): string => {
     5: 'サイコー 🤩',
   };
 
-  const statusLabels: Record<number, string> = {
-    0: '未提出',
-    1: '下書き',
-    2: '提出済み',
-  };
+  const statusLabel = (() => {
+    if (typeof report.status === 'number') {
+      const statusMap: Record<number, string> = { 0: '未提出', 1: '下書き', 2: '提出済み' };
+      return statusMap[report.status] ?? '不明';
+    }
+    return WEEKLY_REPORT_STATUS_LABELS[report.status as keyof typeof WEEKLY_REPORT_STATUS_LABELS] || String(report.status);
+  })();
 
   return `
     <!DOCTYPE html>
@@ -143,11 +161,11 @@ export const generateWeeklyReportHTML = (report: AdminWeeklyReport): string => {
           </div>
           <div class="meta-item">
             <span class="meta-label">ステータス</span>
-            <span class="meta-value">${statusLabels[report.status]}</span>
+            <span class="meta-value">${statusLabel}</span>
           </div>
           <div class="meta-item">
             <span class="meta-label">気分</span>
-            <span class="meta-value">${moodLabels[report.mood] || '-'}</span>
+            <span class="meta-value">${report.mood ? moodLabels[report.mood] : '-'}</span>
           </div>
         </div>
       </div>
@@ -177,7 +195,7 @@ export const generateWeeklyReportHTML = (report: AdminWeeklyReport): string => {
         <div class="work-hours">
           <div class="work-hour-item">
             <div class="meta-label">総勤務時間</div>
-            <div class="meta-value">${report.total_work_hours}時間</div>
+            <div class="meta-value">${report.total_work_hours ?? '-'}時間</div>
           </div>
           <div class="work-hour-item">
             <div class="meta-label">残業時間</div>
@@ -205,9 +223,9 @@ export const generateWeeklyReportHTML = (report: AdminWeeklyReport): string => {
 /**
  * 簡易的なPDFエクスポート（ライブラリなし）
  */
-export const exportWeeklyReportAsPDF = (report: AdminWeeklyReport) => {
+export const exportWeeklyReportAsPDF = (report: WeeklyReportPDFData) => {
   const html = generateWeeklyReportHTML(report);
-  const filename = `weekly_report_${report.user_name}_${report.start_date.replace(/-/g, '')}`;
+  const filename = `weekly_report_${report.user_name}_${formatDate(report.start_date, 'yyyyMMdd')}`;
   
   // 新しいウィンドウで印刷ダイアログを開く
   const printWindow = window.open('', '_blank');

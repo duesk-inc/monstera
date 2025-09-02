@@ -1,4 +1,4 @@
-import { adminGet, adminPost, adminDownload } from './index';
+import { adminGet, adminPost, adminPut, adminDownload } from './index';
 import { 
   AdminWeeklyReport,
   AdminWeeklyReportListResponse,
@@ -37,13 +37,13 @@ export const adminWeeklyReportApi = {
   },
 
   /**
-   * 週報にコメントを追加
+   * 週報にコメントを追加（単一のエンドポイントに統一）
    */
   commentWeeklyReport: async (id: string, data: AdminWeeklyReportCommentRequest): Promise<void> => {
-    return adminPost<void>(`/engineers/weekly-reports/${id}/comment`, data);
+    await adminPost<void>(`/engineers/weekly-reports/${id}/comment`, data);
   },
   
-  // 互換性のためのエイリアス
+  // 互換性のためのエイリアス（戻り値を既存呼出しに合わせて返す）
   addComment: async (id: string, data: { comment: string }): Promise<{ comment: any }> => {
     await adminPost<void>(`/engineers/weekly-reports/${id}/comment`, data);
     return { comment: data };
@@ -52,26 +52,28 @@ export const adminWeeklyReportApi = {
   /**
    * 週報を承認
    */
-  approveWeeklyReport: async (id: string): Promise<{ report: AdminWeeklyReport }> => {
-    const response = await adminPost<AdminWeeklyReportDetailResponse>(`/engineers/weekly-reports/${id}/approve`);
+  approveWeeklyReport: async (id: string, comment?: string): Promise<{ report: AdminWeeklyReport }> => {
+    const response = await adminPut<AdminWeeklyReportDetailResponse>(`/engineers/weekly-reports/${id}/approve`, comment ? { comment } : undefined);
     return { report: response.report };
   },
 
   /**
    * 週報を却下
    */
-  rejectWeeklyReport: async (id: string, reason: string): Promise<{ report: AdminWeeklyReport }> => {
-    const response = await adminPost<AdminWeeklyReportDetailResponse>(`/engineers/weekly-reports/${id}/reject`, { reason });
+  rejectWeeklyReport: async (id: string, comment: string): Promise<{ report: AdminWeeklyReport }> => {
+    const response = await adminPut<AdminWeeklyReportDetailResponse>(`/engineers/weekly-reports/${id}/reject`, { comment });
     return { report: response.report };
   },
 
   /**
-   * 週報にコメントを追加
+   * 週報を差し戻し
    */
-  addComment: async (id: string, data: AdminWeeklyReportCommentRequest): Promise<{ comment: any }> => {
-    const response = await adminPost<{ comment: any }>(`/engineers/weekly-reports/${id}/comments`, data);
-    return response;
+  returnWeeklyReport: async (id: string, comment: string): Promise<{ report: AdminWeeklyReport }> => {
+    const response = await adminPut<AdminWeeklyReportDetailResponse>(`/engineers/weekly-reports/${id}/return`, { comment });
+    return { report: response.report };
   },
+
+  // 重複していた `/comments` エンドポイントは廃止
 
   /**
    * 月次勤怠データを取得
@@ -101,7 +103,7 @@ export const adminWeeklyReportApi = {
   
   // 互換性のためのエイリアス
   exportWeeklyReports: async (params: {
-    format: 'csv' | 'excel';
+    format: 'csv'; // Excelは初期スコープ外
     status?: string;
     start_date?: string;
     end_date?: string;

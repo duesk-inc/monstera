@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/cognitoidentityprovider"
+	"github.com/duesk/monstera/internal/config"
 	"github.com/duesk/monstera/internal/model"
 	"github.com/duesk/monstera/internal/repository"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -53,6 +57,7 @@ type CreateEngineerInput struct {
 	Education      string
 	EngineerStatus string
 	CreatedBy      string
+	Password       string // Cognito用パスワード（省略時はメールアドレスを使用）
 }
 
 // UpdateEngineerInput エンジニア更新入力
@@ -89,6 +94,8 @@ type engineerService struct {
 	weeklyReportRepo repository.WeeklyReportRepository
 	expenseRepo      repository.ExpenseRepository
 	leaveRequestRepo repository.LeaveRequestRepository
+	cognitoAuth      *CognitoAuthService
+	config           *config.Config
 	logger           *zap.Logger
 }
 
@@ -100,6 +107,8 @@ func NewEngineerService(
 	weeklyReportRepo repository.WeeklyReportRepository,
 	expenseRepo repository.ExpenseRepository,
 	leaveRequestRepo repository.LeaveRequestRepository,
+	cognitoAuth *CognitoAuthService,
+	config *config.Config,
 	logger *zap.Logger,
 ) EngineerService {
 	return &engineerService{
@@ -109,6 +118,8 @@ func NewEngineerService(
 		weeklyReportRepo: weeklyReportRepo,
 		expenseRepo:      expenseRepo,
 		leaveRequestRepo: leaveRequestRepo,
+		cognitoAuth:      cognitoAuth,
+		config:           config,
 		logger:           logger,
 	}
 }
@@ -131,7 +142,7 @@ func (s *engineerService) GetEngineerByID(ctx context.Context, id string) (*mode
 	return user, nil
 }
 
-// CreateEngineer エンジニアを作成
+// CreateEngineer エンジニアを作成（Cognito連携付き）
 func (s *engineerService) CreateEngineer(ctx context.Context, input CreateEngineerInput) (*model.User, error) {
 	// メールアドレスの重複チェック
 	exists, err := s.engineerRepo.ExistsByEmail(ctx, input.Email)
@@ -148,11 +159,53 @@ func (s *engineerService) CreateEngineer(ctx context.Context, input CreateEngine
 		return nil, fmt.Errorf("社員番号の生成に失敗しました: %w", err)
 	}
 
-	// トランザクション内で作成
+	var cognitoSub string
 	var user *model.User
+
+	// Cognito処理（本番・開発の両方で実行）
+	if s.config.Cognito.Enabled {
+		// パスワード生成（初期パスワードはメールアドレスまたは指定値）
+		password := input.Password
+		if password == "" {
+			password = input.Email // デフォルトパスワード
+		}
+
+		// Cognitoユーザー作成
+		cognitoReq := &RegisterUserRequest{
+			Email:       input.Email,
+			Password:    password,
+			FirstName:   input.FirstName,
+			LastName:    input.LastName,
+			PhoneNumber: input.PhoneNumber,
+			Role:        model.RoleEmployee, // エンジニアのデフォルトロール
+		}
+
+		cognitoUser, err := s.cognitoAuth.RegisterUser(ctx, cognitoReq)
+		if err != nil {
+			s.logger.Error("Cognitoユーザー作成エラー",
+				zap.String("email", input.Email),
+				zap.Error(err),
+			)
+			return nil, fmt.Errorf("Cognitoユーザー作成に失敗しました: %w", err)
+		}
+		cognitoSub = cognitoUser.ID
+		s.logger.Info("Cognitoユーザー作成成功",
+			zap.String("email", input.Email),
+			zap.String("cognito_sub", cognitoSub),
+		)
+	} else {
+		// 開発環境：UUIDを生成（COGNITO_ENABLED=falseの場合）
+		cognitoSub = uuid.New().String()
+		s.logger.Info("開発モード：UUIDを生成",
+			zap.String("email", input.Email),
+			zap.String("uuid", cognitoSub),
+		)
+	}
+
+	// データベースにエンジニア情報を保存
 	err = s.db.Transaction(func(tx *gorm.DB) error {
-		// ユーザー作成
 		user = &model.User{
+			ID:             cognitoSub, // Cognito SubまたはUUID
 			Email:          input.Email,
 			FirstName:      input.FirstName,
 			LastName:       input.LastName,
@@ -169,26 +222,16 @@ func (s *engineerService) CreateEngineer(ctx context.Context, input CreateEngine
 			HireDate:       input.HireDate,
 			Education:      input.Education,
 			EngineerStatus: input.EngineerStatus,
+			Role:           model.RoleEmployee,
 			Active:         true,
 			Status:         "active",
 		}
-
-		// パスワードはCognito側で管理されるため、ここでは設定しない
 
 		// name フィールドを設定（互換性のため）
 		user.Name = user.FullName()
 
 		// ユーザー作成
 		if err := tx.Create(user).Error; err != nil {
-			return err
-		}
-
-		// デフォルトロール（Employee）を設定
-		userRole := &model.UserRole{
-			UserID: user.ID,
-			Role:   model.RoleEngineer,
-		}
-		if err := tx.Create(userRole).Error; err != nil {
 			return err
 		}
 
@@ -207,9 +250,33 @@ func (s *engineerService) CreateEngineer(ctx context.Context, input CreateEngine
 		return nil
 	})
 
+	// エラー処理：DBエラー時はCognitoユーザーを削除
 	if err != nil {
-		return nil, err
+		if s.config.Cognito.Enabled && cognitoSub != "" {
+			// Cognitoユーザーのロールバック
+			deleteInput := &cognitoidentityprovider.AdminDeleteUserInput{
+				UserPoolId: aws.String(s.config.Cognito.UserPoolID),
+				Username:   aws.String(input.Email),
+			}
+			if _, deleteErr := s.cognitoAuth.client.AdminDeleteUser(ctx, deleteInput); deleteErr != nil {
+				s.logger.Error("Cognitoユーザーの削除に失敗",
+					zap.String("email", input.Email),
+					zap.Error(deleteErr),
+				)
+			} else {
+				s.logger.Info("Cognitoユーザーをロールバック",
+					zap.String("email", input.Email),
+				)
+			}
+		}
+		return nil, fmt.Errorf("エンジニアの作成に失敗しました: %w", err)
 	}
+
+	s.logger.Info("エンジニア作成成功",
+		zap.String("id", user.ID),
+		zap.String("email", user.Email),
+		zap.String("employee_number", user.EmployeeNumber),
+	)
 
 	return user, nil
 }

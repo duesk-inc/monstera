@@ -5,9 +5,7 @@ import { Box, Tabs, Tab } from '@mui/material';
 import { PageContainer } from '@/components/common/layout';
 import { CommonTabPanel, a11yProps } from '@/components/common';
 import { WeeklyReportListTab } from '@/components/features/weeklyReport/tabs/WeeklyReportListTab';
-import { UnsubmittedManagementTab } from '@/components/features/weeklyReport/tabs/UnsubmittedManagementTab';
 import { MonthlyReportTab } from '@/components/features/weeklyReport/tabs/MonthlyReportTab';
-import { AlertManagementTab } from '@/components/features/weeklyReport/tabs/AlertManagementTab';
 
 export default function WeeklyReportsPage() {
   const [tabValue, setTabValue] = useState(0);
@@ -31,9 +29,7 @@ export default function WeeklyReportsPage() {
           scrollButtons="auto"
         >
           <Tab label="週報一覧" {...a11yProps(0)} />
-          <Tab label="未提出者管理" {...a11yProps(1)} />
-          <Tab label="月次レポート" {...a11yProps(2)} />
-          <Tab label="アラート管理" {...a11yProps(3)} />
+          <Tab label="月次レポート" {...a11yProps(1)} />
         </Tabs>
       </Box>
 
@@ -42,15 +38,7 @@ export default function WeeklyReportsPage() {
       </CommonTabPanel>
 
       <CommonTabPanel value={tabValue} index={1}>
-        <UnsubmittedManagementTab />
-      </CommonTabPanel>
-
-      <CommonTabPanel value={tabValue} index={2}>
         <MonthlyReportTab />
-      </CommonTabPanel>
-
-      <CommonTabPanel value={tabValue} index={3}>
-        <AlertManagementTab />
       </CommonTabPanel>
     </PageContainer>
   );

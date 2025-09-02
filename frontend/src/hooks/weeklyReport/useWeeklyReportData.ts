@@ -8,10 +8,7 @@ import {
   saveWeeklyReportAsDraft,
   saveAndSubmitWeeklyReport,
 } from '@/lib/api/weeklyReport';
-import { 
-  convertAPIResponseToUIModel, 
-  convertUIModelToAPIRequest 
-} from '@/app/(authenticated)/(engineer)/weekly-report/mappers/weeklyReportMappers';
+import { convertAPIResponseToUIModel, convertUIModelToAPIRequest } from '@/lib/mappers/weeklyReport';
 import { AbortError, handleApiError } from '@/lib/api/error';
 import { useToast } from '@/components/common';
 import { SUCCESS_MESSAGES } from '../../constants/errorMessages';

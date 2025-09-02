@@ -2,6 +2,7 @@
 
 // 週報ステータス
 export const WEEKLY_REPORT_STATUS = {
+  NOT_SUBMITTED: "not_submitted",
   DRAFT: "draft",
   SUBMITTED: "submitted",
   APPROVED: "approved",
@@ -11,6 +12,7 @@ export const WEEKLY_REPORT_STATUS = {
 
 // 週報ステータス表示名
 export const WEEKLY_REPORT_STATUS_LABELS = {
+  [WEEKLY_REPORT_STATUS.NOT_SUBMITTED]: "未提出",
   [WEEKLY_REPORT_STATUS.DRAFT]: "下書き",
   [WEEKLY_REPORT_STATUS.SUBMITTED]: "提出済み",
   [WEEKLY_REPORT_STATUS.APPROVED]: "承認済み",
@@ -20,6 +22,7 @@ export const WEEKLY_REPORT_STATUS_LABELS = {
 
 // 週報ステータス色
 export const WEEKLY_REPORT_STATUS_COLORS = {
+  [WEEKLY_REPORT_STATUS.NOT_SUBMITTED]: "#9ca3af", // gray-400
   [WEEKLY_REPORT_STATUS.DRAFT]: "#6b7280", // gray
   [WEEKLY_REPORT_STATUS.SUBMITTED]: "#3b82f6", // blue
   [WEEKLY_REPORT_STATUS.APPROVED]: "#22c55e", // green

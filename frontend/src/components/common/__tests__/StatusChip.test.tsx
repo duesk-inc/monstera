@@ -49,7 +49,7 @@ describe('StatusChip', () => {
       
       const chip = screen.getByText('提出済');
       expect(chip).toBeInTheDocument();
-      expect(chip.closest('.MuiChip-root')).toHaveClass('MuiChip-colorSuccess');
+      expect(chip.closest('.MuiChip-root')).toHaveClass('MuiChip-colorInfo');
     });
 
     test('下書きステータスが正しく表示される', () => {
@@ -57,7 +57,7 @@ describe('StatusChip', () => {
       
       const chip = screen.getByText('下書き');
       expect(chip).toBeInTheDocument();
-      expect(chip.closest('.MuiChip-root')).toHaveClass('MuiChip-colorWarning');
+      expect(chip.closest('.MuiChip-root')).toHaveClass('MuiChip-colorInfo');
     });
 
     test('未提出ステータスが正しく表示される', () => {
@@ -74,9 +74,10 @@ describe('StatusChip', () => {
       ['approved', '承認済', 'MuiChip-colorSuccess'],
       ['pending', '申請中', 'MuiChip-colorWarning'],
       ['rejected', '却下', 'MuiChip-colorError'],
-      ['submitted', '提出済', 'MuiChip-colorSuccess'],
-      ['draft', '下書き', 'MuiChip-colorWarning'],
+      ['submitted', '提出済', 'MuiChip-colorInfo'],
+      ['draft', '下書き', 'MuiChip-colorInfo'],
       ['not_submitted', '未提出', 'MuiChip-colorDefault'],
+      ['returned', '差し戻し', 'MuiChip-colorWarning'],
     ];
 
     test.each(statusTestCases)('%s ステータスで正しいラベルとカラーが適用される', (status, expectedLabel, expectedColorClass) => {

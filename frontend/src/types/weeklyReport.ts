@@ -22,7 +22,7 @@ export interface LocalAPIWeeklyReport {
   endDate?: string;
   start_date?: string; // スネークケース対応
   end_date?: string; // スネークケース対応
-  status?: string;  // ENUM型文字列に統一
+  status?: WeeklyReportStatus;  // ENUM型文字列に統一
   statusString?: string; // 後方互換性のため（廃止予定）
   status_string?: string; // 後方互換性のため（廃止予定）
   weeklyRemarks?: string;
@@ -51,7 +51,7 @@ export interface ApiWeeklyReport {
   userId?: string;
   startDate?: string;
   endDate?: string;
-  status?: string;  // ENUM型文字列に統一
+  status?: WeeklyReportStatus;  // ENUM型文字列に統一
   statusString?: string; // 後方互換性のため（廃止予定）
   weeklyRemarks?: string;
   totalWorkHours?: number;
@@ -78,7 +78,7 @@ export interface ApiResponseBase {
   endDate?: string;
   start_date?: string;
   end_date?: string;
-  status?: string;  // ENUM型文字列に統一
+  status?: WeeklyReportStatus;  // ENUM型文字列に統一
   weeklyRemarks?: string;
   weekly_remarks?: string;
   totalWorkHours?: number;
@@ -102,7 +102,7 @@ export interface WeeklyReport {
   endDate: Date;
   dailyRecords: DailyRecord[];
   weeklyRemarks: string;
-  status?: string;  // ENUM型文字列に統一
+  status?: WeeklyReportStatus;  // ENUM型文字列に統一
   submittedAt?: string;
   totalWorkHours?: number;
   clientTotalWorkHours?: number;
@@ -173,3 +173,4 @@ export interface WeekInfo {
   startDate: Date;
   endDate: Date;
 } 
+import type { WeeklyReportStatus } from '@/types/common/status';

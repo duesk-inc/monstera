@@ -69,11 +69,8 @@ export function mapBackendExpenseToExpenseData(backendExpense: ExpenseBackendRes
 export function mapBackendExpenseListToExpenseList(
   backendResponse: ExpenseListBackendResponse | undefined | null
 ): ExpenseListResponse {
-  console.log('[mapBackendExpenseListToExpenseList] Input:', backendResponse);
-  
   // 防御的プログラミング：nullチェックとデフォルト値
   if (!backendResponse) {
-    console.warn('mapBackendExpenseListToExpenseList: Received null/undefined response');
     return {
       items: [],
       total: 0,
@@ -85,7 +82,6 @@ export function mapBackendExpenseListToExpenseList(
 
   // itemsプロパティの存在確認
   if (!backendResponse.items || !Array.isArray(backendResponse.items)) {
-    console.warn('mapBackendExpenseListToExpenseList: Invalid items property', backendResponse);
     return {
       items: [],
       total: backendResponse.total || 0,
@@ -96,13 +92,7 @@ export function mapBackendExpenseListToExpenseList(
   }
 
   try {
-    console.log('[mapBackendExpenseListToExpenseList] Mapping items, count:', backendResponse.items.length);
-    const mappedItems = backendResponse.items.map((item, index) => {
-      console.log(`[mapBackendExpenseListToExpenseList] Mapping item ${index}:`, item);
-      const mapped = mapBackendExpenseToExpenseData(item);
-      console.log(`[mapBackendExpenseListToExpenseList] Mapped item ${index}:`, mapped);
-      return mapped;
-    });
+    const mappedItems = backendResponse.items.map((item) => mapBackendExpenseToExpenseData(item));
     
     const result = {
       items: mappedItems,
@@ -111,8 +101,6 @@ export function mapBackendExpenseListToExpenseList(
       limit: backendResponse.limit || 20,
       totalPages: backendResponse.total_pages || 0,
     };
-    
-    console.log('[mapBackendExpenseListToExpenseList] Final result:', result);
     return result;
   } catch (error) {
     console.error('Error mapping expense list:', error);

@@ -47,7 +47,7 @@ export const ExportMenu: React.FC<ExportMenuProps> = ({
   onExport,
   loading = false,
   disabled = false,
-  formats = ['excel', 'csv'],
+  formats = ['csv', 'pdf'],
   buttonText = 'エクスポート',
   buttonVariant = 'outlined',
   size = 'medium',

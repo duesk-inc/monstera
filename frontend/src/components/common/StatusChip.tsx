@@ -7,10 +7,12 @@ import {
   Schedule as ScheduleIcon,
   Send as SendIcon,
   Description as DescriptionIcon,
+  Undo as UndoIcon,
+  HourglassEmpty as HourglassEmptyIcon,
 } from '@mui/icons-material';
 
 // 申請ステータスの型定義
-export type ApplicationStatus = 'approved' | 'pending' | 'rejected' | 'submitted' | 'draft' | 'not_submitted';
+export type ApplicationStatus = 'approved' | 'pending' | 'rejected' | 'submitted' | 'draft' | 'not_submitted' | 'returned';
 
 interface StatusChipProps extends Omit<ChipProps, 'label' | 'color'> {
   status: ApplicationStatus;
@@ -25,6 +27,7 @@ const STATUS_LABELS: Record<ApplicationStatus, string> = {
   submitted: '提出済',
   draft: '下書き',
   not_submitted: '未提出',
+  returned: '差し戻し',
 };
 
 // ステータス色の統一定義
@@ -32,9 +35,10 @@ const STATUS_COLORS: Record<ApplicationStatus, ChipProps['color']> = {
   approved: 'success',
   pending: 'warning',
   rejected: 'error', 
-  submitted: 'success',
+  submitted: 'info',
   draft: 'info',
   not_submitted: 'default',
+  returned: 'warning',
 };
 
 // ステータスアイコンの定義
@@ -44,7 +48,8 @@ const STATUS_ICONS: Record<ApplicationStatus, React.ReactElement | null> = {
   rejected: <CancelIcon fontSize="small" />,
   submitted: <SendIcon fontSize="small" />,
   draft: <EditIcon fontSize="small" />,
-  not_submitted: null,
+  not_submitted: <HourglassEmptyIcon fontSize="small" />,
+  returned: <UndoIcon fontSize="small" />,
 };
 
 /**

@@ -66,7 +66,7 @@ export interface ExpenseListParams {
   page?: number;
   limit?: number;
   status?: string;
-  categoryId?: string;
+  category?: string;
   userId?: string;
   startDate?: string;
   endDate?: string;
@@ -170,4 +170,58 @@ export interface ExpenseFormData {
   receiptUrl?: string;
   receiptS3Key?: string;
   expenseDate: string;
+}
+
+// 年次集計系の型
+export interface MonthlyBreakdown {
+  month: number;
+  amount: number;
+  count: number;
+}
+
+export interface YearlySummary {
+  year: number;
+  isFiscalYear: boolean;
+  totalAmount: number;
+  totalCount: number;
+  monthlyBreakdown: MonthlyBreakdown[];
+}
+
+// ファイルアップロード（領収書）の共通型
+export interface UploadFileRequest {
+  file_name: string;
+  file_size: number;
+  content_type: string;
+}
+
+export interface UploadFileResponse {
+  uploadUrl: string;
+  s3Key: string;
+  expiresAt: string;
+}
+
+export interface UploadProgress {
+  file: File;
+  progress: number;
+  status: 'pending' | 'uploading' | 'completed' | 'error';
+  error?: string;
+  uploadUrl?: string;
+  s3Key?: string;
+}
+
+export interface CompleteUploadRequest {
+  s3_key: string;
+  file_name: string;
+  file_size: number;
+  content_type: string;
+}
+
+export interface CompleteUploadResponse {
+  receiptUrl: string;
+  s3Key: string;
+  uploadedAt: string;
+}
+
+export interface DeleteUploadRequest {
+  s3_key: string;
 }
