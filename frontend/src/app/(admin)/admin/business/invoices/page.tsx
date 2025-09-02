@@ -150,14 +150,7 @@ export default function InvoiceManagement() {
     setTabValue(newValue);
   };
 
-  const handleExportPDF = async (invoice: Invoice) => {
-    try {
-      // PDF出力APIを呼び出す（実装が必要）
-      console.log('Export PDF:', invoice);
-    } catch (error) {
-      // エラーハンドリング
-    }
-  };
+  // PDF出力（v0除外）
 
   const handleStatusFilterChange = (value: string) => {
     setStatusFilter(value);
@@ -247,17 +240,7 @@ export default function InvoiceManagement() {
       minWidth: 120,
       format: (value, row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="PDF出力">
-            <IconButton 
-              size="small" 
-              onClick={(e) => {
-                e.stopPropagation();
-                handleExportPDF(row);
-              }}
-            >
-              <DownloadIcon />
-            </IconButton>
-          </Tooltip>
+          {/* PDF出力（v0除外） */}
           <IconButton 
             size="small" 
             onClick={(e) => {

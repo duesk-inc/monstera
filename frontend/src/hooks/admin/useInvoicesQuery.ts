@@ -143,21 +143,7 @@ export const useDeleteInvoice = () => {
 };
 
 // PDF出力ミューテーション
-export const useExportInvoicePDF = () => {
-  const { showToast } = useToast();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      await adminInvoiceApi.exportInvoicePDF(id);
-    },
-    onSuccess: () => {
-      showToast('PDFをダウンロードしました', 'success');
-    },
-    onError: () => {
-      showToast('PDFのダウンロードに失敗しました', 'error');
-    },
-  });
-};
+// PDF出力（v0除外）
 
 // 互換性のためのフック
 export const useInvoices = (initialParams?: {
@@ -204,7 +190,7 @@ export const useInvoiceDetail = (id: string) => {
   const { data: invoice, isLoading: loading, error, refetch } = useInvoiceDetailQuery(id);
   const updateInvoice = useUpdateInvoice();
   const updateStatus = useUpdateInvoiceStatus();
-  const exportPDF = useExportInvoicePDF();
+  // const exportPDF = useExportInvoicePDF();
 
   return {
     invoice,
@@ -213,7 +199,7 @@ export const useInvoiceDetail = (id: string) => {
     refresh: () => refetch(),
     updateInvoice: (data: InvoiceUpdateRequest) => updateInvoice.mutateAsync({ id, data }),
     updateStatus: (data: InvoiceStatusUpdateRequest) => updateStatus.mutateAsync({ id, data }),
-    exportPDF: () => exportPDF.mutateAsync(id),
+    // exportPDF: () => exportPDF.mutateAsync(id),
   };
 };
 

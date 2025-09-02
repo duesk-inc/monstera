@@ -14,7 +14,7 @@ type WeeklyReport struct {
 	User                     User                   `gorm:"foreignKey:UserID" json:"user"`
 	StartDate                time.Time              `gorm:"not null" json:"start_date"` // 週の開始日（月曜日）
 	EndDate                  time.Time              `gorm:"not null" json:"end_date"`   // 週の終了日（日曜日）
-	Status                   WeeklyReportStatusEnum `gorm:"type:enum('draft','submitted','approved','rejected');default:'draft';not null" json:"status"`
+    Status                   WeeklyReportStatusEnum `gorm:"type:enum('draft','submitted','approved','rejected','returned');default:'draft';not null" json:"status"`
 	WeeklyRemarks            string                 `gorm:"type:text" json:"weekly_remarks"`
 	WorkplaceName            string                 `gorm:"size:100" json:"workplace_name"`
 	WorkplaceHours           string                 `gorm:"size:100" json:"workplace_hours"`
@@ -35,10 +35,11 @@ type WeeklyReport struct {
 
 // WeeklyReportStatus 週報ステータス定義
 const (
-	WeeklyReportStatusDraft     WeeklyReportStatusEnum = "draft"     // 下書き
-	WeeklyReportStatusSubmitted WeeklyReportStatusEnum = "submitted" // 提出済み
-	WeeklyReportStatusApproved  WeeklyReportStatusEnum = "approved"  // 承認済み
-	WeeklyReportStatusRejected  WeeklyReportStatusEnum = "rejected"  // 却下
+    WeeklyReportStatusDraft     WeeklyReportStatusEnum = "draft"     // 下書き
+    WeeklyReportStatusSubmitted WeeklyReportStatusEnum = "submitted" // 提出済み
+    WeeklyReportStatusApproved  WeeklyReportStatusEnum = "approved"  // 承認済み
+    WeeklyReportStatusRejected  WeeklyReportStatusEnum = "rejected"  // 却下
+    WeeklyReportStatusReturned  WeeklyReportStatusEnum = "returned"  // 差し戻し
 )
 
 // 既存のINT型との互換性を保つための変換マップ（移行期間中のみ使用）

@@ -69,7 +69,6 @@ import {
   Sync as SyncIcon,
   Business as BusinessIcon,
   Assignment as AssignmentIcon,
-  PictureAsPdf as PdfIcon,
   Email as EmailIcon,
   AccountBalanceWallet as WalletIcon,
   TrendingUp as TrendingUpIcon,
@@ -446,14 +445,7 @@ export default function AccountingInvoiceListPage() {
     });
   };
 
-  const handleExportPDF = async (invoice: Invoice) => {
-    try {
-      await accountingApi.exportInvoicePDF(invoice.id);
-      handleActionMenuClose();
-    } catch (error) {
-      handleSubmissionError(error, "PDF出力");
-    }
-  };
+  // PDF出力（v0除外）
 
   const handleSendToFreee = async (invoice: Invoice) => {
     try {
@@ -885,10 +877,7 @@ export default function AccountingInvoiceListPage() {
         open={Boolean(actionMenu.anchorEl)}
         onClose={handleActionMenuClose}
       >
-        <MenuItem onClick={() => handleExportPDF(actionMenu.invoice!)}>
-          <PdfIcon sx={{ mr: 1 }} fontSize="small" />
-          PDF出力
-        </MenuItem>
+        {/* PDF出力（v0除外） */}
         <MenuItem onClick={() => handleSendToFreee(actionMenu.invoice!)}>
           <SyncIcon sx={{ mr: 1 }} fontSize="small" />
           freeeに送信

@@ -25,7 +25,11 @@ type AdminWeeklyReportService interface {
 	// サマリー統計API
 	GetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *string) (*dto.WeeklyReportSummaryStatsDTO, error)
 	// 月次サマリー統計API
-	GetMonthlySummary(ctx context.Context, year int, month int, departmentID *string) (*dto.MonthlySummaryDTO, error)
+    GetMonthlySummary(ctx context.Context, year int, month int, departmentID *string) (*dto.MonthlySummaryDTO, error)
+    // 承認フロー
+    ApproveWeeklyReport(ctx context.Context, reportID, approverID string, comment *string) error
+    RejectWeeklyReport(ctx context.Context, reportID, approverID string, comment string) error
+    ReturnWeeklyReport(ctx context.Context, reportID, approverID string, comment string) error
 }
 
 // adminWeeklyReportService 管理者用週報サービスの実装
@@ -210,6 +214,156 @@ func (s *adminWeeklyReportService) CommentWeeklyReport(ctx context.Context, repo
 	return nil
 }
 
+// ApproveWeeklyReport 週報を承認に更新
+func (s *adminWeeklyReportService) ApproveWeeklyReport(ctx context.Context, reportID, approverID string, comment *string) error {
+    tx := s.db.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    var report model.WeeklyReport
+    if err := tx.Where("id = ? AND deleted_at IS NULL", reportID).First(&report).Error; err != nil {
+        tx.Rollback()
+        if err == gorm.ErrRecordNotFound {
+            return fmt.Errorf("週報が見つかりません")
+        }
+        return err
+    }
+
+    // 提出済みのみ承認可能
+    if report.Status != model.WeeklyReportStatusSubmitted {
+        tx.Rollback()
+        return fmt.Errorf("この週報は承認可能な状態ではありません")
+    }
+
+    now := time.Now()
+    report.Status = model.WeeklyReportStatusApproved
+    if comment != nil {
+        report.ManagerComment = comment
+    }
+    report.CommentedBy = &approverID
+    report.CommentedAt = &now
+
+    if err := tx.Save(&report).Error; err != nil {
+        tx.Rollback()
+        s.logger.Error("Failed to approve weekly report", zap.Error(err))
+        return err
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return err
+    }
+
+    if s.cacheManager != nil {
+        if err := s.cacheManager.WeeklyReport().InvalidateWeeklyReportDetail(ctx, reportID); err != nil {
+            s.logger.Warn("Failed to invalidate weekly report detail cache", zap.Error(err))
+        }
+        if err := s.cacheManager.WeeklyReport().InvalidateWeeklyReportList(ctx); err != nil {
+            s.logger.Warn("Failed to invalidate weekly report list cache", zap.Error(err))
+        }
+    }
+    return nil
+}
+
+// RejectWeeklyReport 週報を却下に更新
+func (s *adminWeeklyReportService) RejectWeeklyReport(ctx context.Context, reportID, approverID string, comment string) error {
+    tx := s.db.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil {
+            tx.Rollback()
+        }
+    }()
+
+    var report model.WeeklyReport
+    if err := tx.Where("id = ? AND deleted_at IS NULL", reportID).First(&report).Error; err != nil {
+        tx.Rollback()
+        if err == gorm.ErrRecordNotFound {
+            return fmt.Errorf("週報が見つかりません")
+        }
+        return err
+    }
+
+    // 提出済みのみ却下可能
+    if report.Status != model.WeeklyReportStatusSubmitted {
+        tx.Rollback()
+        return fmt.Errorf("この週報は却下可能な状態ではありません")
+    }
+
+    now := time.Now()
+    report.Status = model.WeeklyReportStatusRejected
+    report.ManagerComment = &comment
+    report.CommentedBy = &approverID
+    report.CommentedAt = &now
+
+    if err := tx.Save(&report).Error; err != nil {
+        tx.Rollback()
+        s.logger.Error("Failed to reject weekly report", zap.Error(err))
+        return err
+    }
+
+    if err := tx.Commit().Error; err != nil {
+        return err
+    }
+
+    if s.cacheManager != nil {
+        if err := s.cacheManager.WeeklyReport().InvalidateWeeklyReportDetail(ctx, reportID); err != nil {
+            s.logger.Warn("Failed to invalidate weekly report detail cache", zap.Error(err))
+        }
+        if err := s.cacheManager.WeeklyReport().InvalidateWeeklyReportList(ctx); err != nil {
+            s.logger.Warn("Failed to invalidate weekly report list cache", zap.Error(err))
+        }
+    }
+    return nil
+}
+
+// ReturnWeeklyReport 週報を差し戻しに更新
+func (s *adminWeeklyReportService) ReturnWeeklyReport(ctx context.Context, reportID, approverID string, comment string) error {
+    tx := s.db.WithContext(ctx).Begin()
+    defer func() {
+        if r := recover(); r != nil { tx.Rollback() }
+    }()
+
+    var report model.WeeklyReport
+    if err := tx.Where("id = ? AND deleted_at IS NULL", reportID).First(&report).Error; err != nil {
+        tx.Rollback()
+        if err == gorm.ErrRecordNotFound {
+            return fmt.Errorf("週報が見つかりません")
+        }
+        return err
+    }
+
+    if report.Status != model.WeeklyReportStatusSubmitted {
+        tx.Rollback()
+        return fmt.Errorf("この週報は差し戻し可能な状態ではありません")
+    }
+
+    now := time.Now()
+    report.Status = model.WeeklyReportStatusReturned
+    report.ManagerComment = &comment
+    report.CommentedBy = &approverID
+    report.CommentedAt = &now
+
+    if err := tx.Save(&report).Error; err != nil {
+        tx.Rollback()
+        s.logger.Error("Failed to return weekly report", zap.Error(err))
+        return err
+    }
+
+    if err := tx.Commit().Error; err != nil { return err }
+
+    if s.cacheManager != nil {
+        if err := s.cacheManager.WeeklyReport().InvalidateWeeklyReportDetail(ctx, reportID); err != nil {
+            s.logger.Warn("Failed to invalidate weekly report detail cache", zap.Error(err))
+        }
+        if err := s.cacheManager.WeeklyReport().InvalidateWeeklyReportList(ctx); err != nil {
+            s.logger.Warn("Failed to invalidate weekly report list cache", zap.Error(err))
+        }
+    }
+    return nil
+}
+
 // GetMonthlyAttendance 月次勤怠一覧を取得
 func (s *adminWeeklyReportService) GetMonthlyAttendance(ctx context.Context, month string) ([]dto.MonthlyAttendanceDTO, error) {
 	// 月の開始日と終了日を計算
@@ -371,19 +525,17 @@ func (s *adminWeeklyReportService) ExportMonthlyReport(ctx context.Context, mont
 		return nil, "", "", err
 	}
 
-	switch format {
-	case "csv":
-		return s.exportToCSV(attendance, month)
-	case "excel":
-		return s.exportToExcel(attendance, month)
-	default:
-		return nil, "", "", fmt.Errorf("サポートされていない形式です")
-	}
+    switch format {
+    case "csv":
+        return s.exportToCSV(attendance, month)
+    default:
+        return nil, "", "", fmt.Errorf("サポートされていない形式です")
+    }
 }
 
 // exportToCSV CSV形式でエクスポート
 func (s *adminWeeklyReportService) exportToCSV(attendance []dto.MonthlyAttendanceDTO, month string) ([]byte, string, string, error) {
-	// TODO: CSV生成ロジックを実装
+    // TODO: CSV生成ロジックを実装（Excelは初期スコープ外）
 	// ここでは簡易的な実装を示します
 	csvData := "ユーザー名,月,総勤務日数,総勤務時間,総クライアント先時間\n"
 
@@ -396,12 +548,7 @@ func (s *adminWeeklyReportService) exportToCSV(attendance []dto.MonthlyAttendanc
 	return []byte(csvData), filename, "text/csv", nil
 }
 
-// exportToExcel Excel形式でエクスポート
-func (s *adminWeeklyReportService) exportToExcel(attendance []dto.MonthlyAttendanceDTO, month string) ([]byte, string, string, error) {
-	// TODO: Excel生成ロジックを実装
-	// ここではプレースホルダーを返します
-	return nil, "", "", fmt.Errorf("Excel形式のエクスポートは実装中です")
-}
+// Excel形式はv0では未サポート
 
 // GetWeeklyReportSummary 週報サマリー統計を取得
 func (s *adminWeeklyReportService) GetWeeklyReportSummary(

@@ -52,7 +52,7 @@ func SetupAdminWeeklyReportExtendedRoutes(
 
 				// データエクスポート（非同期処理）
 				adminWeeklyReports.POST("/export", func(c *gin.Context) {
-					// TODO: 非同期エクスポート処理の実装
+                // TODO: 非同期エクスポート処理（CSV/PDFのみ。Excelは初期スコープ外）
 					c.JSON(501, gin.H{"error": "Not implemented yet"})
 				})
 			}

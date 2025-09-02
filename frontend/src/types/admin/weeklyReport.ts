@@ -7,7 +7,7 @@ export interface AdminWeeklyReport {
   user_email: string;
   start_date: string;
   end_date: string;
-  status: string;  // ENUM型文字列に統一
+  status: WeeklyReportStatus;  // ENUM型文字列に統一
   status_string?: string;  // 後方互換性のため（廃止予定）
   total_work_hours: number;
   manager_comment?: string;
@@ -44,7 +44,7 @@ export interface AdminWeeklyReportDetail extends AdminWeeklyReport {
 export interface WeeklyReportSummary {
   week_start: string;
   week_end: string;
-  status: string;  // ENUM型文字列に統一
+  status: WeeklyReportStatus;  // ENUM型文字列に統一
   status_string?: string;  // 後方互換性のため（廃止予定）
   total_work_hours: number;
   client_hours: number;
@@ -67,7 +67,7 @@ export interface FollowUpUser {
   follow_up_reason?: string;
   last_follow_up_date?: string;
   last_report_date?: string;
-  last_report_status?: string;  // ENUM型文字列に統一
+  last_report_status?: WeeklyReportStatus;  // ENUM型文字列に統一
   last_report_status_string?: string;  // 後方互換性のため（廃止予定）
   days_since_last_report?: number;
 }
@@ -100,7 +100,7 @@ export interface AdminWeeklyReportCommentRequest {
 export interface AdminWeeklyReportExportRequest {
   year: number;
   month: number;
-  format: 'csv' | 'excel';
+  format: 'csv'; // Excelは初期スコープ外
   user_ids?: string[];
 }
 
@@ -187,3 +187,4 @@ export interface MonthlySummaryDTO {
   alert_summary: AlertSummaryDTO;
   comparison_data: MonthlyComparisonDTO;
 }
+import type { WeeklyReportStatus } from '@/types/common/status';

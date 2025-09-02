@@ -3,110 +3,33 @@
 import React, { useState } from 'react';
 import { Box, Card, CardContent, Typography, Divider, Chip, Button, TextField, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Avatar } from '@mui/material';
 import Grid from '@mui/material/Grid';
-import {
-  ArrowBack as ArrowBackIcon,
-  Comment as CommentIcon,
-  Download as DownloadIcon,
-  Mood as MoodIcon,
-  CalendarMonth as CalendarIcon,
-  AccessTime as TimeIcon,
-  LocationOn as LocationIcon,
-} from '@mui/icons-material';
+import { Comment as CommentIcon, CalendarMonth as CalendarIcon } from '@mui/icons-material';
 import { PageContainer } from '@/components/common/layout';
-import { StatusChip, ExportMenu } from '@/components/common';
+import { ExportMenu, StatusChip } from '@/components/common';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/utils/dateUtils';
 import { exportWeeklyReportAsPDF } from '@/utils/pdfExportUtils';
-import { exportToCSV, formatWeeklyReportsForExport } from '@/utils/exportUtils';
+import { exportToCSV } from '@/utils/exportUtils';
 import { useToast } from '@/components/common/Toast';
+import { adminWeeklyReportApi } from '@/lib/api/admin/weeklyReport';
+import { useWeeklyReportDetailQuery } from '@/hooks/admin/useWeeklyReportsQuery';
+import { WEEKLY_REPORT_STATUS_LABELS } from '@/constants/weeklyReport';
 
-// ダミーデータ
-const dummyReport = {
-  id: '1',
-  user_id: 'u1',
-  user_name: '山田 太郎',
-  user_email: 'yamada@duesk.co.jp',
-  start_date: new Date('2024-01-08'),
-  end_date: new Date('2024-01-14'),
-  status: 'submitted',
-  mood: 4,
-  total_work_hours: 40,
-  client_work_hours: 32,
-  manager_comment: '良い調子で進んでいますね。引き続き頑張ってください。',
-  commented_at: new Date('2024-01-15'),
-  submitted_at: new Date('2024-01-14'),
-  created_at: new Date('2024-01-14'),
-  weekly_remarks: '今週は新機能の実装を進めました。来週はテストを重点的に行う予定です。',
-  workplace_name: '株式会社ABC',
-  workplace_hours: '9:00-18:00',
-  daily_records: [
-    {
-      id: 'd1',
-      record_date: new Date('2024-01-08'),
-      is_holiday: false,
-      is_holiday_work: false,
-      company_work_hours: 2,
-      client_work_hours: 6,
-      total_work_hours: 8,
-      remarks: '新機能の設計',
-    },
-    {
-      id: 'd2',
-      record_date: new Date('2024-01-09'),
-      is_holiday: false,
-      is_holiday_work: false,
-      company_work_hours: 1,
-      client_work_hours: 7,
-      total_work_hours: 8,
-      remarks: '実装作業',
-    },
-    {
-      id: 'd3',
-      record_date: new Date('2024-01-10'),
-      is_holiday: false,
-      is_holiday_work: false,
-      company_work_hours: 1,
-      client_work_hours: 7,
-      total_work_hours: 8,
-      remarks: '実装作業続き',
-    },
-    {
-      id: 'd4',
-      record_date: new Date('2024-01-11'),
-      is_holiday: false,
-      is_holiday_work: false,
-      company_work_hours: 2,
-      client_work_hours: 6,
-      total_work_hours: 8,
-      remarks: 'コードレビュー対応',
-    },
-    {
-      id: 'd5',
-      record_date: new Date('2024-01-12'),
-      is_holiday: false,
-      is_holiday_work: false,
-      company_work_hours: 2,
-      client_work_hours: 6,
-      total_work_hours: 8,
-      remarks: 'ドキュメント作成',
-    },
-  ],
-};
-
-const moodData = {
-  1: { icon: '😞', label: 'サイテー', color: 'error' },
-  2: { icon: '😕', label: 'イマイチ', color: 'warning' },
-  3: { icon: '😐', label: 'ふつう', color: 'info' },
-  4: { icon: '😊', label: 'イイ感じ', color: 'success' },
-  5: { icon: '🤩', label: 'サイコー', color: 'success' },
-} as const;
+// 実データ取得に切り替え
 
 export default function WeeklyReportDetail({ params }: { params: { id: string } }) {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
-  const [comment, setComment] = useState(dummyReport.manager_comment || '');
+  const { data: report, isLoading, error, refetch } = useWeeklyReportDetailQuery(params.id);
+  const [comment, setComment] = useState('');
   const [isEditingComment, setIsEditingComment] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<'approve' | 'reject' | 'return' | null>(null);
+
+  // データ取得後にコメント初期値を同期
+  React.useEffect(() => {
+    if (report) setComment(report.manager_comment || '');
+  }, [report]);
 
   const handleCommentSubmit = () => {
     // TODO: API呼び出し
@@ -114,18 +37,87 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
     setIsEditingComment(false);
   };
 
+  const handleApprove = async () => {
+    setActionLoading('approve');
+    try {
+      await adminWeeklyReportApi.approveWeeklyReport(params.id, comment || undefined);
+      showSuccess('承認しました');
+      await refetch();
+    } catch (e: any) {
+      showError(e?.message || '承認に失敗しました');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!comment || comment.trim().length === 0) {
+      showError('却下にはコメントが必要です');
+      return;
+    }
+    setActionLoading('reject');
+    try {
+      await adminWeeklyReportApi.rejectWeeklyReport(params.id, comment.trim());
+      showSuccess('却下しました');
+      await refetch();
+    } catch (e: any) {
+      showError(e?.message || '却下に失敗しました');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReturn = async () => {
+    if (!comment || comment.trim().length === 0) {
+      showError('差し戻しにはコメントが必要です');
+      return;
+    }
+    setActionLoading('return');
+    try {
+      await adminWeeklyReportApi.returnWeeklyReport(params.id, comment.trim());
+      showSuccess('差し戻しました');
+      await refetch();
+    } catch (e: any) {
+      showError(e?.message || '差し戻しに失敗しました');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleExport = async (format: string) => {
     setExportLoading(true);
     try {
+      if (!report) return;
       if (format === 'pdf') {
-        // PDFエクスポート
-        exportWeeklyReportAsPDF(dummyReport as any);
+        const pdfData = {
+          user_name: report.user_name,
+          start_date: report.start_date,
+          end_date: report.end_date,
+          status: (report as any).status,
+          total_work_hours: (report as any).total_work_hours,
+          manager_comment: report.manager_comment,
+          project_summary: (report as any).project_summary,
+          weekly_achievement: (report as any).weekly_achievement,
+          issues: (report as any).issues,
+          next_week_plan: (report as any).next_week_plan,
+          mood: (report as any).mood,
+          overtime_hours: (report as any).overtime_hours,
+        };
+        exportWeeklyReportAsPDF(pdfData as any);
         showSuccess('PDFエクスポートを開始しました');
       } else if (format === 'csv') {
-        // CSVエクスポート
-        const exportData = formatWeeklyReportsForExport([dummyReport as any]);
-        const filename = `weekly_report_${dummyReport.user_name}_${formatDate(dummyReport.start_date, 'yyyyMMdd')}`;
-        exportToCSV(exportData, filename);
+        const filename = `weekly_report_${report.user_name}_${formatDate(report.start_date, 'yyyyMMdd')}`;
+        const data = [{
+          エンジニア名: report.user_name,
+          メールアドレス: report.user_email,
+          週開始日: formatDate(report.start_date),
+          週終了日: formatDate(report.end_date),
+          ステータス: WEEKLY_REPORT_STATUS_LABELS[(report as any).status as keyof typeof WEEKLY_REPORT_STATUS_LABELS] || String((report as any).status),
+          総勤務時間: `${(report as any).total_work_hours ?? ''}`,
+          管理者コメント: report.manager_comment || '',
+          提出日時: report.submitted_at ? formatDate(report.submitted_at, 'yyyy/MM/dd HH:mm') : '',
+        }];
+        exportToCSV(data, filename);
         showSuccess('CSVファイルをダウンロードしました');
       }
     } catch (error) {
@@ -136,7 +128,33 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
     }
   };
 
-  const mood = moodData[dummyReport.mood as keyof typeof moodData];
+  if (isLoading) {
+    return (
+      <PageContainer
+        title="週報詳細"
+        backButton={{
+          label: '週報一覧に戻る',
+          onClick: () => router.push('/admin/engineers/weekly-reports'),
+        }}
+      >
+        <Typography>読み込み中...</Typography>
+      </PageContainer>
+    );
+  }
+
+  if (error || !report) {
+    return (
+      <PageContainer
+        title="週報詳細"
+        backButton={{
+          label: '週報一覧に戻る',
+          onClick: () => router.push('/admin/engineers/weekly-reports'),
+        }}
+      >
+        <Alert severity="error">週報の取得に失敗しました</Alert>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer
@@ -162,12 +180,12 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
               <Box sx={{ mb: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <Avatar sx={{ width: 48, height: 48 }}>
-                    {dummyReport.user_name.charAt(0)}
+                    {report.user_name.charAt(0)}
                   </Avatar>
                   <Box>
-                    <Typography variant="h6">{dummyReport.user_name}</Typography>
+                    <Typography variant="h6">{report.user_name}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {dummyReport.user_email}
+                      {report.user_email}
                     </Typography>
                   </Box>
                 </Box>
@@ -175,19 +193,10 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
                 <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                   <Chip
                     icon={<CalendarIcon />}
-                    label={`${formatDate(dummyReport.start_date)} 〜 ${formatDate(dummyReport.end_date)}`}
+                    label={`${formatDate(report.start_date)} 〜 ${formatDate(report.end_date)}`}
                     variant="outlined"
                   />
-                  <StatusChip
-                    status={dummyReport.status === 'submitted' ? '提出済み' : '下書き'}
-                    color={dummyReport.status === 'submitted' ? 'success' : 'warning'}
-                  />
-                  <Chip
-                    icon={<span style={{ fontSize: '1.2rem', marginRight: 4 }}>{mood.icon}</span>}
-                    label={mood.label}
-                    color={mood.color as any}
-                    variant="outlined"
-                  />
+                  <StatusChip status={(report as any).status} />
                 </Box>
               </Box>
 
@@ -201,39 +210,16 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
                 <Grid container spacing={2}>
                   <Grid size={{ xs: 6, sm: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4" color="primary">
-                        {dummyReport.total_work_hours}
-                      </Typography>
+                      <Typography variant="h4" color="primary">{(report as any).total_work_hours ?? '-'}</Typography>
                       <Typography variant="body2" color="text.secondary">
                         総勤務時間
                       </Typography>
                     </Box>
                   </Grid>
+                  {/* 必要に応じて指標を追加 */}
                   <Grid size={{ xs: 6, sm: 3 }}>
                     <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4" color="secondary">
-                        {dummyReport.client_work_hours}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        クライアント先
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4">
-                        {dummyReport.total_work_hours - dummyReport.client_work_hours}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        社内業務
-                      </Typography>
-                    </Box>
-                  </Grid>
-                  <Grid size={{ xs: 6, sm: 3 }}>
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="h4">
-                        {dummyReport.daily_records.length}
-                      </Typography>
+                      <Typography variant="h4">{report.daily_records?.length ?? 0}</Typography>
                       <Typography variant="body2" color="text.secondary">
                         勤務日数
                       </Typography>
@@ -244,24 +230,7 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
 
               <Divider sx={{ my: 3 }} />
 
-              {/* 勤務場所情報 */}
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-                  勤務場所情報
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                  <Chip
-                    icon={<LocationIcon />}
-                    label={dummyReport.workplace_name}
-                    variant="outlined"
-                  />
-                  <Chip
-                    icon={<TimeIcon />}
-                    label={dummyReport.workplace_hours}
-                    variant="outlined"
-                  />
-                </Box>
-              </Box>
+              {/* 勤務場所情報（API提供時に有効化） */}
 
               {/* 週次コメント */}
               <Box sx={{ mb: 3 }}>
@@ -269,9 +238,7 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
                   週次コメント
                 </Typography>
                 <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
-                  <Typography variant="body2">
-                    {dummyReport.weekly_remarks || 'コメントなし'}
-                  </Typography>
+                  <Typography variant="body2">{(report as any).weekly_remarks || 'コメントなし'}</Typography>
                 </Paper>
               </Box>
 
@@ -292,7 +259,7 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {dummyReport.daily_records.map((record) => (
+                      {report.daily_records?.map((record) => (
                         <TableRow key={record.id}>
                           <TableCell>
                             {formatDate(record.record_date)}
@@ -345,7 +312,7 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
                       variant="outlined"
                       size="small"
                       onClick={() => {
-                        setComment(dummyReport.manager_comment || '');
+                        setComment(report.manager_comment || '');
                         setIsEditingComment(false);
                       }}
                     >
@@ -367,9 +334,9 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
                       <Paper sx={{ p: 2, bgcolor: 'primary.50' }}>
                         <Typography variant="body2">{comment}</Typography>
                       </Paper>
-                      {dummyReport.commented_at && (
+                      {report.commented_at && (
                         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                          最終更新: {formatDate(dummyReport.commented_at)}
+                          最終更新: {formatDate(report.commented_at)}
                         </Typography>
                       )}
                     </>
@@ -393,19 +360,40 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
                     作成日時
                   </Typography>
                   <Typography variant="body2">
-                    {formatDate(dummyReport.created_at)}
+                    {formatDate(report.created_at)}
                   </Typography>
                 </Box>
-                {dummyReport.submitted_at && (
+                {report.submitted_at && (
                   <Box>
                     <Typography variant="caption" color="text.secondary">
                       提出日時
                     </Typography>
                     <Typography variant="body2">
-                      {formatDate(dummyReport.submitted_at)}
+                      {formatDate(report.submitted_at)}
                     </Typography>
                   </Box>
                 )}
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* 承認操作 */}
+          <Card sx={{ mt: 2 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>承認操作</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                却下/差し戻しにはコメントが必須です。承認時のコメントは任意です。
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                <Button variant="contained" color="success" onClick={handleApprove} disabled={actionLoading !== null}>
+                  承認
+                </Button>
+                <Button variant="contained" color="error" onClick={handleReject} disabled={actionLoading !== null}>
+                  却下
+                </Button>
+                <Button variant="outlined" color="warning" onClick={handleReturn} disabled={actionLoading !== null}>
+                  差し戻し
+                </Button>
               </Box>
             </CardContent>
           </Card>

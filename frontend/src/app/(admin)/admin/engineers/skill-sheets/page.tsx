@@ -75,29 +75,7 @@ export default function SkillSheetManagement() {
     engineer.specialties.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleDownloadPDF = async (engineerId: string) => {
-    setDownloading(engineerId);
-    try {
-      const response = await axios.get(`/admin/engineers/skill-sheets/${engineerId}/pdf`, {
-        responseType: 'blob',
-      });
-
-      // ダウンロード処理
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `skillsheet_${engineerId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Failed to download PDF:', error);
-      // TODO: エラー通知
-    } finally {
-      setDownloading(null);
-    }
-  };
+  // PDF出力（v0除外）
 
   const handlePreview = (engineer: any) => {
     setSelectedEngineer(engineer);
@@ -224,19 +202,7 @@ export default function SkillSheetManagement() {
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
-          <Tooltip title="PDF出力">
-            <IconButton 
-              size="small" 
-              onClick={() => handleDownloadPDF(row.id)}
-              disabled={downloading === row.id}
-            >
-              {downloading === row.id ? (
-                <CircularProgress size={20} />
-              ) : (
-                <DownloadIcon />
-              )}
-            </IconButton>
-          </Tooltip>
+          {/* PDF出力（v0除外） */}
         </Box>
       ),
     },
@@ -424,17 +390,7 @@ export default function SkillSheetManagement() {
           <Button onClick={() => setPreviewDialogOpen(false)}>
             閉じる
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<DownloadIcon />}
-            onClick={() => {
-              handleDownloadPDF(selectedEngineer.id);
-              setPreviewDialogOpen(false);
-            }}
-            disabled={downloading === selectedEngineer?.id}
-          >
-            PDF出力
-          </Button>
+          {/* PDF出力（v0除外） */}
         </DialogActions>
       </Dialog>
     </PageContainer>

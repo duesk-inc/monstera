@@ -112,7 +112,7 @@ export const useExportWeeklyReports = () => {
 
   return useMutation({
     mutationFn: async (params: {
-      format: 'csv' | 'excel';
+      format: 'csv'; // Excelは初期スコープ外
       status?: string;
       start_date?: string;
       end_date?: string;
@@ -170,4 +170,3 @@ export const useWeeklyReportForm = () => {
     submitting: approveReport.isPending || rejectReport.isPending || addComment.isPending,
   };
 };
-

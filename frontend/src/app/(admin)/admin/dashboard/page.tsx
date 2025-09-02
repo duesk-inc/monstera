@@ -13,7 +13,6 @@ import {
 } from '@mui/icons-material';
 import { PageContainer } from '@/components/common/layout';
 import { StatusCard } from '@/components/common/cards';
-import { UnsubmittedAlert } from '@/components/features/notification';
 import { useRouter } from 'next/navigation';
 import { useDashboard } from '@/hooks/admin/useDashboardQuery';
 import { deepMergeWithDefaults } from '@/utils/deepMerge';
@@ -111,8 +110,7 @@ export default function AdminDashboard() {
       title="管理者ダッシュボード"
       maxWidth="xl"
     >
-      {/* 未提出者アラート */}
-      <UnsubmittedAlert />
+      {/* 未提出者アラート（v0除外） */}
       
       {/* 低ムードユーザーアラート - Mood機能削除により無効化 */}
       {/* {stats?.current?.moodStats?.lowMoodUsers && (

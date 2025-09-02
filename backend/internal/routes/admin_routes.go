@@ -17,7 +17,6 @@ type AdminHandlers struct {
 	ClientHandler                 handler.ClientHandler
 	InvoiceHandler                handler.InvoiceHandler
 	SalesHandler                  handler.SalesHandler
-	SkillSheetPDFHandler          handler.SkillSheetPDFHandler
 	LeaveAdminHandler             handler.LeaveAdminHandler
 	ExpenseHandler                *handler.ExpenseHandler
 	ExpenseApproverSettingHandler *handler.ExpenseApproverSettingHandler
@@ -81,6 +80,9 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 				weeklyReports.GET("", handlers.WeeklyReportHandler.GetWeeklyReports)
 				weeklyReports.GET("/:id", handlers.WeeklyReportHandler.GetWeeklyReportDetail)
 				weeklyReports.POST("/:id/comment", handlers.WeeklyReportHandler.CommentWeeklyReport)
+				weeklyReports.PUT("/:id/approve", handlers.WeeklyReportHandler.ApproveWeeklyReport)
+				weeklyReports.PUT("/:id/reject", handlers.WeeklyReportHandler.RejectWeeklyReport)
+				weeklyReports.PUT("/:id/return", handlers.WeeklyReportHandler.ReturnWeeklyReport)
 				weeklyReports.GET("/monthly-attendance", handlers.WeeklyReportHandler.GetMonthlyAttendance)
 				weeklyReports.POST("/export", handlers.WeeklyReportHandler.ExportMonthlyReport)
 				weeklyReports.GET("/summary", handlers.WeeklyReportHandler.GetWeeklyReportSummary) // サマリー統計API
@@ -92,9 +94,10 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 		}
 
 		// スキルシートPDF
-		if handlers.SkillSheetPDFHandler != nil {
-			engineers.GET("/skill-sheets/:id/pdf", handlers.SkillSheetPDFHandler.GenerateUserSkillSheetPDF)
-		}
+		// スキルシートPDF（初期スコープ外・無効化）
+		// if handlers.SkillSheetPDFHandler != nil {
+		// 	engineers.GET("/skill-sheets/:id/pdf", handlers.SkillSheetPDFHandler.GenerateUserSkillSheetPDF)
+		// }
 
 		// 休暇申請管理エンドポイント
 		if handlers.LeaveAdminHandler != nil {
@@ -192,7 +195,8 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 				invoices.GET("", handlers.InvoiceHandler.GetInvoices)
 				invoices.GET("/summary", handlers.InvoiceHandler.GetInvoiceSummary)
 				invoices.GET("/:id", handlers.InvoiceHandler.GetInvoice)
-				invoices.GET("/:id/pdf", handlers.InvoiceHandler.ExportInvoicePDF)
+				// 請求書PDF（初期スコープ外・無効化）
+				// invoices.GET("/:id/pdf", handlers.InvoiceHandler.ExportInvoicePDF)
 			}
 
 			invoicesWrite := business.Group("/invoices")
@@ -358,7 +362,7 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 		}
 	}
 
-	// TODO: 分析・レポート
+    // 初期スコープ外: 分析・レポート
 	// analytics := admin.Group("/analytics")
 	// {
 	//     analytics.GET("/utilization", handlers.AnalyticsHandler.GetUtilizationReport)

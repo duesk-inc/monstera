@@ -38,9 +38,7 @@ const (
 type ExportJobFormat string
 
 const (
-	ExportJobFormatCSV   ExportJobFormat = "csv"
-	ExportJobFormatExcel ExportJobFormat = "excel"
-	ExportJobFormatPDF   ExportJobFormat = "pdf"
+    ExportJobFormatCSV ExportJobFormat = "csv"
 )
 
 // ExportJob エクスポートジョブモデル

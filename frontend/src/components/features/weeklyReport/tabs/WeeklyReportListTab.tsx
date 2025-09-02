@@ -30,12 +30,16 @@ import { ExportButton, ExportProgressDialog } from '@/components/features/export
 import { useExportJob } from '@/hooks/admin/useExportJob';
 import type { ExportJobFormat, WeeklyReportExportParams } from '@/types/export';
 import { useToast } from '@/components/common/Toast';
+import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
 
 const statusOptions: FilterOption[] = [
   { value: '', label: 'すべて' },
-  { value: '0', label: '未提出' },
-  { value: '1', label: '下書き' },
-  { value: '2', label: '提出済み' },
+  { value: WEEKLY_REPORT_STATUS.NOT_SUBMITTED, label: '未提出' },
+  { value: WEEKLY_REPORT_STATUS.DRAFT, label: '下書き' },
+  { value: WEEKLY_REPORT_STATUS.SUBMITTED, label: '提出済み' },
+  { value: WEEKLY_REPORT_STATUS.APPROVED, label: '承認済み' },
+  { value: WEEKLY_REPORT_STATUS.REJECTED, label: '却下' },
+  { value: WEEKLY_REPORT_STATUS.RETURNED, label: '差し戻し' },
 ];
 
 export const WeeklyReportListTab: React.FC = () => {
@@ -143,14 +147,9 @@ export const WeeklyReportListTab: React.FC = () => {
       id: 'status',
       label: 'ステータス',
       minWidth: 120,
-      format: (value, row) => {
-        const statusMap: Record<number, string> = {
-          0: 'not_submitted',
-          1: 'draft',
-          2: 'submitted',
-        };
-        return <StatusChip status={statusMap[row.status] || 'unknown'} />;
-      },
+      format: (value, row) => (
+        <StatusChip status={row.status as any} />
+      ),
     },
     {
       id: 'total_work_hours',

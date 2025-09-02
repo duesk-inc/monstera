@@ -17,14 +17,8 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
 } from '@mui/icons-material';
-import { 
-  generateUploadURL, 
-  completeUpload, 
-  deleteUploadedFile,
-  type UploadFileRequest,
-  type UploadFileResponse,
-  type UploadProgress
-} from '@/lib/api/expense';
+import { generateUploadURL, completeUpload, deleteUploadedFile } from '@/lib/api/expense';
+import type { UploadFileRequest, UploadFileResponse, UploadProgress } from '@/types/expense';
 import { useEnhancedErrorHandler } from '@/hooks/common/useEnhancedErrorHandler';
 import { useToast } from '@/components/common/Toast';
 import { UPLOAD_CONSTANTS, EXPENSE_MESSAGES } from '@/constants/expense';
@@ -177,15 +171,15 @@ export const ReceiptUploader: React.FC<ReceiptUploaderProps> = ({
       } : null);
 
       // アップロード完了通知
-      await completeUpload({
+      const completeResponse = await completeUpload({
         s3_key: uploadResponse.s3Key,
         file_name: file.name,
         file_size: file.size,
         content_type: file.type,
       });
 
-      // 成功時の処理
-      onChange(uploadResponse.uploadUrl, uploadResponse.s3Key, file.name);
+      // 成功時の処理（公開URLとS3キーは完了レスポンスから使用）
+      onChange(completeResponse.receiptUrl, completeResponse.s3Key, file.name);
       showSuccess(EXPENSE_MESSAGES.UPLOAD_SUCCESS);
       
       // プログレス状態をクリア
