@@ -43,7 +43,7 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Go
       uses: actions/setup-go@v5
@@ -115,7 +115,7 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Set up Node.js
       uses: actions/setup-node@v4
@@ -179,16 +179,16 @@ jobs:
     
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Download backend coverage
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: backend-coverage
         path: backend-coverage
 
     - name: Download frontend coverage
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: frontend-coverage
         path: frontend-coverage
@@ -318,7 +318,7 @@ jobs:
     
     steps:
     - name: Download coverage summary
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v5
       with:
         name: coverage-summary
         path: .
