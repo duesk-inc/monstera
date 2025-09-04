@@ -26,6 +26,12 @@ Engineer Project management minimal: list/detail/search/paging and lightweight C
  - [ ] Engineer Client light list returns {items,total,page,limit,total_pages} and respects q/page/limit
  - [ ] Error responses for updated endpoints follow common envelope (code/message/errors)
 
+## FE Notes
+- Clients light API fallback/stub:
+  - Env flag: set `NEXT_PUBLIC_USE_CLIENTS_STUB=true` to force stubbed list for local/dev.
+  - Automatic fallback: when BE returns 404/501/500 on `GET /api/v1/engineer/clients?light=true`, FE serves a stub list to unblock UI flows.
+  - Client module: `frontend/src/lib/api/clients.ts` (single source). Feature code should import `listEngineerClientsLight` and `LightClientItem` from this module.
+
 ## References
 - Project contract: docs/spec/contracts/project.md
 - Contracts index: docs/spec/contracts/README.md
