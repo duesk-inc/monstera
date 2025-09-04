@@ -29,10 +29,14 @@ jobs:
               errors.push('PR本文に docs/pr-guidelines.md への言及がありません')
             }
 
-            // すべての必須チェックが [x] であることを確認
+            // 正規表現のメタ文字をエスケープ
+            const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+            // すべての必須チェックが [x] であることを確認（項目文字列は正規表現エスケープして使用）
             for (const item of requiredChecklist) {
-              const checked = new RegExp(`- \\[(x|X)\\] .*${item}`)
-              const unchecked = new RegExp(`- \\[ \\] .*${item}`)
+              const p = escapeRe(item)
+              const checked = new RegExp(`- \\[(x|X)\\] .*${p}`)
+              const unchecked = new RegExp(`- \\[ \\] .*${p}`)
               if (!checked.test(body)) {
                 errors.push(`チェックが未完了: ${item}`)
               }
@@ -44,4 +48,3 @@ jobs:
             if (errors.length) {
               core.setFailed('PRチェックに失敗:\n' + errors.map(e => '- ' + e).join('\n'))
             }
-
