@@ -8,6 +8,7 @@ import {
   EventAvailable as LeaveIcon,
   Description as SkillSheetIcon,
   AccountCircle as ProfileIcon,
+  Work as WorkIcon,
 } from "@mui/icons-material";
 import { User } from '@/types/auth';
 import { BaseSidebar, MenuItem } from '@/components/common/sidebar/BaseSidebar';
@@ -40,6 +41,11 @@ const EngineerSidebar: React.FC<EngineerSidebarProps> = (props) => {
       title: "ダッシュボード",
       path: "/dashboard",
       icon: <DashboardIcon />,
+    },
+    {
+      title: "案件情報",
+      path: "/project",
+      icon: <WorkIcon />,
     },
     {
       title: "週報",
