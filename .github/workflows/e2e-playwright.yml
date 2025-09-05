@@ -15,6 +15,8 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      DOCKER_DEFAULT_PLATFORM: linux/amd64
 
     steps:
       - name: Checkout
@@ -35,6 +37,7 @@ jobs:
         env:
           # Backend settings for CI (disable Cognito to avoid external deps)
           COGNITO_ENABLED: "false"
+          DOCKER_DEFAULT_PLATFORM: linux/amd64
         run: |
           docker compose up -d postgres redis minio
           # wait for minio-setup to complete
