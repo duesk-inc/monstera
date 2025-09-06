@@ -45,9 +45,8 @@ export class ProposalPrefetchStrategy {
     setTimeout(() => {
       this.queryClient.prefetchQuery({
         queryKey,
-        queryFn: () => proposalApi.getProposals({ ...baseParams, page: nextPage }),
-        staleTime: CACHE_STRATEGIES.PROPOSALS_LIST.staleTime,
-        gcTime: CACHE_STRATEGIES.PROPOSALS_LIST.gcTime,
+        queryFn: () =>
+          proposalApi.getProposals({ ...baseParams, page: nextPage }),
       });
     }, PERFORMANCE_CONFIG.PREFETCH_DELAY);
   }
@@ -69,8 +68,6 @@ export class ProposalPrefetchStrategy {
           this.queryClient.prefetchQuery({
             queryKey,
             queryFn: () => proposalApi.getProposalDetail(proposal.id),
-            staleTime: CACHE_STRATEGIES.PROPOSAL_DETAIL.staleTime,
-            gcTime: CACHE_STRATEGIES.PROPOSAL_DETAIL.gcTime,
           });
         }, PERFORMANCE_CONFIG.PREFETCH_DELAY * (index + 1));
       }
@@ -86,8 +83,6 @@ export class ProposalPrefetchStrategy {
     this.queryClient.prefetchQuery({
       queryKey,
       queryFn: () => proposalApi.getQuestions(proposalId, {}),
-      staleTime: CACHE_STRATEGIES.PROPOSAL_QUESTIONS.staleTime,
-      gcTime: CACHE_STRATEGIES.PROPOSAL_QUESTIONS.gcTime,
     });
   }
 }

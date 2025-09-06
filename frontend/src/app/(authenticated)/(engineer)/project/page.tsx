@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,9 +8,10 @@ import {
   CardContent,
   Chip,
   Stack,
-  SelectChangeEvent,
   Tabs,
   Tab,
+  Button,
+  TextField,
 } from '@mui/material';
 import {
   Work as WorkIcon,
@@ -18,6 +19,8 @@ import {
 import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import { DebugLogger } from '@/lib/debug/logger';
+import { listProjects, type ProjectItemDto } from '@/lib/api/projects';
+import { handleApiError } from '@/lib/api/error';
 
 // 共通コンポーネントをインポート
 import { CommonTabPanel } from '@/components/common';
@@ -27,10 +30,12 @@ import {
   FilterBar,
   EmptyState,
 } from '@/components/common/layout';
+import { useToast } from '@/components/common';
 
 // 新しく作成したコンポーネントをインポート
 import ProjectList from '@/components/features/project/ProjectList';
 import ProjectDetailDialog from '@/components/features/project/ProjectDetailDialog';
+import EngineerGuard from '@/components/common/EngineerGuard';
 
 // プロジェクト項目の型定義
 interface ProjectItem {
@@ -42,7 +47,7 @@ interface ProjectItem {
   expectedDailyRate: string;
   company: string;
   location: string;
-  status: string;
+  status: string; // 'active' | 'archived' | 'draft'
   applicationDeadline?: Date;
   interviewCount?: number;
   nearestStation?: string;
@@ -54,103 +59,23 @@ interface ProjectItem {
   notes?: string;
 }
 
-// モックデータ管理
-const MOCK_PROJECTS: ProjectItem[] = [
-  {
-    id: 1,
-    name: 'ECサイトフロントエンド開発',
-    category: 'React',
-    company: '株式会社テクノロジー',
-    location: '東京都渋谷区',
-    nearestStation: '渋谷駅',
-    isFullRemote: true,
-    startDate: new Date('2024-02-01'),
-    endDate: new Date('2024-07-31'),
-    expectedDailyRate: '60,000円',
-    interviewCount: 2,
-    applicationDeadline: new Date('2024-01-20'),
-    status: 'active',
-    workingHours: '9:00 - 18:00',
-    skillRequirements: 'React, TypeScript, Next.js, Redux',
-    details: 'ECサイトのフロントエンド開発を担当していただきます。ユーザー体験を重視した設計と実装をお願いします。',
-    dress: 'カジュアル',
-    notes: 'リモートワーク中心ですが、月1〜2回の出社があります。'
-  },
-  {
-    id: 2,
-    status: 'open',
-    name: '金融系基幹システムリプレイス案件',
-    category: 'システム開発',
-    startDate: new Date('2023-12-01'),
-    endDate: new Date('2024-06-30'),
-    applicationDeadline: new Date('2023-11-15'),
-    expectedDailyRate: '70,000円〜90,000円',
-    interviewCount: 2,
-    company: '株式会社フィナンシャルテクノロジー',
-    location: '東京都千代田区',
-    nearestStation: '東京駅',
-    isFullRemote: false,
-    workingHours: '9:30〜18:30（休憩1時間）',
-    skillRequirements: 'Java, Spring Boot, Oracle, AWS, 金融系業務経験',
-    details: '大手銀行の基幹システムリプレイスプロジェクトです。要件定義から設計、実装、テストまで幅広く担当していただきます。',
-    dress: 'ビジネスカジュアル',
-    notes: '週2回のオンサイト勤務必須。リモートワーク環境の準備が必要です。',
-  },
-  {
-    id: 3,
-    status: 'open',
-    name: 'クラウドインフラ構築・運用',
-    category: 'インフラ構築',
-    startDate: new Date('2023-12-15'),
-    endDate: new Date('2024-12-14'),
-    applicationDeadline: new Date('2023-11-30'),
-    expectedDailyRate: '65,000円〜85,000円',
-    interviewCount: 2,
-    company: '株式会社クラウドテクノロジーズ',
-    location: '東京都港区',
-    nearestStation: '品川駅',
-    isFullRemote: false,
-    workingHours: '9:00〜18:00（休憩1時間）',
-    skillRequirements: 'AWS, Terraform, Docker, Kubernetes, CI/CD',
-    details: 'AWSを中心としたクラウドインフラの設計・構築・運用を担当していただきます。Terraformを用いたIaCの実践やKubernetesによるコンテナ環境の構築経験が活かせます。',
-    dress: 'ビジネスカジュアル',
-    notes: '週3回のオンサイト勤務。AWS認定資格保持者歓迎。',
-  },
-  {
-    id: 4,
-    status: 'closed',
-    name: 'AI画像認識システム開発',
-    category: 'AI/機械学習',
-    startDate: new Date('2023-11-01'),
-    endDate: new Date('2024-04-30'),
-    applicationDeadline: new Date('2023-10-20'),
-    expectedDailyRate: '75,000円〜95,000円',
-    interviewCount: 3,
-    company: '株式会社AIイノベーション',
-    location: '東京都文京区',
-    nearestStation: '後楽園駅',
-    isFullRemote: true,
-    workingHours: '9:30〜18:30（休憩1時間）',
-    skillRequirements: 'Python, TensorFlow, PyTorch, OpenCV, 画像処理',
-    details: '画像認識技術を活用した新規サービス開発プロジェクトです。AIモデルの設計から実装、評価までを担当していただきます。',
-    dress: 'カジュアル',
-    notes: 'フルリモート可。GPU搭載PCの貸与あり。',
-  },
-];
-
-// 案件カテゴリーの選択肢
-const PROJECT_CATEGORIES = [
-  '全て',
-  'システム開発',
-  'インフラ構築',
-  'アプリ開発',
-  'AI/機械学習',
-  'デザイン',
-  'コンサルティング',
-];
+// API DTO -> UIアイテム変換
+const mapDtoToItem = (p: ProjectItemDto): ProjectItem => ({
+  id: p.id,
+  name: p.project_name,
+  category: 'その他',
+  startDate: p.start_date ? new Date(p.start_date) : new Date(),
+  endDate: p.end_date ? new Date(p.end_date) : new Date(),
+  expectedDailyRate: '',
+  company: p.client_name || '',
+  location: '',
+  status: p.status,
+  applicationDeadline: undefined,
+});
 
 export default function ProjectPage() {
   const router = useRouter();
+  const { showError } = useToast();
   
   
   // タブ状態管理
@@ -160,16 +85,24 @@ export default function ProjectPage() {
   const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   
-  // フィルター状態
-  const [categoryFilter, setCategoryFilter] = useState('全て');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // ローディング状態（実際のアプリではAPIリクエスト状態から）
-  const [isLoading] = useState(false);
+  // ローディング/API状態
+  const [isLoading, setIsLoading] = useState(true);
+  const [projects, setProjects] = useState<ProjectItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortBy, setSortBy] = useState<'created_at' | 'project_name' | 'status'>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // タブ切り替え処理
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
+    setPage(1);
   };
   
   // 詳細ダイアログを開く
@@ -183,41 +116,59 @@ export default function ProjectPage() {
     setDialogOpen(false);
   };
   
-  // カテゴリーフィルター変更
-  const handleCategoryChange = (event: SelectChangeEvent<string | number>) => {
-    setCategoryFilter(event.target.value as string);
-  };
-  
   // 検索クエリ変更
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
+    setPage(1);
   };
+
+  // 検索デバウンス
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    debounceTimer.current = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+    return () => { if (debounceTimer.current) clearTimeout(debounceTimer.current); };
+  }, [searchQuery]);
+
   
   // フィルタリングされた案件リスト
-  const filteredProjects = MOCK_PROJECTS.filter(project => {
-    // 検索クエリによるフィルタリング
-    if (searchQuery && !project.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !project.company.toLowerCase().includes(searchQuery.toLowerCase()) &&
-        !(project.skillRequirements || '').toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
-    }
-    
-    // カテゴリーによるフィルタリング
-    if (categoryFilter !== '全て' && project.category !== categoryFilter) {
-      return false;
-    }
-    
-    // ステータスによるフィルタリング（タブ）
-    if (tabIndex === 0 && project.status !== 'open') {
-      return false;
-    } else if (tabIndex === 1 && project.status !== 'closed') {
-      return false;
-    }
-    
-    return true;
-  });
+  // 初回ロード & ページ変更時に取得
+  useEffect(() => {
+    let aborted = false;
+    const run = async () => {
+      try {
+        setIsLoading(true);
+        const statusParam = tabIndex === 0 ? 'active' : (tabIndex === 1 ? 'archived' : undefined);
+        const res = await listProjects({ 
+          page, 
+          limit, 
+          q: debouncedSearch || undefined, 
+          status: statusParam as any,
+          sortBy, 
+          sortOrder 
+        });
+        if (aborted) return;
+        setProjects(res.items.map(mapDtoToItem));
+        setTotal(res.total);
+        setTotalPages(res.total_pages || Math.max(1, Math.ceil(res.total / limit)));
+      } catch (e) {
+        const err = handleApiError(e, '案件一覧取得', { logContext: 'project/list' });
+        const enhanced = (err as any).enhanced;
+        const msg = enhanced?.userMessage || err.message || '案件一覧の取得に失敗しました';
+        showError(msg);
+      } finally {
+        if (!aborted) setIsLoading(false);
+      }
+    };
+    run();
+    return () => { aborted = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, sortBy, sortOrder, debouncedSearch, limit, tabIndex]);
+
+  // フィルタリングされた案件リスト
+  const filteredProjects = useMemo(() => projects, [projects]);
 
   return (
+    <EngineerGuard>
     <PageContainer maxWidth="lg">
 
       <PageHeader
@@ -229,19 +180,75 @@ export default function ProjectPage() {
         <Box sx={{ display: 'flex', alignItems: 'center', mr: 'auto' }}>
           <WorkIcon sx={{ mr: 1, color: 'primary.main' }} />
         </Box>
+        <Box>
+          <button
+            onClick={() => router.push('/project/new')}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#1976d2',
+              color: 'white',
+              borderRadius: 6,
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            新規作成
+          </button>
+        </Box>
 
         <FilterBar
           searchValue={searchQuery}
           onSearchChange={handleSearchChange}
-          searchPlaceholder="検索..."
-          filterValue={categoryFilter}
-          onFilterChange={handleCategoryChange}
-          filterOptions={PROJECT_CATEGORIES.map(category => ({ value: category, label: category }))}
+          searchPlaceholder="案件名・企業名で検索"
           onRefresh={() => {
-            setCategoryFilter('全て');
             setSearchQuery('');
+            setPage(1);
           }}
         />
+
+        {/* Sort controls */}
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ ml: 2, mt: { xs: 1, sm: 0 } }}>
+          <TextField
+            select
+            label="表示件数"
+            size="small"
+            value={limit}
+            onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
+            sx={{ minWidth: 120 }}
+          >
+            <option value={10}>10</option>
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+          </TextField>
+          <TextField
+            select
+            label="並び替え"
+            size="small"
+            value={sortBy}
+            onChange={(e) => { setSortBy(e.target.value as any); setPage(1); }}
+            sx={{ minWidth: 160 }}
+          >
+            <option value="created_at">作成日</option>
+            <option value="project_name">案件名</option>
+            <option value="status">ステータス</option>
+          </TextField>
+          <TextField
+            select
+            label="順序"
+            size="small"
+            value={sortOrder}
+            onChange={(e) => { setSortOrder(e.target.value as any); setPage(1); }}
+            sx={{ minWidth: 120 }}
+          >
+            <option value="desc">降順</option>
+            <option value="asc">昇順</option>
+          </TextField>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Button variant="outlined" size="small" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>前へ</Button>
+            <Typography variant="body2">{page} / {Math.max(1, totalPages)}</Typography>
+            <Button variant="outlined" size="small" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>次へ</Button>
+          </Stack>
+        </Stack>
       </Box>
 
       {/* タブ切り替え */}
@@ -280,9 +287,9 @@ export default function ProjectPage() {
               onCardClick={handleOpenDialog}
               onDetailClick={(projectId) => router.push(`/project/detail?id=${projectId}`)}
             />
-          ) : MOCK_PROJECTS.filter(p => p.status === 'closed').length > 0 ? (
+          ) : projects.filter(p => p.status === 'archived').length > 0 ? (
             <Stack spacing={2}>
-              {MOCK_PROJECTS.filter(p => p.status === 'closed').map((project) => (
+              {projects.filter(p => p.status === 'archived').map((project) => (
                 <Card
                   key={project.id}
                   variant="outlined"
@@ -310,9 +317,11 @@ export default function ProjectPage() {
                             {project.company}
                           </Typography>
                         </Box>
-                        <Typography variant="body2" color="text.secondary">
-                          開始予定: {format(project.startDate, 'yyyy/MM/dd')}
-                        </Typography>
+                        {project.startDate && (
+                          <Typography variant="body2" color="text.secondary">
+                            開始予定: {format(project.startDate, 'yyyy/MM/dd')}
+                          </Typography>
+                        )}
                         <Typography variant="body2" color="text.secondary">
                           想定単価: {project.expectedDailyRate}
                         </Typography>
@@ -354,5 +363,6 @@ export default function ProjectPage() {
         }}
       />
     </PageContainer>
+    </EngineerGuard>
   );
-} 
+}

@@ -2,27 +2,19 @@
 
 import { createTheme, alpha } from '@mui/material/styles';
 import { 
-  FONT_WEIGHT, 
-  FONT_SIZE, 
-	FONT_SIZES,
-  FONT_SIZE_SPECIAL,
-  LINE_HEIGHT,
-  TYPOGRAPHY_VARIANTS 
+  FONT_WEIGHTS as FONT_WEIGHT,
+  FONT_SIZES,
+  LINE_HEIGHTS as LINE_HEIGHT,
+  HEADING_STYLES,
+  BODY_STYLES,
 } from '@/constants/typography';
-import { 
-  LAYOUT,
-	LAYOUT_DIMENSIONS,
-  BORDER_RADIUS,
-  COMPONENT_SIZES,
-  SPACING
-} from '@/constants/dimensions';
+import { LAYOUT, BORDER_RADIUS, COMPONENT_SIZES, SPACING } from '@/constants/dimensions';
 
 // アプリケーション全体で共通の定数（後方互換性のため残す）
 export const APP_CONSTANTS = {
-  SELECT_HEIGHT: COMPONENT_SIZES.INPUT.HEIGHT.MD,  // セレクトボックスの高さを一元管理
-  SIDEBAR_WIDTH: LAYOUT.SIDEBAR_WIDTH, // サイドバーの幅
-  // フォントサイズの一元管理
-  FONT_SIZES: FONT_SIZE_SPECIAL
+  SELECT_HEIGHT: COMPONENT_SIZES.INPUT.HEIGHT.MD,
+  SIDEBAR_WIDTH: (LAYOUT as any).SIDEBAR_WIDTH ?? '16rem',
+  FONT_SIZES,
 };
 
 // カラーパレット設定
@@ -74,19 +66,14 @@ const theme = createTheme({
       'Roboto',
       'Arial',
     ].join(','),
-    h1: TYPOGRAPHY_VARIANTS.h1,
-    h2: TYPOGRAPHY_VARIANTS.h2,
-    h3: TYPOGRAPHY_VARIANTS.h3,
-    h4: TYPOGRAPHY_VARIANTS.h4,
-    h5: TYPOGRAPHY_VARIANTS.h5,
-    h6: TYPOGRAPHY_VARIANTS.h6,
-    subtitle1: TYPOGRAPHY_VARIANTS.subtitle1,
-    subtitle2: TYPOGRAPHY_VARIANTS.subtitle2,
-    body1: TYPOGRAPHY_VARIANTS.body1,
-    body2: TYPOGRAPHY_VARIANTS.body2,
-    caption: TYPOGRAPHY_VARIANTS.caption,
-    overline: TYPOGRAPHY_VARIANTS.overline,
-    button: TYPOGRAPHY_VARIANTS.button,
+    h1: { fontSize: HEADING_STYLES.H1.fontSize, fontWeight: HEADING_STYLES.H1.fontWeight, lineHeight: HEADING_STYLES.H1.lineHeight },
+    h2: { fontSize: HEADING_STYLES.H2.fontSize, fontWeight: HEADING_STYLES.H2.fontWeight, lineHeight: HEADING_STYLES.H2.lineHeight },
+    h3: { fontSize: HEADING_STYLES.H3.fontSize, fontWeight: HEADING_STYLES.H3.fontWeight, lineHeight: HEADING_STYLES.H3.lineHeight },
+    h4: { fontSize: HEADING_STYLES.H4.fontSize, fontWeight: HEADING_STYLES.H4.fontWeight, lineHeight: HEADING_STYLES.H4.lineHeight },
+    h5: { fontSize: HEADING_STYLES.H5.fontSize, fontWeight: HEADING_STYLES.H5.fontWeight, lineHeight: HEADING_STYLES.H5.lineHeight },
+    h6: { fontSize: HEADING_STYLES.H6.fontSize, fontWeight: HEADING_STYLES.H6.fontWeight, lineHeight: HEADING_STYLES.H6.lineHeight },
+    body1: { fontSize: BODY_STYLES.MEDIUM.fontSize, lineHeight: BODY_STYLES.MEDIUM.lineHeight },
+    body2: { fontSize: BODY_STYLES.SMALL.fontSize, lineHeight: BODY_STYLES.SMALL.lineHeight },
   },
   shape: {
     borderRadius: BORDER_RADIUS.MD,
@@ -138,7 +125,7 @@ const theme = createTheme({
         root: {
           borderRadius: BORDER_RADIUS.MD,
           textTransform: 'none',
-          fontWeight: FONT_WEIGHT.SEMI_BOLD,
+          fontWeight: FONT_WEIGHT.SEMIBOLD,
           boxShadow: 'none',
           '&:hover': {
             boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
@@ -219,7 +206,7 @@ const theme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         head: {
-          fontWeight: FONT_WEIGHT.SEMI_BOLD,
+          fontWeight: FONT_WEIGHT.SEMIBOLD,
           backgroundColor: alpha(PRIMARY_COLOR.main, 0.05),
         },
       },
@@ -228,8 +215,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           textTransform: 'none',
-          fontWeight: FONT_WEIGHT.SEMI_BOLD,
-          fontSize: FONT_SIZES.MD,
+          fontWeight: FONT_WEIGHT.SEMIBOLD,
+          fontSize: FONT_SIZES.SM,
           '&.Mui-selected': {
             color: PRIMARY_COLOR.main,
           },
@@ -246,7 +233,7 @@ const theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          width: LAYOUT_DIMENSIONS.ADMIN_SIDEBAR_WIDTH,
+          width: (LAYOUT as any).SIDEBAR_WIDTH ?? '16rem',
           backgroundColor: '#ffffff',
           borderRight: 'none',
         },
@@ -267,7 +254,7 @@ const theme = createTheme({
           '&.Mui-selected': {
             backgroundColor: alpha(PRIMARY_COLOR.main, 0.08),
             color: PRIMARY_COLOR.main,
-            fontWeight: FONT_WEIGHT.SEMI_BOLD,
+            fontWeight: FONT_WEIGHT.SEMIBOLD,
             '&:hover': {
               backgroundColor: alpha(PRIMARY_COLOR.main, 0.12),
             },
@@ -285,7 +272,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: BORDER_RADIUS.XL,
-          fontWeight: FONT_WEIGHT.SEMI_BOLD,
+          fontWeight: FONT_WEIGHT.SEMIBOLD,
         },
         colorPrimary: {
           backgroundColor: PRIMARY_COLOR.main,

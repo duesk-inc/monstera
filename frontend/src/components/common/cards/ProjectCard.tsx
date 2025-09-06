@@ -134,9 +134,9 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({
         border: '1px solid',
         borderColor: 'divider',
         boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-        ...getStatusStyles(),
-        ...getClickableStyles(),
-        ...sx,
+        ...(getStatusStyles() as any),
+        ...(getClickableStyles() as any),
+        ...(sx as any),
       }}
       data-testid={testId || `project-card-${id}`}
     >

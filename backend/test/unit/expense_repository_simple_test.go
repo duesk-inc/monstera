@@ -63,10 +63,10 @@ func TestExpenseRepository_SimpleFunctionality(t *testing.T) {
 		expenseID := uuid.New()
 
 		// 経費申請オブジェクトの作成（実際にDBに保存はしない）
-		expense := &model.Expense{
-			ID:          expenseID,
-			UserID:      userID,
-			Title:       "テスト経費",
+			expense := &model.Expense{
+				ID:          expenseID.String(),
+				UserID:      userID.String(),
+				Title:       "テスト経費",
 			Amount:      5000,
 			Status:      model.ExpenseStatusDraft,
 			ExpenseDate: time.Now(),
@@ -82,12 +82,12 @@ func TestExpenseRepository_SimpleFunctionality(t *testing.T) {
 		assert.Error(t, err, "テーブル未作成のためエラーが発生（予期される動作）")
 
 		t.Log("GetByID メソッドの呼び出し確認")
-		_, err = repo.GetByID(ctx, expenseID)
+			_, err = repo.GetByID(ctx, expenseID.String())
 		// テーブルが存在しないためエラーが発生するが、メソッドは呼び出し可能
 		assert.Error(t, err, "テーブル未作成のためエラーが発生（予期される動作）")
 
 		t.Log("ExistsByID メソッドの呼び出し確認")
-		_, err = repo.ExistsByID(ctx, expenseID)
+			_, err = repo.ExistsByID(ctx, expenseID.String())
 		// テーブルが存在しないためエラーが発生するが、メソッドは呼び出し可能
 		assert.Error(t, err, "テーブル未作成のためエラーが発生（予期される動作）")
 
@@ -162,10 +162,10 @@ func TestExpenseRepository_DataValidation(t *testing.T) {
 		expenseID := uuid.New()
 
 		// 正常な経費申請オブジェクト
-		validExpense := &model.Expense{
-			ID:          expenseID,
-			UserID:      userID,
-			Title:       "有効な経費申請",
+			validExpense := &model.Expense{
+				ID:          expenseID.String(),
+				UserID:      userID.String(),
+				Title:       "有効な経費申請",
 			Amount:      5000,
 			Status:      model.ExpenseStatusDraft,
 			ExpenseDate: time.Now(),
@@ -175,8 +175,8 @@ func TestExpenseRepository_DataValidation(t *testing.T) {
 		}
 
 		// 基本的な検証
-		assert.NotEqual(t, uuid.Nil, validExpense.ID, "IDが設定されている")
-		assert.NotEqual(t, uuid.Nil, validExpense.UserID, "ユーザーIDが設定されている")
+			assert.NotEmpty(t, validExpense.ID, "IDが設定されている")
+			assert.NotEmpty(t, validExpense.UserID, "ユーザーIDが設定されている")
 		assert.NotEmpty(t, validExpense.Title, "タイトルが設定されている")
 		assert.Greater(t, validExpense.Amount, 0, "金額が正の値")
 		assert.NotEmpty(t, string(validExpense.Status), "ステータスが設定されている")

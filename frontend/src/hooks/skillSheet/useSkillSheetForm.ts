@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { SkillSheet, SkillSheetFormData } from '@/types/skillSheet';
 import { updateSkillSheet, tempSaveSkillSheet } from '@/lib/api/skillSheet';
@@ -162,6 +162,66 @@ export const useSkillSheetForm = (skillSheet: SkillSheet | null) => {
       setIsSubmitting(false);
     }
   }, [formMethods]);
+
+  // ===== オートセーブ（デバウンス） =====
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoSaveInFlight = useRef(false);
+
+  const performAutoTempSave = useCallback(async () => {
+    // 送信中や既にオートセーブ中はスキップ
+    if (isSubmitting || autoSaveInFlight.current) return;
+    autoSaveInFlight.current = true;
+    try {
+      const formData = formMethods.getValues();
+
+      DebugLogger.info(
+        { category: 'Form', operation: DEBUG_OPERATIONS.CREATE, description: 'スキルシート一時保存（オートセーブ）' },
+        'action: temp-save (auto)',
+        { formData }
+      );
+
+      await tempSaveSkillSheet(formData);
+
+      // 一時保存後にフォーム状態をリセットしてdirtyフラグを解除
+      formMethods.reset(formData);
+      setIsTempSaved(true);
+      setTempSavedAt(new Date());
+
+      DebugLogger.info(
+        { category: 'Form', operation: DEBUG_OPERATIONS.CREATE, description: 'スキルシート一時保存成功（オートセーブ）' },
+        'action: temp-save (auto) - success'
+      );
+    } catch (error: any) {
+      DebugLogger.apiError(
+        { category: 'Form', operation: DEBUG_OPERATIONS.CREATE, description: 'スキルシート一時保存エラー（オートセーブ）' },
+        { error }
+      );
+      // オートセーブはサイレント運用（スナックバーは出さない）
+    } finally {
+      autoSaveInFlight.current = false;
+    }
+  }, [formMethods, isSubmitting]);
+
+  // フォーム変更を監視してデバウンスオートセーブ
+  useEffect(() => {
+    // watchの購読で全フィールド変更を捕捉
+    const subscription = formMethods.watch(() => {
+      // 直近変更があればデバウンスして一時保存
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+      // 800msのデバウンス
+      autoSaveTimer.current = setTimeout(() => {
+        // 直近の変更でdirtyな場合のみ実行
+        if (formMethods.formState.isDirty) {
+          void performAutoTempSave();
+        }
+      }, 800);
+    });
+
+    return () => {
+      if (subscription && typeof subscription.unsubscribe === 'function') subscription.unsubscribe();
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [formMethods, performAutoTempSave]);
 
   // 通知をリセット
   const resetSnackbar = useCallback(() => {

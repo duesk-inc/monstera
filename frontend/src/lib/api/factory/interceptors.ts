@@ -72,8 +72,7 @@ export class InterceptorManager {
           operation: '認証インターセプター'
         }, {
           url: config.url,
-          method: config.method,
-          withCredentials: config.withCredentials
+          method: config.method
         });
 
         return config;
@@ -186,9 +185,7 @@ export class InterceptorManager {
           operation: 'リクエスト送信'
         }, {
           url: config.url,
-          method: config.method,
-          params: config.params,
-          timestamp: new Date(startTime).toISOString()
+          method: config.method
         });
 
         return config;
@@ -215,9 +212,7 @@ export class InterceptorManager {
         }, {
           url: response.config.url,
           method: response.config.method,
-          status: response.status,
-          duration: `${duration}ms`,
-          timestamp: new Date(endTime).toISOString()
+          status: response.status
         });
 
         return response;
@@ -234,9 +229,7 @@ export class InterceptorManager {
           url: error.config?.url,
           method: error.config?.method,
           status: error.response?.status,
-          duration: `${duration}ms`,
-          error: error.message,
-          timestamp: new Date(endTime).toISOString()
+          error: error.message
         });
 
         return Promise.reject(error);
@@ -278,15 +271,14 @@ export class InterceptorManager {
 
         // エラー情報をログ（グローバルハンドラーでログ済みの場合はスキップ）
         if (!options?.logError) {
-          DebugLogger.apiError({
-            category: 'API',
-            operation: 'エラーハンドリング'
-          }, {
-            code: handledError.error.code,
-            message: handledError.error.message,
-            status: handledError.status,
-            url: error.config?.url
-          });
+        DebugLogger.apiError({
+          category: 'API',
+          operation: 'エラーハンドリング'
+        }, {
+          error: handledError.error,
+          status: handledError.status,
+          url: error.config?.url
+        });
         }
 
         // 処理済みエラーとしてマーク

@@ -40,16 +40,6 @@ export const listWeeklyReports = async (
     
     // convertSnakeToCamelを使用してレスポンスを変換
     const convertedData = convertSnakeToCamel<ListWeeklyReportsResponse>(response.data);
-    
-    // レスポンスデータの処理
-    if (convertedData && convertedData.reports) {
-      convertedData.reports = convertedData.reports.map((report: ApiResponseBase) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { weeklyMood, ...rest } = report;
-        return rest;
-      });
-    }
-    
     return convertedData;
   } catch (error) {
     DebugLogger.apiError({
@@ -84,7 +74,7 @@ export const getCurrentWeeklyReport = async (signal?: AbortSignal): Promise<ApiW
     // 日付範囲で週報を取得（signalを渡す）
     return await getWeeklyReportByDateRange(startDate, endDate, signal);
   } catch (error) {
-    const handledError = handleApiError(error, '今週の週報');
+    const handledError = handleApiError(error as any);
     
     // AbortErrorの場合は再スロー（呼び出し元で適切に処理される）
     if (handledError instanceof AbortError) {
@@ -121,7 +111,7 @@ export const createWeeklyReport = async (weeklyReport: ApiWeeklyReport): Promise
     );
     
     // 不要なフィールドを除外
-    const { plans, problems, ...cleanReport } = weeklyReport;
+    const { plans, problems, ...cleanReport } = weeklyReport as any;
     
     // リクエストデータをバックエンド互換形式に変換
     const backendReport = convertCamelToSnake(cleanReport);
@@ -155,9 +145,7 @@ export const createWeeklyReport = async (weeklyReport: ApiWeeklyReport): Promise
     
     // レスポンスデータの処理
     if (convertedData) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { weeklyMood, ...rest } = convertedData;
-      const finalResult = rest;
+      const finalResult = convertedData as any;
       
       // デバッグログ: API成功
       DebugLogger.apiSuccess(
@@ -234,7 +222,7 @@ export const updateWeeklyReport = async (id: string, weeklyReport: ApiWeeklyRepo
     );
     
     // 不要なフィールドを除外
-    const { plans, problems, ...cleanReport } = weeklyReport;
+    const { plans, problems, ...cleanReport } = weeklyReport as any;
     
     // リクエストデータをバックエンド互換形式に変換
     const backendReport = convertCamelToSnake(cleanReport);
@@ -268,9 +256,7 @@ export const updateWeeklyReport = async (id: string, weeklyReport: ApiWeeklyRepo
     
     // レスポンスデータの処理
     if (convertedData) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { weeklyMood, ...rest } = convertedData;
-      const finalResult = rest;
+      const finalResult = convertedData as any;
       
       // デバッグログ: API成功
       DebugLogger.apiSuccess(
@@ -339,9 +325,7 @@ export const submitWeeklyReport = async (id: string): Promise<ApiWeeklyReport> =
     
     // レスポンスデータの処理
     if (convertedData) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { weeklyMood, ...rest } = convertedData;
-      return rest;
+      return convertedData as any;
     }
     
     return convertedData;
@@ -386,14 +370,12 @@ export const getWeeklyReportById = async (id: string, signal?: AbortSignal): Pro
     
     // レスポンスデータの処理
     if (convertedData) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { weeklyMood, ...rest } = convertedData;
-      return rest;
+      return convertedData as any;
     }
     
     return convertedData;
   } catch (error) {
-    const handledError = handleApiError(error, '週報詳細');
+    const handledError = handleApiError(error as any);
     
     // AbortErrorの場合は再スロー
     if (handledError instanceof AbortError) {
@@ -405,7 +387,7 @@ export const getWeeklyReportById = async (id: string, signal?: AbortSignal): Pro
       operation: '詳細取得'
     }, {
       error,
-      weeklyReportId: id
+      metadata: { weeklyReportId: id }
     });
     throw handledError;
   }
@@ -447,9 +429,7 @@ export const copyWeeklyReport = async (id: string): Promise<ApiWeeklyReport> => 
     
     // レスポンスデータの処理
     if (convertedData) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { weeklyMood, ...rest } = convertedData;
-      return rest;
+      return convertedData as any;
     }
     
     return convertedData;
@@ -551,9 +531,7 @@ export const getWeeklyReportByDateRange = async (startDate: string, endDate: str
       
       // weeklyMoodプロパティを除外して返す
       if (convertedReport) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { weeklyMood, ...rest } = convertedReport;
-        return rest;
+        return convertedReport as any;
       }
     }
     
@@ -565,7 +543,7 @@ export const getWeeklyReportByDateRange = async (startDate: string, endDate: str
       return null;
     }
     
-    const handledError = handleApiError(error, '日付範囲からの週報');
+    const handledError = handleApiError(error as any);
     
     // AbortErrorの場合は再スロー（呼び出し元で適切に処理される）
     if (handledError instanceof AbortError) {
@@ -597,6 +575,15 @@ export const getUserDefaultWorkSettings = async (): Promise<DefaultWorkTimeSetti
         weekdayStart: data.weekday_start_time || DEFAULT_WORK_TIME.START_TIME,
         weekdayEnd: data.weekday_end_time || DEFAULT_WORK_TIME.END_TIME,
         weekdayBreak: data.weekday_break_time || DEFAULT_WORK_TIME.BREAK_TIME,
+        customDaySettings: {
+          monday:    { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+          tuesday:   { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+          wednesday: { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+          thursday:  { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+          friday:    { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+          saturday:  { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+          sunday:    { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+        },
       };
     }
     
@@ -608,11 +595,13 @@ export const getUserDefaultWorkSettings = async (): Promise<DefaultWorkTimeSetti
       operation: 'デフォルト勤務時間取得'
     }, {
       error,
-      endpoint: WEEKLY_REPORT_API.TEMPLATE,
-      fallbackValues: {
+      metadata: {
+        endpoint: WEEKLY_REPORT_API.TEMPLATE,
+        fallbackValues: {
         weekdayStart: DEFAULT_WORK_TIME.START_TIME,
         weekdayEnd: DEFAULT_WORK_TIME.END_TIME,
         weekdayBreak: DEFAULT_WORK_TIME.BREAK_TIME,
+        },
       }
     });
     
@@ -629,6 +618,15 @@ export const getUserDefaultWorkSettings = async (): Promise<DefaultWorkTimeSetti
       weekdayStart: DEFAULT_WORK_TIME.START_TIME,
       weekdayEnd: DEFAULT_WORK_TIME.END_TIME,
       weekdayBreak: DEFAULT_WORK_TIME.BREAK_TIME,
+      customDaySettings: {
+        monday: { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+        tuesday: { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+        wednesday: { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+        thursday: { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+        friday: { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+        saturday: { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+        sunday: { enabled: false, startTime: DEFAULT_WORK_TIME.START_TIME, endTime: DEFAULT_WORK_TIME.END_TIME, breakTime: DEFAULT_WORK_TIME.BREAK_TIME },
+      },
     };
   }
 };
@@ -655,6 +653,15 @@ export const saveUserDefaultWorkSettings = async (settings: DefaultWorkTimeSetti
       weekdayStart: responseData.weekdayStart || responseData.weekday_start_time || settings.weekdayStart,
       weekdayEnd: responseData.weekdayEnd || responseData.weekday_end_time || settings.weekdayEnd,
       weekdayBreak: Number(responseData.weekdayBreak || responseData.weekday_break_time || settings.weekdayBreak),
+      customDaySettings: settings.customDaySettings ?? {
+        monday: { enabled: false, startTime: settings.weekdayStart, endTime: settings.weekdayEnd, breakTime: settings.weekdayBreak },
+        tuesday: { enabled: false, startTime: settings.weekdayStart, endTime: settings.weekdayEnd, breakTime: settings.weekdayBreak },
+        wednesday: { enabled: false, startTime: settings.weekdayStart, endTime: settings.weekdayEnd, breakTime: settings.weekdayBreak },
+        thursday: { enabled: false, startTime: settings.weekdayStart, endTime: settings.weekdayEnd, breakTime: settings.weekdayBreak },
+        friday: { enabled: false, startTime: settings.weekdayStart, endTime: settings.weekdayEnd, breakTime: settings.weekdayBreak },
+        saturday: { enabled: false, startTime: settings.weekdayStart, endTime: settings.weekdayEnd, breakTime: settings.weekdayBreak },
+        sunday: { enabled: false, startTime: settings.weekdayStart, endTime: settings.weekdayEnd, breakTime: settings.weekdayBreak },
+      },
     };
   } catch (error) {
     DebugLogger.apiError({

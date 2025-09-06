@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import { Box, Typography, Button, Breadcrumbs, Link, Alert, Skeleton } from '@mui/material';
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { PageContainer } from '../../../../../../components/common/layout/PageContainer';
@@ -39,11 +39,7 @@ export default function SalesProposalQuestionsPage() {
   });
 
   // 質問回答
-  const respondQuestion = useRespondQuestion({
-    onSuccess: () => {
-      refetchQuestions();
-    },
-  });
+  const respondQuestion = useRespondQuestion();
 
   // 戻るボタン
   const handleBack = () => {
@@ -65,6 +61,11 @@ export default function SalesProposalQuestionsPage() {
 
   // エラー状態
   if (proposalError || !proposal) {
+    const status = (proposalError as any)?.response?.status;
+    const code = (proposalError as any)?.enhanced?.code || (proposalError as any)?.code;
+    if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+      notFound();
+    }
     return (
       <PageContainer maxWidth="lg">
         <Alert severity="error">

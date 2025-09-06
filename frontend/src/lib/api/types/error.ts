@@ -288,8 +288,10 @@ export function isStandardErrorResponse(response: any): response is StandardErro
  * バリデーションエラーの型ガード
  */
 export function isValidationErrorResponse(response: any): response is ValidationErrorResponse {
-  return isStandardErrorResponse(response) &&
+  return (
+    isStandardErrorResponse(response) &&
     response.error.code === ApiErrorCode.VALIDATION_ERROR &&
-    response.error.details &&
-    Array.isArray(response.error.details.errors);
+    !!response.error.details &&
+    Array.isArray(response.error.details.errors)
+  );
 }

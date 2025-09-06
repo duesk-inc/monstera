@@ -110,6 +110,38 @@ func (h *ExpenseHandler) GetExpense(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": response})
 }
 
+// GetExpenseDetailAdmin 管理者/マネージャー用の経費申請詳細取得
+func (h *ExpenseHandler) GetExpenseDetailAdmin(c *gin.Context) {
+	h.logger.Info("管理用 経費申請詳細取得API開始")
+
+	// 経費申請IDをパース
+	expenseID, err := ParseUUID(c, "id", h.logger)
+	if err != nil {
+		return
+	}
+
+	// 詳細取得（本人以外も可）
+	expense, err := h.expenseService.GetByIDForAdmin(c.Request.Context(), expenseID)
+	if err != nil {
+		h.logger.Error("Failed to get expense (admin)", zap.Error(err), zap.String("expense_id", expenseID))
+
+		// エラーメッセージから適切なステータスコードを判定
+		if err.Error() == "経費申請が見つかりません" {
+			RespondStandardErrorWithCode(c, http.StatusNotFound, constants.ErrExpenseNotFound, "経費申請が見つかりません")
+			return
+		}
+
+		HandleStandardError(c, http.StatusInternalServerError, constants.ErrExpenseSaveFailed, "経費申請の取得に失敗しました", h.logger, err)
+		return
+	}
+
+	// レスポンスを生成
+	response := dto.ExpenseToDetailResponse(&expense.Expense)
+
+	h.logger.Info("管理用 経費申請詳細取得成功", zap.String("expense_id", expenseID))
+	c.JSON(http.StatusOK, gin.H{"data": response})
+}
+
 // UpdateExpense 経費申請を更新
 func (h *ExpenseHandler) UpdateExpense(c *gin.Context) {
 	h.logger.Info("経費申請更新API開始")
@@ -1450,11 +1482,17 @@ func (h *ExpenseHandler) ExportExpensesCSVAdmin(c *gin.Context) {
 	filter.Year = h.parseIntParam(c, "year")
 
 	// エクスポート設定
-	filter.IncludeReceipts = c.Query("include_receipts") == "true"
-	filter.IncludeApprovals = c.Query("include_approvals") == "true"
-	filter.DateFormat = c.DefaultQuery("date_format", "2006-01-02")
-	filter.Encoding = c.DefaultQuery("encoding", "UTF-8-BOM")
-	filter.Language = c.DefaultQuery("language", "ja")
+    filter.IncludeReceipts = c.Query("include_receipts") == "true"
+    filter.IncludeApprovals = c.Query("include_approvals") == "true"
+    filter.DateFormat = c.DefaultQuery("date_format", "2006-01-02")
+    filter.Encoding = c.DefaultQuery("encoding", "UTF-8-BOM")
+    filter.Language = c.DefaultQuery("language", "ja")
+    // 最小列はデフォルトtrue（契約: 最小列を基本とし、詳細は明示指定）
+    if c.Query("minimal") == "" {
+        filter.Minimal = true
+    } else {
+        filter.Minimal = c.Query("minimal") == "true"
+    }
 
 	// CSVデータを生成
 	csvData, err := h.expenseService.ExportExpensesCSVAdmin(ctx, &filter)

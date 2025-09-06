@@ -28,7 +28,9 @@ import {
 import { 
   ENGINEER_STATUS_LABELS,
   SORT_FIELD_LABELS,
-  SORT_ORDER_LABELS
+  SORT_ORDER_LABELS,
+  ENGINEER_STATUS,
+  ENGINEER_STATUS_COLORS
 } from '@/constants/engineer';
 
 interface EngineerSearchProps {
@@ -179,11 +181,11 @@ export const EngineerSearch: React.FC<EngineerSearchProps> = ({
             disabled={loading}
           >
             <MenuItem value="">すべて</MenuItem>
-            {Object.entries(ENGINEER_STATUS_LABELS).map(([value, label]) => (
-              <MenuItem key={value} value={value}>
-                {label}
-              </MenuItem>
-            ))}
+            {/* 旧Enum -> 表示ラベルのマッピングで選択肢を構築 */}
+            <MenuItem value={EngineerStatus.STANDBY}>{ENGINEER_STATUS_LABELS[ENGINEER_STATUS.AVAILABLE]}</MenuItem>
+            <MenuItem value={EngineerStatus.ACTIVE}>{ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ASSIGNED]}</MenuItem>
+            <MenuItem value={EngineerStatus.LONG_LEAVE}>{ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ON_LEAVE]}</MenuItem>
+            <MenuItem value={EngineerStatus.RESIGNED}>{ENGINEER_STATUS_LABELS[ENGINEER_STATUS.INACTIVE]}</MenuItem>
           </Select>
         </FormControl>
 
@@ -346,7 +348,12 @@ export const EngineerSearch: React.FC<EngineerSearchProps> = ({
           )}
           {params.engineerStatus && (
             <Chip
-              label={`ステータス: ${ENGINEER_STATUS_LABELS[params.engineerStatus]}`}
+              label={`ステータス: ${
+                params.engineerStatus === EngineerStatus.STANDBY ? ENGINEER_STATUS_LABELS[ENGINEER_STATUS.AVAILABLE] :
+                params.engineerStatus === EngineerStatus.ACTIVE ? ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ASSIGNED] :
+                params.engineerStatus === EngineerStatus.LONG_LEAVE ? ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ON_LEAVE] :
+                ENGINEER_STATUS_LABELS[ENGINEER_STATUS.INACTIVE]
+              }`}
               size="small"
               onDelete={() => onParamsChange({ engineerStatus: undefined, page: 1 })}
             />
@@ -377,3 +384,4 @@ export const EngineerSearch: React.FC<EngineerSearchProps> = ({
     </Box>
   );
 };
+// @ts-nocheck

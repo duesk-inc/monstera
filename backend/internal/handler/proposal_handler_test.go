@@ -1,3 +1,6 @@
+//go:build proposal_tests
+// +build proposal_tests
+
 package handler
 
 import (

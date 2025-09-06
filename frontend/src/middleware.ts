@@ -72,6 +72,10 @@ const getCognitoTokenFromCookies = (request: NextRequest): { token: string | nul
 };
 
 export function middleware(request: NextRequest) {
+  // E2E/CI向けの認証バイパス（PlaywrightでのUIルーティングを安定化）
+  if (process.env.E2E_BYPASS_AUTH === 'true') {
+    return NextResponse.next();
+  }
   const { pathname, searchParams } = request.nextUrl;
   
   // 静的ファイルの拡張子をチェックして早期リターン

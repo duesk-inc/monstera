@@ -14,7 +14,7 @@ export default defineConfig({
     ['junit', { outputFile: '../test-results/ci-20250703-004754/junit.xml' }]
   ],
   use: {
-    baseURL: 'http://localhost:3001',
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',

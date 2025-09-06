@@ -82,11 +82,11 @@ export const SharedLayoutWrapper: React.FC<SharedLayoutWrapperProps> = ({
       )}
 
       {/* デスクトップ用サイドバー */}
-      {!isMobile && React.cloneElement(sidebar as React.ReactElement, {
+      {!isMobile && React.cloneElement(sidebar as React.ReactElement<any>, {
         collapsed: sidebarCollapsed,
         onToggleCollapse: handleToggleCollapse,
         mobile: false,  // デスクトップモードを明示的に指定
-      })}
+      } as any)}
 
       {/* メインコンテンツ */}
       <Box

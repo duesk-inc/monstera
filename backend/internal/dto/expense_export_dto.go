@@ -29,7 +29,9 @@ type ExpenseExportRequest struct {
 	IncludeApprovals bool   `json:"include_approvals"` // 承認履歴を含む
 	DateFormat       string `json:"date_format"`       // 日付フォーマット（デフォルト: 2006-01-02）
 	Encoding         string `json:"encoding"`          // 文字エンコーディング（デフォルト: UTF-8）
-	Language         string `json:"language"`          // 言語（ja/en）
+    Language         string `json:"language"`          // 言語（ja/en）
+    // 最小列モード（ID/申請日/申請者/部門/件名/カテゴリ/金額/使用日/ステータス）
+    Minimal          bool   `json:"minimal"`
 }
 
 // ExpenseCSVRecord CSV出力用レコード

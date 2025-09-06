@@ -13,12 +13,14 @@ import (
 
 // ClientService 取引先サービスのインターフェース
 type ClientService interface {
-	GetClients(ctx context.Context, page, limit int, search string) ([]dto.ClientDTO, int64, error)
-	GetClientByID(ctx context.Context, clientID string) (*dto.ClientDetailDTO, error)
-	CreateClient(ctx context.Context, req *dto.CreateClientRequest) (*dto.ClientDTO, error)
-	UpdateClient(ctx context.Context, clientID string, req *dto.UpdateClientRequest) (*dto.ClientDTO, error)
-	DeleteClient(ctx context.Context, clientID string) error
-	GetClientProjects(ctx context.Context, clientID string) ([]dto.ProjectDTO, error)
+    GetClients(ctx context.Context, page, limit int, search string) ([]dto.ClientDTO, int64, error)
+    GetClientByID(ctx context.Context, clientID string) (*dto.ClientDetailDTO, error)
+    CreateClient(ctx context.Context, req *dto.CreateClientRequest) (*dto.ClientDTO, error)
+    UpdateClient(ctx context.Context, clientID string, req *dto.UpdateClientRequest) (*dto.ClientDTO, error)
+    DeleteClient(ctx context.Context, clientID string) error
+    GetClientProjects(ctx context.Context, clientID string) ([]dto.ProjectDTO, error)
+    // Engineer向け軽量一覧
+    ListClientsLight(ctx context.Context, page, limit int, q string) ([]dto.ClientLightItem, int64, error)
 }
 
 // clientService 取引先サービスの実装
@@ -283,6 +285,40 @@ func (s *clientService) GetClientProjects(ctx context.Context, clientID string) 
 	}
 
 	return dtos, nil
+}
+
+// ListClientsLight 軽量クライアント一覧（id, company_name のみ）
+func (s *clientService) ListClientsLight(ctx context.Context, page, limit int, q string) ([]dto.ClientLightItem, int64, error) {
+    if page < 1 { page = 1 }
+    if limit < 1 { limit = 20 }
+    if limit > 100 { limit = 100 }
+    offset := (page - 1) * limit
+
+    // 総件数
+    base := s.db.WithContext(ctx).Model(&model.Client{}).Where("deleted_at IS NULL")
+    if q != "" {
+        like := "%" + q + "%"
+        base = base.Where("company_name LIKE ?", like)
+    }
+    var total int64
+    if err := base.Count(&total).Error; err != nil {
+        return nil, 0, err
+    }
+
+    // データ
+    type row struct {
+        ID          string `gorm:"column:id"`
+        CompanyName string `gorm:"column:company_name"`
+    }
+    var rows []row
+    if err := base.Select("id, company_name").Order("company_name_kana ASC").Limit(limit).Offset(offset).Find(&rows).Error; err != nil {
+        return nil, 0, err
+    }
+    items := make([]dto.ClientLightItem, 0, len(rows))
+    for _, r := range rows {
+        items = append(items, dto.ClientLightItem{ID: r.ID, CompanyName: r.CompanyName})
+    }
+    return items, total, nil
 }
 
 // modelToDTO モデルをDTOに変換

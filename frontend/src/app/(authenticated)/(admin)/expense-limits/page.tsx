@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   CardActions,
@@ -32,6 +31,8 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
+import { Grid as MuiGrid } from '@mui/material';
+const Grid: any = MuiGrid;
 import {
   Settings as SettingsIcon,
   History as HistoryIcon,
@@ -133,7 +134,7 @@ export default function ExpenseLimitsPage() {
           
           <Grid container spacing={3}>
             {/* 月次上限 */}
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
@@ -185,7 +186,7 @@ export default function ExpenseLimitsPage() {
             </Grid>
 
             {/* 年次上限 */}
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>

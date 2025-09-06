@@ -30,18 +30,20 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
     if (!user) return '?';
     
     // Check for first_name and last_name (snake_case format)
-    const hasFirstName = user.first_name && typeof user.first_name === 'string' && user.first_name.length > 0;
-    const hasLastName = user.last_name && typeof user.last_name === 'string' && user.last_name.length > 0;
+    const firstNameStr = (user.first_name ?? '') as string;
+    const lastNameStr = (user.last_name ?? '') as string;
+    const hasFirstName = firstNameStr.length > 0;
+    const hasLastName = lastNameStr.length > 0;
     
     if (hasFirstName && hasLastName) {
-      return `${user.first_name.charAt(0)}${user.last_name.charAt(0)}`.toUpperCase();
+      return `${firstNameStr.charAt(0)}${lastNameStr.charAt(0)}`.toUpperCase();
     }
     
     if (hasFirstName) {
-      return user.first_name.charAt(0).toUpperCase();
+      return firstNameStr.charAt(0).toUpperCase();
     }
     if (hasLastName) {
-      return user.last_name.charAt(0).toUpperCase();
+      return lastNameStr.charAt(0).toUpperCase();
     }
     
     // Fallback to email
@@ -64,7 +66,7 @@ export const UserAvatar: React.FC<UserAvatarProps> = ({
     >
       {isLoading ? (
         <CircularProgress 
-          size={sizes[size].width * 0.5} 
+          size={parseInt(sizes[size].width as string, 10) * 0.5} 
           sx={{ color: 'white' }}
         />
       ) : (

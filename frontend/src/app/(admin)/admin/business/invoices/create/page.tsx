@@ -242,7 +242,10 @@ export default function CreateInvoice() {
                 <DatePicker
                   label="請求日"
                   value={formData.invoice_date}
-                  onChange={(newValue) => setFormData({ ...formData, invoice_date: newValue || new Date() })}
+                  onChange={(newValue) => {
+                    const v = (newValue && (newValue as any).toDate) ? (newValue as any).toDate() : (newValue || new Date());
+                    setFormData({ ...formData, invoice_date: v });
+                  }}
                   slotProps={{ textField: { fullWidth: true, required: true } }}
                 />
               </Grid>
@@ -250,7 +253,10 @@ export default function CreateInvoice() {
                 <DatePicker
                   label="支払期限"
                   value={formData.due_date}
-                  onChange={(newValue) => setFormData({ ...formData, due_date: newValue || new Date() })}
+                  onChange={(newValue) => {
+                    const v = (newValue && (newValue as any).toDate) ? (newValue as any).toDate() : (newValue || new Date());
+                    setFormData({ ...formData, due_date: v });
+                  }}
                   slotProps={{ textField: { fullWidth: true, required: true } }}
                 />
               </Grid>

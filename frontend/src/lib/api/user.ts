@@ -58,7 +58,7 @@ export const getUsers = async (params?: GetUsersParams): Promise<GetUsersRespons
     }, {
       method: 'GET',
       url: '/users',
-      params
+      metadata: { params }
     });
     
     const response = await client.get('/users', { params });
@@ -67,8 +67,8 @@ export const getUsers = async (params?: GetUsersParams): Promise<GetUsersRespons
       category: 'ユーザー',
       operation: '一覧取得'
     }, {
-      response: response.data,
-      message: `${response.data.items.length}件のユーザーを取得しました`
+      responseData: response.data,
+      metadata: { message: `${response.data.items.length}件のユーザーを取得しました` }
     });
     
     return response.data;

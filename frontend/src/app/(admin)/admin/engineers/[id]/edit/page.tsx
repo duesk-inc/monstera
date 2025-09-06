@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import { 
   Box, 
   Card, 
@@ -31,11 +31,11 @@ export default function EditEngineer() {
   
   const engineerId = params.id as string;
   const { engineer, loading, error, refresh } = useEngineerDetail(engineerId);
-  const { updateEngineer, isUpdating } = useUpdateEngineer();
+  const updateMutation = useUpdateEngineer();
 
   const handleSubmit = async (data: UpdateEngineerInput) => {
     try {
-      await updateEngineer(engineerId, data);
+      await updateMutation.mutateAsync({ id: engineerId, data });
       showSuccess('エンジニア情報を更新しました');
       // 詳細画面へリダイレクト
       router.push(`/admin/engineers/${engineerId}`);
@@ -50,6 +50,11 @@ export default function EditEngineer() {
   };
 
   if (error) {
+    const status = (error as any)?.response?.status;
+    const code = (error as any)?.enhanced?.code || (error as any)?.code;
+    if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+      notFound();
+    }
     return (
       <PageContainer title="エンジニア編集">
         <Alert severity="error" action={
@@ -94,8 +99,8 @@ export default function EditEngineer() {
               社員番号: {engineer.user.employeeNumber}
             </Typography>
             <Chip
-              label={ENGINEER_STATUS_LABELS[engineer.user.engineerStatus]}
-              color={engineer.user.engineerStatus === 'active' ? 'success' : 'default'}
+              label={ENGINEER_STATUS_LABELS[(engineer.user.engineerStatus as unknown as keyof typeof ENGINEER_STATUS_LABELS)]}
+              color={`${engineer.user.engineerStatus}` === 'assigned' ? 'success' : 'default'}
               size="small"
             />
           </Box>
@@ -125,15 +130,13 @@ export default function EditEngineer() {
                 initialData={engineer}
                 onSubmit={handleSubmit}
                 onCancel={handleCancel}
-                isSubmitting={isUpdating}
+                isSubmitting={updateMutation.isPending}
                 submitButtonText="更新"
                 submitButtonIcon={<SaveIcon />}
               />
             </>
           ) : (
-            <Alert severity="info">
-              エンジニア情報が見つかりません。
-            </Alert>
+            (notFound(), null)
           )}
         </CardContent>
       </Card>

@@ -216,14 +216,15 @@ export class InterceptorOptimizer {
     switch (type) {
       case 'retry':
         // リトライインターセプターは必要時のみロード
-        const { setupRetry } = await import('@/lib/api/factory/interceptors');
-        return setupRetry;
+        // 型安全よりも存在チェック優先（未実装環境でも型エラーを避ける）
+        const modRetry: any = await import('@/lib/api/factory/interceptors');
+        return typeof modRetry.setupRetry === 'function' ? modRetry.setupRetry : null;
       
       case 'logging':
         // 開発環境でのみロギングインターセプターをロード
         if (process.env.NODE_ENV === 'development') {
-          const { setupLogging } = await import('@/lib/api/factory/interceptors');
-          return setupLogging;
+          const modLog: any = await import('@/lib/api/factory/interceptors');
+          return typeof modLog.setupLogging === 'function' ? modLog.setupLogging : null;
         }
         return null;
       

@@ -208,3 +208,27 @@ func (nr *NotificationRoutes) SetupHealthCheckRoutes(router *gin.Engine) {
 		})
 	}
 }
+
+// SetupNotificationRoutes シンプルな通知ユーザールート登録（mainからの軽量呼び出し用）
+func SetupNotificationRoutes(api *gin.RouterGroup, authRequired gin.HandlerFunc, h handler.NotificationHandler) {
+    notifications := api.Group("/notifications")
+    notifications.Use(authRequired)
+    {
+        notifications.GET("", h.GetUserNotifications)
+        notifications.GET("/unread", h.GetUnreadNotifications)
+        notifications.PUT("/:id/read", h.MarkAsReadSingle)
+        notifications.PUT("/read", h.MarkAsRead)
+        notifications.PUT("/read-all", h.MarkAllAsRead)
+        notifications.GET("/settings", h.GetUserNotificationSettings)
+        notifications.PUT("/settings", h.UpdateNotificationSetting)
+    }
+}
+
+// SetupAdminNotificationRoutes シンプルな管理者通知ルート登録（mainからの軽量呼び出し用）
+func SetupAdminNotificationRoutes(api *gin.RouterGroup, authRequired gin.HandlerFunc, h handler.NotificationHandler) {
+    admin := api.Group("/admin/notifications")
+    admin.Use(authRequired)
+    {
+        admin.POST("", h.CreateNotification)
+    }
+}

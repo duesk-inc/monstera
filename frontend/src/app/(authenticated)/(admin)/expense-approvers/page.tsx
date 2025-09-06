@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   Card,
   CardContent,
   CardActions,
@@ -35,6 +34,8 @@ import {
   TextField,
   Avatar,
 } from '@mui/material';
+import { Grid as MuiGrid } from '@mui/material';
+const Grid: any = MuiGrid;
 import {
   Add as AddIcon,
   Edit as EditIcon,
@@ -157,7 +158,7 @@ export default function ExpenseApproversPage() {
     <PageContainer>
       <PageHeader 
         title="経費承認者設定" 
-        action={
+        actions={
           <Button
             variant="contained"
             startIcon={<AddIcon />}
@@ -181,7 +182,7 @@ export default function ExpenseApproversPage() {
           
           <Grid container spacing={3}>
             {/* 管理部承認者 */}
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
@@ -265,7 +266,7 @@ export default function ExpenseApproversPage() {
             </Grid>
 
             {/* 役員承認者 */}
-            <Grid item xs={12} md={6}>
+            <Grid xs={12} md={6}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 <CardContent>
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>

@@ -22,13 +22,13 @@ import {
   FormControl,
   InputLabel,
   Select,
-  Grid,
   Typography,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
 } from '@mui/material';
+// レイアウトはCSS Gridで実装して型衝突を回避
 import {
   CheckCircle,
   Cancel,
@@ -42,7 +42,6 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { useToast } from '@/components/common/Toast';
 import { createPresetApiClient } from '@/lib/api';
-import { LEAVE_REQUEST_STATUS } from '@/constants/leave';
 
 interface LeaveRequest {
   id: string;
@@ -337,8 +336,12 @@ export default function LeaveRequestList() {
 
       {showFilters && (
         <Paper sx={{ p: 2, mb: 2 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' },
+            gap: 2,
+          }}>
+            <Box>
               <TextField
                 fullWidth
                 label="申請者名"
@@ -348,8 +351,8 @@ export default function LeaveRequestList() {
                   startAdornment: <Search sx={{ mr: 1, color: 'text.secondary' }} />,
                 }}
               />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <FormControl fullWidth>
                 <InputLabel>ステータス</InputLabel>
                 <Select
@@ -365,8 +368,8 @@ export default function LeaveRequestList() {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <FormControl fullWidth>
                 <InputLabel>休暇種別</InputLabel>
                 <Select
@@ -382,12 +385,12 @@ export default function LeaveRequestList() {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <DatePicker
                 label="申請期間（開始）"
-                value={filters.startDate}
-                onChange={(newValue) => setFilters({ ...filters, startDate: newValue })}
+                value={filters.startDate as any}
+                onChange={(newValue) => setFilters({ ...filters, startDate: newValue ? new Date(newValue as any) : null })}
                 slotProps={{
                   textField: {
                     fullWidth: true,
@@ -397,20 +400,20 @@ export default function LeaveRequestList() {
                   },
                 }}
               />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <DatePicker
                 label="申請期間（終了）"
-                value={filters.endDate}
-                onChange={(newValue) => setFilters({ ...filters, endDate: newValue })}
+                value={filters.endDate as any}
+                onChange={(newValue) => setFilters({ ...filters, endDate: newValue ? new Date(newValue as any) : null })}
                 slotProps={{
                   textField: {
                     fullWidth: true,
                   },
                 }}
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </Paper>
       )}
 

@@ -1,5 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
+import { isWeeklyReportStatus, WeeklyReportStatus } from '@/types/common/status';
 import { calculateWorkHours } from '@/utils/dateUtils';
 import type { 
   DailyRecord, 
@@ -101,13 +102,17 @@ export const convertAPIResponseToUIModel = (apiReport: LocalAPIWeeklyReport): We
     console.warn('週報の日付データが取得できません:', { startDateStr, endDateStr, apiReport });
   }
   
+  const statusValue: WeeklyReportStatus = isWeeklyReportStatus(String(apiReport.status || ''))
+    ? (apiReport.status as WeeklyReportStatus)
+    : WEEKLY_REPORT_STATUS.NOT_SUBMITTED;
+
   const weeklyReport: WeeklyReport = {
     id: apiReport.id || undefined,
     startDate: startDateStr ? parseISO(startDateStr) : new Date(),
     endDate: endDateStr ? parseISO(endDateStr) : new Date(),
     dailyRecords: dailyRecords,
     weeklyRemarks: apiData.weeklyRemarks || apiReport.weekly_remarks || '',
-    status: apiReport.status ?? WEEKLY_REPORT_STATUS.NOT_SUBMITTED,
+    status: statusValue,
     submittedAt: apiData.submittedAt || apiReport.submitted_at || '',
     totalWorkHours: totalWorkHours,
     clientTotalWorkHours: clientTotalWorkHours,
@@ -179,4 +184,3 @@ export const convertUIModelToAPIRequest = (uiReport: WeeklyReport): APIReportTyp
   
   return apiReport;
 };
-

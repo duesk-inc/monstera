@@ -151,13 +151,18 @@ export const MonthlyReportTab: React.FC = () => {
             </IconButton>
           </Tooltip>
 
-          <ExportButton
-            onExport={handleExport}
-            formats={['excel', 'csv']}
-            buttonText="エクスポート"
-            size="small"
-            disabled={isLoading || !summary}
-          />
+          <Box display="flex" alignItems="center" gap={1}>
+            <ExportButton
+              onExport={handleExport}
+              formats={['csv']}
+              buttonText="エクスポート"
+              size="small"
+              disabled={isLoading || !summary}
+            />
+            <Typography variant="caption" color="text.secondary">
+              CSV (UTF-8+BOM)
+            </Typography>
+          </Box>
         </Box>
       </Box>
 

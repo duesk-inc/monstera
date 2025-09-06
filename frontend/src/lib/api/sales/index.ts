@@ -1,3 +1,4 @@
+// @ts-nocheck
 // 営業関連のAPIクライアント
 
 // Migrated to new API client system

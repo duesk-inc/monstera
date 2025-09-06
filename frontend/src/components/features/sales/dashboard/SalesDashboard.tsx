@@ -285,7 +285,7 @@ export const SalesDashboard: React.FC<SalesDashboardProps> = ({
                     sx={{ 
                       p: SPACING.md, 
                       textAlign: 'center',
-                      backgroundColor: theme.palette.primary.light + '20'
+                      backgroundColor: `${theme.palette?.primary?.light ?? '#3b82f6'}20`
                     }}
                   >
                     <Typography variant="h4" color="primary" gutterBottom>
@@ -302,7 +302,7 @@ export const SalesDashboard: React.FC<SalesDashboardProps> = ({
                     sx={{ 
                       p: SPACING.md, 
                       textAlign: 'center',
-                      backgroundColor: theme.palette.info.light + '20'
+                      backgroundColor: `${theme.palette?.info?.light ?? '#0288d1'}20`
                     }}
                   >
                     <Typography variant="h4" color="info.main" gutterBottom>
@@ -319,7 +319,7 @@ export const SalesDashboard: React.FC<SalesDashboardProps> = ({
                     sx={{ 
                       p: SPACING.md, 
                       textAlign: 'center',
-                      backgroundColor: theme.palette.success.light + '20'
+                      backgroundColor: `${theme.palette?.success?.light ?? '#2e7d32'}20`
                     }}
                   >
                     <Typography variant="h4" color="success.main" gutterBottom>

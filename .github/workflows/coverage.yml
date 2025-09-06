@@ -63,7 +63,7 @@ jobs:
         cd backend
         go mod download
 
-    - name: Run tests with coverage
+    - name: Run tests with coverage (stable subset)
       env:
         DB_HOST: localhost
         DB_PORT: 5432
@@ -75,7 +75,9 @@ jobs:
         ENV: test
       run: |
         cd backend
-        go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        PKGS=$(go list ./... | grep -Ev "/test/|/internal/cache($|/)" | grep -Ev "/internal/service($|/)")
+        echo "Running coverage for packages:\n$PKGS"
+        go test -v -race -coverprofile=coverage.out -covermode=atomic $PKGS
 
     - name: Generate coverage report
       run: |

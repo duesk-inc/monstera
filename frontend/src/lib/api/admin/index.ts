@@ -41,7 +41,22 @@ export const adminGet = async <T>(path: string, params?: any): Promise<T> => {
     const response = await adminClient.get(`${ADMIN_BASE_PATH}${path}`, { params });
     return response.data;
   } catch (error) {
-    handleApiError(error);
+    // Blobとして返るエラー（CSV要求時のJSONエンベロープ）に対応
+    const anyErr: any = error as any;
+    const resp = anyErr?.response;
+    if (resp && resp.data instanceof Blob) {
+      try {
+        const text = await resp.data.text();
+        const json = JSON.parse(text);
+        const code = json?.code || 'UNKNOWN_ERROR';
+        const message = json?.message || 'エラーが発生しました';
+        throw new ApiError(message, resp.status || 400, code);
+      } catch (_) {
+        // JSONでなければ従来のハンドラに委譲
+      }
+    }
+    handleApiError(anyErr);
+    throw anyErr as any;
   }
 };
 
@@ -52,6 +67,7 @@ export const adminPost = async <T>(path: string, data?: any): Promise<T> => {
     return response.data;
   } catch (error) {
     handleApiError(error);
+    throw error as any;
   }
 };
 
@@ -62,6 +78,7 @@ export const adminPut = async <T>(path: string, data?: any): Promise<T> => {
     return response.data;
   } catch (error) {
     handleApiError(error);
+    throw error as any;
   }
 };
 
@@ -72,28 +89,65 @@ export const adminDelete = async <T>(path: string): Promise<T> => {
     return response.data;
   } catch (error) {
     handleApiError(error);
+    throw error as any;
   }
 };
 
 // ファイルダウンロード用のリクエスト
-export const adminDownload = async (path: string, filename: string, params?: any): Promise<void> => {
+export const adminDownload = async (
+  path: string,
+  filename?: string,
+  dataOrParams?: any,
+  method: 'GET' | 'POST' = 'GET',
+  options?: { accept?: string; addBOM?: boolean }
+): Promise<void> => {
   try {
-    const response = await adminClient.get(`${ADMIN_BASE_PATH}${path}`, {
-      params,
+    const accept = options?.accept || 'text/csv,application/csv,text/plain,application/octet-stream';
+    const config: any = {
       responseType: 'blob',
-    });
+      headers: { Accept: accept },
+    };
 
-    // ブラウザでダウンロード
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    let response;
+    if (method === 'POST') {
+      response = await adminClient.post(`${ADMIN_BASE_PATH}${path}`, dataOrParams, config);
+    } else {
+      response = await adminClient.get(`${ADMIN_BASE_PATH}${path}`, { ...config, params: dataOrParams });
+    }
+
+    // ファイル名をContent-Dispositionから取得（優先）
+    let resolvedFilename = filename || 'download';
+    const dispo = response.headers?.['content-disposition'] || response.headers?.['Content-Disposition'];
+    if (dispo) {
+      // RFC 5987 filename* or plain filename
+      const matchStar = /filename\*=(?:UTF-8''|utf-8'')?([^;\n]+)/i.exec(dispo);
+      const matchPlain = /filename="?([^";\n]+)"?/i.exec(dispo);
+      if (matchStar && matchStar[1]) {
+        try { resolvedFilename = decodeURIComponent(matchStar[1]); } catch { resolvedFilename = matchStar[1]; }
+      } else if (matchPlain && matchPlain[1]) {
+        resolvedFilename = matchPlain[1];
+      }
+    }
+
+    // CSVのBOM付与（必要に応じて）
+    const contentType = (response.headers?.['content-type'] || '').toLowerCase();
+    const isCsv = contentType.includes('text/csv') || contentType.includes('application/csv');
+    const addBOM = options?.addBOM ?? isCsv; // 既定: CSVならBOM付与
+    const blob = addBOM
+      ? new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), response.data], { type: contentType || 'text/csv;charset=utf-8' })
+      : new Blob([response.data], { type: contentType || 'application/octet-stream' });
+
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', filename);
+    link.setAttribute('download', resolvedFilename);
     document.body.appendChild(link);
     link.click();
     link.remove();
     window.URL.revokeObjectURL(url);
   } catch (error) {
     handleApiError(error);
+    throw error as any;
   }
 };
 
@@ -115,4 +169,3 @@ export * from './invoice';
 export * from './sales';
 export * from './weeklyReport';
 export * from './alert';
-

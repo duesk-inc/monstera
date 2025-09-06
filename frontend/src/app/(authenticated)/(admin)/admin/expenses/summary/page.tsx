@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Grid,
   FormControl,
   InputLabel,
   Select,
@@ -15,6 +14,8 @@ import {
   Skeleton,
   Stack,
 } from '@mui/material';
+import { Grid as MuiGrid } from '@mui/material';
+const Grid: any = MuiGrid;
 import { useCurrentExpenseSummary, useExpenseSummary, useExpenseSummaryUtils } from '@/hooks/useExpenseSummary';
 import ExpenseSummaryCard from '@/components/expense/ExpenseSummaryCard';
 import ExpenseMonthlyChart from '@/components/expense/ExpenseMonthlyChart';
@@ -248,7 +249,7 @@ export default function ExpenseSummaryPage() {
       )}
 
       {/* 使用量警告 */}
-      {(currentSummary?.monthly.usageRate >= 80 || currentSummary?.yearly.usageRate >= 80) && (
+      {(((currentSummary?.monthly?.usageRate ?? 0) >= 80) || ((currentSummary?.yearly?.usageRate ?? 0) >= 80)) && (
         <Alert severity="warning" sx={{ mt: 3 }}>
           <Typography variant="body2">
             経費申請の使用量が上限の80%を超えています。計画的な申請をお願いします。
@@ -256,7 +257,7 @@ export default function ExpenseSummaryPage() {
         </Alert>
       )}
 
-      {(currentSummary?.monthly.usageRate >= 100 || currentSummary?.yearly.usageRate >= 100) && (
+      {(((currentSummary?.monthly?.usageRate ?? 0) >= 100) || ((currentSummary?.yearly?.usageRate ?? 0) >= 100)) && (
         <Alert severity="error" sx={{ mt: 2 }}>
           <Typography variant="body2">
             経費申請の上限を超過しています。新規申請ができません。

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import { 
   Box, 
   Card, 
@@ -64,7 +64,7 @@ export default function EngineerDetail() {
 
   const engineerId = params.id as string;
   const { engineer, loading, error, refresh } = useEngineerDetail(engineerId);
-  const { updateStatus, isUpdatingStatus } = useUpdateEngineerStatus();
+  const updateStatusMutation = useUpdateEngineerStatus();
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -80,7 +80,7 @@ export default function EngineerDetail() {
 
   const handleStatusChangeConfirm = async (newStatus: EngineerStatus, reason: string) => {
     try {
-      await updateStatus(engineerId, newStatus, reason);
+      await updateStatusMutation.mutateAsync({ id: engineerId, data: { status: newStatus, reason } as any });
       showSuccess('ステータスを変更しました');
       await refresh();
       setStatusChangeDialogOpen(false);
@@ -91,6 +91,11 @@ export default function EngineerDetail() {
   };
 
   if (error) {
+    const status = (error as any)?.response?.status;
+    const code = (error as any)?.enhanced?.code || (error as any)?.code;
+    if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+      notFound();
+    }
     return (
       <PageContainer title="エンジニア詳細">
         <Alert severity="error" action={
@@ -181,7 +186,7 @@ export default function EngineerDetail() {
 
               {/* プロジェクト履歴 */}
               <TabPanel value={tabValue} index={2}>
-                <ProjectHistoryTab engineer={engineer} />
+                <ProjectHistoryTab engineerId={engineerId} projectHistory={engineer.projectHistory as any} />
               </TabPanel>
 
               {/* ステータス履歴 */}
@@ -199,14 +204,13 @@ export default function EngineerDetail() {
               engineerName={`${engineer.user.sei} ${engineer.user.mei}`}
               onClose={() => setStatusChangeDialogOpen(false)}
               onConfirm={handleStatusChangeConfirm}
-              isSubmitting={isUpdatingStatus}
+              isSubmitting={updateStatusMutation.isPending}
             />
           )}
         </>
       ) : (
-        <Alert severity="info">
-          エンジニア情報が見つかりません。
-        </Alert>
+        // engineerが存在しない場合も404扱い
+        (notFound(), null)
       )}
     </PageContainer>
   );

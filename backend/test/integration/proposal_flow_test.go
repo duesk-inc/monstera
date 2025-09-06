@@ -164,26 +164,25 @@ func (suite *ProposalFlowIntegrationTest) SetupRouter() {
 	api := suite.router.Group("/api/v1")
 
 	// 認証ミドルウェアのモック（テスト用）
-	api.Use(func(c *gin.Context) {
-		// テスト用にユーザーIDを設定
-		userIDHeader := c.GetHeader("X-User-ID")
-		if userIDHeader != "" {
-			if userID := userIDHeader
-				c.Set("user_id", userID)
+    api.Use(func(c *gin.Context) {
+        // テスト用にユーザーIDを設定
+        userIDHeader := c.GetHeader("X-User-ID")
+        if userIDHeader != "" {
+            userID := userIDHeader
+            c.Set("user_id", userID)
 
-				// ロールも設定
-				var user model.User
-				if err := suite.db.Preload("Roles").First(&user, userID).Error; err == nil {
-					var roles []model.Role
-					for _, userRole := range user.Roles {
-						roles = append(roles, userRole.Role)
-					}
-					c.Set("user_roles", roles)
-				}
-			}
-		}
-		c.Next()
-	})
+            // ロールも設定
+            var user model.User
+            if err := suite.db.Preload("Roles").First(&user, userID).Error; err == nil {
+                var roles []model.Role
+                for _, userRole := range user.Roles {
+                    roles = append(roles, userRole.Role)
+                }
+                c.Set("user_roles", roles)
+            }
+        }
+        c.Next()
+    })
 
 	// 営業ハンドラーの設定
 	salesHandlers := &routes.SalesHandlers{

@@ -51,7 +51,7 @@ export const DEFAULT_API_CONFIG: UnifiedApiConfig = {
 export const ENVIRONMENT_OVERRIDES: EnvironmentConfig = {
   development: {
     // 開発環境では長めのタイムアウト
-    timeout: API_TIMEOUTS.UPLOAD || 60000,
+    timeout: 60000,
   },
   production: {
     // 本番環境では追加のセキュリティヘッダー
@@ -117,7 +117,7 @@ export const API_CONFIG_PRESETS = {
   
   // ファイルアップロード用設定
   upload: getUnifiedApiConfig({
-    timeout: API_TIMEOUTS.UPLOAD || 120000,
+    timeout: 120000,
     headers: {
       'Content-Type': 'multipart/form-data',
     },

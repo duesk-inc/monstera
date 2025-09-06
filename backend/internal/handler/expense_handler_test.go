@@ -20,7 +20,7 @@ import (
 
 // MockExpenseService ExpenseServiceのモック
 type MockExpenseService struct {
-	mock.Mock
+    mock.Mock
 }
 
 func (m *MockExpenseService) Create(ctx context.Context, userID string, req *dto.CreateExpenseRequest) (*model.Expense, error) {
@@ -196,6 +196,12 @@ func (m *MockExpenseService) GetCurrentLimits(ctx context.Context) (*dto.Expense
 	return args.Get(0).(*dto.ExpenseLimitResponse), args.Error(1)
 }
 
+// CreateDeadlineSetting 期限設定の作成（インターフェース整合用）
+func (m *MockExpenseService) CreateDeadlineSetting(ctx context.Context, setting *model.ExpenseDeadlineSetting) error {
+    args := m.Called(ctx, setting)
+    return args.Error(0)
+}
+
 func (m *MockExpenseService) GetExpenseLimits(ctx context.Context) ([]model.ExpenseLimit, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
@@ -250,11 +256,11 @@ func (m *MockExpenseService) DeleteExpenseLimitWithScope(ctx context.Context, id
 }
 
 func (m *MockExpenseService) GetExpenseLimitHistory(ctx context.Context, filter *dto.ExpenseLimitHistoryRequest) (*dto.ExpenseLimitHistoryResponse, error) {
-	args := m.Called(ctx, filter)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*dto.ExpenseLimitHistoryResponse), args.Error(1)
+    args := m.Called(ctx, filter)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*dto.ExpenseLimitHistoryResponse), args.Error(1)
 }
 
 func (m *MockExpenseService) SubmitExpense(ctx context.Context, id string, userID string, req *dto.SubmitExpenseRequest) (*model.Expense, error) {
@@ -266,19 +272,72 @@ func (m *MockExpenseService) SubmitExpense(ctx context.Context, id string, userI
 }
 
 func (m *MockExpenseService) RejectExpense(ctx context.Context, id string, approverID string, req *dto.RejectExpenseRequest) (*model.Expense, error) {
-	args := m.Called(ctx, id, approverID, req)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*model.Expense), args.Error(1)
+    args := m.Called(ctx, id, approverID, req)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*model.Expense), args.Error(1)
 }
 
 func (m *MockExpenseService) GetPendingApprovals(ctx context.Context, approverID string, filter *dto.ApprovalFilterRequest) (*dto.ApprovalListResponse, error) {
-	args := m.Called(ctx, approverID, filter)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*dto.ApprovalListResponse), args.Error(1)
+    args := m.Called(ctx, approverID, filter)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*dto.ApprovalListResponse), args.Error(1)
+}
+
+// ========== Missing methods to satisfy service.ExpenseService ==========
+func (m *MockExpenseService) GetByIDForAdmin(ctx context.Context, id string) (*model.ExpenseWithDetails, error) {
+    args := m.Called(ctx, id)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*model.ExpenseWithDetails), args.Error(1)
+}
+
+func (m *MockExpenseService) ExportExpensesCSV(ctx context.Context, userID string, filter *dto.ExpenseExportRequest) ([]byte, error) {
+    args := m.Called(ctx, userID, filter)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).([]byte), args.Error(1)
+}
+
+func (m *MockExpenseService) ExportExpensesCSVAdmin(ctx context.Context, filter *dto.ExpenseExportRequest) ([]byte, error) {
+    args := m.Called(ctx, filter)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).([]byte), args.Error(1)
+}
+
+func (m *MockExpenseService) ProcessExpiredExpenses(ctx context.Context) error {
+    args := m.Called(ctx)
+    return args.Error(0)
+}
+
+func (m *MockExpenseService) ProcessExpenseReminders(ctx context.Context) error {
+    args := m.Called(ctx)
+    return args.Error(0)
+}
+
+func (m *MockExpenseService) GetDeadlineSettings(ctx context.Context) ([]*model.ExpenseDeadlineSetting, error) {
+    args := m.Called(ctx)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).([]*model.ExpenseDeadlineSetting), args.Error(1)
+}
+
+func (m *MockExpenseService) UpdateDeadlineSetting(ctx context.Context, setting *model.ExpenseDeadlineSetting) error {
+    args := m.Called(ctx, setting)
+    return args.Error(0)
+}
+
+func (m *MockExpenseService) DeleteDeadlineSetting(ctx context.Context, id string) error {
+    args := m.Called(ctx, id)
+    return args.Error(0)
 }
 
 func (m *MockExpenseService) GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
@@ -298,21 +357,73 @@ func (m *MockExpenseService) CompleteUpload(ctx context.Context, userID string, 
 }
 
 func (m *MockExpenseService) DeleteUploadedFile(ctx context.Context, userID string, req *dto.DeleteUploadRequest) error {
-	args := m.Called(ctx, userID, req)
-	return args.Error(0)
+    args := m.Called(ctx, userID, req)
+    return args.Error(0)
 }
 
 func (m *MockExpenseService) GetPendingExpenses(ctx context.Context, threshold time.Duration) ([]model.Expense, error) {
-	args := m.Called(ctx, threshold)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]model.Expense), args.Error(1)
+    args := m.Called(ctx, threshold)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).([]model.Expense), args.Error(1)
+}
+
+// CreateWithReceipts 複数領収書対応の作成（インターフェース整合用）
+func (m *MockExpenseService) CreateWithReceipts(ctx context.Context, userID string, req *dto.CreateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error) {
+    args := m.Called(ctx, userID, req)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*dto.ExpenseWithReceiptsResponse), args.Error(1)
+}
+
+// UpdateWithReceipts 複数領収書対応の更新（インターフェース整合用）
+func (m *MockExpenseService) UpdateWithReceipts(ctx context.Context, id string, userID string, req *dto.UpdateExpenseWithReceiptsRequest) (*dto.ExpenseWithReceiptsResponse, error) {
+    args := m.Called(ctx, id, userID, req)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*dto.ExpenseWithReceiptsResponse), args.Error(1)
+}
+
+func (m *MockExpenseService) GetExpenseReceipts(ctx context.Context, expenseID string, userID string) ([]dto.ExpenseReceiptDTO, error) {
+    args := m.Called(ctx, expenseID, userID)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).([]dto.ExpenseReceiptDTO), args.Error(1)
+}
+
+func (m *MockExpenseService) DeleteExpenseReceipt(ctx context.Context, expenseID string, receiptID string, userID string) error {
+    args := m.Called(ctx, expenseID, receiptID, userID)
+    return args.Error(0)
+}
+
+func (m *MockExpenseService) UpdateReceiptOrder(ctx context.Context, expenseID string, userID string, req *dto.UpdateReceiptOrderRequest) error {
+    args := m.Called(ctx, expenseID, userID, req)
+    return args.Error(0)
+}
+
+func (m *MockExpenseService) GenerateReceiptUploadURL(ctx context.Context, userID string, req *dto.GenerateReceiptUploadURLRequest) (*dto.GenerateReceiptUploadURLResponse, error) {
+    args := m.Called(ctx, userID, req)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*dto.GenerateReceiptUploadURLResponse), args.Error(1)
+}
+
+func (m *MockExpenseService) GetCurrentApprover(ctx context.Context, expenseID string) (*string, error) {
+    args := m.Called(ctx, expenseID)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*string), args.Error(1)
 }
 
 // MockS3Service S3Serviceのモック
 type MockS3Service struct {
-	mock.Mock
+    mock.Mock
 }
 
 func (m *MockS3Service) GenerateUploadURL(ctx context.Context, userID string, req *dto.GenerateUploadURLRequest) (*dto.UploadURLResponse, error) {
@@ -329,8 +440,29 @@ func (m *MockS3Service) DeleteFile(ctx context.Context, fileKey string) error {
 }
 
 func (m *MockS3Service) GeneratePresignedUploadURL(ctx context.Context, fileKey string, contentType string, expiration time.Duration) (string, map[string]string, error) {
-	args := m.Called(ctx, fileKey, contentType, expiration)
-	return args.String(0), args.Get(1).(map[string]string), args.Error(2)
+    args := m.Called(ctx, fileKey, contentType, expiration)
+    return args.String(0), args.Get(1).(map[string]string), args.Error(2)
+}
+
+// GetFileURL ファイルURL取得（インターフェース整合用）
+func (m *MockS3Service) GetFileURL(ctx context.Context, s3Key string) (string, error) {
+    args := m.Called(ctx, s3Key)
+    return args.String(0), args.Error(1)
+}
+
+// ValidateUploadedFile アップロードファイル検証（インターフェース整合用）
+func (m *MockS3Service) ValidateUploadedFile(ctx context.Context, s3Key string) error {
+    args := m.Called(ctx, s3Key)
+    return args.Error(0)
+}
+
+// GetFileInfo ファイル情報取得（インターフェース整合用）
+func (m *MockS3Service) GetFileInfo(ctx context.Context, s3Key string) (*dto.FileInfo, error) {
+    args := m.Called(ctx, s3Key)
+    if args.Get(0) == nil {
+        return nil, args.Error(1)
+    }
+    return args.Get(0).(*dto.FileInfo), args.Error(1)
 }
 
 // テストヘルパー関数
@@ -367,12 +499,12 @@ func TestExpenseHandler_CreateExpense(t *testing.T) {
 	}{
 		{
 			name: "正常に経費申請が作成される",
-			requestBody: dto.CreateExpenseRequest{
-				Title:       "テスト経費",
-				Amount:      10000,
-				CategoryID:  uuid.New().String(),
-				Description: "テスト用の経費申請です",
-			},
+            requestBody: dto.CreateExpenseRequest{
+                Title:       "テスト経費",
+                Amount:      10000,
+                CategoryID:  func() *string { s := uuid.New().String(); return &s }(),
+                Description: "テスト用の経費申請です",
+            },
 			setupMocks: func(expenseService *MockExpenseService, s3Service *MockS3Service) {
 				expense := &model.Expense{
 					ID:     uuid.New().String(),

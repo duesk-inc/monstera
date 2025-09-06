@@ -7,13 +7,13 @@ export const isRetryableError = (error: unknown): boolean => {
     return false;
   }
 
-  // ネットワークエラーやタイムアウトはリトライ可能
-  if (error.status === HTTP_STATUS.NETWORK_ERROR || error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT') {
+  // ネットワークエラーやタイムアウトはリトライ可能（コードで判定）
+  if (error.code === 'NETWORK_ERROR' || error.code === 'TIMEOUT') {
     return true;
   }
 
   // 5xx系のサーバーエラーはリトライ可能
-  if (error.status >= HTTP_STATUS.SERVER_ERROR_RANGE_START && error.status < HTTP_STATUS.SERVER_ERROR_RANGE_END) {
+  if (typeof error.status === 'number' && error.status >= 500 && error.status < 600) {
     return true;
   }
 
@@ -28,18 +28,16 @@ export const isRetryableError = (error: unknown): boolean => {
 
 // リトライ間隔を計算（指数バックオフ）
 export const calculateRetryDelay = (attemptIndex: number): number => {
-  // 指数バックオフ with ジッター
-  const exponentialDelay = RETRY_CONFIG.BASE_DELAY_MS * Math.pow(RETRY_CONFIG.EXPONENTIAL_BASE, attemptIndex);
-  const jitter = Math.random() * RETRY_CONFIG.MAX_JITTER_MS;
-  
-  return Math.min(exponentialDelay + jitter, RETRY_CONFIG.MAX_DELAY_MS);
+  // 指数バックオフ（定義済みのBASE_DELAYとBACKOFF_MULTIPLIERを使用）
+  const exponentialDelay = RETRY_CONFIG.BASE_DELAY * Math.pow(RETRY_CONFIG.BACKOFF_MULTIPLIER, attemptIndex);
+  return Math.min(exponentialDelay, RETRY_CONFIG.MAX_DELAY);
 };
 
 // React Query用のリトライ設定
 export const queryRetryConfig = {
   retry: (failureCount: number, error: unknown) => {
     // 最大リトライ回数に達したら終了
-    if (failureCount >= RETRY_CONFIG.MAX_RETRY_COUNT) {
+    if (failureCount >= RETRY_CONFIG.MAX_ATTEMPTS) {
       return false;
     }
 

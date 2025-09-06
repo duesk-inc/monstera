@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import {
   Box,
   Button,
@@ -88,6 +88,13 @@ export default function ExpenseDetailPage() {
     );
   }
   if (isError || !expense) {
+    // 404であればグローバル404へ直送
+    const status = (error as any)?.response?.status;
+    const code = (error as any)?.enhanced?.code || (error as any)?.code;
+    if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+      notFound();
+    }
+    // その他のエラーは従来の表示
     return (
       <PageContainer maxWidth="lg">
         <Card>
@@ -151,7 +158,7 @@ export default function ExpenseDetailPage() {
             <Typography color="text.secondary">申請ID</Typography>
             <Typography>{expense.id}</Typography>
             <Typography color="text.secondary">日付</Typography>
-            <Typography>{expense.expenseDate || expense.date}</Typography>
+            <Typography>{expense.date}</Typography>
             <Typography color="text.secondary">ステータス</Typography>
             <Typography>{expense.status}</Typography>
             <Typography color="text.secondary">カテゴリ</Typography>
@@ -160,11 +167,11 @@ export default function ExpenseDetailPage() {
             <Typography>{expense.amount?.toLocaleString()} 円</Typography>
             <Typography color="text.secondary">内容</Typography>
             <Typography>{expense.description}</Typography>
-            {expense.receiptUrl && (
+            {expense.receiptUrls && expense.receiptUrls.length > 0 && (
               <>
                 <Typography color="text.secondary">領収書</Typography>
                 <Typography>
-                  <Link href={expense.receiptUrl} target="_blank" rel="noopener noreferrer">領収書を開く</Link>
+                  <Link href={expense.receiptUrls[0]} target="_blank" rel="noopener noreferrer">領収書を開く</Link>
                 </Typography>
               </>
             )}

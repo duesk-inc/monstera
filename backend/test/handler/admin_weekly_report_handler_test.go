@@ -50,8 +50,11 @@ func (m *MockAdminWeeklyReportService) GetFollowUpRequiredUsers(ctx context.Cont
     if v, ok := args.Get(0).([]dto.FollowUpUserDTO); ok { return v, args.Error(1) }
     return nil, args.Error(1)
 }
-func (m *MockAdminWeeklyReportService) ExportMonthlyReport(ctx context.Context, month, format string) ([]byte, string, string, error) {
-    args := m.Called(ctx, month, format)
+func (m *MockAdminWeeklyReportService) ExportMonthlyReport(ctx context.Context, month, format string, schema *string) ([]byte, string, string, error) {
+    args := m.Called(ctx, month, format, schema)
+    if args.Get(0) != nil {
+        return args.Get(0).([]byte), args.String(1), args.String(2), args.Error(3)
+    }
     return nil, "", "", args.Error(3)
 }
 func (m *MockAdminWeeklyReportService) GetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *string) (*dto.WeeklyReportSummaryStatsDTO, error) {
@@ -202,4 +205,31 @@ func TestReturnWeeklyReport_ValidationError(t *testing.T) {
     router.ServeHTTP(w, req)
 
     assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestExportWeeklyReport_MinimalSchema_SetsHeaders(t *testing.T) {
+    gin.SetMode(gin.TestMode)
+    h, svc := setupAdminWeeklyHandler()
+
+    router := gin.Default()
+    router.POST("/api/v1/admin/engineers/weekly-reports/export", func(c *gin.Context) { h.ExportMonthlyReport(c) })
+
+    // Mock: return simple CSV bytes and headers
+    csvBytes := []byte("エンジニア名,メールアドレス,週開始日,週終了日,ステータス,総勤務時間,管理者コメント,提出日時\n")
+    svc.On("ExportMonthlyReport", mock.Anything, "2025-01", "csv", mock.Anything).
+        Return(csvBytes, "weekly_reports_20250101.csv", "text/csv", nil)
+
+    req := httptest.NewRequest(http.MethodPost, "/api/v1/admin/engineers/weekly-reports/export?month=2025-01&format=csv&schema=weekly_minimal", nil)
+    w := httptest.NewRecorder()
+    router.ServeHTTP(w, req)
+
+    assert.Equal(t, http.StatusOK, w.Code)
+    disp := w.Header().Get("Content-Disposition")
+    assert.Contains(t, disp, "attachment;")
+    assert.Contains(t, disp, "weekly_reports_20250101.csv")
+    ct := w.Header().Get("Content-Type")
+    assert.Contains(t, ct, "text/csv")
+    // schemaおよび非推奨ヘッダ
+    assert.Equal(t, "weekly_minimal", w.Header().Get("X-CSV-Schema"))
+    assert.Equal(t, "", w.Header().Get("Deprecation"))
 }

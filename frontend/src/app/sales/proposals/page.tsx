@@ -21,11 +21,11 @@ export default function ProposalsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProposal, setSelectedProposal] = useState<Proposal | null>(null);
   const [showInterviewDialog, setShowInterviewDialog] = useState(false);
-  const [filter, setFilter] = useState({
-    status: '',
-    engineerId: '',
-    clientId: '',
-    search: ''
+  const [filter, setFilter] = useState<{ status?: ProposalStatus[]; engineerId?: string; clientId?: string; search?: string }>({
+    status: undefined,
+    engineerId: undefined,
+    clientId: undefined,
+    search: undefined,
   });
 
   const { showSuccess, showError } = useToast();
@@ -105,18 +105,8 @@ export default function ProposalsPage() {
   };
 
   const handleExport = async () => {
-    try {
-      // エクスポート処理
-      const blob = await proposalApi.export(filter);
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `proposals_${new Date().toISOString().split('T')[0]}.xlsx`;
-      link.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      handleSubmissionError(error, '提案データエクスポート');
-    }
+    // エクスポートAPIは未実装のため未対応
+    showError('エクスポート機能は現在未対応です');
   };
 
   const handleImport = () => {
@@ -127,9 +117,8 @@ export default function ProposalsPage() {
   return (
     <SalesLayout
       title="提案管理"
-      subtitle="エンジニア提案の作成・管理・進捗追跡"
       actions={
-        <Box sx={{ display: 'flex', gap: SPACING.sm }}>
+        <Box sx={{ display: 'flex', gap: SPACING.SM }}>
           <Button
             variant="outlined"
             startIcon={<Upload />}
@@ -155,12 +144,12 @@ export default function ProposalsPage() {
       }
     >
       {/* フィルター・検索エリア */}
-      <Box sx={{ mb: SPACING.lg }}>
+      <Box sx={{ mb: SPACING.LG }}>
         {/* フィルターコンポーネントは後で実装 */}
       </Box>
 
       {/* 統計情報 */}
-      <Box sx={{ mb: SPACING.lg }}>
+      <Box sx={{ mb: SPACING.LG }}>
         <Alert severity="info">
           全{proposals.length}件の提案があります。
           進行中: {proposals.filter(p => ['pending', 'in_interview'].includes(p.status)).length}件

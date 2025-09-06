@@ -73,6 +73,9 @@ import {
   BILLING_CALCULATION_TYPE_LABELS,
 } from "../../../../constants/accounting";
 
+// Grid型のバージョン差異を吸収（最小限の型回避）
+const AnyGrid = Grid as unknown as any;
+
 // ========== 型定義 ==========
 
 interface BillingState {
@@ -152,7 +155,7 @@ const getBillingStatus = (preview: BillingPreview): string => {
 };
 
 // ステータスアイコンの取得
-const getStatusIcon = (status: string): React.ReactNode => {
+const getStatusIcon = (status: string): React.ReactElement => {
   switch (status) {
     case "ready":
       return <CheckCircle color="success" />;
@@ -444,8 +447,8 @@ export default function BillingProcessPage() {
                 <Typography variant="h6" gutterBottom>
                   処理対象サマリー
                 </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
+                <AnyGrid container spacing={2}>
+                  <AnyGrid item xs={12} sm={6} md={3}>
                     <Card variant="outlined">
                       <CardContent>
                         <Typography variant="h4" color="primary.main">
@@ -456,8 +459,8 @@ export default function BillingProcessPage() {
                         </Typography>
                       </CardContent>
                     </Card>
-                  </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  </AnyGrid>
+                  <AnyGrid item xs={12} sm={6} md={3}>
                     <Card variant="outlined">
                       <CardContent>
                         <Typography variant="h4" color="secondary.main">
@@ -468,8 +471,8 @@ export default function BillingProcessPage() {
                         </Typography>
                       </CardContent>
                     </Card>
-                  </Grid>
-                </Grid>
+                  </AnyGrid>
+                </AnyGrid>
               </Box>
             </Stack>
           </Box>
@@ -561,20 +564,20 @@ export default function BillingProcessPage() {
                     <Typography variant="h6" gutterBottom>
                       処理サマリー
                     </Typography>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6} sm={3}>
+                    <AnyGrid container spacing={2}>
+                      <AnyGrid item xs={6} sm={3}>
                         <Typography variant="h5" color="primary.main">
                           {filteredPreviews.length}
                         </Typography>
                         <Typography variant="caption">総取引先数</Typography>
-                      </Grid>
-                      <Grid item xs={6} sm={3}>
+                      </AnyGrid>
+                      <AnyGrid item xs={6} sm={3}>
                         <Typography variant="h5" color="success.main">
                           {validPreviews.length}
                         </Typography>
                         <Typography variant="caption">処理可能</Typography>
-                      </Grid>
-                      <Grid item xs={6} sm={3}>
+                      </AnyGrid>
+                      <AnyGrid item xs={6} sm={3}>
                         <Typography variant="h5" color="info.main">
                           {formatCurrency(
                             filteredPreviews.reduce(
@@ -584,8 +587,8 @@ export default function BillingProcessPage() {
                           )}
                         </Typography>
                         <Typography variant="caption">総請求額</Typography>
-                      </Grid>
-                      <Grid item xs={6} sm={3}>
+                      </AnyGrid>
+                      <AnyGrid item xs={6} sm={3}>
                         <Typography variant="h5" color="secondary.main">
                           {filteredPreviews.reduce(
                             (sum, p) => sum + p.totalWorkHours,
@@ -594,8 +597,8 @@ export default function BillingProcessPage() {
                           h
                         </Typography>
                         <Typography variant="caption">総作業時間</Typography>
-                      </Grid>
-                    </Grid>
+                      </AnyGrid>
+                    </AnyGrid>
                   </CardContent>
                 </Card>
               )}
@@ -1043,38 +1046,38 @@ const BillingPreviewCard: React.FC<BillingPreviewCardProps> = ({
               />
             </Stack>
 
-            <Grid container spacing={2} sx={{ mb: 2 }}>
-              <Grid item xs={6} sm={3}>
+            <AnyGrid container spacing={2} sx={{ mb: 2 }}>
+              <AnyGrid item xs={6} sm={3}>
                 <Typography variant="body2" color="text.secondary">
                   請求額
                 </Typography>
                 <Typography variant="h6" color="primary.main">
                   {formatCurrency(preview.totalAmount)}
                 </Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
+              </AnyGrid>
+              <AnyGrid item xs={6} sm={3}>
                 <Typography variant="body2" color="text.secondary">
                   作業時間
                 </Typography>
                 <Typography variant="h6">{preview.totalWorkHours}h</Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
+              </AnyGrid>
+              <AnyGrid item xs={6} sm={3}>
                 <Typography variant="body2" color="text.secondary">
                   プロジェクトグループ
                 </Typography>
                 <Typography variant="h6">
                   {preview.projectGroups.length}件
                 </Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
+              </AnyGrid>
+              <AnyGrid item xs={6} sm={3}>
                 <Typography variant="body2" color="text.secondary">
                   個別プロジェクト
                 </Typography>
                 <Typography variant="h6">
                   {preview.individualProjects.length}件
                 </Typography>
-              </Grid>
-            </Grid>
+              </AnyGrid>
+            </AnyGrid>
 
             {/* プロジェクトグループの詳細 */}
             {preview.projectGroups.length > 0 && (
@@ -1095,11 +1098,10 @@ const BillingPreviewCard: React.FC<BillingPreviewCardProps> = ({
                           {group.groupName}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {
-                            BILLING_CALCULATION_TYPE_LABELS[
-                              group.calculationType
-                            ]
-                          }{" "}
+                          {(
+                            BILLING_CALCULATION_TYPE_LABELS as Record<string, string>
+                          )[group.calculationType as any] ??
+                            String(group.calculationType)}{" "}
                           • {group.workHours}h •{" "}
                           {formatCurrency(group.calculatedAmount)}
                         </Typography>
@@ -1160,36 +1162,36 @@ const BillingPreviewDialog: React.FC<BillingPreviewDialogProps> = ({
             <Typography variant="h6" gutterBottom>
               請求サマリー
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6} sm={3}>
+            <AnyGrid container spacing={2}>
+              <AnyGrid item xs={6} sm={3}>
                 <Typography variant="body2" color="text.secondary">
                   対象月
                 </Typography>
                 <Typography variant="body1">{preview.month}</Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
+              </AnyGrid>
+              <AnyGrid item xs={6} sm={3}>
                 <Typography variant="body2" color="text.secondary">
                   総請求額
                 </Typography>
                 <Typography variant="h6" color="primary.main">
                   {formatCurrency(preview.totalAmount)}
                 </Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
+              </AnyGrid>
+              <AnyGrid item xs={6} sm={3}>
                 <Typography variant="body2" color="text.secondary">
                   総作業時間
                 </Typography>
                 <Typography variant="h6">{preview.totalWorkHours}h</Typography>
-              </Grid>
-              <Grid item xs={6} sm={3}>
+              </AnyGrid>
+              <AnyGrid item xs={6} sm={3}>
                 <Typography variant="body2" color="text.secondary">
                   算出日時
                 </Typography>
                 <Typography variant="body1">
                   {formatDate(preview.calculatedAt)}
                 </Typography>
-              </Grid>
-            </Grid>
+              </AnyGrid>
+            </AnyGrid>
           </Box>
 
           <Divider />
@@ -1215,11 +1217,10 @@ const BillingPreviewDialog: React.FC<BillingPreviewDialogProps> = ({
                       <TableRow key={group.groupId}>
                         <TableCell>{group.groupName}</TableCell>
                         <TableCell>
-                          {
-                            BILLING_CALCULATION_TYPE_LABELS[
-                              group.calculationType
-                            ]
-                          }
+                          {(
+                            BILLING_CALCULATION_TYPE_LABELS as Record<string, string>
+                          )[group.calculationType as any] ??
+                            String(group.calculationType)}
                         </TableCell>
                         <TableCell align="right">{group.workHours}h</TableCell>
                         <TableCell align="right">

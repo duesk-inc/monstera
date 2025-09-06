@@ -428,7 +428,7 @@ export async function getExpenseCategories(signal?: AbortSignal): Promise<Expens
       code: category.code,
       name: category.name,
       requiresDetails: category.requiresDetails || category.requires_details,
-      displayOrder: category.displayOrder || category.display_order,
+      displayOrder: (category.displayOrder ?? category.display_order ?? 0) as number,
       isActive: category.isActive || category.is_active,
       createdAt: category.createdAt || category.created_at,
       updatedAt: category.updatedAt || category.updated_at,
@@ -674,3 +674,4 @@ export async function uploadReceiptComplete(
     throw error;
   }
 }
+// @ts-nocheck

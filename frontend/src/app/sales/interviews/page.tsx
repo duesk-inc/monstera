@@ -132,9 +132,8 @@ export default function InterviewsPage() {
   return (
     <SalesLayout
       title="面談管理"
-      subtitle="エンジニア面談のスケジュール管理・進捗追跡"
       actions={
-        <Box sx={{ display: 'flex', gap: SPACING.sm }}>
+        <Box sx={{ display: 'flex', gap: SPACING.SM }}>
           <Button
             variant="outlined"
             startIcon={<Sync />}
@@ -154,10 +153,10 @@ export default function InterviewsPage() {
       }
     >
       {/* 統計情報 */}
-      <Box sx={{ mb: SPACING.lg }}>
+      <Box sx={{ mb: SPACING.LG }}>
         <Alert 
           severity={upcomingInterviews.length > 0 ? "info" : "success"}
-          sx={{ mb: SPACING.md }}
+          sx={{ mb: SPACING.MD }}
         >
           今週の面談予定: {upcomingInterviews.length}件
           {pendingInterviews.length > 0 && `, 調整中: ${pendingInterviews.length}件`}
@@ -165,7 +164,7 @@ export default function InterviewsPage() {
       </Box>
 
       {/* 表示モード切り替え */}
-      <Box sx={{ mb: SPACING.lg }}>
+      <Box sx={{ mb: SPACING.LG }}>
         <Tabs 
           value={viewMode} 
           onChange={(_, newValue) => setViewMode(newValue)}

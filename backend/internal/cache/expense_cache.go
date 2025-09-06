@@ -216,11 +216,11 @@ func (c *ExpenseCache) InvalidateExpenseDetail(ctx context.Context, expenseID st
 // InvalidateExpenseSummary 経費申請サマリーのキャッシュを無効化
 func (c *ExpenseCache) InvalidateExpenseSummary(ctx context.Context, userID *string) error {
 	pattern := expenseSummaryPrefix
-	if userID != nil {
-		pattern = fmt.Sprintf("%suser:%s:*", expenseSummaryPrefix, userID)
-	} else {
-		pattern = expenseSummaryPrefix + "*"
-	}
+    if userID != nil {
+        pattern = fmt.Sprintf("%suser:%s:*", expenseSummaryPrefix, *userID)
+    } else {
+        pattern = expenseSummaryPrefix + "*"
+    }
 	return c.deleteByPattern(ctx, pattern)
 }
 

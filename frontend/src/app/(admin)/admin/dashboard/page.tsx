@@ -144,11 +144,13 @@ export default function AdminDashboard() {
               unit="%"
               icon={<AssignmentIcon />}
               color="success"
-              trend={stats.hasComparison && stats.current?.submissionStats?.submissionRate !== undefined ? {
-                trend: stats.current.submissionStats.submissionRate >= (stats.previous?.submissionStats?.submissionRate || 0) ? 'up' : 'down',
-                change: stats.current.submissionStats.submissionRate - (stats.previous?.submissionStats?.submissionRate || 0),
-                changeRate: ((stats.current.submissionStats.submissionRate - (stats.previous?.submissionStats?.submissionRate || 0)) / (stats.previous?.submissionStats?.submissionRate || 1)) * 100
-              } : undefined}
+              trend={stats.hasComparison && stats.current?.submissionStats?.submissionRate !== undefined ? (() => {
+                const current = stats.current!.submissionStats!.submissionRate as number;
+                const previous = (stats.previous?.submissionStats?.submissionRate || 0) as number;
+                const change = current - previous;
+                const changeRate = ((current - previous) / (previous || 1)) * 100;
+                return { current, previous, change, changeRate, trend: current >= previous ? 'up' : 'down' } as const;
+              })() : undefined}
               onClick={() => router.push('/admin/engineers/weekly-reports')}
             />
           </Grid>
@@ -159,11 +161,13 @@ export default function AdminDashboard() {
               unit="時間"
               icon={<AccessTimeIcon />}
               color="info"
-              trend={stats.hasComparison && stats.current?.workHourStats?.averageWorkHours !== undefined ? {
-                trend: stats.current.workHourStats.averageWorkHours >= (stats.previous?.workHourStats?.averageWorkHours || 0) ? 'up' : 'down',
-                change: stats.current.workHourStats.averageWorkHours - (stats.previous?.workHourStats?.averageWorkHours || 0),
-                changeRate: ((stats.current.workHourStats.averageWorkHours - (stats.previous?.workHourStats?.averageWorkHours || 0)) / (stats.previous?.workHourStats?.averageWorkHours || 1)) * 100
-              } : undefined}
+              trend={stats.hasComparison && stats.current?.workHourStats?.averageWorkHours !== undefined ? (() => {
+                const current = stats.current!.workHourStats!.averageWorkHours as number;
+                const previous = (stats.previous?.workHourStats?.averageWorkHours || 0) as number;
+                const change = current - previous;
+                const changeRate = ((current - previous) / (previous || 1)) * 100;
+                return { current, previous, change, changeRate, trend: current >= previous ? 'up' : 'down' } as const;
+              })() : undefined}
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
@@ -173,11 +177,13 @@ export default function AdminDashboard() {
               unit="名"
               icon={<PeopleIcon />}
               color="primary"
-              trend={stats.hasComparison && stats.current?.totalUsers !== undefined ? {
-                trend: stats.current.totalUsers >= (stats.previous?.totalUsers || 0) ? 'up' : 'down',
-                change: stats.current.totalUsers - (stats.previous?.totalUsers || 0),
-                changeRate: ((stats.current.totalUsers - (stats.previous?.totalUsers || 0)) / (stats.previous?.totalUsers || 1)) * 100
-              } : undefined}
+              trend={stats.hasComparison && stats.current?.totalUsers !== undefined ? (() => {
+                const current = stats.current!.totalUsers as number;
+                const previous = (stats.previous?.totalUsers || 0) as number;
+                const change = current - previous;
+                const changeRate = ((current - previous) / (previous || 1)) * 100;
+                return { current, previous, change, changeRate, trend: current >= previous ? 'up' : 'down' } as const;
+              })() : undefined}
             />
           </Grid>
         </Grid>
@@ -231,7 +237,7 @@ export default function AdminDashboard() {
               </Button>
             </Box>
             <List disablePadding>
-              {safeData.alerts.map((alert, index) => (
+              {(safeData.alerts || []).map((alert: any, index: number, arr: any[]) => (
                 <React.Fragment key={alert.id}>
                   <ListItem sx={{ px: 0 }}>
                     <ListItemText
@@ -249,7 +255,7 @@ export default function AdminDashboard() {
                       />
                     </ListItemSecondaryAction>
                   </ListItem>
-                  {index < safeData.alerts.length - 1 && <Divider />}
+                  {index < arr.length - 1 && <Divider />}
                 </React.Fragment>
               ))}
             </List>

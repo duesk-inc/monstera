@@ -28,6 +28,7 @@ import { PAGINATION } from '@/constants/pagination';
 import { CommentDialog } from '../dialogs/CommentDialog';
 import { ExportButton, ExportProgressDialog } from '@/components/features/export';
 import { useExportJob } from '@/hooks/admin/useExportJob';
+import { adminWeeklyReportApi } from '@/lib/api/admin/weeklyReport';
 import type { ExportJobFormat, WeeklyReportExportParams } from '@/types/export';
 import { useToast } from '@/components/common/Toast';
 import { WEEKLY_REPORT_STATUS } from '@/constants/weeklyReport';
@@ -57,8 +58,8 @@ export const WeeklyReportListTab: React.FC = () => {
   const { reports, total, loading, error, refresh } = useWeeklyReports({
     status,
     search,
-    start_date: startDate?.format('YYYY-MM-DD') || '',
-    end_date: endDate?.format('YYYY-MM-DD') || '',
+    date_from: startDate?.format('YYYY-MM-DD') || '',
+    date_to: endDate?.format('YYYY-MM-DD') || '',
     page,
     limit: PAGINATION.DEFAULT_SIZES.WEEKLY_REPORTS,
   });
@@ -72,26 +73,35 @@ export const WeeklyReportListTab: React.FC = () => {
 
   const [showExportDialog, setShowExportDialog] = useState(false);
 
-  const handleExport = (format: ExportJobFormat) => {
+  const handleExport = async (format: ExportJobFormat) => {
     // パラメータを準備
     const params: WeeklyReportExportParams = {
       start_date: startDate?.format('YYYY-MM-DD') || '',
       end_date: endDate?.format('YYYY-MM-DD') || '',
     };
 
-    // ステータスフィルタ
     if (status) {
       params.status = [status];
     }
 
-    // エクスポートジョブを作成
-    createJob({
-      job_type: 'weekly_report',
-      format,
-      parameters: params,
-    });
+    // CSVは同期ダウンロードでContent-Disposition対応
+    if (format === 'csv') {
+      try {
+        await adminWeeklyReportApi.exportWeeklyReports({
+          format: 'csv',
+          status,
+          start_date: params.start_date,
+          end_date: params.end_date,
+        });
+        showSuccess('CSVエクスポートを開始しました');
+      } catch (e) {
+        showError('エクスポートに失敗しました');
+      }
+      return;
+    }
 
-    // 進捗ダイアログを表示
+    // それ以外（例: excel）はジョブで実行
+    createJob({ job_type: 'weekly_report', format, parameters: params });
     setShowExportDialog(true);
   };
 
@@ -223,13 +233,20 @@ export const WeeklyReportListTab: React.FC = () => {
             onRefresh={refresh}
             refreshDisabled={loading}
             actions={
-              <ExportButton
-                onExport={handleExport}
-                formats={['excel', 'csv']}
-                buttonText="エクスポート"
-                loading={false}
-                disabled={loading}
-              />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <span data-testid="wr-csv-button">
+                  <ExportButton
+                    onExport={handleExport}
+                    formats={['csv']}
+                    buttonText="エクスポート"
+                    loading={false}
+                    disabled={loading}
+                  />
+                </span>
+                <Typography variant="caption" color="text.secondary">
+                  CSV (UTF-8+BOM)
+                </Typography>
+              </Box>
             }
           />
           <Box sx={{ mt: 2 }}>

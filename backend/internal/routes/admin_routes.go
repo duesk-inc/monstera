@@ -114,14 +114,15 @@ func SetupAdminRoutes(r *gin.RouterGroup, cfg *config.Config, handlers *AdminHan
 
 		// 経費承認エンドポイント
 		if handlers.ExpenseHandler != nil {
-			expenses := engineers.Group("/expenses")
-			{
-				expenses.GET("/pending", handlers.ExpenseHandler.GetPendingApprovals)
-				expenses.PUT("/:id/approve", handlers.ExpenseHandler.ApproveExpense)
-				expenses.PUT("/:id/reject", handlers.ExpenseHandler.RejectExpense)
-				expenses.GET("/check-limits", handlers.ExpenseHandler.CheckExpenseLimits)
-				expenses.GET("/export", handlers.ExpenseHandler.ExportExpensesCSVAdmin) // 管理者用CSVエクスポート
-			}
+				expenses := engineers.Group("/expenses")
+				{
+					expenses.GET("/:id", handlers.ExpenseHandler.GetExpenseDetailAdmin)
+					expenses.GET("/pending", handlers.ExpenseHandler.GetPendingApprovals)
+					expenses.PUT("/:id/approve", handlers.ExpenseHandler.ApproveExpense)
+					expenses.PUT("/:id/reject", handlers.ExpenseHandler.RejectExpense)
+					expenses.GET("/check-limits", handlers.ExpenseHandler.CheckExpenseLimits)
+					expenses.GET("/export", handlers.ExpenseHandler.ExportExpensesCSVAdmin) // 管理者用CSVエクスポート
+				}
 		}
 	}
 

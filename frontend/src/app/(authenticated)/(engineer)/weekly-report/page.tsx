@@ -31,6 +31,7 @@ import WeekSelector from '@/components/features/weeklyReport/WeekSelector';
 import DailyRecordAccordion from '@/components/features/weeklyReport/DailyRecordAccordion';
 import WeeklyWorkSummary from '@/components/features/weeklyReport/WeeklyWorkSummary';
 import WeeklyReportContainer from '@/components/features/weeklyReport/WeeklyReportContainer';
+import type { BulkSettings } from '@/types/weeklyReport';
 
 // カスタムフックをインポート
 import { useWeeklyReport } from '@/hooks/weeklyReport/useWeeklyReport';
@@ -103,7 +104,7 @@ export default function WeeklyReport() {
   const [openBulkSettingDialog, setOpenBulkSettingDialog] = useState(false);
   const [expandedDays, setExpandedDays] = useState<{[key: string]: boolean}>({});
   const [availableWeeks, setAvailableWeeks] = useState<{ startDate: Date; endDate: Date }[]>([]);
-  const [bulkSettings, setBulkSettings] = useState({
+  const [bulkSettings, setBulkSettings] = useState<BulkSettings>({
     startTime: DEFAULT_WORK_TIME.START_TIME,
     endTime: DEFAULT_WORK_TIME.END_TIME,
     breakTime: DEFAULT_WORK_TIME.BREAK_TIME,

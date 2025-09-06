@@ -44,7 +44,7 @@ import {
 import { useImportEngineersCSV, useEngineerMutations } from '@/hooks/admin/useEngineersQuery';
 import { useToast } from '@/components/common/Toast/ToastProvider';
 import { EngineerStatus } from '@/types/engineer';
-import { ENGINEER_STATUS_LABELS } from '@/constants/engineer';
+import { ENGINEER_STATUS_LABELS, ENGINEER_STATUS } from '@/constants/engineer';
 
 interface ImportResult {
   success: number;
@@ -65,7 +65,7 @@ export const CsvImportTab: React.FC = () => {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [showErrorDetails, setShowErrorDetails] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { importCSV, isImporting } = useImportEngineersCSV();
+  const importMutation = useImportEngineersCSV();
   const { showSuccess, showError } = useToast();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,16 +87,9 @@ export const CsvImportTab: React.FC = () => {
     }
 
     try {
-      const result = await importCSV(file);
-      setImportResult(result);
-      
-      if (result.success > 0 && result.failed === 0) {
-        showSuccess(`${result.success}件のデータをインポートしました`);
-      } else if (result.success > 0 && result.failed > 0) {
-        showError(`${result.success}件成功、${result.failed}件失敗しました`);
-      } else {
-        showError('インポートに失敗しました');
-      }
+      await importMutation.mutateAsync(file);
+      showSuccess('インポート処理を開始しました');
+      setImportResult(null);
     } catch (error) {
       console.error('Import failed:', error);
     }
@@ -150,7 +143,7 @@ export const CsvImportTab: React.FC = () => {
             variant="contained"
             component="span"
             startIcon={<UploadIcon />}
-            disabled={isImporting}
+            disabled={importMutation.isPending}
           >
             ファイルを選択
           </Button>
@@ -173,22 +166,22 @@ export const CsvImportTab: React.FC = () => {
         <Button
           variant="contained"
           onClick={handleImport}
-          disabled={!file || isImporting}
-          startIcon={isImporting ? null : <UploadIcon />}
+          disabled={!file || importMutation.isPending}
+          startIcon={importMutation.isPending ? null : <UploadIcon />}
         >
-          {isImporting ? '処理中...' : 'インポート実行'}
+          {importMutation.isPending ? '処理中...' : 'インポート実行'}
         </Button>
         <Button
           variant="outlined"
           onClick={handleReset}
-          disabled={isImporting}
+          disabled={importMutation.isPending}
         >
           リセット
         </Button>
       </Box>
 
       {/* 処理中表示 */}
-      {isImporting && (
+      {importMutation.isPending && (
         <Box sx={{ mb: 3 }}>
           <Typography variant="body2" gutterBottom>
             インポート処理中...
@@ -313,13 +306,14 @@ export const CsvExportTab: React.FC = () => {
   const handleExport = async () => {
     try {
       setIsExporting(true);
-      const blob = await exportCSV(exportOptions, `engineers_${new Date().toISOString().split('T')[0]}.csv`);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `engineers_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
+      // 型互換のあるエクスポートオプションにマッピング
+      const mappedOptions: import('@/types/engineer').ExportOptions = {
+        engineerStatus: exportOptions.status === 'all' ? undefined : exportOptions.status,
+        includeSkills: exportOptions.fields.skills,
+        includeProjects: exportOptions.fields.projects,
+        includeStatusHistory: true,
+      };
+      await exportCSV(mappedOptions, `engineers_${new Date().toISOString().split('T')[0]}.csv`);
       showSuccess('CSVファイルをダウンロードしました');
     } catch (error) {
       console.error('Export failed:', error);
@@ -357,7 +351,13 @@ export const CsvExportTab: React.FC = () => {
               secondary={
                 exportOptions.status === 'all' 
                   ? 'すべてのステータス' 
-                  : ENGINEER_STATUS_LABELS[exportOptions.status]
+                  : (exportOptions.status === EngineerStatus.STANDBY
+                      ? ENGINEER_STATUS_LABELS[ENGINEER_STATUS.AVAILABLE]
+                      : exportOptions.status === EngineerStatus.ACTIVE
+                        ? ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ASSIGNED]
+                        : exportOptions.status === EngineerStatus.LONG_LEAVE
+                          ? ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ON_LEAVE]
+                          : ENGINEER_STATUS_LABELS[ENGINEER_STATUS.INACTIVE])
               }
             />
           </ListItem>
@@ -450,14 +450,11 @@ export const CsvExportTab: React.FC = () => {
               onChange={(e) => setExportOptions(prev => ({ ...prev, status: e.target.value as any }))}
             >
               <FormControlLabel value="all" control={<Radio />} label="すべてのステータス" />
-              {Object.entries(ENGINEER_STATUS_LABELS).map(([value, label]) => (
-                <FormControlLabel
-                  key={value}
-                  value={value}
-                  control={<Radio />}
-                  label={label}
-                />
-              ))}
+              {/* 旧Enumに合わせた選択肢 */}
+              <FormControlLabel value={EngineerStatus.STANDBY} control={<Radio />} label={ENGINEER_STATUS_LABELS[ENGINEER_STATUS.AVAILABLE]} />
+              <FormControlLabel value={EngineerStatus.ACTIVE} control={<Radio />} label={ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ASSIGNED]} />
+              <FormControlLabel value={EngineerStatus.LONG_LEAVE} control={<Radio />} label={ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ON_LEAVE]} />
+              <FormControlLabel value={EngineerStatus.RESIGNED} control={<Radio />} label={ENGINEER_STATUS_LABELS[ENGINEER_STATUS.INACTIVE]} />
             </RadioGroup>
           </FormControl>
 

@@ -64,7 +64,7 @@ import LeaveUsageSummary from '@/components/features/leave/LeaveUsageSummary';
 
 // DebugLoggerをインポート
 import { DebugLogger, DEBUG_CATEGORIES, DEBUG_OPERATIONS } from '@/lib/debug/logger';
-import { SUCCESS_MESSAGES } from '../../../../constants/errorMessages';
+import { SUCCESS_MESSAGES, GENERAL_ERROR_MESSAGES } from '../../../../constants/errorMessages';
 import { LEAVE_VALIDATION_MESSAGES } from '../../../../constants/validationMessages';
 
 // 理由入力が必要な休暇タイプコード
@@ -86,7 +86,7 @@ function AttendancePageContent() {
   const searchParams = useSearchParams();
   
   // ユーザーの性別を取得
-  const userGender = user?.gender || 'male';
+  const userGender = (user as any)?.gender || 'male';
   
   // 現在の月の初日
   const firstDayOfCurrentMonth = startOfMonth(new Date());
@@ -272,14 +272,14 @@ function AttendancePageContent() {
       
       // 日付選択チェック
       if (formData.selectedDates.length === 0) {
-        showError(LEAVE_VALIDATION_MESSAGES.DATE_REQUIRED);
-        return;
+        showError(LEAVE_VALIDATION_MESSAGES.START_DATE_REQUIRED);
+      return;
       }
       
       // 日付の重複チェック
       const duplicateDates = findDuplicates(formData.selectedDates);
       if (duplicateDates.length > 0) {
-        showError(LEAVE_VALIDATION_MESSAGES.DUPLICATE_DATES(duplicateDates.join(', ')));
+        showError(LEAVE_VALIDATION_MESSAGES.SAME_DATE_NOT_ALLOWED);
         return;
       }
       
@@ -294,14 +294,14 @@ function AttendancePageContent() {
       // 計算された日数が0以下の場合はエラー
       const totalDays = calcDays();
       if (totalDays <= 0) {
-        showError(LEAVE_VALIDATION_MESSAGES.VALID_PERIOD_REQUIRED);
+        showError(LEAVE_VALIDATION_MESSAGES.INVALID_DATE_RANGE);
         return;
       }
       
       // 残日数のチェック
       const remainingDays = REMAINING_LEAVES[formData.leaveTypeId]?.remaining || 0;
       if (totalDays > remainingDays) {
-        showError(LEAVE_VALIDATION_MESSAGES.INSUFFICIENT_BALANCE(remainingDays));
+        showError(LEAVE_VALIDATION_MESSAGES.INSUFFICIENT_BALANCE);
         return;
       }
       
@@ -324,7 +324,7 @@ function AttendancePageContent() {
           metadata: { context: 'フォーム検証処理' }
         }
       );
-      showError(LEAVE_VALIDATION_MESSAGES.GENERAL_ERROR);
+      showError(GENERAL_ERROR_MESSAGES.UNKNOWN_ERROR);
     }
   };
   
@@ -396,7 +396,7 @@ function AttendancePageContent() {
   // 申請成功時の処理
   const handleSuccessfulSubmission = async () => {
         // 成功通知（定数を使用）
-        showSuccess(SUCCESS_MESSAGES.LEAVE_REQUEST_CREATED);
+        showSuccess(SUCCESS_MESSAGES.LEAVE_REQUESTED);
         
         // フォームリセット
         reset({
@@ -419,7 +419,7 @@ function AttendancePageContent() {
   
   // 申請エラー時の処理
   const handleSubmissionError = () => {
-      showError(LEAVE_VALIDATION_MESSAGES.GENERAL_ERROR);
+      showError(GENERAL_ERROR_MESSAGES.UNKNOWN_ERROR);
   };
   
   // 残休暇データのマージ - APIデータを優先しつつ基本データとマージ

@@ -1,15 +1,16 @@
 package handler
 
 import (
-	"context"
-	"net/http"
-	"strconv"
+    "context"
+    "net/http"
+    "strconv"
 
-	"github.com/duesk/monstera/internal/dto"
-	"github.com/duesk/monstera/internal/service"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
-	"go.uber.org/zap"
+    "github.com/duesk/monstera/internal/dto"
+    "github.com/duesk/monstera/internal/model"
+    "github.com/duesk/monstera/internal/service"
+    "github.com/gin-gonic/gin"
+    "github.com/google/uuid"
+    "go.uber.org/zap"
 )
 
 // WorkHistoryHandler 職務経歴ハンドラー
@@ -256,4 +257,93 @@ func (h *WorkHistoryHandler) SearchWorkHistories(c *gin.Context) {
 			"role":         role,
 		},
 	})
+}
+
+// ===== Technology Suggestion APIs =====
+
+// GetTechnologySuggestions 技術候補のサジェスト
+func (h *WorkHistoryHandler) GetTechnologySuggestions(c *gin.Context) {
+    svc, ok := h.technologySuggestionService.(service.TechnologySuggestionService)
+    if !ok || svc == nil {
+        RespondError(c, http.StatusInternalServerError, "サジェストサービスが未設定です")
+        return
+    }
+
+    query := c.Query("query")
+    if query == "" {
+        RespondError(c, http.StatusBadRequest, "検索クエリは必須です")
+        return
+    }
+
+    limit, _ := strconv.Atoi(c.DefaultQuery("limit", "20"))
+    if limit < 1 || limit > 50 {
+        limit = 20
+    }
+    includePopular := c.DefaultQuery("include_popular", "false") == "true"
+    category := c.Query("category")
+    var categoryPtr *string
+    if category != "" {
+        categoryPtr = &category
+    }
+
+    req := dto.TechnologySuggestionRequest{
+        Query:          query,
+        Limit:          int32(limit),
+        IncludePopular: includePopular,
+        CategoryName:   categoryPtr,
+    }
+
+    suggestions, err := svc.SearchSuggestions(c.Request.Context(), req)
+    if err != nil {
+        h.logger.Error("Failed to get technology suggestions", zap.Error(err))
+        RespondError(c, http.StatusInternalServerError, "技術候補の取得に失敗しました")
+        return
+    }
+
+    // テスト期待どおり配列をそのまま返す
+    c.JSON(http.StatusOK, suggestions)
+}
+
+// GetPopularTechnologies カテゴリ別の人気技術を取得
+func (h *WorkHistoryHandler) GetPopularTechnologies(c *gin.Context) {
+    svc, ok := h.technologySuggestionService.(service.TechnologySuggestionService)
+    if !ok || svc == nil {
+        RespondError(c, http.StatusInternalServerError, "サジェストサービスが未設定です")
+        return
+    }
+    category := c.Query("category")
+    if category == "" {
+        RespondError(c, http.StatusBadRequest, "カテゴリは必須です")
+        return
+    }
+    limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+    if limit < 1 || limit > 50 {
+        limit = 10
+    }
+
+    items, err := svc.GetPopularByCategory(c.Request.Context(), category, limit)
+    if err != nil {
+        h.logger.Error("Failed to get popular technologies", zap.Error(err))
+        RespondError(c, http.StatusInternalServerError, "人気技術の取得に失敗しました")
+        return
+    }
+    c.JSON(http.StatusOK, items)
+}
+
+// GetTechnologyCategories 技術カテゴリ一覧を取得
+func (h *WorkHistoryHandler) GetTechnologyCategories(c *gin.Context) {
+    svc, ok := h.technologySuggestionService.(service.TechnologySuggestionService)
+    if !ok || svc == nil {
+        RespondError(c, http.StatusInternalServerError, "サジェストサービスが未設定です")
+        return
+    }
+    categories, err := svc.GetCategories(c.Request.Context())
+    if err != nil {
+        h.logger.Error("Failed to get technology categories", zap.Error(err))
+        RespondError(c, http.StatusInternalServerError, "技術カテゴリの取得に失敗しました")
+        return
+    }
+    // 型は []model.TechnologyCategoryInfo として返却
+    var result []model.TechnologyCategoryInfo = categories
+    c.JSON(http.StatusOK, result)
 }

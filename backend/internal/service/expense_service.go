@@ -24,7 +24,10 @@ import (
 type ExpenseService interface {
 	// 基本CRUD操作
 	Create(ctx context.Context, userID string, req *dto.CreateExpenseRequest) (*model.Expense, error)
-	GetByID(ctx context.Context, id string, userID string) (*model.ExpenseWithDetails, error)
+    GetByID(ctx context.Context, id string, userID string) (*model.ExpenseWithDetails, error)
+    // 管理者/マネージャー用詳細取得
+    GetByIDForAdmin(ctx context.Context, id string) (*model.ExpenseWithDetails, error)
+
 	Update(ctx context.Context, id string, userID string, req *dto.UpdateExpenseRequest) (*model.Expense, error)
 	Delete(ctx context.Context, id string, userID string) error
 
@@ -297,6 +300,21 @@ func (s *expenseService) GetByID(ctx context.Context, id string, userID string) 
 		return nil, dto.NewExpenseError(dto.ErrCodeUnauthorized, "この経費申請を閲覧する権限がありません")
 	}
 
+	return expense, nil
+}
+
+// GetByIDForAdmin 管理者/マネージャー用の経費申請詳細取得（本人以外も可）
+func (s *expenseService) GetByIDForAdmin(ctx context.Context, id string) (*model.ExpenseWithDetails, error) {
+	expense, err := s.expenseRepo.GetDetailByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, dto.NewExpenseError(dto.ErrCodeExpenseNotFound, "経費申請が見つかりません")
+		}
+		s.logger.Error("Failed to get expense by ID (admin)",
+			zap.Error(err),
+			zap.String("expense_id", id))
+		return nil, dto.NewExpenseError(dto.ErrCodeInternalError, "経費申請の取得に失敗しました")
+	}
 	return expense, nil
 }
 
@@ -3511,47 +3529,63 @@ func (s *expenseService) generateCSV(ctx context.Context, expenses []*model.Expe
 	writer := csv.NewWriter(buf)
 	writer.Comma = ','
 
-	// ヘッダー行を書き込み
-	if filter.Language == "en" {
-		headers := []string{
-			"Request ID", "Submitted Date", "Applicant", "Department",
-			"Title", "Category", "Amount", "Expense Date", "Description", "Status",
-			"Approved Date", "Approver", "Approval Step",
-			"Rejected Date", "Rejector", "Rejection Reason",
-		}
-		if filter.IncludeReceipts {
-			headers = append(headers, "Receipt Count", "Receipt URLs")
-		}
-		headers = append(headers, "Created At", "Updated At")
-		writer.Write(headers)
-	} else {
-		headers := []string{
-			"申請ID", "申請日", "申請者", "部門",
-			"件名", "カテゴリ", "金額", "使用日", "使用理由", "ステータス",
-			"承認日", "承認者", "承認ステップ",
-			"却下日", "却下者", "却下理由",
-		}
-		if filter.IncludeReceipts {
-			headers = append(headers, "領収書数", "領収書URL")
-		}
-		headers = append(headers, "作成日時", "更新日時")
-		writer.Write(headers)
-	}
+    // ヘッダー行を書き込み（最小列モード対応）
+    if filter.Minimal {
+        if filter.Language == "en" {
+            writer.Write([]string{"Request ID", "Submitted Date", "Applicant", "Department", "Title", "Category", "Amount", "Expense Date", "Status"})
+        } else {
+            writer.Write([]string{"申請ID", "申請日", "申請者", "部門", "件名", "カテゴリ", "金額", "使用日", "ステータス"})
+        }
+    } else {
+        if filter.Language == "en" {
+            headers := []string{
+                "Request ID", "Submitted Date", "Applicant", "Department",
+                "Title", "Category", "Amount", "Expense Date", "Description", "Status",
+                "Approved Date", "Approver", "Approval Step",
+                "Rejected Date", "Rejector", "Rejection Reason",
+            }
+            if filter.IncludeReceipts {
+                headers = append(headers, "Receipt Count", "Receipt URLs")
+            }
+            headers = append(headers, "Created At", "Updated At")
+            writer.Write(headers)
+        } else {
+            headers := []string{
+                "申請ID", "申請日", "申請者", "部門",
+                "件名", "カテゴリ", "金額", "使用日", "使用理由", "ステータス",
+                "承認日", "承認者", "承認ステップ",
+                "却下日", "却下者", "却下理由",
+            }
+            if filter.IncludeReceipts {
+                headers = append(headers, "領収書数", "領収書URL")
+            }
+            headers = append(headers, "作成日時", "更新日時")
+            writer.Write(headers)
+        }
+    }
 
 	// データ行を書き込み
-	for _, record := range records {
-		row := []string{
-			record.ID, record.SubmittedDate, record.UserName, record.Department,
-			record.Title, record.Category, record.Amount, record.ExpenseDate, record.Description, record.Status,
-			record.ApprovedDate, record.ApproverName, record.ApprovalStep,
-			record.RejectedDate, record.RejectorName, record.RejectionReason,
-		}
-		if filter.IncludeReceipts {
-			row = append(row, record.ReceiptCount, record.ReceiptURLs)
-		}
-		row = append(row, record.CreatedAt, record.UpdatedAt)
-		writer.Write(row)
-	}
+    for _, record := range records {
+        if filter.Minimal {
+            row := []string{
+                record.ID, record.SubmittedDate, record.UserName, record.Department,
+                record.Title, record.Category, record.Amount, record.ExpenseDate, record.Status,
+            }
+            writer.Write(row)
+        } else {
+            row := []string{
+                record.ID, record.SubmittedDate, record.UserName, record.Department,
+                record.Title, record.Category, record.Amount, record.ExpenseDate, record.Description, record.Status,
+                record.ApprovedDate, record.ApproverName, record.ApprovalStep,
+                record.RejectedDate, record.RejectorName, record.RejectionReason,
+            }
+            if filter.IncludeReceipts {
+                row = append(row, record.ReceiptCount, record.ReceiptURLs)
+            }
+            row = append(row, record.CreatedAt, record.UpdatedAt)
+            writer.Write(row)
+        }
+    }
 
 	writer.Flush()
 	if err := writer.Error(); err != nil {

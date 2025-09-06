@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import {
   Box,
   Button,
@@ -32,7 +32,7 @@ export default function EditExpensePage() {
   const expenseId = params.id as string;
 
   // 経費詳細データ取得
-  const { expense, isLoading, canEdit } = useExpenseDetail({ expenseId });
+  const { expense, isLoading, isError, error, canEdit } = useExpenseDetail({ expenseId });
 
   // 編集権限がない場合は詳細画面にリダイレクト
   useEffect(() => {
@@ -81,14 +81,19 @@ export default function EditExpensePage() {
     );
   }
 
-  // データが存在しない場合
-  if (!expense) {
+  // データが存在しない場合 or 取得エラー
+  if (isError || !expense) {
+    const status = (error as any)?.response?.status;
+    const code = (error as any)?.enhanced?.code || (error as any)?.code;
+    if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+      notFound();
+    }
     return (
       <PageContainer maxWidth="lg">
         <Card>
           <CardContent>
             <Alert severity="error">
-              経費申請データが見つかりません
+              経費申請データの取得に失敗しました
             </Alert>
             <Box sx={{ mt: 2 }}>
               <Button

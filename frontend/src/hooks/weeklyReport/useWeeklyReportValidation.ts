@@ -25,13 +25,13 @@ export const useWeeklyReportValidation = (): UseWeeklyReportValidationReturn => 
     
     // 週総括のバリデーション（任意、1000文字まで）
     if (report.weeklyRemarks && report.weeklyRemarks.length > 1000) {
-      newErrors.weeklyRemarks = WEEKLY_REPORT_VALIDATION_MESSAGES.WEEKLY_REMARKS_MAX_LENGTH;
+      newErrors.weeklyRemarks = WEEKLY_REPORT_VALIDATION_MESSAGES.REFLECTION_TOO_LONG;
     }
     
     // 稼働時間のバリデーション（少なくとも1日は入力必須）
     const { companyTotal } = calculateTotalHours(report);
     if (companyTotal <= 0) {
-      newErrors.dailyRecords = WEEKLY_REPORT_VALIDATION_MESSAGES.WORK_TIME_REQUIRED;
+      newErrors.dailyRecords = WEEKLY_REPORT_VALIDATION_MESSAGES.WORK_HOURS_REQUIRED;
     }
     
     setErrors(newErrors);
@@ -54,7 +54,7 @@ export const useWeeklyReportValidation = (): UseWeeklyReportValidationReturn => 
         
         if (isSameStartTime && isSameEndTime && isSameBreakTime) {
           hasSameTime = true;
-          message = WEEKLY_REPORT_VALIDATION_MESSAGES.SAME_WORK_TIME_WARNING;
+          message = WEEKLY_REPORT_VALIDATION_MESSAGES.WORK_CONTENT_REQUIRED;
         }
       }
     });

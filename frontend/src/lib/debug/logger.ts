@@ -800,7 +800,7 @@ export class LogBuilder {
    */
   log(message?: string): void {
     const finalMessage = message || this.message || 'Log';
-    const finalLevel = this.config.level || LogLevel.INFO;
+    const finalLevel: LogLevel = this.config.level ?? LogLevel.INFO;
     const finalConfig = { 
       ...this.config, 
       category: this.config.category || 'LOG', 

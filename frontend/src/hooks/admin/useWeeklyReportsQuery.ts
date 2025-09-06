@@ -17,8 +17,12 @@ export const useWeeklyReportsQuery = (params?: {
   limit?: number;
   status?: string;
   user_id?: string;
+  // legacy
   start_date?: string;
   end_date?: string;
+  // preferred
+  date_from?: string;
+  date_to?: string;
 }) => {
   return useQuery({
     queryKey: queryKeys.adminWeeklyReports(params),
@@ -134,8 +138,12 @@ export const useWeeklyReports = (initialParams?: {
   limit?: number;
   status?: string;
   user_id?: string;
+  // legacy
   start_date?: string;
   end_date?: string;
+  // preferred
+  date_from?: string;
+  date_to?: string;
 }) => {
   const [params, setParams] = React.useState(initialParams || { page: PAGINATION.DEFAULT_PAGE, limit: PAGINATION.DEFAULT_SIZES.WEEKLY_REPORTS });
   const { data, isLoading, error, refetch } = useWeeklyReportsQuery(params);

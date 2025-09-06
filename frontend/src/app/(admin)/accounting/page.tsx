@@ -2,6 +2,9 @@
 
 "use client";
 
+// Avoid static prerender to prevent build-time evaluation issues while migrating.
+export const dynamic = "force-dynamic";
+
 import React, { useState, useMemo } from "react";
 import {
   Box,
@@ -87,7 +90,7 @@ export default function AccountingDashboard() {
     data: summary,
     isLoading: summaryLoading,
     error: summaryError,
-    refetch: refetchSummary,
+    refreshAll,
   } = useAccountingSummary();
 
   const {
@@ -105,51 +108,53 @@ export default function AccountingDashboard() {
     error: rankingError,
   } = useQuery({
     queryKey: ["accounting", "client-ranking"],
-    queryFn: () => accountingApi.getClientRanking(),
+    queryFn: () => accountingApi.getClientBillingRanking(),
   });
 
   const {
-    data: activities,
+    data: activities = [],
     isLoading: activitiesLoading,
     error: activitiesError,
-    refetch: refetchActivities,
-  } = useQuery({
+  } = useQuery<any[]>({
     queryKey: ["accounting", "activities"],
-    queryFn: () => accountingApi.getRecentActivities(),
+    // TODO: 活動ログAPI実装時に置き換え
+    queryFn: async () => [],
   });
 
   const {
-    data: upcomingSchedules,
+    data: upcomingSchedules = [],
     isLoading: schedulesLoading,
     error: schedulesError,
-  } = useQuery({
+  } = useQuery<any[]>({
     queryKey: ["accounting", "upcoming-schedules"],
-    queryFn: () => accountingApi.getUpcomingSchedules(),
+    // TODO: スケジュールAPIの将来データ取得に置換
+    queryFn: async () => [],
   });
 
   // データ準備
   const kpiData = useMemo(() => {
-    if (!summary) return null;
+    const s = summary?.summary;
+    if (!s) return null;
 
     return {
       totalBilling: {
-        value: summary.totalBillingAmount,
-        previousValue: summary.previousMonthBilling || 0,
+        value: s.totalBillingAmount,
+        previousValue: s.previousMonthBilling || 0,
         unit: "currency" as const,
       },
       totalClients: {
-        value: summary.totalClients,
-        previousValue: summary.previousMonthClients || 0,
+        value: s.totalClients,
+        previousValue: s.previousMonthClients || 0,
         unit: "count" as const,
       },
       completedBillings: {
-        value: summary.completedBillings,
-        previousValue: summary.previousMonthCompleted || 0,
+        value: s.completedBillings,
+        previousValue: s.previousMonthCompleted || 0,
         unit: "count" as const,
       },
       pendingBillings: {
-        value: summary.pendingBillings,
-        previousValue: summary.previousMonthPending || 0,
+        value: s.pendingBillings,
+        previousValue: s.previousMonthPending || 0,
         unit: "count" as const,
       },
     };
@@ -157,14 +162,14 @@ export default function AccountingDashboard() {
 
   // freee接続ステータス
   const freeeStatus =
-    summary?.freeeConnectionStatus || FREE_CONNECTION_STATUS.DISCONNECTED;
+    summary?.summary?.freeeConnectionStatus || FREE_CONNECTION_STATUS.DISCONNECTED;
   const isFreeeConnected = freeeStatus === FREE_CONNECTION_STATUS.CONNECTED;
 
   // イベントハンドラー
   const handleRefresh = async () => {
     setState((prev) => ({ ...prev, refreshing: true }));
     try {
-      await Promise.all([refetchSummary(), refetchActivities()]);
+      await refreshAll();
     } catch (error) {
       handleSubmissionError(error, "データ更新");
     } finally {
@@ -188,7 +193,7 @@ export default function AccountingDashboard() {
     try {
       await accountingApi.createProjectGroup(data);
       setState((prev) => ({ ...prev, showProjectGroupDialog: false }));
-      refetchSummary();
+      await refreshAll();
     } catch (error) {
       handleSubmissionError(error, "プロジェクトグループ作成");
     }
@@ -198,7 +203,7 @@ export default function AccountingDashboard() {
     try {
       await accountingApi.createSchedule(data);
       setState((prev) => ({ ...prev, showScheduleDialog: false }));
-      refetchSummary();
+      await refreshAll();
     } catch (error) {
       handleSubmissionError(error, "スケジュール作成");
     }
@@ -241,7 +246,7 @@ export default function AccountingDashboard() {
         <Alert
           severity="error"
           action={
-            <Button onClick={() => refetchSummary()} startIcon={<Refresh />}>
+            <Button onClick={() => refreshAll()} startIcon={<Refresh />}>
               再読み込み
             </Button>
           }
@@ -268,7 +273,7 @@ export default function AccountingDashboard() {
             </Typography>
             <Stack direction="row" spacing={2} alignItems="center">
               <Typography variant="body1" color="text.secondary">
-                {formatDate(new Date(), "yyyy年MM月dd日")}現在
+                {formatDate(new Date())}現在
               </Typography>
               <Chip
                 icon={isFreeeConnected ? <CheckCircle /> : <ErrorIcon />}
@@ -310,7 +315,7 @@ export default function AccountingDashboard() {
       {/* KPI カード */}
       {kpiData && (
         <Box sx={{ mb: 4 }}>
-          <KPICardGroup loading={summaryLoading}>
+          <KPICardGroup>
             <KPICard
               title="総請求額"
               value={kpiData.totalBilling.value}
@@ -360,7 +365,13 @@ export default function AccountingDashboard() {
 
           {/* 取引先ランキング */}
           <ClientRankingChart
-            data={clientRanking || []}
+            data={(clientRanking || []).map((c: any) => ({
+              clientId: c.clientId,
+              clientName: c.clientName,
+              totalAmount: c.totalAmount,
+              invoiceCount: 0,
+              averageAmount: c.totalAmount,
+            }))}
             loading={rankingLoading}
             error={!!rankingError}
             height={400}
@@ -378,7 +389,7 @@ export default function AccountingDashboard() {
               activities={activities || []}
               loading={activitiesLoading}
               error={!!activitiesError}
-              onRefresh={refetchActivities}
+              onRefresh={handleRefresh}
               maxItems={10}
               groupByDate
             />

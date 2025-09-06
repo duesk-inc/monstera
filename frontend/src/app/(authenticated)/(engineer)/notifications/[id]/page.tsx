@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useParams, notFound } from 'next/navigation';
 import {
   Box,
   Typography,
@@ -46,11 +46,8 @@ function NotificationDetailLoading() {
 
 // NotificationDetailContentコンポーネントを分離
 function NotificationDetailContent() {
-  const searchParams = useSearchParams();
-  
-  
-  // URLパラメータからIDを取得
-  const notificationId = searchParams.get('id');
+  const params = useParams();
+  const notificationId = (params as any)?.id as string | undefined;
   
   // 状態管理
   const [notification, setNotification] = useState<UserNotification | null>(null);
@@ -61,8 +58,8 @@ function NotificationDetailContent() {
   useEffect(() => {
     const fetchNotification = async () => {
       if (!notificationId) {
-        setError('通知IDが指定されていません');
-        setIsLoading(false);
+        // IDがない＝不正URL。404へ直送
+        notFound();
         return;
       }
 
@@ -70,9 +67,10 @@ function NotificationDetailContent() {
         setIsLoading(true);
         const notificationList = await getUserNotifications();
         const foundNotification = notificationList.notifications.find(n => n.id === notificationId);
-        
         if (!foundNotification) {
-          setError('指定された通知が見つかりませんでした');
+          // 404扱い
+          notFound();
+          return;
         } else {
           setNotification(foundNotification);
           // 通知を既読にマーク

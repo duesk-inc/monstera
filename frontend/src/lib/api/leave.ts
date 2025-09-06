@@ -188,7 +188,7 @@ export const getLeaveRequests = async (signal?: AbortSignal): Promise<LeaveReque
 export const getHolidaysByYear = async (year?: number): Promise<Holiday[]> => {
   try {
     const client = createPresetApiClient('auth');
-    const response = await client.get(ATTENDANCE_API.HOLIDAYS, {
+    const response = await client.get('/holidays', {
       params: year ? { year } : {}
     });
     return convertSnakeToCamel<Holiday[]>(response.data);

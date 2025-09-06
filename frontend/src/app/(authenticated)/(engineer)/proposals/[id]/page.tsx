@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, notFound } from 'next/navigation';
 import {
   Box,
   Button,
@@ -224,6 +224,11 @@ export default function ProposalDetailPage() {
 
   // エラー状態
   if (proposalError || !proposal) {
+    const status = (proposalError as any)?.response?.status;
+    const code = (proposalError as any)?.enhanced?.code || (proposalError as any)?.code;
+    if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+      notFound();
+    }
     return (
       <PageContainer maxWidth="lg">
         <Alert severity="error">
@@ -244,7 +249,7 @@ export default function ProposalDetailPage() {
   }
 
   // 具体的な提案アクセス権限チェック
-  const hasProposalAccess = canAccessProposal(proposal.userId);
+  const hasProposalAccess = canAccessProposal((proposal as any).userId);
   if (!hasProposalAccess) {
     return (
       <PageContainer maxWidth="lg">
@@ -592,7 +597,7 @@ export default function ProposalDetailPage() {
             await updateQuestion.mutateAsync({ id, questionText: text });
           }}
           onDeleteQuestion={async (id) => {
-            await deleteQuestion.mutateAsync(id);
+            await deleteQuestion.mutateAsync({ id });
           }}
           onRefresh={refetchQuestions}
           emptyMessage={

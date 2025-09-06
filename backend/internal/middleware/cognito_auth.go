@@ -206,16 +206,16 @@ func (m *CognitoAuthMiddleware) AdminRequired() gin.HandlerFunc {
 			return
 		}
 
-		// 管理者権限をチェック（スーパー管理者または管理者）
-		if user.Role != model.RoleSuperAdmin && user.Role != model.RoleAdmin {
-			m.logger.Warn("管理者権限なしでのアクセス試行",
-				zap.String("user_id", user.ID),
-				zap.Int("role", int(user.Role)),
-			)
-			c.JSON(http.StatusForbidden, gin.H{"error": "管理者権限が必要です"})
-			c.Abort()
-			return
-		}
+    // 管理者権限をチェック（スーパー管理者・管理者・マネージャーを許可）
+    if user.Role != model.RoleSuperAdmin && user.Role != model.RoleAdmin && user.Role != model.RoleManager {
+        m.logger.Warn("管理者権限なしでのアクセス試行",
+            zap.String("user_id", user.ID),
+            zap.Int("role", int(user.Role)),
+        )
+        c.JSON(http.StatusForbidden, gin.H{"error": "管理者またはマネージャー権限が必要です"})
+        c.Abort()
+        return
+    }
 
 		c.Next()
 	}

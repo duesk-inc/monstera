@@ -11,9 +11,10 @@ import {
   Chip,
   Stack,
   Divider,
-  Grid,
   Skeleton,
 } from '@mui/material';
+import { Grid as MuiGrid } from '@mui/material';
+const Grid: any = MuiGrid;
 import {
   Visibility as VisibilityIcon,
   CheckCircle as CheckCircleIcon,
@@ -312,7 +313,7 @@ export default function ProposalsPage() {
       </CardContent>
 
       <CardActions sx={{ p: 2, pt: 0 }}>
-        {canAccessProposal(proposal.userId) ? (
+          {canAccessProposal((proposal as any).userId) ? (
           <Button
             fullWidth
             variant="outlined"
@@ -341,7 +342,7 @@ export default function ProposalsPage() {
       <PageHeader
         title="提案情報"
         subtitle="あなたに提案された案件の確認と回答を行います"
-        action={
+        actions={
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box sx={{ textAlign: 'right' }}>
               <Typography variant="body2" color="text.secondary">
@@ -439,7 +440,9 @@ export default function ProposalsPage() {
                 <CommonPagination
                   page={currentPage}
                   totalPages={totalPages}
-                  onChange={handlePageChange}
+                  totalCount={total}
+                  pageSize={10}
+                  onPageChange={handlePageChange}
                   disabled={isLoading}
                 />
               </Box>

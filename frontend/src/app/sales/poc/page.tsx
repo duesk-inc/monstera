@@ -11,7 +11,7 @@ import { SPACING } from '@/constants/dimensions';
 import { useToast } from '@/components/common/Toast';
 import { useErrorHandler } from '@/hooks/common/useErrorHandler';
 import { pocProjectApi } from '@/lib/api/sales';
-import type { PocProject, PocSyncResult } from '@/types/sales';
+import type { PocProject } from '@/types/sales';
 
 /**
  * POC同期管理ページ
@@ -21,7 +21,7 @@ export default function PocPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProject, setSelectedProject] = useState<PocProject | null>(null);
   const [showSyncDialog, setShowSyncDialog] = useState(false);
-  const [syncResult, setSyncResult] = useState<PocSyncResult | null>(null);
+  const [syncResult, setSyncResult] = useState<any | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const { showSuccess, showError } = useToast();
@@ -34,8 +34,9 @@ export default function PocPage() {
   const loadProjects = async () => {
     try {
       setIsLoading(true);
-      const response = await pocProjectApi.getList({});
-      setProjects(response.items || []);
+      // APIに一覧取得は無いため、未同期プロジェクトの取得で代替
+      const list = await pocProjectApi.getUnsynced();
+      setProjects(list || []);
     } catch (error) {
       handleSubmissionError(error, 'POCプロジェクト一覧取得');
     } finally {
@@ -48,21 +49,16 @@ export default function PocPage() {
       setIsSyncing(true);
       setSyncResult(null);
       
-      let result: PocSyncResult;
       if (projectId) {
-        result = await pocProjectApi.syncProject(projectId);
+        await pocProjectApi.syncProject(projectId);
         showSuccess('プロジェクト同期を開始しました');
       } else {
-        result = await pocProjectApi.syncAll();
+        await pocProjectApi.syncAll();
         showSuccess('全体同期を開始しました');
       }
-      
-      setSyncResult(result);
-      
-      // 同期完了後にプロジェクト一覧を再読み込み
-      if (result.status === 'success') {
-        loadProjects();
-      }
+      // 結果の詳細は未対応のため即時再読込
+      setSyncResult(null);
+      loadProjects();
     } catch (error) {
       handleSubmissionError(error, 'POC同期実行');
     } finally {
@@ -91,8 +87,8 @@ export default function PocPage() {
     }
 
     try {
-      await pocProjectApi.delete(project.id);
-      showSuccess('POCプロジェクトを削除しました');
+      // 削除APIは未実装のため未対応
+      showError('削除機能は現在未対応です');
       loadProjects();
     } catch (error) {
       handleSubmissionError(error, 'POCプロジェクト削除');
@@ -126,23 +122,22 @@ export default function PocPage() {
 
   // 統計情報の計算
   const totalProjects = projects.length;
-  const syncedProjects = projects.filter(p => p.syncStatus === 'synced').length;
-  const failedProjects = projects.filter(p => p.syncStatus === 'failed').length;
-  const conflictProjects = projects.filter(p => p.syncStatus === 'conflict').length;
-  const neverSyncedProjects = projects.filter(p => p.syncStatus === 'never').length;
+  const syncedProjects = projects.filter(p => p.syncStatus === 'success').length;
+  const failedProjects = projects.filter(p => p.syncStatus === 'error').length;
+  const conflictProjects = 0;
+  const neverSyncedProjects = projects.filter(p => p.syncStatus === 'idle').length;
 
   const lastSyncTime = projects.reduce((latest, project) => {
-    if (!project.lastSyncDate) return latest;
-    const syncDate = new Date(project.lastSyncDate);
+    if (!project.lastSyncAt) return latest;
+    const syncDate = new Date(project.lastSyncAt);
     return !latest || syncDate > latest ? syncDate : latest;
   }, null as Date | null);
 
   return (
     <SalesLayout
       title="POC同期管理"
-      subtitle="monstera-pocとのデータ同期・プロジェクト管理"
       actions={
-        <Box sx={{ display: 'flex', gap: SPACING.sm }}>
+        <Box sx={{ display: 'flex', gap: SPACING.SM }}>
           <Button
             variant="outlined"
             startIcon={<CloudDownload />}
@@ -163,10 +158,10 @@ export default function PocPage() {
       }
     >
       {/* 統計情報・ステータス */}
-      <Box sx={{ mb: SPACING.lg }}>
+      <Box sx={{ mb: SPACING.LG }}>
         {/* 同期エラーアラート */}
         {failedProjects > 0 && (
-          <Alert severity="error" sx={{ mb: SPACING.md }}>
+          <Alert severity="error" sx={{ mb: SPACING.MD }}>
             {failedProjects}件のプロジェクトで同期エラーが発生しています。
             各プロジェクトの詳細を確認してください。
           </Alert>
@@ -174,14 +169,14 @@ export default function PocPage() {
 
         {/* 競合アラート */}
         {conflictProjects > 0 && (
-          <Alert severity="warning" sx={{ mb: SPACING.md }}>
+          <Alert severity="warning" sx={{ mb: SPACING.MD }}>
             {conflictProjects}件のプロジェクトでデータ競合が検出されています。
             手動で解決してください。
           </Alert>
         )}
 
         {/* 同期情報 */}
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: SPACING.md }}>
+        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: SPACING.MD }}>
           <Chip 
             label={`全体: ${totalProjects}件`} 
             color="primary" 
@@ -225,7 +220,7 @@ export default function PocPage() {
 
       {/* 同期についての説明 */}
       {totalProjects === 0 && (
-        <Box sx={{ mb: SPACING.lg }}>
+        <Box sx={{ mb: SPACING.LG }}>
           <Alert severity="info">
             <Typography variant="body2" gutterBottom>
               <strong>POC同期について:</strong>

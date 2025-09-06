@@ -1,5 +1,6 @@
 // Migrated to new API client system
-import { createPresetApiClient, handleApiError } from '@/lib/api';
+import { createPresetApiClient, AbortError } from '@/lib/api';
+import { handleApiError } from '@/lib/api/error';
 import { SkillSheet, SkillSheetFormData } from '@/types/skillSheet';
 import { convertSnakeToCamel, convertCamelToSnake } from '@/utils/apiUtils';
 import { SKILL_SHEET_API } from '@/constants/api';

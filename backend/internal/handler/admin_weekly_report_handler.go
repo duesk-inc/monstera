@@ -1,13 +1,15 @@
 package handler
 
 import (
-	"context"
-	"encoding/json"
-	"errors"
-	"fmt"
-	"net/http"
-	"strconv"
-	"time"
+    "context"
+    "encoding/json"
+    "errors"
+    "fmt"
+    "net/http"
+    "strconv"
+    "time"
+    "net/url"
+    "os"
 
 	"github.com/duesk/monstera/internal/common/userutil"
 	"github.com/duesk/monstera/internal/model"
@@ -303,25 +305,56 @@ func (h *adminWeeklyReportHandler) ExportMonthlyReport(c *gin.Context) {
 		return
 	}
 
-	format := c.DefaultQuery("format", "csv")
-	if format != "csv" && format != "excel" {
-		RespondValidationError(c, map[string]string{
-			"format": "形式は csv または excel を指定してください",
-		})
-		return
-	}
+    format := c.DefaultQuery("format", "csv")
+    if format != "csv" && format != "excel" {
+        RespondValidationError(c, map[string]string{
+            "format": "形式は csv または excel を指定してください",
+        })
+        return
+    }
 
-	// サービス呼び出し
-	data, filename, contentType, err := h.adminWeeklyReportService.ExportMonthlyReport(ctx, month, format)
-	if err != nil {
-		HandleError(c, http.StatusInternalServerError, "レポートのエクスポートに失敗しました", h.Logger, err)
-		return
-	}
+    // 追加パラメータ: schema（非破壊切替）
+    schema := c.Query("schema")
+    // 環境トグル（未指定時のデフォルト）
+    schemaForService := schema
+    if schemaForService == "" {
+        def := os.Getenv("WEEKLY_CSV_DEFAULT_SCHEMA")
+        if def != "" {
+            schemaForService = def
+        } else if format == "csv" {
+            // デフォルトが未設定かつCSVの場合は、契約準拠の最小8列スキーマを既定とする
+            schemaForService = "weekly_minimal"
+        }
+    }
 
-	// ファイルをレスポンスとして返す
-	c.Header("Content-Type", contentType)
-	c.Header("Content-Disposition", "attachment; filename="+filename)
-	c.Data(http.StatusOK, contentType, data)
+    // サービス呼び出し
+    data, filename, contentType, err := h.adminWeeklyReportService.ExportMonthlyReport(ctx, month, format, &schemaForService)
+    if err != nil {
+        HandleError(c, http.StatusInternalServerError, "レポートのエクスポートに失敗しました", h.Logger, err)
+        return
+    }
+
+    // ファイルをレスポンスとして返す
+    c.Header("Content-Type", contentType)
+    // RFC 5987 filename* も併記（UTF-8）
+    escaped := url.PathEscape(filename)
+    c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s; filename*=UTF-8''%s", filename, escaped))
+    // スキーマ可視化と段階移行のためのヘッダ
+    effectiveSchema := schemaForService
+    if effectiveSchema == "" { effectiveSchema = "legacy" }
+    c.Header("X-CSV-Schema", effectiveSchema)
+    if effectiveSchema == "legacy" {
+        c.Header("Deprecation", "true")
+    }
+
+    // 監査用のログ
+    h.Logger.Info("Weekly report CSV exported",
+        zap.String("month", month),
+        zap.String("format", format),
+        zap.String("schema", effectiveSchema),
+        zap.Int("bytes", len(data)),
+    )
+    c.Data(http.StatusOK, contentType, data)
 }
 
 // GetWeeklyReportSummary 週報サマリー統計取得

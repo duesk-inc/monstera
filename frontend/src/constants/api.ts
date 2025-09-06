@@ -17,6 +17,10 @@ export const NOTIFICATION_API = {
   MARK_READ_ALL: `/notifications/read-all`,
   HIDE: `/notifications/:id/hide`,
   SETTINGS: `/notifications/settings`,
+  // Compatibility keys (alias to existing or feature endpoints)
+  UPDATE_SETTINGS: `/notifications/settings`,
+  SLACK_SETTINGS: `/notifications/slack-settings`,
+  SLACK_TEST: `/notifications/slack-test`,
 } as const;
 
 export const PROFILE_API = {

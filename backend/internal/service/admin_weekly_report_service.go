@@ -1,9 +1,11 @@
 package service
 
 import (
-	"context"
-	"fmt"
-	"time"
+    "bytes"
+    "context"
+    "encoding/csv"
+    "fmt"
+    "time"
 
 	"github.com/duesk/monstera/internal/cache"
 	"github.com/duesk/monstera/internal/dto"
@@ -21,7 +23,7 @@ type AdminWeeklyReportService interface {
 	CommentWeeklyReport(ctx context.Context, reportID, userID string, comment string) error
 	GetMonthlyAttendance(ctx context.Context, month string) ([]dto.MonthlyAttendanceDTO, error)
 	GetFollowUpRequiredUsers(ctx context.Context) ([]dto.FollowUpUserDTO, error)
-	ExportMonthlyReport(ctx context.Context, month, format string) ([]byte, string, string, error)
+	ExportMonthlyReport(ctx context.Context, month, format string, schema *string) ([]byte, string, string, error)
 	// サマリー統計API
 	GetWeeklyReportSummary(ctx context.Context, startDate, endDate time.Time, departmentID *string) (*dto.WeeklyReportSummaryStatsDTO, error)
 	// 月次サマリー統計API
@@ -518,12 +520,20 @@ func (s *adminWeeklyReportService) GetFollowUpRequiredUsers(ctx context.Context)
 }
 
 // ExportMonthlyReport 月次レポートをエクスポート
-func (s *adminWeeklyReportService) ExportMonthlyReport(ctx context.Context, month, format string) ([]byte, string, string, error) {
-	// 月次勤怠データを取得
-	attendance, err := s.GetMonthlyAttendance(ctx, month)
-	if err != nil {
-		return nil, "", "", err
-	}
+func (s *adminWeeklyReportService) ExportMonthlyReport(ctx context.Context, month, format string, schema *string) ([]byte, string, string, error) {
+    // 月次勤怠データを取得
+    // schema指定がweekly_minimalの場合は週報最小CSVを生成（非破壊切替）
+    if schema != nil && *schema == "weekly_minimal" {
+        if format != "csv" {
+            return nil, "", "", fmt.Errorf("サポートされていない形式です")
+        }
+        return s.exportWeeklyMinimalCSV(ctx, month)
+    }
+
+    attendance, err := s.GetMonthlyAttendance(ctx, month)
+    if err != nil {
+        return nil, "", "", err
+    }
 
     switch format {
     case "csv":
@@ -546,6 +556,90 @@ func (s *adminWeeklyReportService) exportToCSV(attendance []dto.MonthlyAttendanc
 
 	filename := fmt.Sprintf("monthly_attendance_%s.csv", month)
 	return []byte(csvData), filename, "text/csv", nil
+}
+
+// exportWeeklyMinimalCSV 週報最小8列のCSVをエクスポート（契約 v0.1.2 準拠）
+func (s *adminWeeklyReportService) exportWeeklyMinimalCSV(ctx context.Context, month string) ([]byte, string, string, error) {
+    // month: "YYYY-MM"
+    start, end, err := s.parseMonthRange(month)
+    if err != nil {
+        return nil, "", "", err
+    }
+
+    // 対象月内に開始日のある週報を取得
+    var reports []model.WeeklyReport
+    q := s.db.WithContext(ctx).
+        Model(&model.WeeklyReport{}).
+        Preload("User").
+        Where("deleted_at IS NULL").
+        Where("start_date >= ? AND start_date < ?", start, end).
+        Order("start_date ASC, user_id ASC")
+
+    if err := q.Find(&reports).Error; err != nil {
+        s.logger.Error("Failed to query weekly reports for CSV", zap.Error(err))
+        return nil, "", "", err
+    }
+
+    // ヘッダー
+    header := []string{"エンジニア名", "メールアドレス", "週開始日", "週終了日", "ステータス", "総勤務時間", "管理者コメント", "提出日時"}
+
+    // バッファにCSVを書き出し
+    var buf bytes.Buffer
+    w := csv.NewWriter(&buf)
+    // RFC4180に近い挙動（カンマ区切り、クォートはwriterが対応）
+    if err := w.Write(header); err != nil {
+        s.logger.Error("Failed to write CSV header", zap.Error(err))
+        return nil, "", "", err
+    }
+
+    for _, r := range reports {
+        userName := fmt.Sprintf("%s %s", r.User.LastName, r.User.FirstName)
+        email := r.User.Email
+        startStr := r.StartDate.Format("2006-01-02")
+        endStr := r.EndDate.Format("2006-01-02")
+        status := string(r.Status)
+        total := fmt.Sprintf("%g", r.TotalWorkHours) // 数値表現
+        comment := ""
+        if r.ManagerComment != nil {
+            comment = *r.ManagerComment
+        }
+        submitted := ""
+        if r.SubmittedAt != nil {
+            submitted = r.SubmittedAt.Local().Format("2006-01-02 15:04")
+        }
+
+        record := []string{userName, email, startStr, endStr, status, total, comment, submitted}
+        if err := w.Write(record); err != nil {
+            s.logger.Error("Failed to write CSV record", zap.Error(err))
+            return nil, "", "", err
+        }
+    }
+    w.Flush()
+    if err := w.Error(); err != nil {
+        s.logger.Error("Failed to flush CSV", zap.Error(err))
+        return nil, "", "", err
+    }
+
+    // ファイル名とContent-Type
+    filename := fmt.Sprintf("weekly_reports_%s.csv", time.Now().Format("20060102"))
+    contentType := "text/csv; charset=utf-8"
+
+    // BOM付与（UTF-8 BOM: EF BB BF）
+    bom := []byte{0xEF, 0xBB, 0xBF}
+    withBOM := append(bom, buf.Bytes()...)
+    return withBOM, filename, contentType, nil
+}
+
+func (s *adminWeeklyReportService) parseMonthRange(month string) (time.Time, time.Time, error) {
+    // month形式: YYYY-MM
+    t, err := time.Parse("2006-01", month)
+    if err != nil {
+        return time.Time{}, time.Time{}, fmt.Errorf("月の形式が不正です: %w", err)
+    }
+    start := time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC)
+    // 翌月初日
+    next := start.AddDate(0, 1, 0)
+    return start, next, nil
 }
 
 // Excel形式はv0では未サポート

@@ -1,6 +1,6 @@
 # Project API Contract (Engineer Minimal)
 
-version: 0.1.1
+version: 0.2.0
 status: draft
 owner: BE/FE shared
 
@@ -25,6 +25,10 @@ Engineer-facing lightweight project management: list/detail/search/paging and si
 - PUT `/api/v1/projects/:id`
   - Req: `ProjectUpdate`
   - Resp: `Project`
+
+Notes:
+- Frontend sends camelCase internally but converts to snake_case at API boundary.
+- Default paging: `page=1`, `limit=20`. Default sort: `sort_by=created_at`, `sort_order=desc`.
 
 ### Engineer Client (Option A: lightweight list, read-only)
 - GET `/api/v1/engineer/clients?light=true`
@@ -84,6 +88,137 @@ Engineer-facing lightweight project management: list/detail/search/paging and si
   - limit: number
   - total_pages: number
 
+## Common Error Envelope
+- Errors MUST follow docs/spec/contracts/ERRORS.md
+- Shape:
+  ```json
+  {
+    "code": "string",
+    "message": "string",
+    "errors": { "field": "reason" }
+  }
+  ```
+
+## Request/Response Examples
+
+### List
+Request:
+```
+GET /api/v1/projects?q=search&status=active&page=1&limit=20&sort_by=created_at&sort_order=desc
+```
+Response 200:
+```json
+{
+  "items": [
+    {
+      "id": "prj_001",
+      "project_name": "新規開発A",
+      "status": "active",
+      "start_date": "2025-09-01",
+      "end_date": null,
+      "description": "SPA開発",
+      "client_id": "cl_123",
+      "client_name": "テック株式会社",
+      "created_at": "2025-09-01T12:34:56Z",
+      "updated_at": "2025-09-15T10:00:00Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 20,
+  "total_pages": 1
+}
+```
+Response 400 (validation):
+```json
+{
+  "code": "validation_error",
+  "message": "入力内容に誤りがあります",
+  "errors": { "limit": "1から100の範囲で指定してください" }
+}
+```
+
+### Detail
+Request:
+```
+GET /api/v1/projects/prj_001
+```
+Response 200:
+```json
+{
+  "id": "prj_001",
+  "project_name": "新規開発A",
+  "status": "active",
+  "start_date": "2025-09-01",
+  "end_date": null,
+  "description": "SPA開発",
+  "client_id": "cl_123",
+  "client_name": "テック株式会社",
+  "created_at": "2025-09-01T12:34:56Z",
+  "updated_at": "2025-09-15T10:00:00Z"
+}
+```
+Response 404:
+```json
+{ "code": "not_found", "message": "対象が見つかりません" }
+```
+
+### Create
+Request:
+```json
+{
+  "project_name": "新規開発B",
+  "client_id": "cl_999",
+  "status": "draft",
+  "start_date": "2025-10-01",
+  "end_date": null,
+  "description": "モバイルアプリ"
+}
+```
+Response 201:
+```json
+{
+  "id": "prj_100",
+  "project_name": "新規開発B",
+  "status": "draft",
+  "start_date": "2025-10-01",
+  "end_date": null,
+  "description": "モバイルアプリ",
+  "client_id": "cl_999",
+  "client_name": "ACME株式会社",
+  "created_at": "2025-10-01T00:00:00Z",
+  "updated_at": "2025-10-01T00:00:00Z"
+}
+```
+Response 400 (validation):
+```json
+{
+  "code": "validation_error",
+  "message": "入力内容に誤りがあります",
+  "errors": {
+    "project_name": "1文字以上200文字以内で入力してください",
+    "start_date": "日付形式が不正です"
+  }
+}
+```
+
+### Update
+Request:
+```json
+{
+  "project_name": "新規開発A-改",
+  "status": "active",
+  "description": "SPA開発（要件更新）",
+  "version": 3
+}
+```
+Response 200: (same shape as Detail)
+
+Response 409 (version mismatch):
+```json
+{ "code": "version_conflict", "message": "他の更新が反映されています。再読み込みしてください。" }
+```
+
 ## Validation
 - project_name: required on create, length 1..200
 - description: max 1000
@@ -102,6 +237,8 @@ Engineer-facing lightweight project management: list/detail/search/paging and si
 - 404 Not Found (project)
 - 409 Conflict (version mismatch, when used)
 - 500 Internal Server Error
+
+All error responses MUST use the common error envelope.
 
 ## Acceptance Criteria
 

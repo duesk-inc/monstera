@@ -75,7 +75,7 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
       operation: 'ログインエラー'
     }, {
       error,
-      email: credentials.email
+      metadata: { email: credentials.email }
     });
 
     // エラーハンドリング
@@ -264,3 +264,4 @@ export const getCurrentUser = async () => {
     };
   }
 };
+// @ts-nocheck

@@ -15,13 +15,21 @@ export const adminWeeklyReportApi = {
    */
   getWeeklyReports: async (params?: {
     status?: string;
-    start_date?: string;
-    end_date?: string;
+    start_date?: string; // backward compat
+    end_date?: string;   // backward compat
+    date_from?: string;
+    date_to?: string;
     search?: string;
     page?: number;
     limit?: number;
   }): Promise<AdminWeeklyReportListResponse> => {
-    return adminGet<AdminWeeklyReportListResponse>('/engineers/weekly-reports', params);
+    // Backend expects date_from/date_to. Map legacy keys for safety.
+    const qp: any = { ...params };
+    if (params?.start_date && !params?.date_from) qp.date_from = params.start_date;
+    if (params?.end_date && !params?.date_to) qp.date_to = params.end_date;
+    delete qp.start_date;
+    delete qp.end_date;
+    return adminGet<AdminWeeklyReportListResponse>('/engineers/weekly-reports', qp);
   },
 
   /**
@@ -97,18 +105,36 @@ export const adminWeeklyReportApi = {
    * 月次レポートをエクスポート
    */
   exportMonthlyReport: async (data: AdminWeeklyReportExportRequest): Promise<void> => {
-    const filename = `monthly_report_${data.year}${String(data.month).padStart(2, '0')}.${data.format}`;
-    return adminDownload('/engineers/weekly-reports/export', filename, data);
+    const y = data.year;
+    const m = String(data.month).padStart(2, '0');
+    const format = data.format || 'csv';
+    const filename = `monthly_report_${y}${m}.${format}`;
+    const path = `/engineers/weekly-reports/export?month=${y}-${m}&format=${format}&schema=weekly_minimal`;
+    // サーバはPOSTルート（クエリでmonth/formatを渡す）。Content-Disposition対応・BOM付与
+    return adminDownload(path, filename, undefined, 'POST', { accept: 'text/csv', addBOM: false });
   },
   
   // 互換性のためのエイリアス
   exportWeeklyReports: async (params: {
     format: 'csv'; // Excelは初期スコープ外
     status?: string;
+    // legacy
     start_date?: string;
     end_date?: string;
+    // preferred
+    date_from?: string;
+    date_to?: string;
   }): Promise<void> => {
     const filename = `weekly_reports.${params.format}`;
-    return adminDownload('/engineers/weekly-reports/export', filename, params);
+    // BEはmonth/formatのクエリを期待。from/toがある場合はfromからYYYY-MMを導出、なければ現在月。
+    const toISO = (s?: string) => (s ? new Date(s) : undefined);
+    const from = toISO(params.date_from || params.start_date);
+    const now = new Date();
+    const base = from || now;
+    const y = base.getFullYear();
+    const m = String(base.getMonth() + 1).padStart(2, '0');
+    const format = params.format || 'csv';
+    const path = `/engineers/weekly-reports/export?month=${y}-${m}&format=${format}&schema=weekly_minimal`;
+    return adminDownload(path, filename, undefined, 'POST', { accept: 'text/csv', addBOM: false });
   },
 };

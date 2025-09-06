@@ -62,7 +62,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           <DatePicker
             label={startLabel}
             value={startDate}
-            onChange={onStartDateChange}
+            onChange={(v) => onStartDateChange((v as Dayjs) ?? null)}
             minDate={minDate}
             maxDate={endDate || maxDate}
             disabled={disabled}
@@ -84,7 +84,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
           <DatePicker
             label={endLabel}
             value={endDate}
-            onChange={onEndDateChange}
+            onChange={(v) => onEndDateChange((v as Dayjs) ?? null)}
             minDate={startDate || minDate}
             maxDate={maxDate}
             disabled={disabled}

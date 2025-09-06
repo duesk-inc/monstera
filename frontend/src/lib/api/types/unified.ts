@@ -63,13 +63,8 @@ export interface ExtendedApiConfig extends AxiosRequestConfig {
 /**
  * 型安全なAPIクライアントインターフェース
  */
-export interface TypedApiClient extends AxiosInstance {
-  get<T = any>(url: string, config?: ExtendedApiConfig): Promise<AxiosResponse<T>>;
-  post<T = any>(url: string, data?: any, config?: ExtendedApiConfig): Promise<AxiosResponse<T>>;
-  put<T = any>(url: string, data?: any, config?: ExtendedApiConfig): Promise<AxiosResponse<T>>;
-  patch<T = any>(url: string, data?: any, config?: ExtendedApiConfig): Promise<AxiosResponse<T>>;
-  delete<T = any>(url: string, config?: ExtendedApiConfig): Promise<AxiosResponse<T>>;
-}
+// AxiosInstance をそのまま利用し、拡張は型定義側で扱う
+export type TypedApiClient = AxiosInstance;
 
 /**
  * APIメソッドの型定義

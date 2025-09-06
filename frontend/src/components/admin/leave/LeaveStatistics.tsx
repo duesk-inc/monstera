@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
   Box,
-  Grid,
   Paper,
   Typography,
   FormControl,
@@ -162,8 +161,13 @@ export default function LeaveStatistics() {
     <Box>
       {/* フィルター */}
       <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
+        <Box sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+          gap: 2,
+          alignItems: 'center',
+        }}>
+          <Box>
             <FormControl fullWidth>
               <InputLabel>年</InputLabel>
               <Select
@@ -181,14 +185,17 @@ export default function LeaveStatistics() {
                 })}
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={4}>
+          </Box>
+          <Box>
             <FormControl fullWidth>
               <InputLabel>月</InputLabel>
               <Select
                 value={month ?? ''}
                 label="月"
-                onChange={(e) => setMonth(e.target.value === '' ? null : Number(e.target.value))}
+                onChange={(e) => {
+                  const v = e.target.value as string | number;
+                  setMonth(v === '' ? null : Number(v));
+                }}
               >
                 <MenuItem value="">年間</MenuItem>
                 {[...Array(12)].map((_, i) => (
@@ -198,8 +205,8 @@ export default function LeaveStatistics() {
                 ))}
               </Select>
             </FormControl>
-          </Grid>
-          <Grid item xs={12} sm={4}>
+          </Box>
+          <Box>
             <Autocomplete
               options={users || []}
               getOptionLabel={(option) => `${option.name} (${option.employeeCode})`}
@@ -209,16 +216,21 @@ export default function LeaveStatistics() {
                 <TextField {...params} label="ユーザー別統計" placeholder="ユーザーを選択" />
               )}
             />
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Paper>
 
       {/* 全体統計 */}
       {!selectedUser && (
         <>
           {/* サマリーカード */}
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+            gap: 2,
+            mb: 3,
+          }}>
+            <Box>
               <Card>
                 <CardContent>
                   <Typography color="text.secondary" gutterBottom>
@@ -229,8 +241,8 @@ export default function LeaveStatistics() {
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <Card>
                 <CardContent>
                   <Typography color="text.secondary" gutterBottom>
@@ -241,8 +253,8 @@ export default function LeaveStatistics() {
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <Card>
                 <CardContent>
                   <Typography color="text.secondary" gutterBottom>
@@ -258,8 +270,8 @@ export default function LeaveStatistics() {
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            </Box>
+            <Box>
               <Card>
                 <CardContent>
                   <Typography color="text.secondary" gutterBottom>
@@ -273,13 +285,17 @@ export default function LeaveStatistics() {
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           {/* グラフ */}
-          <Grid container spacing={3}>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(12, 1fr)',
+            gap: 3,
+          }}>
             {/* 月別推移 */}
-            <Grid item xs={12} lg={8}>
+            <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 8' } }}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   月別推移
@@ -297,10 +313,10 @@ export default function LeaveStatistics() {
                   </BarChart>
                 </ResponsiveContainer>
               </Paper>
-            </Grid>
+            </Box>
 
             {/* ステータス別 */}
-            <Grid item xs={12} sm={6} lg={4}>
+            <Box sx={{ gridColumn: { xs: 'span 12', lg: 'span 4' } }}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   ステータス別
@@ -312,7 +328,7 @@ export default function LeaveStatistics() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }) => `${name} ${(((percent ?? 0) * 100)).toFixed(0)}%`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -325,10 +341,10 @@ export default function LeaveStatistics() {
                   </PieChart>
                 </ResponsiveContainer>
               </Paper>
-            </Grid>
+            </Box>
 
             {/* 休暇種別 */}
-            <Grid item xs={12}>
+            <Box sx={{ gridColumn: 'span 12' }}>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   休暇種別別統計
@@ -358,8 +374,8 @@ export default function LeaveStatistics() {
                   </Table>
                 </TableContainer>
               </Paper>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </>
       )}
 
@@ -371,8 +387,13 @@ export default function LeaveStatistics() {
           </Typography>
 
           {/* 休暇残日数 */}
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={6}>
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            gap: 3,
+            mb: 3,
+          }}>
+            <Box>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   休暇残日数
@@ -399,10 +420,10 @@ export default function LeaveStatistics() {
                   ))}
                 </Stack>
               </Paper>
-            </Grid>
+            </Box>
 
             {/* 取得日数 */}
-            <Grid item xs={12} md={6}>
+            <Box>
               <Paper sx={{ p: 2 }}>
                 <Typography variant="h6" gutterBottom>
                   年間取得日数
@@ -426,8 +447,8 @@ export default function LeaveStatistics() {
                   </Table>
                 </TableContainer>
               </Paper>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
 
           {/* 月別取得状況 */}
           <Paper sx={{ p: 2 }}>

@@ -15,6 +15,7 @@ import {
 } from '@mui/icons-material';
 import { PageContainer } from '@/components/common/layout';
 import { DataTable } from '@/components/common';
+import type { DataTableColumn } from '@/components/common/DataTable';
 import { formatDate } from '@/utils/dateUtils';
 import { useAuth } from '@/hooks/useAuth';
 import axios from '@/lib/axios';
@@ -88,42 +89,37 @@ export default function SkillSheetManagement() {
     return 'error';
   };
 
-  const columns = [
+  type Row = typeof dummyEngineers[number];
+  const columns: DataTableColumn<Row>[] = [
     {
-      field: 'engineer',
-      headerName: 'エンジニア',
-      width: 300,
-      renderCell: (row: any) => (
+      id: 'name',
+      label: 'エンジニア',
+      minWidth: 300,
+      format: (_value, row) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Avatar sx={{ width: 40, height: 40 }}>
             {row.name.charAt(0)}
           </Avatar>
           <Box>
-            <Typography variant="body2" fontWeight="medium">
-              {row.name}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {row.email}
-            </Typography>
+            <Typography variant="body2" fontWeight="medium">{row.name}</Typography>
+            <Typography variant="caption" color="text.secondary">{row.email}</Typography>
           </Box>
         </Box>
       ),
     },
     {
-      field: 'experience',
-      headerName: 'IT経験',
-      width: 120,
-      renderCell: (row: any) => (
-        <Typography variant="body2">
-          {row.it_experience_years}年{row.it_experience_months > 0 && `${row.it_experience_months}ヶ月`}
-        </Typography>
-      ),
+      id: 'it_experience_years',
+      label: 'IT経験',
+      minWidth: 120,
+      format: (_value, row) => (
+        <Typography variant="body2">{row.it_experience_years}年{row.it_experience_months > 0 && `${row.it_experience_months}ヶ月`}</Typography>
+      )
     },
     {
-      field: 'specialties',
-      headerName: '得意分野',
-      width: 300,
-      renderCell: (row: any) => (
+      id: 'specialties',
+      label: '得意分野',
+      minWidth: 300,
+      format: (_value, row) => (
         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
           {row.specialties.split(', ').slice(0, 3).map((skill: string) => (
             <Chip key={skill} label={skill} size="small" />
@@ -135,23 +131,21 @@ export default function SkillSheetManagement() {
       ),
     },
     {
-      field: 'project_count',
-      headerName: '案件数',
-      width: 100,
-      renderCell: (row: any) => (
+      id: 'project_count',
+      label: '案件数',
+      minWidth: 100,
+      format: (value) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <WorkIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-          <Typography variant="body2">
-            {row.project_count}件
-          </Typography>
+          <Typography variant="body2">{value as number}件</Typography>
         </Box>
       ),
     },
     {
-      field: 'completion',
-      headerName: '完成度',
-      width: 120,
-      renderCell: (row: any) => (
+      id: 'profile_completion',
+      label: '完成度',
+      minWidth: 120,
+      format: (value, row) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{ position: 'relative', display: 'inline-flex' }}>
             <CircularProgress
@@ -173,29 +167,25 @@ export default function SkillSheetManagement() {
                 justifyContent: 'center',
               }}
             >
-              <Typography variant="caption" component="div" color="text.secondary">
-                {row.profile_completion}%
-              </Typography>
+              <Typography variant="caption" component="div" color="text.secondary">{row.profile_completion}%</Typography>
             </Box>
           </Box>
         </Box>
       ),
     },
     {
-      field: 'last_updated',
-      headerName: '最終更新',
-      width: 120,
-      renderCell: (row: any) => (
-        <Typography variant="body2" color="text.secondary">
-          {formatDate(row.last_updated)}
-        </Typography>
+      id: 'last_updated',
+      label: '最終更新',
+      minWidth: 120,
+      format: (value) => (
+        <Typography variant="body2" color="text.secondary">{formatDate(value as Date)}</Typography>
       ),
     },
     {
-      field: 'actions',
-      headerName: '',
-      width: 120,
-      renderCell: (row: any) => (
+      id: 'id',
+      label: '',
+      minWidth: 120,
+      format: (_value, row: Row) => (
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="プレビュー">
             <IconButton size="small" onClick={() => handlePreview(row)}>
@@ -216,7 +206,7 @@ export default function SkillSheetManagement() {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <PersonIcon sx={{ fontSize: FONT_SIZE.XXXXL, color: 'primary.main' }} />
+                <PersonIcon sx={{ fontSize: FONT_SIZE['4XL'], color: 'primary.main' }} />
                 <Box>
                   <Typography variant="h4">{engineers.length}</Typography>
                   <Typography variant="body2" color="text.secondary">
@@ -231,7 +221,7 @@ export default function SkillSheetManagement() {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <StarIcon sx={{ fontSize: FONT_SIZE.XXXXL, color: 'success.main' }} />
+                <StarIcon sx={{ fontSize: FONT_SIZE['4XL'], color: 'success.main' }} />
                 <Box>
                   <Typography variant="h4" color="success.main">
                     {engineers.filter(e => e.profile_completion >= 100).length}
@@ -248,7 +238,7 @@ export default function SkillSheetManagement() {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <SchoolIcon sx={{ fontSize: FONT_SIZE.XXXXL, color: 'info.main' }} />
+                <SchoolIcon sx={{ fontSize: FONT_SIZE['4XL'], color: 'info.main' }} />
                 <Box>
                   <Typography variant="h4">
                     {Math.round(engineers.reduce((sum, e) => sum + e.it_experience_years, 0) / engineers.length)}年
@@ -265,7 +255,7 @@ export default function SkillSheetManagement() {
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <PdfIcon sx={{ fontSize: FONT_SIZE.XXXXL, color: 'error.main' }} />
+                <PdfIcon sx={{ fontSize: FONT_SIZE['4XL'], color: 'error.main' }} />
                 <Box>
                   <Typography variant="h4">
                     {engineers.reduce((sum, e) => sum + e.project_count, 0)}

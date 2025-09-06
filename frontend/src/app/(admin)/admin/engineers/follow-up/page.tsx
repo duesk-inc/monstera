@@ -70,7 +70,9 @@ export default function FollowUpManagement() {
     };
     
     console.log('Follow up submitted:', followUpData);
-    showToast('フォローアップを記録しました');
+    // 統一トースト: 成功メッセージ
+    const { showSuccess } = useToast();
+    showSuccess('フォローアップを記録しました');
     
     // ユーザーの最終フォローアップ日を更新
     const updatedUsers = localUsers.map(u => 
@@ -93,7 +95,8 @@ export default function FollowUpManagement() {
     
     // ローカルで管理（実際のAPIが実装されたら置き換える）
     console.log('Resolved follow up for:', selectedUser);
-    showToast(`${selectedUser.user_name}さんのフォローアップを解決済みにしました`);
+    const { showSuccess } = useToast();
+    showSuccess(`${selectedUser.user_name}さんのフォローアップを解決済みにしました`);
     
     setLocalUsers(localUsers.filter(u => u.user_id !== selectedUser.user_id));
     setResolveDialogOpen(false);

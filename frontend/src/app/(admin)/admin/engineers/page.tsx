@@ -41,6 +41,7 @@ import {
 import { 
   ENGINEER_STATUS_LABELS,
   ENGINEER_STATUS_COLORS,
+  ENGINEER_STATUS,
   DEFAULT_PAGE_SIZE
 } from '@/constants/engineer';
 import { FONT_SIZE } from '@/constants/typography';
@@ -133,8 +134,17 @@ export default function EngineerManagement() {
     router.push('/admin/engineers/import');
   };
 
+  const STATUS_KEY_MAP: Record<EngineerStatus, keyof typeof ENGINEER_STATUS> = {
+    [EngineerStatus.ACTIVE]: 'ASSIGNED',
+    [EngineerStatus.STANDBY]: 'AVAILABLE',
+    [EngineerStatus.RESIGNED]: 'INACTIVE',
+    [EngineerStatus.LONG_LEAVE]: 'ON_LEAVE',
+  };
+
   const getStatusColor = (status: EngineerStatus): string => {
-    return ENGINEER_STATUS_COLORS[status] || 'default';
+    const key = STATUS_KEY_MAP[status];
+    const mapped = ENGINEER_STATUS[key];
+    return ENGINEER_STATUS_COLORS[mapped] || 'default';
   };
 
   const columns: DataTableColumn<EngineerSummary>[] = [
@@ -200,7 +210,7 @@ export default function EngineerManagement() {
       minWidth: 120,
       format: (value, row) => (
         <Chip 
-          label={ENGINEER_STATUS_LABELS[row.engineerStatus]}
+          label={ENGINEER_STATUS_LABELS[ENGINEER_STATUS[STATUS_KEY_MAP[row.engineerStatus]]]}
           size="small"
           color={getStatusColor(row.engineerStatus) as any}
         />

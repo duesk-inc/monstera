@@ -1,3 +1,6 @@
+//go:build poc_sync_tests
+// +build poc_sync_tests
+
 package handler
 
 import (

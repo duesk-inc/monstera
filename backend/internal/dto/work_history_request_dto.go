@@ -90,7 +90,7 @@ type WorkHistoryPDFGenerateRequestV2 struct {
 	// フォーマット設定
 	Format   string `json:"format" validate:"required,oneof=A4 A3"`        // PDF形式
 	Template string `json:"template" validate:"required"`                  // テンプレート名
-	Language string `json:"language" validate:"oneof=ja en" default:"ja""` // 言語設定
+    Language string `json:"language" validate:"oneof=ja en" default:"ja"` // 言語設定
 
 	// フィルタ設定
 	DateFrom            *string  `json:"date_from,omitempty"`            // 期間フィルタ開始日

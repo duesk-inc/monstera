@@ -10,7 +10,6 @@ import {
   FormControlLabel,
   TextField,
   Button,
-  Grid,
   Paper,
   Table,
   TableBody,
@@ -29,6 +28,8 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
+import { Grid as MuiGrid } from '@mui/material';
+const Grid: any = MuiGrid;
 import {
   PlayArrow as PlayArrowIcon,
   Stop as StopIcon,

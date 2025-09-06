@@ -105,7 +105,7 @@ export const adminExpenseApi = {
         { filters }
       );
 
-      const params = convertCamelToSnake(filters);
+      const params = convertCamelToSnake({ minimal: true, ...filters });
       const apiClient = createPresetApiClient('admin');
       const response = await apiClient.get('/engineers/expenses/pending', { 
         params,
@@ -430,7 +430,7 @@ export const adminExpenseApi = {
 
       const params = convertCamelToSnake(filters);
       const apiClient = createPresetApiClient('admin');
-      const response = await apiClient.get('/engineers/expenses/export/csv', {
+      const response = await apiClient.get('/engineers/expenses/export', {
         params,
         responseType: 'blob',
         timeout: 60000, // CSVエクスポートは時間がかかる可能性があるため長めに設定

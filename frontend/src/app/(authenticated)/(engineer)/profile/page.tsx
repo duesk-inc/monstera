@@ -69,8 +69,8 @@ export default function ProfilePage() {
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Typography variant="caption" color="text.secondary">
-                  最終更新: {profile?.updatedAt 
-                    ? format(new Date(profile.updatedAt), 'yyyy年MM月dd日 HH:mm', { locale: ja })
+                  最終更新: {profile?.tempSavedAt 
+                    ? format(new Date(profile.tempSavedAt), 'yyyy年MM月dd日 HH:mm', { locale: ja })
                     : '未更新'}
                 </Typography>
               </Box>

@@ -15,7 +15,7 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
 } from '@mui/icons-material';
-import { BORDER_RADIUS, px } from '@/constants/dimensions';
+import { BORDER_RADIUS } from '@/constants/dimensions';
 import { FONT_WEIGHTS } from '@/constants/typography';
 
 export interface CommonAccordionProps {
@@ -138,7 +138,7 @@ export const CommonAccordion: React.FC<CommonAccordionProps> = ({
         return {
           ...baseStyles,
           border: '1px solid #d1d9e0',
-          borderRadius: px(BORDER_RADIUS.MD),
+          borderRadius: BORDER_RADIUS.MD,
           boxShadow: 'none',
           overflow: 'hidden',
           bgcolor: '#ffffff',
@@ -233,7 +233,7 @@ export const CommonAccordion: React.FC<CommonAccordionProps> = ({
               <Typography 
                 variant="subtitle1" 
                 sx={{ 
-                  fontWeight: FONT_WEIGHTS.SEMI_BOLD,
+                  fontWeight: FONT_WEIGHTS.SEMIBOLD,
                   color: disabled ? 'text.disabled' : '#24292f',
                   flex: 1
                 }}

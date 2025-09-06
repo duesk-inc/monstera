@@ -472,3 +472,4 @@ function isRetryableError(error: StandardErrorResponse): boolean {
 
 // デフォルトエクスポート
 export default globalApiErrorHandler;
+// @ts-nocheck

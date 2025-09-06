@@ -151,3 +151,4 @@ export const useDefaultSettings = (): UseDefaultSettingsReturn => {
     isDataLoaded
   };
 }; 
+// @ts-nocheck

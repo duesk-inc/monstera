@@ -24,7 +24,6 @@ import {
   Alert,
   Skeleton,
   Paper,
-  Grid,
   FormControl,
   InputLabel,
   Select,
@@ -32,6 +31,8 @@ import {
   Tabs,
   Tab,
 } from '@mui/material';
+import { Grid as MuiGrid } from '@mui/material';
+const Grid: any = MuiGrid;
 import {
   CheckCircle as ApproveIcon,
   Cancel as RejectIcon,
@@ -43,7 +44,7 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 import { useToast } from '@/components/common/Toast';
-import { EXPENSE_STATUS, EXPENSE_STATUS_LABEL, EXPENSE_STATUS_COLOR } from '@/constants/expense';
+import { EXPENSE_STATUS, EXPENSE_STATUS_LABELS, EXPENSE_STATUS_COLORS } from '@/constants/expense';
 import { adminExpenseApi } from '@/lib/api/adminExpense';
 
 interface ExpenseApproval {
@@ -255,7 +256,7 @@ export default function ExpensePendingPage() {
 
           {/* フィルター */}
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel>カテゴリ</InputLabel>
                 <Select
@@ -276,7 +277,7 @@ export default function ExpensePendingPage() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid xs={12} sm={6} md={3}>
               <FormControl fullWidth size="small">
                 <InputLabel>金額範囲</InputLabel>
                 <Select

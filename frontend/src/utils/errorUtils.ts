@@ -13,6 +13,8 @@ export interface ApiError {
   code?: string;
   message?: string;
   error?: string; // Go backendの標準形式
+  // 共通エラーエンベロープのフィールドエラー
+  errors?: Record<string, any>;
   details?: Record<string, any>;
   timestamp?: string;
   request_id?: string;
@@ -42,21 +44,34 @@ export interface EnhancedError {
  * @returns ユーザー向けメッセージ
  */
 export const getErrorMessage = (
-  errorCode: string, 
-  fallbackMessage: string = 'エラーが発生しました。', 
-  details?: Record<string, any>
+  errorCode: string,
+  fallbackMessage: string = 'エラーが発生しました。',
+  details?: Record<string, any>,
 ): string => {
-  // パラメータ付きメッセージテンプレートの確認
-  if (details && ERROR_MESSAGE_TEMPLATES[errorCode]) {
+  // パラメータ付きメッセージテンプレートの確認（型ガードで安全にアクセス）
+  if (
+    details &&
+    (errorCode as string) in ERROR_MESSAGE_TEMPLATES
+  ) {
     try {
-      return ERROR_MESSAGE_TEMPLATES[errorCode](details);
+      const tmpl =
+        ERROR_MESSAGE_TEMPLATES[
+          errorCode as keyof typeof ERROR_MESSAGE_TEMPLATES
+        ];
+      return typeof tmpl === 'function' ? (tmpl as any)(details) : String(tmpl);
     } catch (error) {
-      console.warn(`Error template execution failed for code ${errorCode}:`, error);
+      console.warn(
+        `Error template execution failed for code ${errorCode}:`,
+        error,
+      );
     }
   }
 
-  // 通常のメッセージマッピング
-  return ERROR_MESSAGES[errorCode] || fallbackMessage;
+  // 通常のメッセージマッピング（型ガードで安全にアクセス）
+  if ((errorCode as string) in ERROR_MESSAGES) {
+    return ERROR_MESSAGES[errorCode as keyof typeof ERROR_MESSAGES] as string;
+  }
+  return fallbackMessage;
 };
 
 /**
@@ -77,7 +92,8 @@ export const enhanceError = (
   if (apiError && typeof apiError === 'object') {
     const error = apiError as ApiError;
     code = error.code;
-    details = error.details;
+    // errors 優先で details に詰め替え（バリデーションフィールドエラーを統一）
+    details = error.errors || error.details;
     
     // オリジナルメッセージの取得（優先順位: error > message）
     originalMessage = error.error || error.message || fallbackMessage;
@@ -90,12 +106,15 @@ export const enhanceError = (
   }
 
   // カテゴリ情報の取得
-  const category = code ? getErrorCategory(code) : 'UNK';
-  const categoryConfig = ERROR_CATEGORY_CONFIG[category as keyof typeof ERROR_CATEGORY_CONFIG] || {
-    tone: 'general',
-    showRetryButton: false,
-    showContactSupport: false,
-  };
+  const category = code ? getErrorCategory(code) : 'SERVER';
+  const categoryConfig =
+    ERROR_CATEGORY_CONFIG[
+      category as keyof typeof ERROR_CATEGORY_CONFIG
+    ] || {
+      tone: 'general',
+      showRetryButton: false,
+      showContactSupport: false,
+    };
 
   return {
     message: userMessage,
@@ -219,7 +238,9 @@ export const extractApiError = (response: any): ApiError | null => {
           code: data.code,
           message: data.message,
           error: data.error,
-          details: data.details,
+          // 共通エンベロープの `errors` を `details` にも反映
+          errors: data.errors,
+          details: data.details || data.errors,
           timestamp: data.timestamp,
           request_id: data.request_id,
         };

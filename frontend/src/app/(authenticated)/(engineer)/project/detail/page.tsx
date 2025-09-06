@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, notFound } from 'next/navigation';
 import {
   Box,
   Typography,
@@ -37,6 +37,8 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import Link from 'next/link';
 import { DebugLogger } from '@/lib/debug/logger';
+import { getProject, type ProjectItemDto } from '@/lib/api/projects';
+import { handleApiError } from '@/lib/api/error';
 import ActionButton from '@/components/common/ActionButton';
 import { 
   PageContainer, 
@@ -44,91 +46,44 @@ import {
   ContentCard,
   DetailInfoGrid,
 } from '@/components/common/layout';
+import EngineerGuard from '@/components/common/EngineerGuard';
+import { useToast } from '@/components/common';
 
-// 仮の案件データ - 実際のアプリケーションではAPIから取得
-const MOCK_PROJECTS = [
-  {
-    id: 1,
-    name: '金融系基幹システムリプレイス案件',
-    category: 'システム開発',
-    startDate: new Date('2023-12-01'),
-    endDate: new Date('2024-06-30'),
-    applicationDeadline: new Date('2023-11-15'),
-    expectedDailyRate: '70,000円〜90,000円',
-    interviewCount: 2,
-    company: '株式会社フィナンシャルテクノロジー',
-    location: '東京都千代田区',
-    nearestStation: '東京駅',
-    isFullRemote: false,
-    workingHours: '9:30〜18:30（休憩1時間）',
-    skillRequirements: 'Java, Spring Boot, Oracle, AWS, 金融系業務経験',
-    details: '大手銀行の基幹システムリプレイスプロジェクトです。要件定義から設計、実装、テストまで幅広く担当していただきます。\n\nJavaを用いたバックエンド開発経験が必須です。金融系の業務知識がある方は優遇いたします。チームは10名程度で、アジャイル開発手法を採用しています。\n\n週2回程度のオンサイト作業が必要ですが、その他の日はリモートワークも可能です。',
-    dress: 'ビジネスカジュアル',
-    notes: '週2回のオンサイト勤務必須。リモートワーク環境の準備が必要です。\n\n守秘義務契約を締結いただきます。金融機関のプロジェクトのため、セキュリティ面での制約があります。',
-    status: 'open',
-    requiredSkills: ['Java', 'Spring Boot', 'Oracle', 'AWS'],
-    preferredSkills: ['金融系業務経験', 'アジャイル開発経験', 'マイクロサービス設計'],
-    teamSize: '10名程度',
-    projectType: '新規開発・リプレイス',
-  },
-  {
-    id: 2,
-    name: 'ECサイトフロントエンド開発',
-    category: 'アプリ開発',
-    startDate: new Date('2023-11-15'),
-    endDate: new Date('2024-03-31'),
-    applicationDeadline: new Date('2023-10-31'),
-    expectedDailyRate: '60,000円〜80,000円',
-    interviewCount: 1,
-    company: '株式会社デジタルショッピング',
-    location: '東京都渋谷区',
-    nearestStation: '渋谷駅',
-    isFullRemote: true,
-    workingHours: '10:00〜19:00（休憩1時間）',
-    skillRequirements: 'React, TypeScript, Next.js, CSS/SCSS, レスポンシブデザイン',
-    details: '大手ECサイトのフロントエンド開発を担当していただきます。React, Next.jsを用いた新機能の実装や既存機能の改善をお願いします。\n\n特にモバイル対応のUI/UX改善が主な業務となります。デザイナーと協力して、ユーザー体験の向上を目指します。\n\nフルリモートでの勤務が可能ですが、週1回程度のオンラインミーティングに参加していただきます。',
-    dress: 'カジュアル',
-    notes: 'フルリモートワーク可能。週1回のオンラインMTGあり。\n\nGitHubを用いたバージョン管理、Figmaを用いたデザイン共有を行っています。',
-    status: 'open',
-    requiredSkills: ['React', 'TypeScript', 'Next.js', 'CSS/SCSS'],
-    preferredSkills: ['GraphQL', 'Storybook', 'Figma', 'パフォーマンス最適化経験'],
-    teamSize: '5名程度',
-    projectType: '既存システム改修・機能追加',
-  },
-  {
-    id: 3,
-    name: 'クラウドインフラ構築・運用',
-    category: 'インフラ構築',
-    startDate: new Date('2023-12-15'),
-    endDate: new Date('2024-12-14'),
-    applicationDeadline: new Date('2023-11-30'),
-    expectedDailyRate: '65,000円〜85,000円',
-    interviewCount: 2,
-    company: '株式会社クラウドテクノロジーズ',
-    location: '東京都港区',
-    nearestStation: '品川駅',
-    isFullRemote: false,
-    workingHours: '9:00〜18:00（休憩1時間）',
-    skillRequirements: 'AWS, Terraform, Docker, Kubernetes, CI/CD',
-    details: 'AWSを中心としたクラウドインフラの設計・構築・運用を担当していただきます。Terraformを用いたIaCの実践やKubernetesによるコンテナ環境の構築経験が活かせます。\n\n複数のプロジェクトに横断的に関わるため、多様な技術要素に触れることができます。\n\nインフラの自動化、監視体制の構築、セキュリティ強化など、幅広い業務に携わっていただきます。',
-    dress: 'ビジネスカジュアル',
-    notes: '週3回のオンサイト勤務。AWS認定資格保持者歓迎。\n\nAWS認定資格をお持ちの方は優遇いたします。プロジェクト参画後も、必要に応じて資格取得支援を行います。',
-    status: 'open',
-    requiredSkills: ['AWS', 'Terraform', 'Docker', 'Kubernetes'],
-    preferredSkills: ['AWS認定資格', 'CI/CD経験', 'セキュリティ知識', '監視ツール経験'],
-    teamSize: '8名程度',
-    projectType: 'インフラ構築・運用',
-  },
-];
+// DTO→UI 変換
+const mapDto = (p: ProjectItemDto) => ({
+  id: p.id,
+  name: p.project_name,
+  category: 'その他',
+  startDate: p.start_date ? new Date(p.start_date) : new Date(),
+  endDate: p.end_date ? new Date(p.end_date) : new Date(),
+  applicationDeadline: undefined as Date | undefined,
+  expectedDailyRate: '',
+  interviewCount: 0,
+  company: p.client_name || '',
+  location: '',
+  isFullRemote: false,
+  workingHours: '',
+  skillRequirements: '',
+  details: p.description || '',
+  dress: '',
+  notes: '',
+  status: p.status,
+  requiredSkills: [] as string[],
+  preferredSkills: [] as string[],
+  teamSize: '',
+  projectType: '',
+});
 
 // ローディング用コンポーネント
 function ProjectDetailLoading() {
   return (
+    <EngineerGuard>
     <PageContainer maxWidth="lg">
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
         <CircularProgress />
       </Box>
     </PageContainer>
+    </EngineerGuard>
   );
 }
 
@@ -136,40 +91,30 @@ function ProjectDetailLoading() {
 function ProjectDetailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showError } = useToast();
   
   
   // URLパラメータからIDを取得
   const projectId = searchParams.get('id');
   
   // 状態管理
-  const [project, setProject] = useState<typeof MOCK_PROJECTS[0] | null>(null);
+  const [project, setProject] = useState<ReturnType<typeof mapDto> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [remainingDays, setRemainingDays] = useState<number | null>(null);
   const [formattedPeriod, setFormattedPeriod] = useState<string | null>(null);
   
-  // プロジェクトデータの取得（実際のアプリケーションではAPIから取得）
+  // プロジェクトデータの取得（API）
   useEffect(() => {
-    // データ取得のシミュレーション
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        
-        // 意図的に少し遅延を加えてローディング状態を表示
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
         if (!projectId) {
           throw new Error('案件IDが指定されていません');
         }
-        
-        const foundProject = MOCK_PROJECTS.find(p => p.id === Number(projectId));
-        
-        if (!foundProject) {
-          throw new Error('指定された案件が見つかりませんでした');
-        }
-        
-        setProject(foundProject);
+        const data = await getProject(String(projectId));
+        setProject(mapDto(data));
         setError(null);
       } catch (err) {
         DebugLogger.apiError({
@@ -178,7 +123,18 @@ function ProjectDetailContent() {
         }, {
           error: err
         });
-        setError(err instanceof Error ? err.message : '案件データの取得中にエラーが発生しました');
+        const handled = handleApiError(err, '案件詳細取得', { logContext: 'project/detail' });
+        const enhanced = (handled as any).enhanced;
+        const status = (err as any)?.response?.status;
+        const code = enhanced?.code || (err as any)?.response?.data?.code;
+        if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+          // グローバル404へ直送
+          notFound();
+          return;
+        }
+        const msg = enhanced?.userMessage || handled.message || '案件データの取得中にエラーが発生しました';
+        setError(msg);
+        showError(msg);
       } finally {
         setIsLoading(false);
       }
@@ -203,8 +159,14 @@ function ProjectDetailContent() {
         return diffDays > 0 ? diffDays : 0;
       };
       
-      setFormattedPeriod(formatProjectPeriod(project.startDate, project.endDate));
-      setRemainingDays(calculateRemainingDays(project.applicationDeadline));
+      if (project.startDate && project.endDate) {
+        setFormattedPeriod(formatProjectPeriod(project.startDate as any, project.endDate as any));
+      }
+      if (project.applicationDeadline) {
+        setRemainingDays(calculateRemainingDays(project.applicationDeadline as any));
+      } else {
+        setRemainingDays(null);
+      }
     }
   }, [project]);
   
@@ -404,7 +366,7 @@ function ProjectDetailContent() {
               想定単価: {project.expectedDailyRate}
             </Typography>
             <Typography variant="body1">
-              応募期限: {format(project.applicationDeadline, 'yyyy/MM/dd', { locale: ja })}
+              応募期限: {project.applicationDeadline ? format(project.applicationDeadline as any, 'yyyy/MM/dd', { locale: ja }) : '-'}
               {remainingDays !== null && `（残り${remainingDays}日）`}
             </Typography>
           </Box>
@@ -444,7 +406,7 @@ function ProjectDetailContent() {
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <LocationIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
-                    {project.location} ({project.nearestStation})
+                    {project.location} ({(project as any).nearestStation || ''})
                   </Box>
                   {project.isFullRemote && (
                     <Chip 
@@ -504,7 +466,7 @@ function ProjectDetailContent() {
               label: "応募期限", 
               value: (
                 <Typography variant="body2" color="error.main" fontWeight="bold">
-                  {format(project.applicationDeadline, 'yyyy/MM/dd', { locale: ja })}
+                  {project.applicationDeadline ? format(project.applicationDeadline as any, 'yyyy/MM/dd', { locale: ja }) : '-'}
                   {remainingDays !== null && `（残り${remainingDays}日）`}
                 </Typography>
               ),

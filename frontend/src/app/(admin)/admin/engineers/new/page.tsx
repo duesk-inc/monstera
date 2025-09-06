@@ -19,7 +19,7 @@ import { PageContainer } from '@/components/common/layout';
 import { Breadcrumbs } from '@/components/common';
 import { EngineerForm } from '@/components/admin/engineers/EngineerForm';
 import { useCreateEngineer } from '@/hooks/admin/useEngineersQuery';
-import { CreateEngineerInput } from '@/types/engineer';
+import { CreateEngineerInput, UpdateEngineerInput, CreateEngineerRequest } from '@/types/engineer';
 import { useToast } from '@/components/common/Toast/ToastProvider';
 
 export default function NewEngineer() {
@@ -27,9 +27,29 @@ export default function NewEngineer() {
   const { showSuccess } = useToast();
   const { createEngineer, isCreating } = useCreateEngineer();
 
-  const handleSubmit = async (data: CreateEngineerInput) => {
+  const handleSubmit = async (data: CreateEngineerInput | UpdateEngineerInput) => {
     try {
-      const result = await createEngineer(data);
+      const input = data as CreateEngineerInput;
+      const req: CreateEngineerRequest = {
+        email: input.email,
+        password: input.password ?? input.email,
+        firstName: input.firstName,
+        lastName: input.lastName,
+        firstNameKana: input.firstNameKana,
+        lastNameKana: input.lastNameKana,
+        sei: input.sei,
+        mei: input.mei,
+        seiKana: undefined,
+        meiKana: undefined,
+        department: input.department,
+        position: input.position,
+        hireDate: input.hireDate,
+        education: input.education,
+        phoneNumber: input.phoneNumber,
+        departmentId: undefined,
+        managerId: undefined,
+      };
+      const result = await createEngineer(req);
       showSuccess('エンジニアを登録しました');
       // 詳細画面へリダイレクト
       router.push(`/admin/engineers/${result.id}`);

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { Box, Card, CardContent, Typography, Button, Tabs, Tab, Chip, Divider, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Paper, Avatar } from '@mui/material';
+import { useParams, useRouter, notFound } from 'next/navigation';
+import { Box, Card, CardContent, Typography, Button, Tabs, Tab, Chip, Divider, List, ListItem, ListItemText, ListItemSecondaryAction, IconButton, Paper, Avatar, Alert, Skeleton } from '@mui/material';
 import Grid from '@mui/material/Grid';
 import {
   ArrowBack as ArrowBackIcon,
@@ -158,6 +158,44 @@ export default function ClientDetail() {
   const params = useParams();
   const router = useRouter();
   const [tabValue, setTabValue] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [client, setClient] = useState<typeof dummyClient | null>(null);
+  const [projects, setProjects] = useState<typeof dummyProjects>([]);
+  const [invoices, setInvoices] = useState<typeof dummyInvoices>([]);
+
+  const clientId = (params as any)?.id as string | undefined;
+
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      try {
+        setLoading(true);
+        if (!clientId) {
+          notFound();
+          return;
+        }
+        // TODO: API接続化後に実データ取得へ置換
+        if (!mounted) return;
+        setClient({ ...dummyClient, id: clientId });
+        setProjects(dummyProjects);
+        setInvoices(dummyInvoices);
+        setError(null);
+      } catch (e: any) {
+        const status = e?.response?.status;
+        const code = e?.response?.data?.code || e?.enhanced?.code;
+        if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+          notFound();
+          return;
+        }
+        setError(e?.message || '取引先データの取得に失敗しました');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    run();
+    return () => { mounted = false; };
+  }, [clientId]);
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -168,15 +206,44 @@ export default function ClientDetail() {
     console.log('Edit client');
   };
 
+  if (loading) {
+    return (
+      <PageContainer title="取引先詳細">
+        <Skeleton variant="text" width={240} height={32} sx={{ mb: 2 }} />
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Skeleton variant="rectangular" height={200} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent>
+            <Skeleton variant="rectangular" height={400} />
+          </CardContent>
+        </Card>
+      </PageContainer>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageContainer title="取引先詳細">
+        <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => router.push('/admin/business/clients')}>
+          一覧に戻る
+        </Button>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer 
-      title={dummyClient.company_name}
+      title={client?.company_name || '取引先詳細'}
       breadcrumbs={
         <Breadcrumbs 
           items={[
             { label: '管理者ダッシュボード', href: '/admin/dashboard' },
             { label: '取引先管理', href: '/admin/business/clients' },
-            { label: dummyClient.company_name },
+            { label: client?.company_name || '' },
           ]}
         />
       }
@@ -209,14 +276,14 @@ export default function ClientDetail() {
                 </Avatar>
                 <Box>
                   <Typography variant="h5" gutterBottom>
-                    {dummyClient.company_name}
+                    {client?.company_name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {dummyClient.company_name_kana}
+                    {client?.company_name_kana}
                   </Typography>
                 </Box>
                 <Chip
-                  label={billingTypeLabels[dummyClient.billing_type]}
+                  label={client ? billingTypeLabels[client.billing_type] : ''}
                   color="primary"
                   sx={{ ml: 'auto' }}
                 />
@@ -231,19 +298,19 @@ export default function ClientDetail() {
               <List dense>
                 <ListItem>
                   <PersonIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                  <ListItemText primary={dummyClient.contact_person} />
+                  <ListItemText primary={client?.contact_person} />
                 </ListItem>
                 <ListItem>
                   <EmailIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                  <ListItemText primary={dummyClient.contact_email} />
+                  <ListItemText primary={client?.contact_email} />
                 </ListItem>
                 <ListItem>
                   <PhoneIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                  <ListItemText primary={dummyClient.contact_phone} />
+                  <ListItemText primary={client?.contact_phone} />
                 </ListItem>
                 <ListItem>
                   <LocationIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                  <ListItemText primary={dummyClient.address} />
+                  <ListItemText primary={client?.address} />
                 </ListItem>
               </List>
             </Grid>
@@ -254,34 +321,25 @@ export default function ClientDetail() {
               </Typography>
               <List dense>
                 <ListItem>
-                  <ListItemText 
-                    primary="支払条件"
-                    secondary={`${dummyClient.payment_terms}日`}
-                  />
+                  <ListItemText primary="支払条件" secondary={`${client?.payment_terms}日`} />
                 </ListItem>
                 <ListItem>
-                  <ListItemText 
-                    primary="登録日"
-                    secondary={formatDate(dummyClient.created_at)}
-                  />
+                  <ListItemText primary="登録日" secondary={client ? formatDate(client.created_at) : ''} />
                 </ListItem>
                 <ListItem>
-                  <ListItemText 
-                    primary="最終更新日"
-                    secondary={formatDate(dummyClient.updated_at)}
-                  />
+                  <ListItemText primary="最終更新日" secondary={client ? formatDate(client.updated_at) : ''} />
                 </ListItem>
               </List>
             </Grid>
 
-            {dummyClient.notes && (
+            {client?.notes && (
               <Grid size={12}>
                 <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                   備考
                 </Typography>
                 <Paper sx={{ p: 2, bgcolor: 'grey.50' }}>
                   <Typography variant="body2">
-                    {dummyClient.notes}
+                    {client?.notes}
                   </Typography>
                 </Paper>
               </Grid>
@@ -302,7 +360,7 @@ export default function ClientDetail() {
           {/* 案件一覧 */}
           <TabPanel value={tabValue} index={0}>
             <List>
-              {dummyProjects.map((project) => (
+              {projects.map((project) => (
                 <ListItem
                   key={project.id}
                   sx={{
@@ -358,7 +416,7 @@ export default function ClientDetail() {
           {/* 請求履歴 */}
           <TabPanel value={tabValue} index={1}>
             <List>
-              {dummyInvoices.map((invoice) => (
+              {invoices.map((invoice) => (
                 <ListItem
                   key={invoice.id}
                   sx={{

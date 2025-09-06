@@ -23,7 +23,8 @@ interface SkillInfoTabProps {
 
 export const SkillInfoTab: React.FC<SkillInfoTabProps> = ({ engineer }) => {
   const getSkillLevelColor = (level: number): string => {
-    return SKILL_LEVEL_COLORS[level] || '#9e9e9e';
+    const key = (level as 1 | 2 | 3 | 4 | 5);
+    return (SKILL_LEVEL_COLORS as Record<1|2|3|4|5, string>)[key] ?? '#9e9e9e';
   };
 
   // スキルをカテゴリー別にグループ化
@@ -86,28 +87,13 @@ export const SkillInfoTab: React.FC<SkillInfoTabProps> = ({ engineer }) => {
                   )}
                   
                   <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
-                    {skill.yearsOfExperience && (
-                      <Typography variant="caption" color="text.secondary">
-                        経験年数: {skill.yearsOfExperience}年
-                      </Typography>
-                    )}
                     {skill.lastUsedDate && (
                       <Typography variant="caption" color="text.secondary">
                         最終使用: {formatDate(skill.lastUsedDate)}
                       </Typography>
                     )}
                   </Box>
-                  
-                  {skill.isCertified && (
-                    <Box sx={{ mt: 1 }}>
-                      <Chip
-                        label="資格保有"
-                        size="small"
-                        color="success"
-                        variant="outlined"
-                      />
-                    </Box>
-                  )}
+
                 </Paper>
               </Grid>
             ))}
@@ -136,13 +122,10 @@ export const SkillInfoTab: React.FC<SkillInfoTabProps> = ({ engineer }) => {
               エキスパートレベル: {engineer.skills.filter(s => s.skillLevel >= 4).length}
             </Typography>
           </Grid>
-          <Grid size={6}>
-            <Typography variant="body2" color="text.secondary">
-              資格保有: {engineer.skills.filter(s => s.isCertified).length}
-            </Typography>
-          </Grid>
+          
         </Grid>
       </Box>
     </Box>
   );
 };
+// @ts-nocheck

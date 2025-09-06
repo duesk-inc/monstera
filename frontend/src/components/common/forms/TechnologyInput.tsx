@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useDebouncedCallback } from '@/hooks/common/useDebouncedCallback';
 import {
   Autocomplete,
   TextField,
@@ -58,6 +59,11 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState('');
 
+  // 入力通知をデバウンスして上位への通知頻度を抑制
+  const debouncedNotifyChange = useDebouncedCallback((val: string) => {
+    onChange(val);
+  }, 300);
+
   // 技術カテゴリーマスタを取得
   useEffect(() => {
     const fetchData = async () => {
@@ -72,7 +78,7 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
         );
       } catch (error) {
         DebugLogger.error(
-          { category: DEBUG_CATEGORIES.COMPONENT, operation: DEBUG_OPERATIONS.READ },
+          { category: DEBUG_CATEGORIES.UI, operation: DEBUG_OPERATIONS.READ },
           '技術カテゴリー一覧取得エラー',
           error
         );
@@ -91,10 +97,11 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
   }, [value]);
 
   // 該当カテゴリーの技術リストを取得
-  const technologyOptions = useMemo(() => {
+  const technologyOptions = useMemo<string[]>(() => {
     // TODO: 実際の実装では、選択された技術項目のマスタデータをAPIから取得する
     // 現在はマスターデータから取得
-    return TECHNOLOGY_OPTIONS[categoryName as keyof typeof TECHNOLOGY_OPTIONS] || [];
+    const src = TECHNOLOGY_OPTIONS[categoryName as keyof typeof TECHNOLOGY_OPTIONS] || [];
+    return [...src];
   }, [categoryName]);
 
   // カスタム入力かどうかを判定
@@ -110,7 +117,7 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
   });
 
   return (
-    <Autocomplete
+    <Autocomplete<string, false, false, true>
       value={value}
       onChange={(_, newValue) => {
         onChange(newValue || '');
@@ -118,15 +125,12 @@ export const TechnologyInput: React.FC<TechnologyInputProps> = ({
       inputValue={inputValue}
       onInputChange={(_, newInputValue, reason) => {
         setInputValue(newInputValue);
-        // ユーザーが直接入力した場合のみ、親コンポーネントに通知
         if (reason === 'input') {
           onChange(newInputValue);
         }
       }}
-      options={technologyOptions}
-      filterOptions={(options, state) => {
-        return filterOptions(options, state);
-      }}
+      options={[...technologyOptions]}
+      filterOptions={(opts, st) => filterOptions(opts, st)}
       getOptionLabel={(option) => option}
       isOptionEqualToValue={(option, value) => option === value}
       freeSolo

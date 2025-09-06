@@ -232,8 +232,8 @@ func main() {
 	adminDashboardService := service.NewAdminDashboardService(db, logger)
 	// ビジネス系サービスを追加
 	clientService := service.NewClientService(db, clientRepo, logger)
-	invoiceService := service.NewInvoiceService(db, invoiceRepo, clientRepo, projectRepo, userRepo, logger)
-	salesService := service.NewSalesService(db, salesActivityRepo, clientRepo, projectRepo, userRepo, logger)
+    invoiceService := service.NewInvoiceService(db, invoiceRepo, clientRepo, projectRepo, userRepo, logger)
+    salesService := service.NewSalesService(db, salesActivityRepo, clientRepo, projectRepo, userRepo, logger)
 	// エンジニアサービスを追加（CognitoAuthServiceとConfigを渡す）
 	cognitoAuthSvc, ok := authSvc.(*service.CognitoAuthService)
 	if !ok {
@@ -287,7 +287,9 @@ func main() {
 	// interviewScheduleService := service.NewInterviewScheduleService(db, interviewScheduleRepo, proposalRepo, logger) // TODO: ハンドラー実装時に使用
 	salesEmailService := service.NewSalesEmailService(db, emailTemplateRepo, emailCampaignRepo, proposalRepo, interviewScheduleRepo, contractExtensionRepo, userRepo, clientRepo, emailService, logger)
 	pocSyncService := service.NewPocSyncService(db, pocProjectRepo, projectRepo, proposalRepo, logger)
-	salesTeamService := service.NewSalesTeamService(db, salesTeamRepo, userRepo, logger)
+    salesTeamService := service.NewSalesTeamService(db, salesTeamRepo, userRepo, logger)
+    // Engineer向け案件サービス
+    projectService := service.NewProjectService(db, projectRepo, clientRepo, logger)
 
 	// 監査ログサービスを追加
 	auditLogService := service.NewAuditLogService(db, logger, auditLogRepo)
@@ -427,7 +429,7 @@ func main() {
 		PocSyncHandler:           *pocSyncHandler,
 		SalesTeamHandler:         *salesTeamHandler,
 	}
-    router := setupRouter(cfg, logger, authHandler, profileHandler, skillSheetHandler, reportHandler, leaveHandler, notificationHandler, adminWeeklyReportHandler, adminDashboardHandler, clientHandler, invoiceHandler, salesHandler, userRoleHandler, leaveAdminHandler, *unsubmittedReportHandler, reminderHandler, alertSettingsHandler, *alertHandler, auditLogHandler, salesHandlers, expenseHandler, expenseApproverSettingHandler, approvalReminderHandler, workHistoryHandler, engineerHandler, rolePermissionRepo, userRepo, departmentRepo, reportRepo, weeklyReportRefactoredRepo, auditLogService)
+    router := setupRouter(cfg, logger, authHandler, profileHandler, skillSheetHandler, reportHandler, leaveHandler, notificationHandler, adminWeeklyReportHandler, adminDashboardHandler, clientHandler, invoiceHandler, salesHandler, userRoleHandler, leaveAdminHandler, *unsubmittedReportHandler, reminderHandler, alertSettingsHandler, *alertHandler, auditLogHandler, salesHandlers, expenseHandler, expenseApproverSettingHandler, approvalReminderHandler, workHistoryHandler, engineerHandler, rolePermissionRepo, userRepo, departmentRepo, reportRepo, weeklyReportRefactoredRepo, auditLogService, projectService)
 
 	// HTTPサーバーの設定
 	srv := &http.Server{
@@ -513,7 +515,7 @@ func main() {
 }
 
 // setupRouter ルーターのセットアップ
-func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler, profileHandler *handler.ProfileHandler, skillSheetHandler *handler.SkillSheetHandler, reportHandler *handler.WeeklyReportHandler, leaveHandler handler.LeaveHandler, notificationHandler handler.NotificationHandler, adminWeeklyReportHandler handler.AdminWeeklyReportHandler, adminDashboardHandler handler.AdminDashboardHandler, clientHandler handler.ClientHandler, invoiceHandler handler.InvoiceHandler, salesHandler handler.SalesHandler, userRoleHandler *handler.UserRoleHandler, leaveAdminHandler handler.LeaveAdminHandler, unsubmittedReportHandler handler.UnsubmittedReportHandler, reminderHandler handler.ReminderHandler, alertSettingsHandler *handler.AlertSettingsHandler, alertHandler handler.AlertHandler, auditLogHandler *handler.AuditLogHandler, salesHandlers *routes.SalesHandlers, expenseHandler *handler.ExpenseHandler, expenseApproverSettingHandler *handler.ExpenseApproverSettingHandler, approvalReminderHandler *handler.ApprovalReminderHandler, workHistoryHandler *handler.WorkHistoryHandler, engineerHandler handler.AdminEngineerHandler, rolePermissionRepo internalRepo.RolePermissionRepository, userRepo internalRepo.UserRepository, departmentRepo internalRepo.DepartmentRepository, reportRepo *internalRepo.WeeklyReportRepository, weeklyReportRefactoredRepo internalRepo.WeeklyReportRefactoredRepository, auditLogService service.AuditLogService) *gin.Engine {
+func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.AuthHandler, profileHandler *handler.ProfileHandler, skillSheetHandler *handler.SkillSheetHandler, reportHandler *handler.WeeklyReportHandler, leaveHandler handler.LeaveHandler, notificationHandler handler.NotificationHandler, adminWeeklyReportHandler handler.AdminWeeklyReportHandler, adminDashboardHandler handler.AdminDashboardHandler, clientHandler handler.ClientHandler, invoiceHandler handler.InvoiceHandler, salesHandler handler.SalesHandler, userRoleHandler *handler.UserRoleHandler, leaveAdminHandler handler.LeaveAdminHandler, unsubmittedReportHandler handler.UnsubmittedReportHandler, reminderHandler handler.ReminderHandler, alertSettingsHandler *handler.AlertSettingsHandler, alertHandler handler.AlertHandler, auditLogHandler *handler.AuditLogHandler, salesHandlers *routes.SalesHandlers, expenseHandler *handler.ExpenseHandler, expenseApproverSettingHandler *handler.ExpenseApproverSettingHandler, approvalReminderHandler *handler.ApprovalReminderHandler, workHistoryHandler *handler.WorkHistoryHandler, engineerHandler handler.AdminEngineerHandler, rolePermissionRepo internalRepo.RolePermissionRepository, userRepo internalRepo.UserRepository, departmentRepo internalRepo.DepartmentRepository, reportRepo *internalRepo.WeeklyReportRepository, weeklyReportRefactoredRepo internalRepo.WeeklyReportRefactoredRepository, auditLogService service.AuditLogService, projectService service.ProjectService) *gin.Engine {
 	router := gin.New()
 
 	// DatabaseUtilsの初期化（メトリクスハンドラー用）
@@ -582,196 +584,42 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 
 	if !cfg.Cognito.Enabled {
 		logger.Warn("Cognito is disabled. Please enable Cognito authentication.")
-	}
-
+}
 	api := router.Group("/api/v1")
 	{
-		auth := api.Group("/auth")
-		{
-			// デバッグログの追加
-			auth.POST("/register", func(c *gin.Context) {
-				logger.Info("Register endpoint called")
-				authHandler.Register(c)
-			})
-			// ログインエンドポイントにレート制限を適用（仕様書準拠）
-			auth.POST("/login", middleware.LoginRateLimitMiddleware(rateLimiter), func(c *gin.Context) {
-				logger.Info("Login endpoint called")
-				// リクエストボディのログ記録部分を削除
-				authHandler.Login(c)
-			})
-			auth.POST("/refresh", authHandler.RefreshToken)
+		// 認証ルート
+		routes.SetupAuthRoutes(api, logger, rateLimiter, authMiddlewareFunc, authHandler)
+		// プロフィール
+		routes.SetupProfileRoutes(api, authMiddlewareFunc, profileHandler)
 
-			// 認証が必要なエンドポイント
-			authRequired := auth.Group("/")
-			authRequired.Use(authMiddlewareFunc)
-			{
-				authRequired.GET("/me", authHandler.Me)
-				authRequired.POST("/logout", authHandler.Logout)
-			}
-		}
+		// スキルシート
+		routes.SetupSkillSheetRoutes(api, authMiddlewareFunc, skillSheetHandler)
 
-		// プロフィール関連のエンドポイント
-		profile := api.Group("/profile")
-		profile.Use(authMiddlewareFunc)
-		{
-			profile.GET("", profileHandler.GetProfile)
-			profile.GET("/with-work-history", profileHandler.GetProfileWithWorkHistory)
-			profile.POST("", profileHandler.SaveProfile)
-			profile.POST("/temp-save", profileHandler.TempSaveProfile)
-			profile.GET("/history", profileHandler.GetProfileHistory)
-			profile.GET("/history/latest", profileHandler.GetProfileHistory)
-			profile.GET("/common-certifications", profileHandler.GetCommonCertifications)
-			profile.GET("/technology-categories", profileHandler.GetTechnologyCategories)
-		}
+        // 職務経歴
+        routes.SetupWorkHistoryRoutes(api, authMiddlewareFunc, workHistoryHandler)
 
-		// スキルシート関連のエンドポイント
-		skillSheet := api.Group("/skill-sheet")
-		skillSheet.Use(authMiddlewareFunc)
-		{
-			skillSheet.GET("", skillSheetHandler.GetSkillSheet)
-			skillSheet.PUT("", skillSheetHandler.SaveSkillSheet)
-			skillSheet.POST("/temp-save", skillSheetHandler.TempSaveSkillSheet)
-            // PDF出力（v0除外）
-		}
+        // ユーザー
+        routes.SetupUserRoutes(api, authMiddlewareFunc, userRoleHandler)
 
-		// 職務経歴関連のエンドポイント
-		workHistory := api.Group("/work-history")
-		workHistory.Use(authMiddlewareFunc)
-		{
-			// 基本CRUD
-			workHistory.GET("", workHistoryHandler.GetWorkHistories)         // 一覧取得
-			workHistory.GET("/:id", workHistoryHandler.GetWorkHistory)       // 個別取得
-			workHistory.POST("", workHistoryHandler.CreateWorkHistory)       // 作成
-			workHistory.PUT("/:id", workHistoryHandler.UpdateWorkHistory)    // 更新
-			workHistory.DELETE("/:id", workHistoryHandler.DeleteWorkHistory) // 削除
+        // 週報
+        routes.SetupWeeklyReportRoutes(api, authMiddlewareFunc, reportHandler)
 
-			// 検索・エクスポート
-			workHistory.GET("/search", workHistoryHandler.SearchWorkHistories)        // 検索
-			workHistory.GET("/summary", workHistoryHandler.GetUserWorkHistorySummary) // ユーザーサマリー
-			workHistory.GET("/export", workHistoryHandler.ExportWorkHistory)          // エクスポート
-			workHistory.GET("/template", workHistoryHandler.GetWorkHistoryTemplate)   // テンプレート取得
-		}
+        // 休暇
+        routes.SetupLeaveRoutes(api, authMiddlewareFunc, leaveHandler)
 
-		// ユーザー関連のエンドポイント
-		users := api.Group("/users")
-		users.Use(authMiddlewareFunc)
-		{
-			// デフォルトロール更新
-			users.PUT("/default-role", userRoleHandler.UpdateDefaultRole)
-		}
 
-		// 週報関連のエンドポイント
-		weeklyReports := api.Group("/weekly-reports")
-		weeklyReports.Use(authMiddlewareFunc)
-		{
-			weeklyReports.GET("", reportHandler.List)
-			weeklyReports.GET("/by-date-range", reportHandler.GetWeeklyReportByDateRange)
-			weeklyReports.GET("/:id", reportHandler.Get)
-			weeklyReports.POST("", reportHandler.Create)
-			weeklyReports.PUT("/:id", reportHandler.Update)
-			weeklyReports.DELETE("/:id", reportHandler.Delete)
-			weeklyReports.POST("/:id/submit", reportHandler.Submit)
-			weeklyReports.POST("/:id/copy", reportHandler.Copy)
-			// 統合された週報の下書き保存と提出エンドポイントを追加
-			weeklyReports.POST("/draft", reportHandler.SaveAsDraft)
-			weeklyReports.POST("/submit", reportHandler.SaveAndSubmit)
+			// 経費
+			routes.SetupExpenseRoutes(api, authMiddlewareFunc, expenseHandler)
 
-			// デフォルト勤務時間設定のエンドポイント
-			weeklyReports.GET("/default-settings", reportHandler.GetUserDefaultWorkSettings)
-			weeklyReports.POST("/default-settings", reportHandler.SaveUserDefaultWorkSettings)
-		}
+            // Engineer向けルート（案件CRUD / 軽量クライアント一覧）
+            projectHandler := handler.NewProjectHandler(projectService, logger)
+            routes.SetupEngineerRoutes(api, logger, authMiddlewareFunc, projectHandler, clientHandler)
 
-		// 休暇関連のエンドポイント
-		leave := api.Group("/leave")
-		leave.Use(authMiddlewareFunc)
-		{
-			// 休暇種別一覧
-			leave.GET("/types", leaveHandler.GetLeaveTypes)
-			// 休暇残日数
-			leave.GET("/balances", leaveHandler.GetUserLeaveBalances)
-			// 休暇申請一覧
-			leave.GET("/requests", leaveHandler.GetLeaveRequests)
-			// 休暇申請作成
-			leave.POST("/requests", leaveHandler.CreateLeaveRequest)
-		}
 
-		// 勤怠関連のエンドポイント
-		attendances := api.Group("/leave")
-		attendances.Use(authMiddlewareFunc)
-		{
-			// 休日情報のエンドポイントは残す
-			attendances.GET("/holidays", leaveHandler.GetHolidays)
-		}
-
-		// 経費関連のエンドポイント
-		expenses := api.Group("/expenses")
-		expenses.Use(authMiddlewareFunc)
-		{
-			// 基本CRUD操作
-			expenses.POST("", expenseHandler.CreateExpense)
-			expenses.GET("/categories", expenseHandler.GetCategories)
-			expenses.GET("", expenseHandler.GetExpenseList)
-			expenses.GET("/:id", expenseHandler.GetExpense)
-			expenses.PUT("/:id", expenseHandler.UpdateExpense)
-			expenses.DELETE("/:id", expenseHandler.DeleteExpense)
-
-			// 申請提出・取消
-			expenses.POST("/:id/submit", expenseHandler.SubmitExpense)
-			expenses.POST("/:id/cancel", expenseHandler.CancelExpense)
-
-			// ファイルアップロード関連
-			expenses.POST("/upload-url", expenseHandler.GenerateUploadURL)
-			expenses.POST("/upload-complete", expenseHandler.CompleteUpload)
-			expenses.DELETE("/upload", expenseHandler.DeleteUploadedFile)
-
-			// 上限チェック
-			expenses.GET("/check-limits", expenseHandler.CheckExpenseLimits)
-
-			// 集計
-			expenses.GET("/summary", expenseHandler.GetExpenseSummary)
-
-			// 複数領収書対応（初期スコープ外・無効化）
-			// expenses.POST("/with-receipts", expenseHandler.CreateExpenseWithReceipts)
-			// expenses.PUT("/:id/with-receipts", expenseHandler.UpdateExpenseWithReceipts)
-			// expenses.GET("/:id/receipts", expenseHandler.GetExpenseReceipts)
-			// expenses.DELETE("/:id/receipts/:receipt_id", expenseHandler.DeleteExpenseReceipt)
-			// expenses.PUT("/:id/receipts/order", expenseHandler.UpdateReceiptOrder)
-			// expenses.POST("/receipts/upload-url", expenseHandler.GenerateReceiptUploadURL)
-
-			// CSVエクスポート
-			expenses.GET("/export", expenseHandler.ExportExpensesCSV)
-
-			// PDFエクスポート（初期スコープ外・無効化）
-			// expenses.GET("/:id/pdf", expensePDFHandler.GenerateExpensePDF)
-			// expenses.GET("/pdf", expensePDFHandler.GenerateExpenseListPDF)
-		}
-
-		// プロジェクト関連のエンドポイント
-		projects := api.Group("/projects")
-		projects.Use(authMiddlewareFunc)
-		{
-			// プロジェクトエンドポイントのハンドラー追加予定
-		}
-
-		// 通知関連のエンドポイント
-		notifications := api.Group("/notifications")
-		notifications.Use(authMiddlewareFunc)
-		{
-			notifications.GET("", notificationHandler.GetUserNotifications)
-			notifications.GET("/unread", notificationHandler.GetUnreadNotifications)
-			notifications.PUT("/:id/read", notificationHandler.MarkAsReadSingle)
-			notifications.PUT("/read", notificationHandler.MarkAsRead)
-			notifications.PUT("/read-all", notificationHandler.MarkAllAsRead)
-			notifications.GET("/settings", notificationHandler.GetUserNotificationSettings)
-			notifications.PUT("/settings", notificationHandler.UpdateNotificationSetting)
-		}
-
-		// 管理者用の通知作成エンドポイント
-		adminNotifications := api.Group("/admin/notifications")
-		adminNotifications.Use(authMiddlewareFunc)
-		{
-			adminNotifications.POST("", notificationHandler.CreateNotification)
-		}
+				// 通知（構造体ベース・ユーザー/管理者/統計/週報リマインドを一括登録）
+				weeklyReportAuthMiddleware := middleware.NewWeeklyReportAuthMiddleware(logger, *reportRepo, weeklyReportRefactoredRepo, userRepo, departmentRepo, cognitoMiddleware)
+				notificationRoutes := routes.NewNotificationRoutes(notificationHandler, cognitoMiddleware, weeklyReportAuthMiddleware, logger)
+				notificationRoutes.SetupRoutes(router)
 
 		// 週報認証ミドルウェアを作成（現在未使用）
 		// TODO: 週報関連ルートで使用予定
@@ -813,6 +661,9 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 		// 営業関連ルートの登録
 		routes.SetupSalesRoutes(api, cfg, salesHandlers, logger, rolePermissionRepo, cognitoMiddleware)
 		routes.SetupAdminSalesRoutes(api, cfg, salesHandlers, logger, rolePermissionRepo, cognitoMiddleware)
+
+            // Engineer Project minimal CRUD (Sprint 3)
+            // (duplicate routes removed)
 
 		// 監査ログルートの登録（管理者のみアクセス可能）
 		adminAudit := api.Group("/admin")
@@ -859,5 +710,10 @@ func setupRouter(cfg *config.Config, logger *zap.Logger, authHandler *handler.Au
 		}
 	}
 
-	return router
+return router
 }
+
+// registerEngineerRoutes Engineer向けのルートを一括登録
+// - /api/v1/projects (List/Get/Create/Update)
+// - /api/v1/engineer/clients (GetClientsLight)
+// (moved to backend/internal/routes/engineer_routes.go)

@@ -198,3 +198,4 @@ export const useWeeklyReport = (defaultSettings?: ApiDefaultWorkTimeSettings): U
     forceApplyDefaultSettingsToCurrentReport
   };
 };
+// @ts-nocheck

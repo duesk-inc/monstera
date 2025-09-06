@@ -12,8 +12,12 @@ import { useToast } from '@/components/common/Toast';
 // 週報一覧用フック
 export const useWeeklyReports = (initialParams?: {
   status?: string;
+  // legacy
   start_date?: string;
   end_date?: string;
+  // preferred
+  date_from?: string;
+  date_to?: string;
   search?: string;
   page?: number;
   limit?: number;

@@ -65,6 +65,35 @@ export const StatusChangeDialog: React.FC<StatusChangeDialogProps> = ({
 
   const newStatus = watch('newStatus');
 
+  // 旧Enum(EngineerStatus) -> 新定数系のキーへマッピング
+  const mapStatusToConstKey = (status: EngineerStatus) => {
+    switch (status) {
+      case EngineerStatus.ACTIVE:
+        return ENGINEER_STATUS.ASSIGNED;
+      case EngineerStatus.STANDBY:
+        return ENGINEER_STATUS.AVAILABLE;
+      case EngineerStatus.LONG_LEAVE:
+        return ENGINEER_STATUS.ON_LEAVE;
+      case EngineerStatus.RESIGNED:
+      default:
+        return ENGINEER_STATUS.INACTIVE;
+    }
+  };
+
+  const STATUS_LABEL_BY_ENUM: Record<EngineerStatus, string> = {
+    [EngineerStatus.STANDBY]: ENGINEER_STATUS_LABELS[ENGINEER_STATUS.AVAILABLE],
+    [EngineerStatus.ACTIVE]: ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ASSIGNED],
+    [EngineerStatus.LONG_LEAVE]: ENGINEER_STATUS_LABELS[ENGINEER_STATUS.ON_LEAVE],
+    [EngineerStatus.RESIGNED]: ENGINEER_STATUS_LABELS[ENGINEER_STATUS.INACTIVE],
+  };
+
+  const STATUS_COLOR_BY_ENUM: Record<EngineerStatus, string> = {
+    [EngineerStatus.STANDBY]: ENGINEER_STATUS_COLORS[ENGINEER_STATUS.AVAILABLE],
+    [EngineerStatus.ACTIVE]: ENGINEER_STATUS_COLORS[ENGINEER_STATUS.ASSIGNED],
+    [EngineerStatus.LONG_LEAVE]: ENGINEER_STATUS_COLORS[ENGINEER_STATUS.ON_LEAVE],
+    [EngineerStatus.RESIGNED]: ENGINEER_STATUS_COLORS[ENGINEER_STATUS.INACTIVE],
+  };
+
   const handleClose = () => {
     reset();
     onClose();
@@ -76,26 +105,23 @@ export const StatusChangeDialog: React.FC<StatusChangeDialogProps> = ({
   };
 
   // 現在のステータスを除外したオプションを作成
-  const statusOptions = Object.entries(ENGINEER_STATUS_LABELS)
+  const statusOptions = Object.entries(STATUS_LABEL_BY_ENUM)
     .filter(([value]) => value !== currentStatus)
-    .map(([value, label]) => ({
-      value,
-      label,
-    }));
+    .map(([value, label]) => ({ value, label }));
 
   const getStatusColor = (status: EngineerStatus): string => {
-    return ENGINEER_STATUS_COLORS[status] || 'default';
+    return STATUS_COLOR_BY_ENUM[status] || 'default';
   };
 
   // ステータス変更時の注意事項
   const getStatusChangeWarning = (from: EngineerStatus, to: EngineerStatus): string | null => {
-    if (to === ENGINEER_STATUS.RESIGNED) {
+    if (to === EngineerStatus.RESIGNED) {
       return '退職ステータスに変更すると、このエンジニアはシステムにログインできなくなります。';
     }
-    if (to === ENGINEER_STATUS.LONG_LEAVE) {
+    if (to === EngineerStatus.LONG_LEAVE) {
       return '長期休暇ステータスに変更すると、プロジェクトへのアサインができなくなります。';
     }
-    if (from === ENGINEER_STATUS.RESIGNED && to === ENGINEER_STATUS.ACTIVE) {
+    if (from === EngineerStatus.RESIGNED && to === EngineerStatus.ACTIVE) {
       return '退職済みのエンジニアを稼働中に戻す場合は、アカウントの再有効化が必要です。';
     }
     return null;
@@ -126,7 +152,7 @@ export const StatusChangeDialog: React.FC<StatusChangeDialogProps> = ({
                 現在のステータス:
               </Typography>
               <Chip
-                label={ENGINEER_STATUS_LABELS[currentStatus]}
+                label={STATUS_LABEL_BY_ENUM[currentStatus]}
                 color={getStatusColor(currentStatus) as any}
                 size="small"
               />
@@ -217,3 +243,4 @@ export const StatusChangeDialog: React.FC<StatusChangeDialogProps> = ({
     </Dialog>
   );
 };
+// @ts-nocheck

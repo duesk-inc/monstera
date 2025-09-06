@@ -35,10 +35,7 @@ import {
   BulkActionResult,
   FreeSyncResult,
 } from "../types/accounting";
-import { 
-  Invoice, 
-  InvoiceSummary,
-} from "../types/admin/invoice";
+import { Invoice, InvoiceSummary } from "../types/accounting";
 import { API_ENDPOINTS } from "../constants/accounting";
 import apiClient from "../lib/axios";
 
@@ -977,7 +974,6 @@ export const accountingApi = {
   getInvoiceSummary,
   updateInvoiceStatus,
   bulkInvoiceAction,
-  exportInvoicePDF,
   sendInvoiceToFreee,
   
   // freee連携

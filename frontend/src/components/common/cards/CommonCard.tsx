@@ -119,10 +119,10 @@ export const CommonCard: React.FC<CommonCardProps> = ({
   };
 
   // 最終的なスタイルを計算
-  const finalStyles: SxProps<Theme> = {
-    ...getVariantStyles(),
-    ...getClickableStyles(),
-    ...sx,
+  const finalStyles: any = {
+    ...(getVariantStyles() as any),
+    ...(getClickableStyles() as any),
+    ...(sx as any),
   };
 
   // ローディング状態の表示

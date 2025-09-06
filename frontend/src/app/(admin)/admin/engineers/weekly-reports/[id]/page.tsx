@@ -6,18 +6,19 @@ import Grid from '@mui/material/Grid';
 import { Comment as CommentIcon, CalendarMonth as CalendarIcon } from '@mui/icons-material';
 import { PageContainer } from '@/components/common/layout';
 import { ExportMenu, StatusChip } from '@/components/common';
-import { useRouter } from 'next/navigation';
+import { useRouter, notFound } from 'next/navigation';
 import { formatDate } from '@/utils/dateUtils';
 import { exportWeeklyReportAsPDF } from '@/utils/pdfExportUtils';
 import { exportToCSV } from '@/utils/exportUtils';
 import { useToast } from '@/components/common/Toast';
+import { queryClient, queryKeys } from '@/lib/tanstack-query';
 import { adminWeeklyReportApi } from '@/lib/api/admin/weeklyReport';
 import { useWeeklyReportDetailQuery } from '@/hooks/admin/useWeeklyReportsQuery';
 import { WEEKLY_REPORT_STATUS_LABELS } from '@/constants/weeklyReport';
 
 // 実データ取得に切り替え
 
-export default function WeeklyReportDetail({ params }: { params: { id: string } }) {
+export default function WeeklyReportDetail({ params }: any) {
   const router = useRouter();
   const { showSuccess, showError } = useToast();
   const { data: report, isLoading, error, refetch } = useWeeklyReportDetailQuery(params.id);
@@ -31,10 +32,16 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
     if (report) setComment(report.manager_comment || '');
   }, [report]);
 
-  const handleCommentSubmit = () => {
-    // TODO: API呼び出し
-    console.log('Comment updated:', comment);
-    setIsEditingComment(false);
+  const handleCommentSubmit = async () => {
+    try {
+      await adminWeeklyReportApi.commentWeeklyReport(params.id, { comment: comment.trim() });
+      showSuccess('コメントを保存しました');
+      setIsEditingComment(false);
+      await refetch();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.adminWeeklyReports() });
+    } catch (e: any) {
+      showError(e?.message || 'コメントの保存に失敗しました');
+    }
   };
 
   const handleApprove = async () => {
@@ -43,6 +50,7 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
       await adminWeeklyReportApi.approveWeeklyReport(params.id, comment || undefined);
       showSuccess('承認しました');
       await refetch();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.adminWeeklyReports() });
     } catch (e: any) {
       showError(e?.message || '承認に失敗しました');
     } finally {
@@ -60,6 +68,7 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
       await adminWeeklyReportApi.rejectWeeklyReport(params.id, comment.trim());
       showSuccess('却下しました');
       await refetch();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.adminWeeklyReports() });
     } catch (e: any) {
       showError(e?.message || '却下に失敗しました');
     } finally {
@@ -77,6 +86,7 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
       await adminWeeklyReportApi.returnWeeklyReport(params.id, comment.trim());
       showSuccess('差し戻しました');
       await refetch();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.adminWeeklyReports() });
     } catch (e: any) {
       showError(e?.message || '差し戻しに失敗しました');
     } finally {
@@ -143,6 +153,11 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
   }
 
   if (error || !report) {
+    const status = (error as any)?.response?.status;
+    const code = (error as any)?.enhanced?.code || (error as any)?.code;
+    if (status === 404 || code === 'not_found' || code === 'NOT_FOUND') {
+      notFound();
+    }
     return (
       <PageContainer
         title="週報詳細"
@@ -297,13 +312,14 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
               </Box>
 
               {isEditingComment ? (
-                <Box>
+                <Box data-testid="wr-reason">
                   <TextField
                     fullWidth
                     multiline
                     rows={6}
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
+                    inputProps={{ 'data-testid': 'wr-reason-input' }}
                     placeholder="週報に対するコメントを入力"
                     sx={{ mb: 2 }}
                   />
@@ -385,13 +401,13 @@ export default function WeeklyReportDetail({ params }: { params: { id: string } 
                 却下/差し戻しにはコメントが必須です。承認時のコメントは任意です。
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                <Button variant="contained" color="success" onClick={handleApprove} disabled={actionLoading !== null}>
+                <Button data-testid="wr-approve" variant="contained" color="success" onClick={handleApprove} disabled={actionLoading !== null}>
                   承認
                 </Button>
-                <Button variant="contained" color="error" onClick={handleReject} disabled={actionLoading !== null}>
+                <Button data-testid="wr-reject" variant="contained" color="error" onClick={handleReject} disabled={actionLoading !== null}>
                   却下
                 </Button>
-                <Button variant="outlined" color="warning" onClick={handleReturn} disabled={actionLoading !== null}>
+                <Button data-testid="wr-remand" variant="outlined" color="warning" onClick={handleReturn} disabled={actionLoading !== null}>
                   差し戻し
                 </Button>
               </Box>

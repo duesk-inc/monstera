@@ -12,12 +12,13 @@ import (
 
 // ClientHandler 取引先ハンドラーのインターフェース
 type ClientHandler interface {
-	GetClients(c *gin.Context)        // 取引先一覧取得
-	GetClient(c *gin.Context)         // 取引先詳細取得
-	CreateClient(c *gin.Context)      // 取引先作成
-	UpdateClient(c *gin.Context)      // 取引先更新
-	DeleteClient(c *gin.Context)      // 取引先削除
-	GetClientProjects(c *gin.Context) // 取引先の案件一覧取得
+    GetClients(c *gin.Context)        // 取引先一覧取得
+    GetClient(c *gin.Context)         // 取引先詳細取得
+    CreateClient(c *gin.Context)      // 取引先作成
+    UpdateClient(c *gin.Context)      // 取引先更新
+    DeleteClient(c *gin.Context)      // 取引先削除
+    GetClientProjects(c *gin.Context) // 取引先の案件一覧取得
+    GetClientsLight(c *gin.Context)   // エンジニア向け軽量一覧
 }
 
 // clientHandler 取引先ハンドラーの実装
@@ -29,8 +30,8 @@ type clientHandler struct {
 
 // NewClientHandler 取引先ハンドラーのインスタンスを生成
 func NewClientHandler(
-	clientService service.ClientService,
-	logger *zap.Logger,
+    clientService service.ClientService,
+    logger *zap.Logger,
 ) ClientHandler {
 	return &clientHandler{
 		BaseHandler:   BaseHandler{Logger: logger},
@@ -202,4 +203,33 @@ func (h *clientHandler) GetClientProjects(c *gin.Context) {
 		"projects": projects,
 		"total":    len(projects),
 	})
+}
+
+// GetClientsLight エンジニア向け軽量一覧（/api/v1/engineer/clients?light=true）
+func (h *clientHandler) GetClientsLight(c *gin.Context) {
+    // light=true チェック（仕様上明示）
+    if c.DefaultQuery("light", "false") != "true" {
+        RespondBadRequest(c, "light=true を指定してください")
+        return
+    }
+
+    page, err := strconv.Atoi(c.DefaultQuery("page", "1"))
+    if err != nil || page < 1 { page = 1 }
+    limit, err := strconv.Atoi(c.DefaultQuery("limit", "20"))
+    if err != nil || limit < 1 || limit > 100 { limit = 20 }
+    q := c.Query("q")
+
+    items, total, err := h.clientService.ListClientsLight(c.Request.Context(), page, limit, q)
+    if err != nil {
+        HandleError(c, http.StatusInternalServerError, "取引先軽量一覧の取得に失敗しました", h.Logger, err)
+        return
+    }
+    totalPages := int((total + int64(limit) - 1) / int64(limit))
+    RespondSuccess(c, http.StatusOK, "", gin.H{
+        "items":       items,
+        "total":       total,
+        "page":        page,
+        "limit":       limit,
+        "total_pages": totalPages,
+    })
 }

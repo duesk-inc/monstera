@@ -29,9 +29,9 @@ export const exportToPDF = async (content: string, filename: string) => {
     // 日本語フォントの設定が必要な場合はここで行う
     const doc = new jsPDF();
     
-    // PDFにコンテンツを追加
-    doc.html(content, {
-      callback: function (doc) {
+    // PDFにコンテンツを追加（プラグイン環境に依存するため any 経由で呼び出し）
+    (doc as any).html(content, {
+      callback: function (doc: any) {
         doc.save(`${filename}.pdf`);
       },
       x: 10,

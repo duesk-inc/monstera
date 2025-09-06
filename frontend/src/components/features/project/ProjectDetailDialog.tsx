@@ -98,6 +98,16 @@ export default function ProjectDetailDialog({
             閉じる
           </ActionButton>
           <ActionButton
+            buttonType="secondary"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.location.href = `/project/edit?id=${project.id}`;
+              }
+            }}
+          >
+            編集する
+          </ActionButton>
+          <ActionButton
             buttonType="primary"
             onClick={() => {
               if (onApply) {

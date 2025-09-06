@@ -1,10 +1,10 @@
 package validate
 
 import (
-	"fmt"
-	"go.uber.org/zap"
+    "fmt"
+    "go.uber.org/zap"
 
-	"github.com/duesk/monstera/internal/common/logger"
+    "github.com/duesk/monstera/internal/common/logger"
 )
 
 // ParseUUID はUUID文字列をパースします
@@ -51,11 +51,25 @@ func ValidateMinValue(value float64, minValue float64, fieldName string) error {
 
 // FindByCode は指定されたコードを持つエンティティをスライスから探します
 func FindByCode[T any](items []T, code string, getCode func(T) string) (T, bool) {
-	var empty T
-	for _, item := range items {
-		if getCode(item) == code {
-			return item, true
-		}
-	}
-	return empty, false
+    var empty T
+    for _, item := range items {
+        if getCode(item) == code {
+            return item, true
+        }
+    }
+    return empty, false
+}
+
+// NormalizePageLimit デフォルトと上限を適用して正規化
+func NormalizePageLimit(page, limit int) (int, int) {
+    if page < 1 {
+        page = 1
+    }
+    if limit < 1 {
+        limit = 20
+    }
+    if limit > 100 {
+        limit = 100
+    }
+    return page, limit
 }

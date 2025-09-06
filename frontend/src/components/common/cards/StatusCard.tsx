@@ -98,7 +98,8 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   // プログレスの計算
   const getProgressValue = () => {
     if (!showProgress || !maxValue || typeof value !== 'number') return 0;
-    return Math.min((value / maxValue) * PERCENTAGE.BASE, PERCENTAGE.MAX);
+    const percent = (value / maxValue) * 100;
+    return Math.min(Math.max(percent, 0), 100);
   };
 
   // ローディング状態の表示
@@ -106,7 +107,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
     return (
       <Card 
         sx={{ 
-          borderRadius: px(BORDER_RADIUS.LG),
+          borderRadius: BORDER_RADIUS.LG,
           border: '1px solid rgba(0, 0, 0, 0.08)',
           boxShadow: 'none',
           ...sx 
@@ -125,7 +126,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
   return (
     <Card 
       sx={{ 
-        borderRadius: px(BORDER_RADIUS.LG),
+        borderRadius: BORDER_RADIUS.LG,
         border: '1px solid rgba(0, 0, 0, 0.08)',
         boxShadow: 'none',
         bgcolor: 'background.paper',
@@ -147,7 +148,7 @@ export const StatusCard: React.FC<StatusCardProps> = ({
                 {icon}
               </Box>
             )}
-            <Typography variant="h6" sx={{ fontWeight: FONT_WEIGHTS.SEMI_BOLD }}>
+            <Typography variant="h6" sx={{ fontWeight: FONT_WEIGHTS.SEMIBOLD }}>
               {title}
             </Typography>
           </Box>

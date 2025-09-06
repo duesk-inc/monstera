@@ -49,6 +49,7 @@ import {
   Autocomplete,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
+const AnyGrid = Grid as unknown as any;
 import {
   Add as AddIcon,
   Search as SearchIcon,
@@ -214,7 +215,7 @@ const sortInvoices = (
 };
 
 // ステータスアイコンの取得
-const getStatusIcon = (status: InvoiceStatus): React.ReactNode => {
+const getStatusIcon = (status: InvoiceStatus): React.ReactElement => {
   switch (status) {
     case "draft":
       return <EditIcon color="disabled" />;
@@ -528,8 +529,8 @@ export default function AccountingInvoiceListPage() {
 
       {/* サマリーカード */}
       {summary && (
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
+        <AnyGrid container spacing={3} sx={{ mb: 4 }}>
+          <AnyGrid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
                 <Stack direction="row" alignItems="center" spacing={2}>
@@ -545,8 +546,8 @@ export default function AccountingInvoiceListPage() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </AnyGrid>
+          <AnyGrid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
                 <Stack direction="row" alignItems="center" spacing={2}>
@@ -566,8 +567,8 @@ export default function AccountingInvoiceListPage() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </AnyGrid>
+          <AnyGrid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
                 <Stack direction="row" alignItems="center" spacing={2}>
@@ -583,8 +584,8 @@ export default function AccountingInvoiceListPage() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          </AnyGrid>
+          <AnyGrid item xs={12} sm={6} md={3}>
             <Card>
               <CardContent>
                 <Stack direction="row" alignItems="center" spacing={2}>
@@ -604,8 +605,8 @@ export default function AccountingInvoiceListPage() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+          </AnyGrid>
+        </AnyGrid>
       )}
 
       {/* フィルター・検索 */}
@@ -682,8 +683,8 @@ export default function AccountingInvoiceListPage() {
                   <Typography variant="body2">詳細フィルター</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3}>
+                  <AnyGrid container spacing={2}>
+                    <AnyGrid item xs={12} sm={6} md={3}>
                       <MonthPicker
                         value={state.selectedMonth}
                         onChange={handleMonthChange}
@@ -692,8 +693,8 @@ export default function AccountingInvoiceListPage() {
                         size="small"
                         showClearButton
                       />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
+                    </AnyGrid>
+                    <AnyGrid item xs={12} sm={6} md={3}>
                       <ClientMultiSelect
                         value={state.selectedClients}
                         onChange={handleClientChange}
@@ -708,8 +709,8 @@ export default function AccountingInvoiceListPage() {
                         allowSelectAll={false}
                         showAvatars={false}
                       />
-                    </Grid>
-                    <Grid item xs={12} sm={6} md={3}>
+                    </AnyGrid>
+                    <AnyGrid item xs={12} sm={6} md={3}>
                       <Autocomplete
                         multiple
                         size="small"
@@ -740,8 +741,8 @@ export default function AccountingInvoiceListPage() {
                           ))
                         }
                       />
-                    </Grid>
-                  </Grid>
+                    </AnyGrid>
+                  </AnyGrid>
                 </AccordionDetails>
               </Accordion>
             )}
@@ -939,7 +940,7 @@ export default function AccountingInvoiceListPage() {
             variant="contained"
             disabled={bulkAction.processing}
             startIcon={
-              bulkAction.processing ? <LinearProgress size={20} /> : undefined
+              bulkAction.processing ? <CircularProgress size={20} /> : undefined
             }
           >
             実行
@@ -1084,7 +1085,7 @@ const InvoiceTable: React.FC<InvoiceTableProps> = ({
                   size="small"
                   label={BILLING_STATUS_LABELS[invoice.status]}
                   color={BILLING_STATUS_COLORS[invoice.status] as any}
-                  icon={getStatusIcon(invoice.status)}
+                  icon={getStatusIcon(invoice.status) as any}
                 />
               </TableCell>
               <TableCell align="center">
@@ -1123,9 +1124,9 @@ const InvoiceCardList: React.FC<InvoiceCardListProps> = ({
 }) => {
   return (
     <Box sx={{ p: 2 }}>
-      <Grid container spacing={2}>
+      <AnyGrid container spacing={2}>
         {invoices.map((invoice) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={invoice.id}>
+          <AnyGrid item xs={12} sm={6} md={4} lg={3} key={invoice.id}>
             <Card
               sx={{
                 position: "relative",
@@ -1183,13 +1184,13 @@ const InvoiceCardList: React.FC<InvoiceCardListProps> = ({
                   size="small"
                   label={BILLING_STATUS_LABELS[invoice.status]}
                   color={BILLING_STATUS_COLORS[invoice.status] as any}
-                  icon={getStatusIcon(invoice.status)}
+                  icon={getStatusIcon(invoice.status) as any}
                 />
               </CardContent>
             </Card>
-          </Grid>
+          </AnyGrid>
         ))}
-      </Grid>
+      </AnyGrid>
     </Box>
   );
 };

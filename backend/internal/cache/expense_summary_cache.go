@@ -133,8 +133,8 @@ func (c *ExpenseSummaryCache) SetLimitUsage(ctx context.Context, userID string, 
 // InvalidateMonthlyStats 月次統計のキャッシュを無効化
 func (c *ExpenseSummaryCache) InvalidateMonthlyStats(ctx context.Context, userID *string) error {
 	pattern := monthlyStatsPrefix
-	if userID != nil {
-		pattern = fmt.Sprintf("%suser:%s:*", monthlyStatsPrefix, userID)
+    if userID != nil {
+        pattern = fmt.Sprintf("%suser:%s:*", monthlyStatsPrefix, *userID)
 	} else {
 		pattern = monthlyStatsPrefix + "*"
 	}
@@ -144,8 +144,8 @@ func (c *ExpenseSummaryCache) InvalidateMonthlyStats(ctx context.Context, userID
 // InvalidateYearlyStats 年次統計のキャッシュを無効化
 func (c *ExpenseSummaryCache) InvalidateYearlyStats(ctx context.Context, userID *string) error {
 	pattern := yearlyStatsPrefix
-	if userID != nil {
-		pattern = fmt.Sprintf("%suser:%s:*", yearlyStatsPrefix, userID)
+    if userID != nil {
+        pattern = fmt.Sprintf("%suser:%s:*", yearlyStatsPrefix, *userID)
 	} else {
 		pattern = yearlyStatsPrefix + "*"
 	}
@@ -155,8 +155,8 @@ func (c *ExpenseSummaryCache) InvalidateYearlyStats(ctx context.Context, userID 
 // InvalidateLimitUsage 上限使用状況のキャッシュを無効化
 func (c *ExpenseSummaryCache) InvalidateLimitUsage(ctx context.Context, userID *string) error {
 	pattern := limitUsagePrefix
-	if userID != nil {
-		pattern = fmt.Sprintf("%suser:%s:*", limitUsagePrefix, userID)
+    if userID != nil {
+        pattern = fmt.Sprintf("%suser:%s:*", limitUsagePrefix, *userID)
 	} else {
 		pattern = limitUsagePrefix + "*"
 	}

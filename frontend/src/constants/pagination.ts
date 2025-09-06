@@ -27,6 +27,16 @@ export const PAGINATION_DISPLAY = {
   SHOW_LESS_ITEMS: false,
 } as const;
 
+// 機能別のデフォルトページサイズ
+export const DEFAULT_SIZES = {
+  CLIENTS: 20,
+  INVOICES: 20,
+  SALES_ACTIVITIES: 20,
+  ENGINEERS: 20,
+  ALERT_HISTORY: 20,
+  WEEKLY_REPORTS: 20,
+} as const;
+
 // ページネーションのラベル
 export const PAGINATION_LABELS = {
   PREVIOUS: "前へ",
@@ -223,6 +233,7 @@ export const PAGINATION = {
   DEFAULT_LIMIT: DEFAULT_PAGINATION.LIMIT,
   MAX_LIMIT: DEFAULT_PAGINATION.MAX_LIMIT,
   MIN_LIMIT: DEFAULT_PAGINATION.MIN_LIMIT,
+  DEFAULT_SIZES,
   PAGE_SIZE_OPTIONS: PAGE_SIZE_OPTIONS.map(option => option.value),
   LABELS: PAGINATION_LABELS,
 } as const;

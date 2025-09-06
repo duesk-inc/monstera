@@ -2,6 +2,9 @@
 
 "use client";
 
+// Avoid static prerender to prevent build-time evaluation issues while migrating.
+export const dynamic = "force-dynamic";
+
 import React, { useState, useMemo } from "react";
 import {
   Box,
@@ -26,7 +29,7 @@ import {
   useTheme,
   alpha,
   Skeleton,
-  Grid,
+  // Use Grid v2 for MUI v7 typing
   Fab,
   Dialog,
   DialogTitle,
@@ -34,6 +37,7 @@ import {
   DialogActions,
   DialogContentText,
 } from "@mui/material";
+import Grid from "@mui/material/Grid";
 import {
   GroupAdd,
   Search,
@@ -196,7 +200,9 @@ const sortProjectGroups = (
 };
 
 // ステータスアイコンの取得
-const getStatusIcon = (projectGroup: ProjectGroup): React.ReactNode => {
+const getStatusIcon = (
+  projectGroup: ProjectGroup,
+): React.ReactElement | undefined => {
   if (!projectGroup.isActive) {
     return <Archive color="disabled" />;
   }
@@ -281,7 +287,7 @@ export default function ProjectGroupListPage() {
 
   // データ取得
   const {
-    data: projectGroups = [],
+    projectGroups = [],
     isLoading: projectGroupsLoading,
     error: projectGroupsError,
     refetch: refetchProjectGroups,
@@ -659,9 +665,6 @@ export default function ProjectGroupListPage() {
                 label="非アクティブも表示"
                 variant={listState.showInactive ? "filled" : "outlined"}
                 onClick={handleShowInactiveToggle}
-                icon={
-                  listState.showInactive ? <Visibility /> : <VisibilityOff />
-                }
                 clickable
               />
             </Tooltip>
@@ -674,7 +677,7 @@ export default function ProjectGroupListPage() {
         {projectGroupsLoading ? (
           <Grid container spacing={3}>
             {Array.from({ length: 6 }).map((_, index) => (
-              <Grid item xs={12} sm={6} lg={4} key={index}>
+              <Box key={index} sx={{ width: { xs: '100%', sm: '50%', lg: '33.333%' }, px: 1, mb: 3 }}>
                 <Card>
                   <CardContent>
                     <Skeleton variant="text" width="80%" height={24} />
@@ -692,7 +695,7 @@ export default function ProjectGroupListPage() {
                     />
                   </CardContent>
                 </Card>
-              </Grid>
+              </Box>
             ))}
           </Grid>
         ) : processedProjectGroups.length === 0 ? (
@@ -725,7 +728,7 @@ export default function ProjectGroupListPage() {
         ) : (
           <Grid container spacing={3}>
             {processedProjectGroups.map((projectGroup) => (
-              <Grid item xs={12} sm={6} lg={4} key={projectGroup.id}>
+              <Box key={projectGroup.id} sx={{ width: { xs: '100%', sm: '50%', lg: '33.333%' }, px: 1, mb: 3 }}>
                 <ProjectGroupCard
                   projectGroup={projectGroup}
                   clients={clients}
@@ -736,7 +739,7 @@ export default function ProjectGroupListPage() {
                     handleToggleActiveStatus(projectGroup, isActive)
                   }
                 />
-              </Grid>
+              </Box>
             ))}
           </Grid>
         )}
@@ -922,9 +925,9 @@ const ProjectGroupCard: React.FC<ProjectGroupCardProps> = ({
           </Typography>
           <Typography variant="body2">
             {
-              BILLING_CALCULATION_TYPE_LABELS[
-                projectGroup.billingCalculationType
-              ]
+              (BILLING_CALCULATION_TYPE_LABELS as any)[
+                projectGroup.billingCalculationType as any
+              ] ?? ""
             }
           </Typography>
           {projectGroup.defaultHourlyRate && (

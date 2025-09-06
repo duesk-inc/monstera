@@ -54,6 +54,20 @@
 ### 04_development - 開発・運用
 - [🐛 デバッグログ仕様](../04_development/debug-logging.md) - ログ出力の標準化
 - [💬 Toast通知ガイド](../04_development/toast-notification-guide.md) - 統一されたユーザー通知システム
+- [🧪 E2Eテスト（Playwright）](../e2e-testing.md) - 実行方法・ENV・CI運用
+- [🧭 ルート登録ポリシー](../04_development/routes/README.md) - ルートの構造化と登録方針（軽量/構造体ベース）
+
+### ルート登録の使い分け（軽量/構造体ベース）
+
+- 軽量（SetupXxxRoutes）
+  - 単一ドメイン・共通認証のみで足りる機能に適用
+  - 例: Expense, Profile, SkillSheet, WeeklyReports, Leave, Users, WorkHistory
+
+- 構造体ベース（XxxRoutes struct）
+  - 複数ミドルウェア（Cognito+WeeklyReport権限など）や、ユーザー/管理者/統計/リマインドを一括で登録する複合ドメインに適用
+  - 例: Notifications（`NotificationRoutes`）
+
+原則: まずは軽量で実装し、要件が複雑化したら構造体ベースへ移行します。詳細・例は [🧭 ルート登録ポリシー](../04_development/routes/README.md) を参照。
 
 ---
 

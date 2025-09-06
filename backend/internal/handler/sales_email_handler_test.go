@@ -1,3 +1,6 @@
+//go:build sales_email_tests
+// +build sales_email_tests
+
 package handler
 
 import (

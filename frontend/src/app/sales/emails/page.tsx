@@ -42,7 +42,7 @@ export default function EmailsPage() {
       const [templatesResponse, campaignsResponse, proposalsResponse] = await Promise.all([
         emailTemplateApi.getList({}),
         emailCampaignApi.getList({}),
-        proposalApi.getList({ status: 'pending' }) // 送信対象の提案のみ
+        proposalApi.getList({ status: ['pending'] }) // 送信対象の提案のみ
       ]);
       
       setTemplates(templatesResponse.items || []);
@@ -181,8 +181,8 @@ export default function EmailsPage() {
   const activeTemplates = templates.filter(t => t.isActive !== false).length;
   const pendingCampaigns = campaigns.filter(c => c.status === 'scheduled').length;
   const sentToday = campaigns.filter(c => {
-    if (c.status !== 'sent' || !c.sentDate) return false;
-    const sentDate = new Date(c.sentDate);
+    if (c.status !== 'sent' || !c.updatedAt) return false;
+    const sentDate = new Date(c.updatedAt);
     const today = new Date();
     return sentDate.toDateString() === today.toDateString();
   }).length;
@@ -190,9 +190,8 @@ export default function EmailsPage() {
   return (
     <SalesLayout
       title="メール管理"
-      subtitle="テンプレート作成・一斉送信・配信管理"
       actions={
-        <Box sx={{ display: 'flex', gap: SPACING.sm }}>
+        <Box sx={{ display: 'flex', gap: SPACING.SM }}>
           {currentTab === 'templates' && (
             <Button
               variant="contained"
@@ -215,8 +214,8 @@ export default function EmailsPage() {
       }
     >
       {/* 統計情報 */}
-      <Box sx={{ mb: SPACING.lg }}>
-        <Alert severity="info" sx={{ mb: SPACING.md }}>
+      <Box sx={{ mb: SPACING.LG }}>
+        <Alert severity="info" sx={{ mb: SPACING.MD }}>
           アクティブテンプレート: {activeTemplates}件、
           送信予定: {pendingCampaigns}件、
           本日送信: {sentToday}件
@@ -224,7 +223,7 @@ export default function EmailsPage() {
       </Box>
 
       {/* タブ切り替え */}
-      <Box sx={{ mb: SPACING.lg }}>
+      <Box sx={{ mb: SPACING.LG }}>
         <Tabs value={currentTab} onChange={handleTabChange}>
           <Tab 
             icon={<Settings />} 

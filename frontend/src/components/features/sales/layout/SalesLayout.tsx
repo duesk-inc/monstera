@@ -27,7 +27,7 @@ export const SalesLayout: React.FC<SalesLayoutProps> = ({
     <Box 
       sx={{ 
         p: { xs: SPACING.md, sm: SPACING.lg },
-        maxWidth: maxWidth ? theme.breakpoints.values[maxWidth] : 'none',
+        maxWidth: maxWidth ? (theme?.breakpoints?.values?.[maxWidth] ?? 'none') : 'none',
         mx: 'auto',
         width: '100%'
       }}
@@ -48,7 +48,7 @@ export const SalesLayout: React.FC<SalesLayoutProps> = ({
           component="h1"
           sx={{
             fontWeight: 600,
-            color: theme.palette.text.primary,
+            color: theme?.palette?.text?.primary ?? '#111',
             fontSize: { xs: '1.5rem', sm: '2rem' }
           }}
         >

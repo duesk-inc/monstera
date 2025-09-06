@@ -74,7 +74,7 @@ export const CertificationInput: React.FC<CertificationInputProps> = ({
       } catch (error) {
         console.error('資格一覧取得エラー:', error); // デバッグ用
         DebugLogger.error(
-          { category: DEBUG_CATEGORIES.COMPONENT, operation: DEBUG_OPERATIONS.READ },
+          { category: DEBUG_CATEGORIES.UI, operation: DEBUG_OPERATIONS.READ },
           'よく使う資格一覧取得エラー',
           error
         );
@@ -144,7 +144,7 @@ export const CertificationInput: React.FC<CertificationInputProps> = ({
   });
 
   return (
-    <Autocomplete
+    <Autocomplete<string | CommonCertification, false, false, true>
       value={commonCertifications.find(cert => cert.name === value) || value}
       onChange={(_, newValue) => {
         if (typeof newValue === 'string') {
@@ -159,7 +159,7 @@ export const CertificationInput: React.FC<CertificationInputProps> = ({
       onInputChange={(_, newInputValue) => {
         setInputValue(newInputValue);
       }}
-      options={commonCertifications}
+      options={commonCertifications as Array<string | CommonCertification>}
       filterOptions={(options, state) => {
         console.log('フィルタリング:', {
           inputValue: state.inputValue,
@@ -168,7 +168,7 @@ export const CertificationInput: React.FC<CertificationInputProps> = ({
         });
         return filterOptions(options, state);
       }}
-      groupBy={(option) => option.category || 'その他'}
+      groupBy={(option) => (typeof option === 'string' ? 'その他' : option.category || 'その他')}
       getOptionLabel={(option) => {
         if (typeof option === 'string') {
           return option;
@@ -176,10 +176,9 @@ export const CertificationInput: React.FC<CertificationInputProps> = ({
         return option.name;
       }}
       isOptionEqualToValue={(option, value) => {
-        if (typeof value === 'string') {
-          return option.name === value;
-        }
-        return option.name === value.name;
+        const optName = typeof option === 'string' ? option : option.name;
+        const valName = typeof value === 'string' ? value : value.name;
+        return optName === valName;
       }}
       freeSolo
       loading={loading}
@@ -189,9 +188,9 @@ export const CertificationInput: React.FC<CertificationInputProps> = ({
         <li {...props}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
             <Typography variant="body2" sx={{ flexGrow: 1 }}>
-              {option.name}
+              {typeof option === 'string' ? option : option.name}
             </Typography>
-            {option.isCommon && (
+            {typeof option !== 'string' && option.isCommon && (
               <VerifiedIcon 
                 sx={{ 
                   fontSize: 16, 

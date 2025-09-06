@@ -204,6 +204,8 @@ export const BILLING_CALCULATION_TYPE = {
   FIXED: "fixed",
   MONTHLY: "monthly",
   DAILY: "daily",
+  // Backward compat for legacy UI condition
+  VARIABLE_UPPER_LOWER: "variable_upper_lower",
 } as const;
 
 // 請求計算タイプラベル
@@ -212,6 +214,7 @@ export const BILLING_CALCULATION_TYPE_LABELS = {
   [BILLING_CALCULATION_TYPE.FIXED]: "固定金額",
   [BILLING_CALCULATION_TYPE.MONTHLY]: "月額",
   [BILLING_CALCULATION_TYPE.DAILY]: "日額",
+  [BILLING_CALCULATION_TYPE.VARIABLE_UPPER_LOWER]: "上下限時間制",
 } as const;
 
 // 請求計算タイプ説明
@@ -220,6 +223,7 @@ export const BILLING_CALCULATION_TYPE_DESCRIPTIONS = {
   [BILLING_CALCULATION_TYPE.FIXED]: "固定金額で計算",
   [BILLING_CALCULATION_TYPE.MONTHLY]: "月額固定で計算",
   [BILLING_CALCULATION_TYPE.DAILY]: "日額単価で計算",
+  [BILLING_CALCULATION_TYPE.VARIABLE_UPPER_LOWER]: "上下限時間の範囲で計算",
 } as const;
 
 // 請求ステータス
@@ -322,10 +326,10 @@ export const SCHEDULE_STATUS_LABELS = {
 
 // Cronプリセット
 export const CRON_PRESETS = {
-  DAILY: "0 9 * * *",
-  WEEKLY: "0 9 * * 1",
-  MONTHLY: "0 9 1 * *",
-  QUARTERLY: "0 9 1 */3 *",
+  DAILY: { label: "毎日 9:00", expression: "0 9 * * *" },
+  WEEKLY: { label: "毎週月曜 9:00", expression: "0 9 * * 1" },
+  MONTHLY: { label: "毎月1日 9:00", expression: "0 9 1 * *" },
+  QUARTERLY: { label: "四半期初日 9:00", expression: "0 9 1 */3 *" },
 } as const;
 
 // チャート設定
@@ -372,6 +376,15 @@ export const VALIDATION_RULES = {
     MAX_LENGTH: 100,
     PATTERN: /^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\s\-_]+$/,
   },
+  // Backward-compatible alias used by some components
+  PROJECT_GROUP_NAME: {
+    MIN_LENGTH: 1,
+    MAX_LENGTH: 100,
+  },
+  SCHEDULE_NAME: {
+    MIN_LENGTH: 1,
+    MAX_LENGTH: 100,
+  },
   BILLING_AMOUNT: {
     MIN: 0,
     MAX: 999999999,
@@ -383,10 +396,18 @@ export const VALIDATION_RULES = {
   DESCRIPTION: {
     MAX_LENGTH: 1000,
   },
+  CRON_EXPRESSION: {
+    // 非厳密だが基本的な5フィールドの形式チェック
+    PATTERN: /^(\*|([0-5]?\d))\s+(\*|([01]?\d|2[0-3]))\s+(\*|([012]?\d|3[01]))\s+(\*|(1[0-2]|0?[1-9]))\s+(\*|([0-6]|[0-6]-[0-6]|[0-6](,[0-6])+))$/,
+  },
 } as const;
 
 // バリデーションメッセージ
 export const VALIDATION_MESSAGES = {
+  REQUIRED: "必須項目です",
+  MIN_LENGTH: (min: number) => `${min}文字以上で入力してください`,
+  MAX_LENGTH: (max: number) => `${max}文字以内で入力してください`,
+  INVALID_CRON: "Cron式の形式が不正です",
   PROJECT_NAME_REQUIRED: "プロジェクト名は必須です",
   PROJECT_NAME_TOO_SHORT: "プロジェクト名は1文字以上入力してください",
   PROJECT_NAME_TOO_LONG: "プロジェクト名は100文字以内で入力してください",

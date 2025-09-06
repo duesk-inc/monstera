@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test'
+test.use({ storageState: 'e2e/.auth/engineer.json' })
 import { uiLogin, hasCreds } from './utils/auth'
 
 test.describe('Weekly report smoke', () => {
-  test('open weekly report page and basic elements', async ({ page }) => {
+  test('@smoke open weekly report page and basic elements', async ({ page }) => {
     test.skip(!hasCreds(), 'E2E credentials not provided')
     await uiLogin(page)
 

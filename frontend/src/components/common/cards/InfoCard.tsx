@@ -99,8 +99,9 @@ export const InfoCard: React.FC<InfoCardProps> = ({
 
   // ローディング状態の表示
   if (loading) {
+    const mergedSx: any = { ...(getVariantStyles() as any), ...(sx as any) };
     return (
-      <Card sx={{ ...getVariantStyles(), ...sx }} data-testid={testId}>
+      <Card sx={mergedSx} data-testid={testId}>
         <CardContent>
           <Box display="flex" justifyContent="center" alignItems="center" minHeight={minHeight || 100}>
             <CircularProgress />
@@ -112,8 +113,9 @@ export const InfoCard: React.FC<InfoCardProps> = ({
 
   // エラー状態の表示
   if (error) {
+    const mergedSx: any = { ...(getVariantStyles() as any), ...(sx as any) };
     return (
-      <Card sx={{ ...getVariantStyles(), ...sx }} data-testid={testId}>
+      <Card sx={mergedSx} data-testid={testId}>
         <CardContent>
           <Alert severity="error">
             {error}
@@ -124,8 +126,9 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   }
 
   // 通常表示
+  const mergedSx: any = { ...(getVariantStyles() as any), ...(sx as any) };
   return (
-    <Card sx={{ ...getVariantStyles(), ...sx }} data-testid={testId}>
+    <Card sx={mergedSx} data-testid={testId}>
       <CardContent sx={{ pb: 1 }}>
         {title && (
           <Box 

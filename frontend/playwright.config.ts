@@ -23,7 +23,7 @@ export default defineConfig({
   /* 全テスト共通設定 */
   use: {
     /* ベースURL */
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.E2E_BASE_URL || 'http://localhost:3000',
     /* ブラウザコンテキスト設定 */
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
@@ -54,7 +54,7 @@ export default defineConfig({
 
   /* 開発サーバー設定 */
   webServer: {
-    command: 'npm run dev',
+    command: 'E2E_BYPASS_AUTH=true npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

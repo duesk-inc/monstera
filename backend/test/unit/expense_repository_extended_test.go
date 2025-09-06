@@ -99,13 +99,13 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_CreateWit
 	suite.db.Exec("PRAGMA foreign_keys = ON")
 
 	// 存在しないユーザーIDでの経費申請作成
-	expense := &model.Expense{
-		ID:          uuid.New(),
-		UserID:      uuid.New(), // 存在しないユーザーID
-		Title:       "テスト経費",
-		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
-		Amount:      5000,
+		expense := &model.Expense{
+			ID:          uuid.New().String(),
+			UserID:      uuid.New().String(), // 存在しないユーザーID
+			Title:       "テスト経費",
+			Category:    model.ExpenseCategoryOther,
+			CategoryID:  uuid.New().String(),
+			Amount:      5000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
 		Description: "テスト用の経費申請です",
@@ -121,13 +121,13 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_CreateWit
 
 // TestExpenseRepository_UpdateNonExistent 存在しない経費申請の更新テスト
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_UpdateNonExistent() {
-	expense := &model.Expense{
-		ID:          uuid.New(),
-		UserID:      uuid.New(),
-		Title:       "存在しない経費",
-		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
-		Amount:      5000,
+		expense := &model.Expense{
+			ID:          uuid.New().String(),
+			UserID:      uuid.New().String(),
+			Title:       "存在しない経費",
+			Category:    model.ExpenseCategoryOther,
+			CategoryID:  uuid.New().String(),
+			Amount:      5000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
 		Description: "存在しない経費申請の更新テスト",
@@ -143,7 +143,7 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_UpdateNon
 
 // TestExpenseRepository_DeleteNonExistent 存在しない経費申請の削除テスト
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_DeleteNonExistent() {
-	nonExistentID := uuid.New()
+	nonExistentID := uuid.New().String()
 
 	err := suite.repository.Delete(suite.ctx, nonExistentID)
 	// エラーは発生しないが、0行削除される
@@ -152,7 +152,7 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_DeleteNon
 
 // TestExpenseRepository_GetMonthlyTotalNoData データがない場合の月次合計テスト
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_GetMonthlyTotalNoData() {
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	total, err := suite.repository.GetMonthlyTotal(suite.ctx, userID, 2024, 1)
 
@@ -162,7 +162,7 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_GetMonthl
 
 // TestExpenseRepository_CountPendingNoData 保留中データがない場合のカウントテスト
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_CountPendingNoData() {
-	userID := uuid.New()
+	userID := uuid.New().String()
 
 	count, err := suite.repository.CountPendingByUserID(suite.ctx, userID)
 
@@ -173,19 +173,19 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_CountPend
 // TestExpenseRepository_ListWithPagination ページネーションテスト
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_ListWithPagination() {
 	// テストユーザーの作成（手動挿入）
-	userID := uuid.New()
+	userID := uuid.New().String()
 	suite.db.Exec("INSERT INTO users (id, email, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		userID.String(), "test@duesk.co.jp", "Test", "User", "Test User", time.Now(), time.Now())
+		userID, "test@duesk.co.jp", "Test", "User", "Test User", time.Now(), time.Now())
 
 	// 10件の経費申請を作成
 	for i := 0; i < 10; i++ {
-		expense := &model.Expense{
-			ID:          uuid.New(),
-			UserID:      userID,
-			Title:       "経費申請" + string(rune(i+1)),
-			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
-			Amount:      1000 * (i + 1),
+			expense := &model.Expense{
+				ID:          uuid.New().String(),
+				UserID:      userID,
+				Title:       "経費申請" + string(rune(i+1)),
+				Category:    model.ExpenseCategoryOther,
+				CategoryID:  uuid.New().String(),
+				Amount:      1000 * (i + 1),
 			Status:      model.ExpenseStatusDraft,
 			ExpenseDate: time.Now().Add(-time.Duration(i) * 24 * time.Hour),
 			Description: "テスト経費申請" + string(rune(i+1)),
@@ -227,9 +227,9 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_ListWithP
 // TestExpenseRepository_StatusFiltering ステータスフィルタリングテスト
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_StatusFiltering() {
 	// テストユーザーの作成（手動挿入）
-	userID := uuid.New()
+	userID := uuid.New().String()
 	suite.db.Exec("INSERT INTO users (id, email, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		userID.String(), "test@duesk.co.jp", "Test", "User", "Test User", time.Now(), time.Now())
+		userID, "test@duesk.co.jp", "Test", "User", "Test User", time.Now(), time.Now())
 
 	// 異なるステータスの経費申請を作成
 	statuses := []model.ExpenseStatus{
@@ -240,13 +240,13 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_StatusFil
 	}
 
 	for i, status := range statuses {
-		expense := &model.Expense{
-			ID:          uuid.New(),
-			UserID:      userID,
-			Title:       "経費申請" + string(status),
-			Category:    model.ExpenseCategoryOther,
-			CategoryID:  uuid.New(),
-			Amount:      1000 * (i + 1),
+			expense := &model.Expense{
+				ID:          uuid.New().String(),
+				UserID:      userID,
+				Title:       "経費申請" + string(status),
+				Category:    model.ExpenseCategoryOther,
+				CategoryID:  uuid.New().String(),
+				Amount:      1000 * (i + 1),
 			Status:      status,
 			ExpenseDate: time.Now(),
 			Description: "ステータス" + string(status) + "の経費申請",
@@ -276,17 +276,17 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_StatusFil
 // TestExpenseRepository_ConcurrentUpdate 楽観的ロックのテスト
 func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_ConcurrentUpdate() {
 	// テストユーザーの作成（手動挿入）
-	userID := uuid.New()
+	userID := uuid.New().String()
 	suite.db.Exec("INSERT INTO users (id, email, first_name, last_name, name, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		userID.String(), "test@duesk.co.jp", "Test", "User", "Test User", time.Now(), time.Now())
+		userID, "test@duesk.co.jp", "Test", "User", "Test User", time.Now(), time.Now())
 
 	// 経費申請を作成
 	expense := &model.Expense{
-		ID:          uuid.New(),
+		ID:          uuid.New().String(),
 		UserID:      userID,
 		Title:       "楽観ロックテスト",
 		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
+		CategoryID:  uuid.New().String(),
 		Amount:      5000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
@@ -309,7 +309,7 @@ func (suite *ExpenseRepositoryExtendedTestSuite) TestExpenseRepository_Concurren
 		UserID:      userID,
 		Title:       "更新されたタイトル2",
 		Category:    model.ExpenseCategoryOther,
-		CategoryID:  uuid.New(),
+		CategoryID:  uuid.New().String(),
 		Amount:      6000,
 		Status:      model.ExpenseStatusDraft,
 		ExpenseDate: time.Now(),
@@ -338,12 +338,12 @@ func TestExpenseRepository_EdgeCases(t *testing.T) {
 		repo := repository.NewExpenseRepository(db, zap.NewNop())
 		ctx := context.Background()
 
-		// 空のUUIDでの検索
-		_, err = repo.GetByID(ctx, uuid.Nil)
+			// 空のUUIDでの検索
+			_, err = repo.GetByID(ctx, uuid.Nil.String())
 		assert.Error(t, err, "空のUUIDでの検索はエラーになる")
 
-		// 存在チェック
-		exists, err := repo.ExistsByID(ctx, uuid.Nil)
+			// 存在チェック
+			exists, err := repo.ExistsByID(ctx, uuid.Nil.String())
 		assert.NoError(t, err, "空のUUIDでの存在チェックはエラーにならない")
 		assert.False(t, exists, "空のUUIDは存在しない")
 	})
@@ -361,7 +361,7 @@ func TestExpenseRepository_EdgeCases(t *testing.T) {
 			Limit: 10,
 		}
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 		expenses, total, err := repo.ListByUserID(ctx, userID, filter)
 
 		assert.NoError(t, err, "極端なページ番号でもエラーにならない")
@@ -376,7 +376,7 @@ func TestExpenseRepository_EdgeCases(t *testing.T) {
 		repo := repository.NewExpenseRepository(db, zap.NewNop())
 		ctx := context.Background()
 
-		userID := uuid.New()
+		userID := uuid.New().String()
 
 		// 無効な月での月次集計
 		total, err := repo.GetMonthlyTotal(ctx, userID, 2024, 13) // 13月
