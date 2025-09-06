@@ -1,0 +1,38 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": true,
+    "tsBuildInfoFile": "./.tsbuildinfo.typecheck",
+    "plugins": []
+  },
+  "include": [
+    "src/app/(auth)/**/*",
+    "src/app/(authenticated)/(engineer)/**/*",
+    "src/components/**/*",
+    "src/constants/**/*",
+    "src/context/**/*",
+    "src/hooks/**/*",
+    "src/lib/api/**/*",
+    "src/lib/utils/**/*",
+    "src/types/**/*",
+    "src/utils/**/*",
+    "next-env.d.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "backup-*/**",
+    "cypress-legacy/**",
+    "src/__tests__/**",
+    "src/__mocks__/**",
+    "**/__tests__/**",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/test-*.ts",
+    "src/lib/api/sales/**",
+    "src/components/features/sales/**",
+    "src/app/sales/**",
+    "src/app/*/*/engineer-proposals/**",
+    "src/app/(authenticated)/(sales)/**"
+  ]
+}
